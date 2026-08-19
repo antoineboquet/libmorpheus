@@ -4,12 +4,8 @@
 #include <string.h>
 #include "libfiles.h"
 #define SEGSIZE 100000
-#define RTF_MAXDOMAINS 256
 
 #include "beta2rtf.proto.h"
-
-char * domlist[RTF_MAXDOMAINS];
-char lastdom[BUFSIZ];
 
 int _main(int argc, char *argv[])
 {

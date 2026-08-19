@@ -6,13 +6,21 @@
 
 #include "indkeys.proto.h"
 
+typedef struct {
+	char curkey[LONGSTRING];
+	char prevkey[LONGSTRING];
+	int nkeys;
+} index_key_state;
 
-char curkey[LONGSTRING];
-char prevkey[LONGSTRING];
-int nkeys = MODULUS + 1;
+#ifdef DECALPHA
+static void prockeyline(char *, int, int, FILE *, index_key_state *);
+#else
+static void prockeyline(char *, int, long, FILE *, index_key_state *);
+#endif
 
 int index_list(char *listname, char *tagstring, int modulus)
 {
+	index_key_state state = {{0}, {0}, MODULUS + 1};
 	FILE * finput;
 	FILE * foutput;
 	char outfile[BUFSIZ];
@@ -62,9 +70,9 @@ int index_list(char *listname, char *tagstring, int modulus)
 		if( line[0] == '#' ) continue;
 		if( tagstring ) {
 			if( ! Xstrncmp(line,tagstring,taglen) ) 
-			prockeyline(line+taglen,modulus,curoff,foutput);
+			prockeyline(line+taglen,modulus,curoff,foutput,&state);
 		} else
-			prockeyline(line,modulus,curoff,foutput);
+			prockeyline(line,modulus,curoff,foutput,&state);
 	}
 	fclose(finput);
 	fclose(foutput);
@@ -72,12 +80,12 @@ int index_list(char *listname, char *tagstring, int modulus)
 }
 
 
-static int count = 0;
-
 #ifdef DECALPHA
-void prockeyline(char *s, int modulus, int curoff, FILE *f)
+static void prockeyline(char *s, int modulus, int curoff, FILE *f,
+	index_key_state *state)
 #else
-void prockeyline(char *s, int modulus, long curoff, FILE *f)
+static void prockeyline(char *s, int modulus, long curoff, FILE *f,
+	index_key_state *state)
 #endif
 {
 	char curlemma[LONGSTRING];
@@ -88,23 +96,22 @@ void prockeyline(char *s, int modulus, long curoff, FILE *f)
 	p = s;
 	
 	for(i=0;i<KEYLEN;i++) {
-		curkey[i] = *p++;
-		curkey[i+1] = 0;
+		state->curkey[i] = *p++;
+		state->curkey[i+1] = 0;
 		if( (! *p) || isspace( * p ) )
 			break;
 	}
 	
-	if( ++nkeys >= modulus && morphstrcmp(curkey,prevkey) ) {
+	if( ++state->nkeys >= modulus && morphstrcmp(state->curkey,state->prevkey) ) {
 		if( prntflag )
-			fprintf(stdout,"%s\t%ld\n", curkey , (long)curoff );
+			fprintf(stdout,"%s\t%ld\n", state->curkey , (long)curoff );
 
-		WriteKey(curkey,&curoff,f);
-		nkeys = 0;
+		WriteKey(state->curkey,&curoff,f);
+		state->nkeys = 0;
 	} else {
 		if( prntflag )
-			printf("not writing key [%s]:nkeys %d modulus %d prev %s curkey [%s] curoff %ld\n",s,nkeys, modulus, prevkey, curkey , (long)curoff );
+			printf("not writing key [%s]:nkeys %d modulus %d prev %s curkey [%s] curoff %ld\n",
+				s,state->nkeys,modulus,state->prevkey,state->curkey,(long)curoff);
 	}
-	Xstrncpy(prevkey,curkey,LONGSTRING);
-
-	count++;
+	Xstrncpy(state->prevkey,state->curkey,LONGSTRING);
 }
