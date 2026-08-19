@@ -11,6 +11,11 @@ include(CTest)
 include(GNUInstallDirs)
 
 option(MORPHEUS_BUILD_CRUNCHER "Build the legacy-compatible cruncher CLI" ON)
+option(
+  MORPHEUS_ENABLE_SANITIZERS
+  "Build the runtime with AddressSanitizer and UndefinedBehaviorSanitizer"
+  OFF
+)
 
 set(
   MORPHEUS_STEMLIB_DIR
@@ -44,6 +49,29 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-overflow>
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-truncation>
 )
+
+if(MORPHEUS_ENABLE_SANITIZERS)
+  if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(
+      morpheus_build_options
+      INTERFACE
+        -fsanitize=address,undefined
+        -fno-omit-frame-pointer
+        -fno-sanitize-recover=all
+    )
+    target_link_options(
+      morpheus_build_options
+      INTERFACE
+        -fsanitize=address,undefined
+        -fno-sanitize-recover=all
+    )
+  else()
+    message(
+      FATAL_ERROR
+      "MORPHEUS_ENABLE_SANITIZERS requires GCC, Clang, or AppleClang"
+    )
+  endif()
+endif()
 
 add_library(morpheus_greeklib STATIC
   src/greeklib/Fclose.c

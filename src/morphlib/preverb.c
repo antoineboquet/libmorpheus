@@ -489,8 +489,11 @@ void comp_preverb(char *pb, int unasp, MorphFlags *oddpb)
 static
 void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 {
+	size_t prevb_len;
 	
 	stripacc(prevb); /* accents on the word stem take priority */
+	if (!*prevb) return;
+	prevb_len = Xstrlen(prevb);
 	
 	if (!verbose) {		/* process normally */
 	
@@ -499,7 +502,8 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 	 *
 	 * cope with forms such as pera/ptwn
 	 */
-		if( (! strcmp(lastn(prevb,4),"peri") || ! strcmp(lastn(prevb,5),"proti"))
+		if( ((prevb_len >= 4 && !strcmp(lastn(prevb,4),"peri")) ||
+		     (prevb_len >= 5 && !strcmp(lastn(prevb,5),"proti")))
 			&& has_morphflag(oddpb,ELIDE_PREVERB)) {
 			*lastn(prevb,1) = 0;
 		} else 
@@ -509,7 +513,7 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 		 * a)mfi-exw --> a)mp-exw
 		 * a)mfi-isxw --> a)mp-isxw
 		 */
-		if( !strcmp(lastn(prevb,3), "mfi")) {
+		if( prevb_len >= 3 && !strcmp(lastn(prevb,3), "mfi")) {
 			if( /*First_K_aspirate(word)  && */has_dissimilation(oddpb) ) {
 				*(lastn(prevb,2)) = 'p'; /* dissimilate */
 				if( Is_vowel(*word) ) strsqz(lastn(prevb,1),1);
@@ -539,7 +543,7 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 				if( *word == 'i' || elide_preverb(oddpb) )  strsqz(lastn(prevb,1),1);
 		} 
 		/* a)nti+oxeu/omai --> a)ntioxeu/omai, not a)ntoxeu/omai */
-		else if( !strcmp(lastn(prevb,3), "nti") && Is_vowel(*word) )  {
+		else if( prevb_len >= 3 && !strcmp(lastn(prevb,3), "nti") && Is_vowel(*word) )  {
 			if( *word != 'o'  ) {
 				*lastn(prevb,1) = 0;
 			} else if( *word == 'o' &&  elide_preverb(oddpb) ) {
@@ -554,8 +558,9 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 			  ! has_morphflag(oddpb,UNASP_PREVERB) )
 				*lastn(prevb,1)  = 'q';
 		} else if (Is_vowel(*word) ) {
-			  if( strcmp(lastn(prevb,3),"pro")&&strcmp(lastn(prevb,4),"peri")&&
-			  	 strcmp(lastn(prevb,5),"proti")){
+			  if( (prevb_len < 3 || strcmp(lastn(prevb,3),"pro")) &&
+			      (prevb_len < 4 || strcmp(lastn(prevb,4),"peri")) &&
+			      (prevb_len < 5 || strcmp(lastn(prevb,5),"proti")) ) {
 				if (Is_vowel(*lastn(prevb,1))) {
 					if (*lastn(prevb,1) != 'i') {	/* dia + vowel --> di */
 						strsqz(lastn(prevb,1),1);

@@ -27,6 +27,31 @@ jobs:
       - name: Test
         run: ctest --preset dev
 
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure sanitizers
+        run: cmake --preset sanitizers
+
+      - name: Build sanitizers
+        run: cmake --build --preset sanitizers
+
+      - name: Test sanitizers
+        env:
+          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1:strict_string_checks=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: ctest --preset sanitizers
+
   legacy-make:
     runs-on: ubuntu-latest
     steps:

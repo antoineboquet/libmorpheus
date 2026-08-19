@@ -736,8 +736,8 @@ setwendstr(char *wendstr, char *str)
 		*s++ = *p++;
 	}
 
-	if(*(s-1) == HARDSHORT ) *--s = 0;
-	if( *(s-1) == '-' && p > str) {
+	if(s > wendstr && *(s-1) == HARDSHORT ) *--s = 0;
+	if(s > wendstr && *(s-1) == '-') {
 		start_match = 1;
 		s--;
 	} else

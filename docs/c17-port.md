@@ -112,6 +112,30 @@ all three output names. All 118 library sources plus `stdiomorph.c` pass with
 format, overflow, and truncation warnings promoted to errors. CMake enforces
 these checks across the runtime.
 
+## Buffer and allocation ownership
+
+The runtime keeps its historical caller-supplied buffer model. Functions that
+receive a writable `char *` do not allocate or retain that buffer; the caller
+owns its storage and must provide the capacity stated by the interface, normally
+`MAXWORDSIZE` or `LONGSTRING`. Checked path and compound-key builders now fail
+instead of truncating when that capacity is insufficient.
+
+`CreatGkString`, `CreatGkAnal`, and `CreatGkword` return heap allocations.
+`FreeGkString`, `FreeGkAnal`, and `FreeGkword` release them; `FreeGkword` also
+owns and releases its attached analysis array and odd-key buffer. `CpGkAnal` is
+a shallow copy of the analysis pointer and count, so it does not create a second
+independently owned analysis array.
+
+The `sanitizers` CMake preset instruments the full runtime with ASan and UBSan.
+CI runs both fixture suites with immediate failure on memory or undefined-
+behavior reports. Leak detection is disabled until the process-lifetime lookup
+tables move into the planned opaque context with an explicit destructor.
+
+The first instrumented fixture pass found and fixed three lifetime violations:
+empty ending strings no longer read before their stack buffer, preverb suffix
+checks now verify the available length before computing a suffix pointer, and
+the accent-insensitive comparison buffer remains alive until its final use.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before
@@ -142,8 +166,8 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Document buffer ownership and enable ASan/UBSan in CI.
-2. Move mutable process state into an opaque context, then extract the public
+1. Move mutable process state into an opaque context, add deterministic teardown,
+   then enable leak detection and extract the public
    `libmorpheus` ABI.
 
 Every lot must keep both fixture suites passing: the inherited Perseids
