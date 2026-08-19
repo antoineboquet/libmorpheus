@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 #include <stdio.h>
 #include <string.h>
 

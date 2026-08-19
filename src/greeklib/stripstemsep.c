@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*
  * grc 2/7/88
  */

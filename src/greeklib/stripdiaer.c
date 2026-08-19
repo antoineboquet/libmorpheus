@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*
  *	greg crane
  *	

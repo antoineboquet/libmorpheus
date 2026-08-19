@@ -1,3 +1,3 @@
 
 /* cinsert.c */
-int cinsert(char, char *);
+int cinsert(int, char *);

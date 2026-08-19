@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 #include <greek.h>
 
 #include "beta_tolower.proto.h"

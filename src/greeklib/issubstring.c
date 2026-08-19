@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*
  * Gregory Crane
  * Harvard University

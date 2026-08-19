@@ -90,6 +90,11 @@ add_library(morpheus_greeklib STATIC
   src/greeklib/zap2ndbreath.c
 )
 target_link_libraries(morpheus_greeklib PUBLIC morpheus_build_options)
+target_compile_options(
+  morpheus_greeklib
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+)
 
 add_library(morpheus_morphlib STATIC
   src/morphlib/adddomain.c

@@ -1,4 +1,5 @@
 
+#include "greeklib_internal.h"
 #include "stripmeta.proto.h"
 /*
  * gregory crane

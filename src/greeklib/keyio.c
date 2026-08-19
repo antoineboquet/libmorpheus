@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 #include <greek.h>
 #include <endtags.h>
 
