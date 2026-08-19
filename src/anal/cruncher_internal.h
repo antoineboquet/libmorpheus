@@ -13,9 +13,9 @@ int show_totanals(void);
 int show_totlems(void);
 
 /* Runtime configuration and Beta Code normalisation helpers. */
-int set_lang(int language);
+void set_lang(int language);
 int cur_lang(void);
-int trimwhite(char *string);
+void trimwhite(char *string);
 void stripbreath(char *word);
 void addbreath(char *word, int breathing);
 

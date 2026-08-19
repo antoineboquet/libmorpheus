@@ -17,7 +17,7 @@
  * sigma has been replaced by the 'h'. It replaces the 's' and marks this word as 
  * "Laconian".
  */
-int stand_phonetics(gk_word *Gkword)
+void stand_phonetics(gk_word *Gkword)
 {
 	register char * s = workword_of(Gkword);
 	int lastc = 0;

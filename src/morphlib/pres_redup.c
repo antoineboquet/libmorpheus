@@ -3,7 +3,7 @@
 
 #include "pres_redup.proto.h"
 
-int pres_redupl(char *s)
+void pres_redupl(char *s)
 {
 	simpleredupit(s,0,'i');
 }

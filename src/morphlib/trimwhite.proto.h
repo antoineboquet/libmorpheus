@@ -1,3 +1,3 @@
 
 /* trimwhite.c */
-int trimwhite(char *);
+void trimwhite(char *);

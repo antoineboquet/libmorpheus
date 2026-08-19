@@ -66,6 +66,11 @@ Stem contraction, ending-buffer cleanup, diagnostic output, collation-table
 initialization, and stem annotation are likewise side-effect-only procedures;
 their definitions and internal prototypes now expose that `void` contract.
 
+The same classification covers movable-nu insertion, present reduplication,
+language selection, flag rendering, phonetic normalization, and whitespace
+cleanup. Character-level SMK conversion remains a query and now returns its
+input explicitly when no special mapping applies.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before
