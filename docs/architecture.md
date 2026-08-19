@@ -34,10 +34,10 @@ The intended architecture extracts the analyzer behind a stable C ABI named
 `libmorpheus`. `cruncher` will become a compatibility client of that ABI, while
 the Bailly Deno API will consume structured results through FFI.
 
-The initial CMake milestone does not introduce that ABI and does not change the
-legacy C dialect. Its only purpose is to establish a reproducible runtime build
-and a behavioral baseline. The C17 port and the extraction of the public API
-will follow as separately testable changes.
+The initial CMake milestone established a reproducible runtime build and a
+behavioral baseline. The runtime now builds in C17 mode, while the inherited
+K&R-style definitions and compiler extensions are removed incrementally. The
+extraction of the public API remains a separately testable change.
 
 ## Known constraints
 

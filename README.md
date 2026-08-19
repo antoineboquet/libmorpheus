@@ -5,10 +5,10 @@ Ancient Greek and Latin. The code baseline comes from the Perseids fork; the
 runtime data used by Bailly comes from Alpheios.
 
 The first milestone establishes a reproducible runtime build and behavioral
-tests before changing the C dialect or extracting a public FFI API. The current
-runtime therefore still uses the inherited GNU C90-compatible mode. The target
-is C17 and an embeddable `libmorpheus` with `cruncher` retained as a compatibility
-client.
+tests before extracting a public FFI API. The runtime now builds in C17 mode;
+the migration away from inherited K&R-style definitions and compiler extensions
+continues incrementally under the fixture suites. The target is an embeddable
+`libmorpheus` with `cruncher` retained as a compatibility client.
 
 See [the architecture baseline](docs/architecture.md) and
 [source provenance](docs/provenance.md) for the boundaries and exact upstream
@@ -81,8 +81,8 @@ The inherited Makefiles remain available during the transition:
 
 ```sh
 make -C src clean
-CFLAGS='-std=gnu89 -fcommon' make -C src libs
-CFLAGS='-std=gnu89 -fcommon' make -C src/anal cruncher
+CFLAGS='-std=c17 -fcommon' make -C src libs
+CFLAGS='-std=c17 -fcommon' make -C src/anal cruncher
 ```
 
 ## Current command-line interface

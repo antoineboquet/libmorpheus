@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out sources and stemlib
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -30,10 +30,10 @@ jobs:
   legacy-make:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build runtime with the inherited Makefiles
         run: |
           make -C src clean
-          CFLAGS='-std=gnu89 -fcommon' make -C src libs
-          CFLAGS='-std=gnu89 -fcommon' make -C src/anal cruncher
+          CFLAGS='-std=c17 -fcommon' make -C src libs
+          CFLAGS='-std=c17 -fcommon' make -C src/anal cruncher

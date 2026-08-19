@@ -19,10 +19,10 @@ set(
   "Path containing the precompiled Greek stemlib"
 )
 
-# The first modernization milestone intentionally preserves the compiler mode
-# used by the Perseids implementation. Moving the runtime to C17 and removing
-# -fcommon are separate, test-driven changes.
-set(CMAKE_C_STANDARD 90)
+# The runtime is built as C17. GNU/Clang extensions remain enabled temporarily
+# while the inherited K&R-style definitions and missing prototypes are migrated
+# incrementally under the behavioral fixture suites.
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
