@@ -7,9 +7,9 @@ gk_word * GenStemForms();
 static int count = 0;
 char * 	GetLemmStem();
 
-extern verbose;
+extern int verbose;
 
-checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
+int checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
 {
 	int i, j;
 	int hits;
@@ -146,7 +146,7 @@ fprintf(stderr,"checkdict: stem [%s] endstring [%s] keyp [%s]\n", stem_of(Gkword
 		* ends_gstr_of(Gkword) = * ends_gstr_of(&SaveGkword);
 	
 		if( gkforms ) {
-			FreeGkString(gkforms);
+			FreeGkString((gk_string *)gkforms);
 			gkforms = NULL;
 		}
 	

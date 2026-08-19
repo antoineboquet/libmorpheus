@@ -9,7 +9,7 @@ static char prevword[MAXWORDSIZE];
 static char prevstem[MAXWORDSIZE];
 static int curan = 0;
 
-PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
+int PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 {
   int i, nanals;
   gk_analysis * Anal;
@@ -63,6 +63,7 @@ PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
       Xstrncat(pbuf,"\r",MAXANALYSES * 128);
   }
   /*	puts(pbuf);*/
+  return(nanals);
 }
 
 char *
@@ -71,9 +72,7 @@ anal_buf(void)
   return(pbuf);
 }
 
-GoodAnals(Gkword,lemmflag)
-gk_word * Gkword;
-int lemmflag;
+static int GoodAnals(gk_word *Gkword, int lemmflag)
 {
   char curlem[MAXWORDSIZE];
   gk_analysis * Anal;
@@ -102,7 +101,7 @@ int lemmflag;
   return(lemmflag? difflems : goodanals );
 }
 
-DumpLemmaInfo(gk_word *Gkword, PrntFlags prntflags, FILE *f)
+void DumpLemmaInfo(gk_word *Gkword, PrntFlags prntflags, FILE *f)
 {
   int i = 0;
   gk_analysis * Anal;
@@ -132,7 +131,7 @@ DumpLemmaInfo(gk_word *Gkword, PrntFlags prntflags, FILE *f)
   }
 }
 
-PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
+void PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
 {
   PrntFlags showlemma;
   gk_string * TmpGstr;
@@ -222,7 +221,7 @@ finish:
   FreeGkString(TmpGstr);
 }
 
-near_miss(gk_string *gstr, char *checks, int code)
+void near_miss(gk_string *gstr, char *checks, int code)
 {
 /*
 fprintf(stdout,"near miss with code %o checks [%s] and [%s]\n", code, checks , gkstring_of(gstr) );
@@ -232,7 +231,7 @@ fputc('\n',stdout);
 }
 
 
-odd_morpheme(gk_analysis *Gkanal, gk_string *gstr, char *tag, char *bufp, int showflg)
+void odd_morpheme(gk_analysis *Gkanal, gk_string *gstr, char *tag, char *bufp, int showflg)
 {
   char tmp2[128];
   char mflagbuf[256];
@@ -261,7 +260,7 @@ odd_morpheme(gk_analysis *Gkanal, gk_string *gstr, char *tag, char *bufp, int sh
   }
 }
 
-dump_all_anals(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
+void dump_all_anals(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 {
   int i = 0;
   int nanals = totanal_of(Gkword);
@@ -316,7 +315,7 @@ dump_all_anals(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 
 int CompAnals(const void*, const void*);
 
-SortAnals(gk_analysis *Anal, int nanals)
+void SortAnals(gk_analysis *Anal, int nanals)
 {
   /*
     lqsort(Anal,(long)nanals,(int)sizeof * Anal,CompAnals);
@@ -333,7 +332,7 @@ int CompAnals(const void* Anal1, const void* Anal2)
 static gk_string EndGstr;
 static word_form forminfo;
 
-DumpPerseusAnalysis(
+void DumpPerseusAnalysis(
 		    gk_word *Gkword,
 		    PrntFlags prntflags,
 		    gk_analysis *anal,
@@ -388,13 +387,13 @@ DumpPerseusAnalysis(
     fprintf(fout,"\t%d</NL>",forminfo_of(anal));
   }
   else {
-    GregSprintGkFlags(anal,tmp," "," ",1);
+    GregSprintGkFlags((gk_string *)anal,tmp," "," ",1);
     fprintf(fout,"%s</NL>", tmp );
   }
 
 }
 
-DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
+void DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
 {
   
   char tmp[BUFSIZ];
@@ -412,7 +411,7 @@ DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   fprintf(fout,"\n");
 }
 
-DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
+void DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
 {
   char tmp[LONGSTRING];
   char tmp2[LONGSTRING];
@@ -453,7 +452,7 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
       Parse elements from a set into an (ordered) vector.
       */
 
-    JakeSprintGkFlags(anal,tmp," "," ",1);
+    JakeSprintGkFlags((gk_string *)anal,tmp," "," ",1);
     
     fprintf(fout,"%s\t", tmp );
     
@@ -522,7 +521,7 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
       Parse elements from a set into an (ordered) vector.
       */
 
-    JakeSprintGkFlags(anal,tmp,"\t"," ",1);
+    JakeSprintGkFlags((gk_string *)anal,tmp,"\t"," ",1);
     fprintf(fout,"%s\t", tmp );
     fprintf(fout,"%s\t", crasis_of(anal) );
     if( (prntflags) != DBASESHORT ) {
@@ -539,7 +538,7 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   /*
     SprintGkFlags(anal,tmp,"\t",1);
     */
-  JakeSprintGkFlags(anal,tmp," "," ",1);
+  JakeSprintGkFlags((gk_string *)anal,tmp," "," ",1);
 
   if(preverb_of(anal)[0] )	{
     Xstrcpy(workw,preverb_of(anal) );
@@ -575,7 +574,7 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   fprintf(fout,"\n");
 }
 
-DumpGstr(char *tags, gk_string *gstr, FILE *fout, int fullrec)
+void DumpGstr(char *tags, gk_string *gstr, FILE *fout, int fullrec)
 {
   char tmp[LONGSTRING];
 	
@@ -598,7 +597,7 @@ DumpGstr(char *tags, gk_string *gstr, FILE *fout, int fullrec)
     fprintf(fout,"%s\n", tmp );
 }
 
-DumpDbGkString(gk_string *gstr, FILE *fout)
+void DumpDbGkString(gk_string *gstr, FILE *fout)
 {
 	char tmp[LONGSTRING];
 	tmp[0] = 0;

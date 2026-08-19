@@ -31,11 +31,16 @@ the three-argument `AddDialect` without its delimiter; it now passes the space
 separator expected by the formatted output. The `AddDialect` prototype was
 aligned with that implementation.
 
-The `gener`, `gkdict`, and `gkends` modules are explicit-return-type
+The `anal`, `gener`, `gkdict`, and `gkends` modules are explicit-return-type
 boundaries. Their functions now declare whether they return a status or no
 value, and their `qsort` calls use `const void *` comparators matching the
-standard-library callback. All three targets treat implicit `int` and
+standard-library callback. All four targets treat implicit `int` and
 incompatible pointer types as errors.
+
+Typing `anal` also made its historical common-prefix structure conversions
+visible. Calls that deliberately pass a generated word or analysis to helpers
+which inspect only the embedded `gk_string` prefix now use explicit casts;
+the corresponding allocations and layouts are unchanged.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
@@ -67,8 +72,8 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Extend the explicit-return-type and callback boundary now used by `gener`,
-   `gkdict`, and `gkends` to the remaining runtime modules.
+1. Extend the explicit-return-type and callback boundary now used by `anal`,
+   `gener`, `gkdict`, and `gkends` to the remaining runtime modules.
 2. Correct format strings, buffer bounds, and ownership documentation with
    ASan/UBSan enabled in CI.
 3. Move mutable process state into an opaque context, then extract the public

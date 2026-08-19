@@ -240,6 +240,8 @@ target_compile_options(
   morpheus_anal
   PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
 )
 
 if(MORPHEUS_BUILD_CRUNCHER)

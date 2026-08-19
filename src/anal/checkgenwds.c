@@ -2,8 +2,8 @@
 
 #include "checkgenwds.proto.h"
 
-static anals_seen = 0;
-static lems_seen = 0;
+static int anals_seen = 0;
+static int lems_seen = 0;
 
 /*
  * ok, check an array of gk_string's against a single printword to figure
@@ -11,7 +11,7 @@ static lems_seen = 0;
  * "pisteu=sai" "pi/steusai" and "pisteu/sai"
  */
 
-CheckGenWords(gk_word *Gkword, gk_word *gkforms)
+int CheckGenWords(gk_word *Gkword, gk_word *gkforms)
 {
 	int i = 0;
 	int hits = 0;
@@ -135,7 +135,7 @@ fprintf(stderr,"onwards\n");
 			}
 */
 			if( Comp_only(morphflags_of(stem_gstr_of(gkforms+i))) && ! * preverb ) {
-				near_miss(gkforms+i,checks,COMP_ONLY);
+				near_miss((gk_string *)(gkforms+i),checks,COMP_ONLY);
 /*
 				printf("could be--[%s]",workword_of(gkforms+i));
 				PrntAVerb(gkforms+i,lemma,stdout);
@@ -145,7 +145,7 @@ fprintf(stderr,"onwards\n");
 				continue;
 			} 
 			if( Not_in_compos(morphflags_of(stem_gstr_of(gkforms+i))) && *preverb ) {
-				near_miss(gkforms+i,checks,NOT_IN_COMPOSITION);
+				near_miss((gk_string *)(gkforms+i),checks,NOT_IN_COMPOSITION);
 /*
 				printf("could be--[%s]",workword_of(gkforms+i));
 				PrntAVerb(gkforms+i,lemma,stdout);
@@ -164,7 +164,7 @@ printf("liked [%s] hits [%d]\n", checks , hits);
 
 			continue;
 		} 
-		near_miss(gkforms+i,checks,0);
+		near_miss((gk_string *)(gkforms+i),checks,0);
 /*
 		printf("wanted [%s] and got ", checks );
 		PrntAVerb(gkforms+i,lemma,stdout);
@@ -174,8 +174,8 @@ printf("liked [%s] hits [%d]\n", checks , hits);
 	return(hits);
 }
 
-static analerror  = 0;
-AddAnalysis(gk_word *Gkword, gk_word *gkform)
+static int analerror  = 0;
+int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 {
 	gk_analysis * curanal;
 	int i;
@@ -216,7 +216,7 @@ AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	
 	if( crasis_of(gkform)[0] ) {
 		set_crasis(curanal,crasis_of(gkform));
-		if( ! do_crasis(gkform,crasis_of(curanal)))
+		if( ! do_crasis((gk_string *)gkform,crasis_of(curanal)))
 			return(0);
 	}
 
@@ -346,10 +346,10 @@ printf("lemam now [%s]\n", lemma_of(curanal) );
 	}
 	set_stemtype(curanal,stemtype_of(gkform));
 	set_derivtype(curanal,derivtype_of(gkform));
-	set_morphflags(curanal,morphflags_of(gkform));
-	add_morphflags(curanal,morphflags_of(prvb_gstr_of(gkform)));
-	add_morphflags(curanal,morphflags_of(stem_gstr_of(gkform)));
-	add_morphflags(curanal,morphflags_of(ends_gstr_of(gkform)));
+	set_morphflags((gk_string *)curanal,morphflags_of(gkform));
+	add_morphflags((gk_string *)curanal,morphflags_of(prvb_gstr_of(gkform)));
+	add_morphflags((gk_string *)curanal,morphflags_of(stem_gstr_of(gkform)));
+	add_morphflags((gk_string *)curanal,morphflags_of(ends_gstr_of(gkform)));
 /*
 printf("analysis [%s] [%o]", rawword_of(curanal), dialect_of(curanal) );
 PrntAWord(curanal,Gkword,lemma_of(curanal),stdout);
@@ -381,17 +381,17 @@ printf("\n");
 	return(1);
 }
 
-show_totanals()
+int show_totanals(void)
 {
 	return(anals_seen);
 }
 
-show_totlems()
+int show_totlems(void)
 {
 	return(lems_seen);
 }
 
-merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
+void merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
 {
 	/*
 	 * grc 3/10/91:  if anal1 has no dialects set, then this form can appear in
@@ -401,7 +401,7 @@ merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
 		dialect_of(anal1) |= dialect_of(anal2);	
 }
 
-equiv_anal(gk_analysis *anal1, gk_analysis *anal2)
+int equiv_anal(gk_analysis *anal1, gk_analysis *anal2)
 {	
 	if( strcmp(lemma_of(anal1),lemma_of(anal2))) 
 		return(0);

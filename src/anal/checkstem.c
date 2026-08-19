@@ -3,8 +3,8 @@
 
 #include "checkstem.proto.h"
 int comstemtypes(char *, char *, char *);
-static wantcurstemtype(char *, char *);
-extern verbose;
+static int wantcurstemtype(char *, char *);
+extern int verbose;
 static int digstem = 0;
 
 char * is_substring();
@@ -29,9 +29,9 @@ char * is_substring();
 static	gk_string * tstemtab[MAXAUGSTEMS];
 static	gk_string * tqstemtab[MAXAUGSTEMS];
 static	char * tkeytab[MAXAUGSTEMS];
-static init_stor = 0;
+static int init_stor = 0;
 
- checkstem(char *poss_stem, char *endkeys, gk_string *stemtab[], char *keytab[], int maxstems)
+int checkstem(char *poss_stem, char *endkeys, gk_string *stemtab[], char *keytab[], int maxstems)
 {
 	char *curstemkeys;
 	int i;
@@ -120,7 +120,7 @@ fprintf(stderr,"%d) %s\n", i , gkstring_of(tstemtab[i]) );
 	return(hits);
 }
 
-stemexists(char *s, char *endkeys, char *stemkeys, int is_nom)
+int stemexists(char *s, char *endkeys, char *stemkeys, int is_nom)
 {
 	int rval  = 0;
 	
@@ -193,8 +193,7 @@ comstemtypes(char *stem, char *stemkeys, char *endkeys)
 		return(0);
 }
 
-static
-wantcurstemtype(char *curst, char *stlist)
+static int wantcurstemtype(char *curst, char *stlist)
 {
 	char * is_substring(), *s;
 	int rval = 0;
@@ -206,7 +205,7 @@ wantcurstemtype(char *curst, char *stlist)
 }
 
 
-setstemvars(char *s, char *cstem, char *clemma, char *cstemtype, char *cstemkeys)
+void setstemvars(char *s, char *cstem, char *clemma, char *cstemtype, char *cstemkeys)
 {
 	char * parsefield();
 	*cstemkeys = *cstem = *clemma = *cstemtype = 0;
@@ -242,8 +241,7 @@ parsefield(char *s, char *buf, int c, int len)
 	return(s);
 }
 
-longeststem(s)
-char * s;
+void longeststem(char *s)
 {
 	char * p = s;
 	char tmp[256],tmp2[256];

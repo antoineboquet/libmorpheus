@@ -68,6 +68,6 @@ int is_article(gk_word *word);
 int end_phrase(gk_word *candidate, gk_word *word);
 int show_totanals(void);
 int show_totlems(void);
-int set_nocrasis(void);
+void set_nocrasis(void);
 
 #endif
