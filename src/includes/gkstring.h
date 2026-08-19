@@ -1,3 +1,6 @@
+#ifndef MORPHEUS_GKSTRING_H
+#define MORPHEUS_GKSTRING_H
+
 #include <greek.h>
 #include "dialect.h"
 #include "stemtype.h"
@@ -243,3 +246,5 @@ char * NameOfDegree(word_form af);
 char * NameOfDialect(Dialect di);
 char * NameOfStemtype(Stemtype st);
 char * NameOfDerivtype(Derivtype st);
+
+#endif

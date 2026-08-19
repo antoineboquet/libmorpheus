@@ -1,4 +1,4 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #define MAXCRASIS 12
 
 #include "checkcrasis.proto.h"

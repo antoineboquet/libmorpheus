@@ -1,4 +1,4 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #include "checkstring.proto.h"
 static checkstring4(gk_word *);
 static add_apostrvowel(char *, char *, char *);

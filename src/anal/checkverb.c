@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <gkstring.h>
+#include "anal_internal.h"
 
 #include "checkverb.proto.h"
 

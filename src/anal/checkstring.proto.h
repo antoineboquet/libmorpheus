@@ -12,3 +12,4 @@ int AddWantDialect(Dialect);
 int ZapWantDialect(Dialect);
 Dialect GetWantDialect(void);
 int updateDialect(Dialect);
+int u2v(char *);

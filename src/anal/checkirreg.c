@@ -1,4 +1,4 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #define MAXIRREGS 10
 #define MAXIRR 3
 

@@ -1,6 +1,8 @@
 
 /* endindex.c */
 int chcknend(char *, char *);
+int chckcmpvb(char *, char *);
+int chckend(char *);
 int chckvend(char *, char *);
 int chckvstem(char *, char *);
 int chckdvend(char *, char *);

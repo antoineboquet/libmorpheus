@@ -1,4 +1,4 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #include <modes.h>
 #define MAXSTEMS 10
 

@@ -1,4 +1,4 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 
 #include "checkpreverb.proto.h"
 /*

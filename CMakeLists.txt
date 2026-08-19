@@ -205,6 +205,11 @@ target_link_libraries(
     morpheus_morphlib
     morpheus_greeklib
 )
+target_compile_options(
+  morpheus_anal
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+)
 
 if(MORPHEUS_BUILD_CRUNCHER)
   add_executable(cruncher src/anal/stdiomorph.c)

@@ -1,4 +1,4 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #define MAX_POSS_STEMS	10
 
 #include "checkhalf1.proto.h"

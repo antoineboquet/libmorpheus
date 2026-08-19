@@ -1,4 +1,4 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #define MAXAUGSTEMS 12
 
 #include "checkstem.proto.h"
