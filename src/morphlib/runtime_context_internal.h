@@ -22,6 +22,13 @@ struct morpheus_runtime_context {
 	int smarta_tables_initialized;
 	int smarta_current_font;
 	int smarta_character_style;
+	char *smk_beta_table[257];
+	char *smarta_beta_table[257];
+	char **active_inverse_conversion_table;
+	char inverse_smarta_characters[257];
+	int inverse_conversion_tables_initialized;
+	int inverse_conversion_from_smk;
+	int inverse_conversion_current_font;
 };
 
 morpheus_runtime_context *morpheus_runtime_context_current(void);

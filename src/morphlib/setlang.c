@@ -21,12 +21,19 @@ morpheus_runtime_context_create(void)
 void
 morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 {
+	size_t i;
+
 	if (!context || !context->heap_allocated) return;
 	if (active_context == context) active_context = NULL;
 	free(context->hidden_morphflag_table);
 	free(context->preverb_morphflag_table);
 	if (context->raw_preverb_table)
 		FreeGkString(context->raw_preverb_table);
+	for (i = 0; i < sizeof context->smk_beta_table /
+				 sizeof context->smk_beta_table[0]; i++) {
+		free(context->smk_beta_table[i]);
+		free(context->smarta_beta_table[i]);
+	}
 	free(context);
 }
 

@@ -13,28 +13,25 @@
 #include "smk2beta.proto.h"
 static void conv(char *, char *);
 static void add_acc(char *, int);
-static int smkinited = 0;
-char *Xlit_table_smk[MAXCHAR+1];
-char *Xlit_table_smarta[MAXCHAR+1];
-char **Xlit_table;
-char smarta_char[MAXCHAR+1];
-static int fromsmk = 0;
-static int cur_font = 0;
 
 void smarta2beta(char *start, char *result)
 {
-	Xlit_table = Xlit_table_smarta;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	context->active_inverse_conversion_table = context->smarta_beta_table;
 	
-	fromsmk = 0;
+	context->inverse_conversion_from_smk = 0;
 	
 	conv(start,result);
 }
 
 void smk2beta(char *start, char *result)
 {
-	Xlit_table = Xlit_table_smk;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
-	fromsmk = 1;
+	context->active_inverse_conversion_table = context->smk_beta_table;
+
+	context->inverse_conversion_from_smk = 1;
 	
 	conv(start,result);
 }
@@ -42,12 +39,13 @@ void smk2beta(char *start, char *result)
 static
 void conv(char *start, char *result)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char **xlit_table = context->active_inverse_conversion_table;
 	char tmp[BUFSIZ];
 	/*unsigned*/ char * s = start;
 	
-	cur_font =  0;
-	if( !smkinited ) {
-		smkinited++;
+	context->inverse_conversion_current_font = 0;
+	if( !context->inverse_conversion_tables_initialized ) {
 		init_smk();
 	}
 	
@@ -55,7 +53,7 @@ void conv(char *start, char *result)
 	/*
 	 * make sure that any unaccented upper case char gets properly converted
 	 */
-	if(isupper(*s) && fromsmk) {
+	if(isupper(*s) && context->inverse_conversion_from_smk) {
 		Xstrcpy(tmp,s+1);
 		*(s+1) = tolower(*s);
 		*s = '*';
@@ -70,7 +68,7 @@ printf("hey:%s\n", result);
 return;
 }
 */
-		if( *s == '^' && ! fromsmk ) {
+		if( *s == '^' && ! context->inverse_conversion_from_smk ) {
 			s++;
 
 			trap_upper(result,s);
@@ -81,8 +79,9 @@ return;
 			continue;
 		}
 		
-		if(isupper(*s) && ! fromsmk ) {
-			if( cur_font == SMK_GREEK_FONT || ! cur_font )
+		if(isupper(*s) && ! context->inverse_conversion_from_smk ) {
+			if( context->inverse_conversion_current_font == SMK_GREEK_FONT ||
+				! context->inverse_conversion_current_font )
 				set_cur_font(ROMAN,result);
 			tmp[0] = tolower(*s);
 			tmp[1] = 0;
@@ -90,18 +89,19 @@ return;
 			s++;
 			continue;
 		}
-		if( *s == '_' && ! fromsmk ) {
+		if( *s == '_' && ! context->inverse_conversion_from_smk ) {
 			set_cur_font(ITALIC,result);
 			s++;
 			continue;
 		}
-		if( *s == '«' && ! fromsmk ) {
+		if( *s == '\253' && ! context->inverse_conversion_from_smk ) {
 			set_cur_font(ROMAN,result);
 			s++;
 			continue;
 		}
-		if(*s == '`' && ! fromsmk ) {
-			if( ! cur_font || cur_font == SMK_GREEK_FONT ) {
+		if(*s == '`' && ! context->inverse_conversion_from_smk ) {
+			if( ! context->inverse_conversion_current_font ||
+				context->inverse_conversion_current_font == SMK_GREEK_FONT ) {
 				set_cur_font(ROMAN,result);
 			}
 			strcat(result,":");
@@ -111,7 +111,7 @@ return;
 		
 		if( (*s & 0377) >= 0202 && (*s & 0377) <= 0212 ) {
 			set_cur_font(SMK_GREEK_FONT,result);
-			strcat(result,Xlit_table[(int)(*s++ & (0377))]);
+			strcat(result,xlit_table[(int)(*s++ & (0377))]);
 			
 			/*
 			 * we should only have an accented space (0202 thru 0212)
@@ -131,12 +131,15 @@ return;
 			strcat(result,tmp);
 			s++;	
 		} else {
-			if( ! fromsmk ) {
-				if( (smarta_char[(int)(*s & (0377))] || islower(*s)) && 
-				  (cur_font == ROMAN || cur_font == ITALIC || ! cur_font ) )
+			if( ! context->inverse_conversion_from_smk ) {
+				if( (context->inverse_smarta_characters[(int)(*s & (0377))] ||
+					islower(*s)) &&
+				  (context->inverse_conversion_current_font == ROMAN ||
+				   context->inverse_conversion_current_font == ITALIC ||
+				   ! context->inverse_conversion_current_font ) )
 					set_cur_font(SMK_GREEK_FONT,result);
 			}
-			strcat(result,Xlit_table[(int)(*s++ & (0377))]);
+			strcat(result,xlit_table[(int)(*s++ & (0377))]);
 		}
 	}
 }
@@ -153,45 +156,50 @@ int smk2betachar(int c)
 
 void init_smk(void)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	int i;
-	char tmp[80];
 
 	for(i=0;i<MAXCHAR;i++) {
-		Xlit_table_smk[i] = malloc((size_t)MAXSUBSTRING);
-		*Xlit_table_smk[i] = 0;
-
-		Xlit_table_smarta[i] = malloc((size_t)MAXSUBSTRING);
-		*Xlit_table_smarta[i] = 0;
+		context->smk_beta_table[i] = calloc(MAXSUBSTRING,1);
+		context->smarta_beta_table[i] = calloc(MAXSUBSTRING,1);
+		if (!context->smk_beta_table[i] ||
+				!context->smarta_beta_table[i]) {
+			fprintf(stderr,"could not allocate inverse conversion tables\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 		
 	for(i=0;i<sizeof Beta_SMK/sizeof Beta_SMK[0];i++) {
-		strncpy(Xlit_table_smk[Beta_SMK[i].keycode],Beta_SMK[i].keystring,MAXSUBSTRING);
-		strncpy(Xlit_table_smarta[Beta_SMK[i].keycode],Beta_SMK[i].keystring,MAXSUBSTRING);
-		smarta_char[Beta_SMK[i].keycode] =1;
-/*
-printf("%d) Xlit_table [%s]\n", Beta_SMK[i].keycode , Xlit_table[Beta_SMK[i].keycode] );
-*/
+		strncpy(context->smk_beta_table[Beta_SMK[i].keycode],
+			Beta_SMK[i].keystring,MAXSUBSTRING);
+		strncpy(context->smarta_beta_table[Beta_SMK[i].keycode],
+			Beta_SMK[i].keystring,MAXSUBSTRING);
+		context->inverse_smarta_characters[Beta_SMK[i].keycode] = 1;
 	}
 	for(i=0;i<sizeof Beta_Smarta/sizeof Beta_Smarta[0];i++) {
-		strncpy(Xlit_table_smarta[Beta_Smarta[i].keycode],Beta_Smarta[i].keystring,MAXSUBSTRING);
+		strncpy(context->smarta_beta_table[Beta_Smarta[i].keycode],
+			Beta_Smarta[i].keystring,MAXSUBSTRING);
 	}
 	
 	for(i=0;i<256;i++) {
-		if( ! *Xlit_table_smk[i] ) {
-			sprintf(Xlit_table_smk[i] , "%c", i );
+		if( ! *context->smk_beta_table[i] ) {
+			sprintf(context->smk_beta_table[i] , "%c", i );
 		}
-		if( ! *Xlit_table_smarta[i] ) {
-			sprintf(Xlit_table_smarta[i] , "%c", i );
+		if( ! *context->smarta_beta_table[i] ) {
+			sprintf(context->smarta_beta_table[i] , "%c", i );
 		}
 	}
+	context->inverse_conversion_tables_initialized = 1;
 
 }
 
 void set_cur_font(int n, char *s)
 {
-	if( fromsmk ) return;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	if( context->inverse_conversion_from_smk ) return;
 	
-	if( n != cur_font ) {
+	if( n != context->inverse_conversion_current_font ) {
 		switch(n) {
 			case SMK_GREEK_FONT:
 				strcat(s,"$");
@@ -206,7 +214,7 @@ void set_cur_font(int n, char *s)
 				strcat(s,"?Font?");
 				break;
 			}
-		cur_font = n;
+		context->inverse_conversion_current_font = n;
 		}
 }
 #define SPACE_ACUTE 0200
@@ -223,10 +231,12 @@ void set_cur_font(int n, char *s)
 
 void trap_upper(char *res, char *s)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	char tmp[BUFSIZ];
 	
 	if( isupper(*s) ) {
-		if( !cur_font || cur_font == SMK_GREEK_FONT ) {
+		if( !context->inverse_conversion_current_font ||
+				context->inverse_conversion_current_font == SMK_GREEK_FONT ) {
 			set_cur_font(ROMAN,res);
 		}
 
@@ -238,7 +248,9 @@ void trap_upper(char *res, char *s)
 	}
 	
 	if( islower(*s) ) {
-		if( !cur_font || cur_font == ROMAN || cur_font == ITALIC ) {
+		if( !context->inverse_conversion_current_font ||
+				context->inverse_conversion_current_font == ROMAN ||
+				context->inverse_conversion_current_font == ITALIC ) {
 			set_cur_font(SMK_GREEK_FONT,res);
 		}
 		tmp[0] = '*';
@@ -284,7 +296,9 @@ void trap_upper(char *res, char *s)
 		strcat(tmp,"w");
 	}
 	if( tmp[0] ) {
-		if( ! cur_font || cur_font == ROMAN || cur_font == ITALIC )
+		if( ! context->inverse_conversion_current_font ||
+				context->inverse_conversion_current_font == ROMAN ||
+				context->inverse_conversion_current_font == ITALIC )
 			set_cur_font(SMK_GREEK_FONT,res);
 		strcat(res,tmp);
 	}
@@ -293,5 +307,8 @@ void trap_upper(char *res, char *s)
 static 
 void add_acc(char *s, int anum)
 {
-	Xstrcpy(s,Xlit_table[(int)( anum & (0377))]);
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	Xstrcpy(s,context->active_inverse_conversion_table[
+		(int)( anum & (0377))]);
 }

@@ -10,6 +10,7 @@
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/morphstrcmp.proto.h"
 #include "../src/morphlib/setlang.proto.h"
+#include "../src/morphlib/smk2beta.proto.h"
 
 int main(void)
 {
@@ -36,6 +37,8 @@ int main(void)
 	set_roman();
 	beta2smarta("a",converted);
 	assert(!strcmp(converted,"A"));
+	smarta2beta("a",converted);
+	assert(!strcmp(converted,"$a"));
 	set_lang(GREEK);
 	assert(is_rawpreverb("upo"));
 	set_lang(ITALIAN);
@@ -48,6 +51,8 @@ int main(void)
 	assert(is_prvb_morphflag(DISSIMILATION));
 	assert(is_rawpreverb("upo"));
 	beta2smarta("a",converted);
+	assert(!strcmp(converted,"a"));
+	smk2beta("a",converted);
 	assert(!strcmp(converted,"a"));
 	morpheus_runtime_context_destroy(greek);
 	assert(cur_lang() == GREEK);
