@@ -20,7 +20,7 @@
 #include "../morphlib/nextkey.proto.h"
 #include "../morphlib/preverb.proto.h"
 
-int GenDictEntry(gk_word *word, char *dictionary_entry);
+void GenDictEntry(gk_word *word, char *dictionary_entry);
 int GenNxtWord(FILE *input, int mode, FILE *output);
 gk_word *GenStemForms(gk_word *word, char *keys, int mode);
 gk_word *GenIrregForm(gk_word *word, char *keys, int mode);
@@ -29,6 +29,6 @@ int NextDictLine(FILE *input, char *word, char *word_keys, char *prefix);
 int BuildAWord(gk_word *word, gk_string *ending, gk_word *forms);
 int BuildANoun(gk_word *word, gk_string *ending, gk_word *forms);
 int BuildAVerb(gk_word *word, gk_string *ending, gk_word *forms);
-int MonoSyllVb(gk_word *forms, word_form form, char *preverb);
+void MonoSyllVb(gk_word *forms, word_form form, char *preverb);
 
 #endif

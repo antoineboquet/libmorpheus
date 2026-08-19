@@ -4,7 +4,13 @@
 #include <modes.h>
 #include "gener_internal.h"
 #define SKIPLINE  100
-static int AddWdEndings(gk_word *, gk_string *, gk_word *, int);
+static void AddWdEndings(gk_word *, gk_string *, gk_word *, int);
+
+static int
+CompareGkForms(const void *left, const void *right)
+{
+	return CompGkForms((gk_word *)left, (gk_word *)right);
+}
 
 #define NextStem(f,stem,stemkeys) NextDictLine(f,stem,stemkeys,":")
 #define NextLemma(f,lemma,lemmakeys) NextDictLine(f,lemma,lemmakeys,":le:")
@@ -12,6 +18,7 @@ static int AddWdEndings(gk_word *, gk_string *, gk_word *, int);
 gk_string BlankGstr;
 gk_word TmpGkword;
 
+void
 GenDictEntry(Gkword,dentry)
  gk_word *Gkword;
  char * dentry;
@@ -40,7 +47,7 @@ GenDictEntry(Gkword,dentry)
 
 	for(formcnt=0;workword_of((gkforms+formcnt))[0];formcnt++) ;
 
-        qsort(gkforms,formcnt,sizeof * gkforms,CompGkForms);	
+        qsort(gkforms,formcnt,sizeof * gkforms,CompareGkForms);
 
 	stripmetachars(workword_of(gkforms));
 /*	printf("workword:%s\n", workword_of(gkforms) );*/
@@ -48,6 +55,7 @@ GenDictEntry(Gkword,dentry)
 	FreeGkword(gkforms);
 }
 
+int
  GenNxtWord(f,mode,fout)
   FILE * f;
   int mode;
@@ -65,7 +73,7 @@ GenDictEntry(Gkword,dentry)
 	Gkword = CreatGkword(1 );
 	if( ! Gkword ) {
 		fprintf(stderr,"could not allocate memory for Gkword in GenNxtWord\n");
-		return;
+		return(0);
 	}
 
 	for(;;) {
@@ -313,6 +321,7 @@ gk_word *
 	return(gkforms);
 }
 
+int
  NextDictLine(f,word,wordkeys,starts)
   FILE * f;
   char * word;
@@ -375,7 +384,7 @@ gk_word *
 }
 
 #define MAX_FORM_VARIANTS 12
-static 
+static void
  AddWdEndings(Gkword,Endings,Forms,maxforms)
   gk_word * Gkword;
   gk_string * Endings;
@@ -474,6 +483,7 @@ static
 	CurBuf = NULL;
 }
 
+int
  BuildAWord(Gkword,CurEnding,CurForms)
   gk_word * Gkword;
   gk_string * CurEnding;
@@ -501,6 +511,7 @@ printf("failing on stem [%s] end [%s] [%o] [%o]\n", stem_of(Gkword) ,gkstring_of
 	}
 }
 
+int
  BuildANoun(Gkword,CurEnding,CurForms)
   gk_word * Gkword;
   gk_string * CurEnding;
@@ -540,6 +551,7 @@ printf("result [%s]\n", workword_of(CurForms) );
 }
 
 
+int
  BuildAVerb(Gkword,CurEnding,CurForms)
   gk_word * Gkword;
   gk_string * CurEnding;
@@ -735,6 +747,7 @@ printf("result [%s]\n", workword_of(CurForms) );
 }
 
 
+void
 MonoSyllVb(CurForms,winfo,preverb)
 gk_word * CurForms;
 word_form winfo;

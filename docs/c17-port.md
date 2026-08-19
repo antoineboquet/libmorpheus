@@ -31,6 +31,11 @@ the three-argument `AddDialect` without its delimiter; it now passes the space
 separator expected by the formatted output. The `AddDialect` prototype was
 aligned with that implementation.
 
+The `gener` module is the first explicit-return-type boundary. Its functions
+now declare whether they return a status or no value, and its `qsort` call uses
+a `const void *` comparator adapter matching the standard-library callback.
+The target treats implicit `int` and incompatible pointer types as errors.
+
 Declaring the `gkends` boundary exposed one incomplete historical call:
 `mkend.c` invoked `do_dissim` without the function's required `Stemtype`.
 The call now passes `stemtype_of(Have)`, which is the ending metadata inspected
@@ -56,8 +61,8 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Give every function an explicit return type and correct callbacks passed to
-   standard-library functions such as `qsort`.
+1. Extend the explicit-return-type and callback boundary now used by `gener`
+   to the remaining runtime modules.
 2. Correct format strings, buffer bounds, and ownership documentation with
    ASan/UBSan enabled in CI.
 3. Move mutable process state into an opaque context, then extract the public
