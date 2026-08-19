@@ -17,17 +17,29 @@ int _main(int argc, char *argv[])
 	FILE * f, *MorphFopen();
 	char fname[BUFSIZ];
 	char basename[BUFSIZ];
-	char outfname[BUFSIZ];
+	char outfname[BUFSIZ+5];
 	 char *p;
 	FILE *fout = stdout;
 	long nfile = 0;
 	long ftell();
 	int i = 0;
 	unsigned char result[BUFSIZ*6];
+	int namelen;
 	
-	
-	sprintf(basename,"%s", argv[1]);
-	sprintf(outfname,"%s.rtf", basename );
+	if( argc < 2 ) {
+		fprintf(stderr,"usage: beta2rtf input-file\n");
+		return(1);
+	}
+	namelen = snprintf(basename,sizeof basename,"%s", argv[1]);
+	if( namelen < 0 || namelen >= (int)sizeof basename ) {
+		fprintf(stderr,"input filename is too long\n");
+		return(1);
+	}
+	namelen = snprintf(outfname,sizeof outfname,"%s.rtf", basename );
+	if( namelen < 0 || namelen >= (int)sizeof outfname ) {
+		fprintf(stderr,"output filename is too long\n");
+		return(1);
+	}
 	if( ! (fout=fopen(outfname,"w")) ) {
 		fprintf(stderr,"could not open [%s]\n", outfname );
 		exit(-1);

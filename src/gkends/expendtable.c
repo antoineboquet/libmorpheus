@@ -22,7 +22,7 @@ int
 	FILE * finput;
 	FILE * foutput;
 	char line[BUFSIZ];
-	char shortname[MAXWORDSIZE];
+	char shortname[LONGSTRING];
 	char fname[MAXPATHNAME];
 	char inpfname[MAXPATHNAME];
 	char outfname[MAXPATHNAME];
@@ -47,8 +47,11 @@ int
 
 	if( maintable ) {
 		if( *s == DIRCHAR ) s++;
-		Xstrcpy(fname,s);
-		Xstrcpy(basename,s);
+		if( snprintf(fname,sizeof fname,"%s",s) >= (int)sizeof fname ||
+		    snprintf(basename,sizeof basename,"%s",s) >= (int)sizeof basename ) {
+			fprintf(stderr,"table name is too long: %s\n",s);
+			return(-1);
+		}
 /*
 		if( formcode == DODERIV ) strcat(basename," is_deriv"); 
 		else if( formcode == DOWORD ) strcat(basename," indeclform"); 
@@ -59,14 +62,21 @@ int
 		if( formcode == DODERIV ) {
 			
 			add_morphflag(morphflags_of(&TmpGstr),IS_DERIV);
-			sprintf(shortname,"%s.deriv", fname );
+			if( snprintf(shortname,sizeof shortname,"%s.deriv",fname) >= (int)sizeof shortname )
+				return(-1);
 			if(! (finput=fopen(shortname,"r"))) {
-				sprintf(shortname,"derivs%csource%c%s.deriv",  DIRCHAR, DIRCHAR, fname );
+				if( snprintf(shortname,sizeof shortname,"derivs%csource%c%s.deriv",
+				             DIRCHAR, DIRCHAR, fname) >= (int)sizeof shortname )
+					return(-1);
 				if(! (finput=MorphFopen(shortname,"r"))) {
 					printf("could not open [%s.deriv] or [%s]\n", fname,  shortname );
 					return(-1);
 				}
-			sprintf(shortname,"%s%cout%c%s.out", DERIVTABLEDIR,DIRCHAR, DIRCHAR, fname );
+				if( snprintf(shortname,sizeof shortname,"%s%cout%c%s.out",
+				             DERIVTABLEDIR,DIRCHAR,DIRCHAR,fname) >= (int)sizeof shortname ) {
+					fclose(finput);
+					return(-1);
+				}
 			}
 		} else {
 			gk_word * TmpGkword;
@@ -77,15 +87,22 @@ int
 			
 			stype = stemtype_of(&TmpGstr);
 
-			sprintf(shortname,"%s.end", fname );
+			if( snprintf(shortname,sizeof shortname,"%s.end",fname) >= (int)sizeof shortname )
+				return(-1);
 			if(! (finput=fopen(shortname,"r"))) {
-				sprintf(shortname,"endtables%csource%c%s.end",  DIRCHAR, DIRCHAR, fname );
+				if( snprintf(shortname,sizeof shortname,"endtables%csource%c%s.end",
+				             DIRCHAR, DIRCHAR, fname) >= (int)sizeof shortname )
+					return(-1);
 				if(! (finput=MorphFopen(shortname,"r"))) {
 					printf("could not open [%s.end] or [%s]\n", fname,  shortname );
 					return(-1);
 				}
 			}
-			sprintf(shortname,"%s%cout%c%s.out", ENDTABLEDIR,DIRCHAR, DIRCHAR, fname );
+			if( snprintf(shortname,sizeof shortname,"%s%cout%c%s.out",
+			             ENDTABLEDIR,DIRCHAR,DIRCHAR,fname) >= (int)sizeof shortname ) {
+				fclose(finput);
+				return(-1);
+			}
 		}
 			
 	
@@ -95,11 +112,13 @@ int
 			return(-1);
 		}
 	} else {
-		Xstrcpy(fname,s);
+		if( snprintf(fname,sizeof fname,"%s",s) >= (int)sizeof fname ) {
+			fprintf(stderr,"table name is too long: %s\n",s);
+			return(-1);
+		}
 		basename[0] = 0;
 		if(! (finput=fopen(fname,"r"))) {
 			fprintf(stderr,"could not open %s for reading\n", fname );
-			fclose(finput);
 			return(-1);
 		}
 	}
@@ -155,7 +174,12 @@ fprintf(stderr,"basenam [%s] line [%s]\n", basename , line );
 			fclose(foutput);
 	}
 	
-	sprintf(shortname,"%s%cascii%c%s.asc", formcode == DODERIV? DERIVTABLEDIR : ENDTABLEDIR,DIRCHAR, DIRCHAR, fname );
+	if( snprintf(shortname,sizeof shortname,"%s%cascii%c%s.asc",
+	             formcode == DODERIV ? DERIVTABLEDIR : ENDTABLEDIR,
+	             DIRCHAR,DIRCHAR,fname) >= (int)sizeof shortname ) {
+		fprintf(stderr,"ASCII table path is too long: %s\n",fname);
+		return(-1);
+	}
 printf("%s\n", shortname );
 	if( (foutput=MorphFopen(shortname,"w")) == NULL ) {
 		fprintf(stderr,"Could not open [%s]\n", shortname );

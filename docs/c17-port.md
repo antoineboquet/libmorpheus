@@ -95,6 +95,15 @@ unsigned scalar before printing it, instead of passing a structure through a
 variadic integer conversion. Local font and domain-table constants were also
 renamed to avoid collisions with public macros.
 
+Bounded filename construction now rejects oversized converter and ending-table
+paths before opening files. Ending-table display lines and irregular-generation
+diagnostics use buffers large enough for the declared maximum component sizes.
+The same ending-table error path no longer attempts to close a null stream when
+an input file cannot be opened.
+This removes 14 of the 16 runtime format-overflow diagnostics; the two remaining
+sites assemble compound lemma and derivation keys and require an explicit
+truncation or failure contract before they can be changed safely.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before
@@ -125,8 +134,8 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Replace the remaining unbounded formatting operations, then document buffer
-   ownership with ASan/UBSan enabled in CI.
+1. Define failure semantics for compound lemma and derivation-key builders,
+   then document buffer ownership with ASan/UBSan enabled in CI.
 2. Move mutable process state into an opaque context, then extract the public
    `libmorpheus` ABI.
 

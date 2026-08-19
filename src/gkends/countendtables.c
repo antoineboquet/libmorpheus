@@ -20,7 +20,7 @@ countendtables(Stemtype stype, int is_deriv)
 	int nends = 0;
 	int totends = 0;
 	char * curtable, *basen, * dirp;
-	char shortname[LONGSTRING];
+	char shortname[LONGSTRING+MAXPATHNAME];
 	char curderivname[LONGSTRING];
 	char tmp[LONGSTRING*8];
 	char prevtag[LONGSTRING];
@@ -73,7 +73,11 @@ countendtables(Stemtype stype, int is_deriv)
 	/*
 		printf("about to compile [%s]\n", curtable );
 	*/
-		sprintf(shortname,"%s%cout%c%s.out", dirp, DIRCHAR, DIRCHAR, curtable );
+		if( snprintf(shortname,sizeof shortname,"%s%cout%c%s.out",
+		             dirp, DIRCHAR, DIRCHAR, curtable) >= (int)sizeof shortname ) {
+			fprintf(stderr,"ending-table path is too long: %s\n",curtable);
+			continue;
+		}
 
 		if(! (finput=MorphFopen(shortname,"rb"))) {
 			continue;

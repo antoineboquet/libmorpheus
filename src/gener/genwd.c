@@ -246,9 +246,9 @@ gk_word *
 	}
 
 	if( ! ScanAsciiKeys(stemkeys,Gkword,gstring,NULL) ) {
-		char errmess[LONGSTRING];
+		char errmess[LONGSTRING*2];
 		FreeGkString(gstring);
-		sprintf(errmess,"GenIrregForm Error: no stemtype seen in [%s:%s]",workword_of(Gkword),
+		snprintf(errmess,sizeof errmess,"GenIrregForm Error: no stemtype seen in [%s:%s]",workword_of(Gkword),
 		 stemkeys );
 		ErrorMess(errmess);	
 		return(NULL);
