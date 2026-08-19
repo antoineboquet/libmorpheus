@@ -48,9 +48,10 @@ The first FFI implementation must serialize calls. True per-context concurrency
 requires moving this state into an opaque analyzer context.
 
 The first context boundary now owns the active language selection, the lazy
-Beta Code collation tables, and the dynamically allocated morphology-flag
-lookup tables. The legacy `set_lang` and `cur_lang` entry points dispatch through
-an opaque runtime context, and context activation is thread-local. Context
-destruction releases the flag tables. Remaining caches and formatting state are
-still process-wide, so this remains an incremental isolation boundary rather
-than a thread-safety guarantee.
+Beta Code collation tables, the dynamically allocated morphology-flag lookup
+tables, and the language-specific raw-preverb table. The legacy `set_lang` and
+`cur_lang` entry points dispatch through an opaque runtime context, and context
+activation is thread-local. Context destruction releases these tables, while a
+language change reloads the preverb data on its next use. Remaining caches and
+formatting state are still process-wide, so this remains an incremental
+isolation boundary rather than a thread-safety guarantee.

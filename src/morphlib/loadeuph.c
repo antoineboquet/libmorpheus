@@ -3,10 +3,10 @@
 
 #include "loadeuph.proto.h"
 
-gk_string * Euph_table;
 gk_string *
 load_euph_tab(char *filename, int *gotno, int is_contr)
 {
+	gk_string *euph_table;
 	int nunits;
 	FILE * f;
 	int i;
@@ -29,9 +29,9 @@ load_euph_tab(char *filename, int *gotno, int is_contr)
 	
 	nunits = count_rlines(f);
 	
-	Euph_table = CreatGkString(nunits+1);
-	if( ! Euph_table ) {
-		fprintf(stderr,"no memory for %d big Euph_table\n", nunits+1 );
+	euph_table = CreatGkString(nunits+1);
+	if( ! euph_table ) {
+		fprintf(stderr,"no memory for %d-entry euphony table\n", nunits+1 );
 		xFclose(f);
 		FreeGkword(TmpGkword);
 		return(NULL);
@@ -71,10 +71,10 @@ printf("line:%s\n", line );
 		set_morphflag(morphflags_of(prvb_gstr_of(TmpGkword)),0);
 		ScanAsciiKeys(line,TmpGkword,&CurStr,NULL);
 /*
-		InsertGstr(Euph_table,&CurStr,i,strcmp,YES);
+		InsertGstr(euph_table,&CurStr,i,strcmp,YES);
 */
 		add_morphflags(&CurStr,morphflags_of(prvb_gstr_of(TmpGkword)));
-		*(Euph_table+i) = CurStr;
+		*(euph_table+i) = CurStr;
 	}
 	* gotno = i;
 
@@ -87,16 +87,16 @@ printf("line:%s\n", line );
  * 
  * You now need to set the sort order in the file -- not ideal.
  *
-	qsort(Euph_table,(size_t)i,(size_t)sizeof * Euph_table,RevCompByStr);
+	qsort(euph_table,(size_t)i,(size_t)sizeof * euph_table,RevCompByStr);
 */
 
 /*
-for(i=0;i<*gotno;i++) printf("%d) [%s] [%s]\n", i, gkstring_of(Euph_table+i),
-gkstring_of(Euph_table+i)+MAXSUBSTRING );
+for(i=0;i<*gotno;i++) printf("%d) [%s] [%s]\n", i, gkstring_of(euph_table+i),
+gkstring_of(euph_table+i)+MAXSUBSTRING );
 */
 	xFclose(f);
 	FreeGkword(TmpGkword);
-	return(Euph_table);
+	return(euph_table);
 }
 
 int count_rlines(FILE *f)

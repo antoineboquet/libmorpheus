@@ -1,6 +1,8 @@
 #ifndef MORPHEUS_RUNTIME_CONTEXT_INTERNAL_H
 #define MORPHEUS_RUNTIME_CONTEXT_INTERNAL_H
 
+#include <gkstring.h>
+
 #include "runtime_context.h"
 
 struct morpheus_runtime_context {
@@ -12,6 +14,9 @@ struct morpheus_runtime_context {
 	int beta_table_initialized;
 	char *hidden_morphflag_table;
 	char *preverb_morphflag_table;
+	gk_string *raw_preverb_table;
+	int raw_preverb_count;
+	int raw_preverb_language;
 };
 
 morpheus_runtime_context *morpheus_runtime_context_current(void);

@@ -191,12 +191,15 @@ if(BUILD_TESTING)
     PRIVATE morpheus_morphlib morpheus_build_options
   )
   add_test(NAME runtime_context COMMAND morpheus_runtime_context_test)
+  set_tests_properties(
+    runtime_context
+    PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
+  )
   if(MORPHEUS_ENABLE_SANITIZERS)
-    set_tests_properties(
-      runtime_context
-      PROPERTIES
-        ENVIRONMENT
-          "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    set_property(
+      TEST runtime_context APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )
   endif()
 endif()
