@@ -11,6 +11,10 @@ still accept several old declarations as extensions. Treating every warning as
 an error now would make the change too large to validate usefully against the
 historical analyser.
 
+The `cruncher` front end is the first strict boundary: its internal interface
+is declared in `src/anal/cruncher_internal.h` and it is compiled with
+`-Werror=implicit-function-declaration`.
+
 ## Scope of the runtime closure
 
 The CMake runtime consists only of the sources linked by `cruncher`:
@@ -31,8 +35,9 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Add module headers with complete function declarations, then enable
-   `-Werror=implicit-function-declaration` for the runtime.
+1. Extend the explicit internal-interface boundary now used by `cruncher` to
+   the remaining runtime modules, then enable
+   `-Werror=implicit-function-declaration` for the whole runtime.
 2. Give every function an explicit return type and correct callbacks passed to
    standard-library functions such as `qsort`.
 3. Correct format strings, buffer bounds, and ownership documentation with

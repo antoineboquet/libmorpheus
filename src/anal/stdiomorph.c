@@ -7,7 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
-#include <prntflags.h>
+#include "cruncher_internal.h"
 #include "stdiomorph.proto.h"
 #ifndef CLOCKS_PER_SEC
 #define CLOCKS_PER_SEC  1000000         /* ANSI C clock ticks per sec */
@@ -15,7 +15,6 @@
 
 #include <time.h>
 int quickflag = 0;
-char * anal_buf();
 long prevmemory = 0;
 time_t start_time = 0;
 time_t prev_time = 0;
@@ -29,9 +28,9 @@ int timeit = 1;
 #define ARGS "ILalmnbckidsxSVpPeTo:"
 #define PATH_SEP '/'
 
-main(argc,argv)
-int argc;
-char *argv[];
+static void trimdigit(char *s);
+
+int main(int argc, char *argv[])
 {
   FILE * finput, *foutput, *ffailed, *fstats;
 
@@ -243,7 +242,7 @@ fprintf(stdout,"files: [%s] [%s]\n", outname, failedname);
       fprintf(foutput,"%s",anal_buf() );
     } else {
       /*	printf("%s\t:failed\n", line );*/
-      if( flags & SHOW_LEMMA && flags & IGNORE_ACCENTS ) fprintf(ffailed,"form:", line );
+      if( flags & SHOW_LEMMA && flags & IGNORE_ACCENTS ) fputs("form:", ffailed);
       fprintf(ffailed,"%s\n", line );
       fflush(ffailed);
     }
@@ -269,7 +268,7 @@ fprintf(stdout,"files: [%s] [%s]\n", outname, failedname);
     }
 
   if( nhits ) {
-	fprintf(fstats,":nhits %ld anals %ld anals/hit %0.2f lems %d lems/hit %0.2f\n",
+	fprintf(fstats,":nhits %ld anals %d anals/hit %0.2f lems %d lems/hit %0.2f\n",
 		nhits, show_totanals() , 
 		((float)show_totanals()/(float)nhits),
 		show_totlems(),
@@ -285,7 +284,7 @@ fprintf(stdout,"files: [%s] [%s]\n", outname, failedname);
   exit(0);
 }
 
-trimdigit(char *s)
+static void trimdigit(char *s)
 {
   char * p = s;
   while(*s) s++;

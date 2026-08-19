@@ -1,4 +1,3 @@
 
 /* stdiomorph.c */
-int main(int , char * argv[]);
-int trimdigit(char *);
+int main(int argc, char *argv[]);

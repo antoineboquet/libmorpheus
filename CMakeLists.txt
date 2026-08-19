@@ -208,6 +208,11 @@ target_link_libraries(
 
 if(MORPHEUS_BUILD_CRUNCHER)
   add_executable(cruncher src/anal/stdiomorph.c)
+  target_compile_options(
+    cruncher
+    PRIVATE
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+  )
   target_link_libraries(
     cruncher
     PRIVATE
