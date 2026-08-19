@@ -1,4 +1,5 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 
 static gk_string * StoreGstr;
 #define MAXENDINGS 	10000

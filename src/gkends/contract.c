@@ -5,6 +5,7 @@
 
 #include "contract.h"
 #include <string.h>
+#include "gkends_internal.h"
 
 #include "contract.proto.h"
 

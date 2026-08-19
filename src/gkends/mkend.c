@@ -1,4 +1,5 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 #include "endfiles.h"
 
 #include "mkend.proto.h"
@@ -91,7 +92,7 @@ printf("no contr in: "); PrntGkStr(Have,stdout);
 			mk_end(gkstring_of(&TmpGstr),&TmpGstr,&AvoidGstr);
 		}
 
-		if( do_dissim(gkstring_of(Have))) {
+		if( do_dissim(gkstring_of(Have),stemtype_of(Have))) {
 			add_morphflag(morphflags_of(Have),DISSIMILATION);
 		}
 		AddNewGstr(Have);
@@ -295,4 +296,3 @@ zap_extra_lmarks(char *s)
 		s++;
 	}
 }
-

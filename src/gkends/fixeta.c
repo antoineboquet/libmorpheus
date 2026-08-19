@@ -1,4 +1,5 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 #define MAXEUPHS 5
 
 #include "fixeta.proto.h"

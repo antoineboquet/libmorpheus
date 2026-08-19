@@ -159,6 +159,11 @@ target_link_libraries(
   PUBLIC morpheus_build_options
   PRIVATE morpheus_morphlib morpheus_greeklib
 )
+target_compile_options(
+  morpheus_gkends
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+)
 
 add_library(morpheus_gkdict STATIC
   src/gkdict/compnoun.c

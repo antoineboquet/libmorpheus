@@ -8,6 +8,7 @@
  *	thus, "w" gets placed after "eis".
  */
 #include <gkstring.h>
+#include "gkends_internal.h"
 #include "endfiles.h"
 #include "compostypes.h"
 

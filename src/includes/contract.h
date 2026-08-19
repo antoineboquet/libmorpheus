@@ -6,7 +6,7 @@
 #include <gkstring.h>
 #define MAXCONTRACTS 10
 #define MAXSUBSTRING 10
-Dialect AndDialect();
+Dialect AndDialect(Dialect, Dialect);
 #include "libfiles.h"
 
 
@@ -15,4 +15,3 @@ gk_string * load_euph_tab();
 char * is_substring();
 
 static gk_string Blnk;
-

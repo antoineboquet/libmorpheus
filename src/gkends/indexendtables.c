@@ -1,4 +1,5 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 #include "endfiles.h"
 #include "nextsufftab.proto.h"
 #include "../morphlib/morphkeys.proto.h"

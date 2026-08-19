@@ -1,4 +1,5 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 
 #include "euphend.proto.h"
 

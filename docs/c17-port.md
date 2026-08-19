@@ -11,11 +11,17 @@ still accept several old declarations as extensions. Treating every warning as
 an error now would make the change too large to validate usefully against the
 historical analyser.
 
-The `cruncher` front end plus the `anal` and `gkdict` runtime modules are strict
-boundaries. Their internal interfaces are declared in
-`src/anal/cruncher_internal.h`, `src/anal/anal_internal.h`, and
-`src/gkdict/gkdict_internal.h`; all three targets compile with
+The `cruncher` front end plus the `anal`, `gkdict`, and `gkends` runtime modules
+are strict boundaries. Their internal interfaces are declared in
+`src/anal/cruncher_internal.h`, `src/anal/anal_internal.h`,
+`src/gkdict/gkdict_internal.h`, and `src/gkends/gkends_internal.h`; all four
+targets compile with
 `-Werror=implicit-function-declaration`.
+
+Declaring the `gkends` boundary exposed one incomplete historical call:
+`mkend.c` invoked `do_dissim` without the function's required `Stemtype`.
+The call now passes `stemtype_of(Have)`, which is the ending metadata inspected
+by `do_dissim` when handling aorist passive participles.
 
 ## Scope of the runtime closure
 
@@ -38,7 +44,7 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 ## Next compatibility-preserving lots
 
 1. Extend the explicit internal-interface boundary now used by `cruncher`,
-   `anal`, and `gkdict` to the remaining runtime modules, then enable
+   `anal`, `gkdict`, and `gkends` to the remaining runtime modules, then enable
    `-Werror=implicit-function-declaration` for the whole runtime.
 2. Give every function an explicit return type and correct callbacks passed to
    standard-library functions such as `qsort`.

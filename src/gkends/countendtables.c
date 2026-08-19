@@ -1,4 +1,5 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 #include "endfiles.h"
 #define MAX_END_TABLE	12000
 char ** endlines;

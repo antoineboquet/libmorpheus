@@ -1,5 +1,6 @@
 #include <gkstring.h>
 #include <endindex.h>
+#include "gkends_internal.h"
 
 #include "../morphlib/morphstrcmp.proto.h"
 #include "endfiles.h"
@@ -300,5 +301,4 @@ printf("B returning with curtag [%s] tagstring [%s] and off %d\n", curtag, tagst
 	*keys = 0;
 	return(0);
 }
-
 
