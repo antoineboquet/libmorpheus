@@ -34,14 +34,19 @@ static int GetMorphKeys();
 static void RearrangeMorphflags(gk_word *, gk_string *);
 static int GetGkFlag(char *, gk_string *, char *, char *, char *);
 static char *p_eq_morph_keys(long, Morph_args *);
-static int keys_inited = 0;
-static int nstems = 0;
-static int nderivs = 0;
-static int ndomains = 0;
-static int nkeys = 0;
+#define KEY_CONTEXT (morpheus_runtime_context_current())
+#define keys_inited (KEY_CONTEXT->morph_keys_initialized && \
+	KEY_CONTEXT->morph_key_language == cur_lang())
+#define nstems (KEY_CONTEXT->morph_key_stem_count)
+#define nderivs (KEY_CONTEXT->morph_key_derivation_count)
+#define ndomains (KEY_CONTEXT->morph_key_domain_count)
+#define nkeys (KEY_CONTEXT->morph_key_count)
+#define key_table (KEY_CONTEXT->morph_key_table)
+#define arg_stemtype (KEY_CONTEXT->stem_type_arguments)
+#define arg_derivtype (KEY_CONTEXT->derivation_type_arguments)
+#define arg_domain (KEY_CONTEXT->domain_arguments)
 /*int keycomp1(Morph_args **, Morph_args **);*/
 int keycomp1(const void *, const void *);
-static Morph_args ** key_table = NULL;
 
  int ScanAsciiKeys(char *s, gk_word *Gkword, gk_string *want, gk_string *avoid)
 {
@@ -574,11 +579,26 @@ int has_octal(char *s)
 
 void init_keys(void)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	int sofar = 0;
 	int i;
 	int morph_key_comp();
 	
-	keys_inited++;
+	if (context->morph_keys_initialized) {
+		free(context->morph_key_table);
+		free(context->stem_type_arguments);
+		free(context->derivation_type_arguments);
+		free(context->domain_arguments);
+		context->morph_key_table = NULL;
+		context->stem_type_arguments = NULL;
+		context->derivation_type_arguments = NULL;
+		context->domain_arguments = NULL;
+		context->morph_key_stem_count = 0;
+		context->morph_key_derivation_count = 0;
+		context->morph_key_domain_count = 0;
+		context->morph_key_count = 0;
+		context->morph_keys_initialized = 0;
+	}
 	init_stems();
 	nkeys = nstems  + nderivs + ndomains
 		 + LENGTH_OF(arg_degree)
@@ -593,6 +613,10 @@ void init_keys(void)
 		 + LENGTH_OF(arg_dialect)
 		 + LENGTH_OF(arg_geogregion);
 	key_table = (Morph_args **) calloc((size_t)nkeys+1,(size_t)sizeof * key_table );
+	if (!key_table) {
+		fprintf(stderr,"could not allocate morphology key index\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	sofar += add_keyarr(key_table+sofar,arg_stemtype);
 	sofar += add_keyarr(key_table+sofar,arg_derivtype);
@@ -612,6 +636,8 @@ void init_keys(void)
 	qsort((void*)key_table,(size_t)sofar,(size_t)sizeof * key_table,keycomp1);
 
 	nkeys = sofar;
+	context->morph_key_language = cur_lang();
+	context->morph_keys_initialized = 1;
 /*
 if(1) {
 Morph_args * mf;

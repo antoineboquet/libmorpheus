@@ -328,10 +328,6 @@ Morph_args arg_geogregion[] = {
 };
 
 
-Morph_args * arg_stemtype = NULL;
-Morph_args * arg_derivtype = NULL;
-Morph_args * arg_domain = NULL;
-
 Morph_args *MatchMorphKey(char *);
 Morph_args *InitStemSuffs(char *, void (*curfunc )(), Stemtype (*classfunc )(), int *);
 int keycomp2(char *, Morph_args **);

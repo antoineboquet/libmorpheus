@@ -34,6 +34,10 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 		free(context->smk_beta_table[i]);
 		free(context->smarta_beta_table[i]);
 	}
+	free(context->morph_key_table);
+	free(context->stem_type_arguments);
+	free(context->derivation_type_arguments);
+	free(context->domain_arguments);
 	free(context);
 }
 

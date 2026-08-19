@@ -6,6 +6,7 @@
 
 #include "../src/morphlib/beta2smarta.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
+#include "../src/morphlib/morphkeys.proto.h"
 #include "../src/morphlib/preverb3.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/morphstrcmp.proto.h"
@@ -34,6 +35,7 @@ int main(void)
 	assert(!is_pretty_morphflag(PERS_NAME));
 	assert(is_prvb_morphflag(DISSIMILATION));
 	assert(is_rawpreverb("trans"));
+	assert(GetStemNum("a_ae"));
 	set_roman();
 	beta2smarta("a",converted);
 	assert(!strcmp(converted,"A"));
@@ -41,6 +43,7 @@ int main(void)
 	assert(!strcmp(converted,"$a"));
 	set_lang(GREEK);
 	assert(is_rawpreverb("upo"));
+	assert(GetStemNum("os_ou"));
 	set_lang(ITALIAN);
 	assert(morpheus_runtime_context_language(latin) == ITALIAN);
 
@@ -50,6 +53,7 @@ int main(void)
 	assert(!is_pretty_morphflag(PERS_NAME));
 	assert(is_prvb_morphflag(DISSIMILATION));
 	assert(is_rawpreverb("upo"));
+	assert(GetStemNum("os_ou"));
 	beta2smarta("a",converted);
 	assert(!strcmp(converted,"a"));
 	smk2beta("a",converted);
