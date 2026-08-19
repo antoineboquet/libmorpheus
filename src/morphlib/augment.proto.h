@@ -11,4 +11,4 @@ void simpleaugment(char *, bool);
 void simpleredupit(char *, int, int);
 int redupit2(gk_word *, int, int, int);
 int un_redupl(char *, char *, int);
-int add_double_augment(char *, MorphFlags *);
+void add_double_augment(char *, MorphFlags *);

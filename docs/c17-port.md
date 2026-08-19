@@ -58,6 +58,10 @@ longer consume an indeterminate integer result. Strict missing-return checking
 will be enabled after the remaining historical status functions are classified
 under full object compilation.
 
+Full object compilation also classifies double augmentation and the legacy Mac
+transliteration entry points as in-place procedures. Their contracts now return
+`void`; the standalone RTF converter instead returns an explicit success status.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before

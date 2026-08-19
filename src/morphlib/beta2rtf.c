@@ -66,6 +66,7 @@ int _main(int argc, char *argv[])
 /*
 	fclose(fout);
 */
+	return(0);
 }
 
 void conv_defline(char *s, FILE *fout)

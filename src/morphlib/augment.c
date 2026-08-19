@@ -682,7 +682,7 @@ int un_redupl(char *src, char *res, int redupc)
  * or
  *    e --> h [e.g., e)n]
  */
-int add_double_augment(char *s, MorphFlags *oddpb)
+void add_double_augment(char *s, MorphFlags *oddpb)
 {
 	
 	simpleaugment(s,NO);

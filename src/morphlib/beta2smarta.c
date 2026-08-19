@@ -91,27 +91,27 @@ static int gktab[256];
 #define SMARTA 2
 #define SMK 4
 
-int beta2smarta(char *source, char *res)
+void beta2smarta(char *source, char *res)
 {
 	beta2mac(source,res,SMARTA);
 }
 
-int beta2smk(char *source, char *res)
+void beta2smk(char *source, char *res)
 {
 	beta2mac(source,res,SMK);
 }
 
-int set_greek(void)
+void set_greek(void)
 {
 	cur_font = GREEK;
 }
 
-int set_roman(void)
+void set_roman(void)
 {
 	cur_font = ROMAN;
 }
 
-int beta2mac(char *source, char *res, int xlit)
+void beta2mac(char *source, char *res, int xlit)
 {
 	 char * sp;
 	/*unsigned*/ char * rp;
