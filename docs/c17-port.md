@@ -79,6 +79,10 @@ Morphology-key initialization and domain-name rendering now expose their
 side-effect-only contracts. The first analysis pass and its unused phrase hook
 also return `void`, while the public analysis entry points retain their counts.
 
+Morphology-flag mutation, table initialization, debugging, and name rendering
+now return `void`. The `has_morphflags` predicate instead returns an explicit
+false value when no requested bit is present.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before

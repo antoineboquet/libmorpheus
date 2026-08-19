@@ -1,7 +1,7 @@
 #include "morphlib_internal.h"
 #include <gkstring.h>
 
-int add_morphflags(gk_string *gstr, MorphFlags * Flags)
+void add_morphflags(gk_string *gstr, MorphFlags * Flags)
 {
 	unsigned char * Mf = morphflags_of(gstr);
 	int i;
@@ -10,7 +10,7 @@ int add_morphflags(gk_string *gstr, MorphFlags * Flags)
 		morphflags_of(gstr)[i] |= Flags[i];
 }
 
-int set_morphflags(gk_string *gstr, MorphFlags *Flags)
+void set_morphflags(gk_string *gstr, MorphFlags *Flags)
 {
 	unsigned char * Mf = morphflags_of(gstr);
 	int i;
@@ -20,7 +20,7 @@ int set_morphflags(gk_string *gstr, MorphFlags *Flags)
 }
 
 
-int set_gwmorphflags(gk_word *gkword, MorphFlags *Flags)
+void set_gwmorphflags(gk_word *gkword, MorphFlags *Flags)
 {
 	unsigned char * Mf = morphflags_of(gkword);
 	int i;
@@ -30,7 +30,7 @@ int set_gwmorphflags(gk_word *gkword, MorphFlags *Flags)
 }
 
 
-int zap_morphflags(gk_string *gstr, MorphFlags *Flags)
+void zap_morphflags(gk_string *gstr, MorphFlags *Flags)
 {
 	unsigned char * Mf = morphflags_of(gstr);
 	int i;
@@ -47,6 +47,7 @@ int has_morphflags(gk_string *gstr, MorphFlags *Flags)
 	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
 		if( morphflags_of(gstr)[i] & Flags[i])
 			return(1);
+	return(0);
 }
 
 int no_morphflags(gk_string *gstr)
@@ -60,7 +61,7 @@ int no_morphflags(gk_string *gstr)
 	return(1);
 }
 
-int add_morphflag(MorphFlags *Mf, int n)
+void add_morphflag(MorphFlags *Mf, int n)
 {
 	int index;
 	int setbit;
@@ -98,7 +99,7 @@ Mf[index] & (setbit & 0377));
 }
 
 
-int zap_morphflag(MorphFlags *Mf, int n)
+void zap_morphflag(MorphFlags *Mf, int n)
 {
 	int index;
 	int setbit;
@@ -109,7 +110,7 @@ int zap_morphflag(MorphFlags *Mf, int n)
 	Mf[index] &= ~(setbit & 0377);
 }
 
-int set_morphflag(MorphFlags *Mf, int n)
+void set_morphflag(MorphFlags *Mf, int n)
 {
 	int i;
 	int index;
@@ -133,7 +134,7 @@ int no_morphflag(MorphFlags *mf)
 	return(1);
 }
 
-int mflag_num_to_bits(int n, int *ind, int *bitnum)
+void mflag_num_to_bits(int n, int *ind, int *bitnum)
 {
 	if( (n % 8) == 0 ) {
 		*ind = (n/8) - 1;
@@ -153,7 +154,7 @@ int mflag_bit_to_num(int ind, int bitnum)
 	return( (ind*8) + bitnum );
 }
 
-int Dump_morphflag(MorphFlags *mf)
+void Dump_morphflag(MorphFlags *mf)
 {
 	int i;
 	
@@ -170,7 +171,7 @@ int is_pretty_morphflag(long mnum)
 	return( ! ugly_tab[(int)mnum] );
 }
 
-int init_ugly_tab(void)
+void init_ugly_tab(void)
 {
 	ugly_tab = (char *)calloc((size_t)TABSIZE+1,(size_t)sizeof * ugly_tab );
 	
@@ -226,7 +227,7 @@ void init_prvb_tab(void)
 
 }
 
-int xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
+void xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
 {
 	int i;
 	
@@ -239,7 +240,7 @@ int xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
 }
 
 
- int MorphNames(MorphFlags *mf, char *res, char *dels, int pretty)
+ void MorphNames(MorphFlags *mf, char *res, char *dels, int pretty)
 {
 	char * s, * NameOfMorphFlags();
 	long i;
