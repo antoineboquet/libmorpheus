@@ -1,3 +1,3 @@
 
 /* stripacute.c */
-int stripacute(char *);
+void stripacute(char *);

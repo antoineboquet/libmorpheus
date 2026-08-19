@@ -49,7 +49,7 @@
 #include "xstrings.proto.h"
 #include "zap2ndbreath.proto.h"
 
-int zap_rr_breath(char *word);
+void zap_rr_breath(char *word);
 
 /* Formatting helpers are implemented by morphlib. */
 int DialectNames(Dialect dialect, char *buffer, char *delimiter);

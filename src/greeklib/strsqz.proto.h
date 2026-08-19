@@ -1,3 +1,3 @@
 
 /* strsqz.c */
-int strsqz(char *, int);
+void strsqz(char *, int);

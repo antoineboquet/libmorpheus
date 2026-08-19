@@ -13,7 +13,7 @@
  * start with something like "*)/andra"
  * and end with "a)/ndra"
  */
-beta_tolower(char *word)
+int beta_tolower(char *word)
 {
 	register char * s;
 	register char * t;
@@ -24,5 +24,5 @@ beta_tolower(char *word)
 	while(!isalpha(*s)&&*s) s++;
 	*word = *s;
 	Xstrcpy(s,s+1);
-
+	return(1);
 }

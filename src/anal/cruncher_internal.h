@@ -16,7 +16,7 @@ int show_totlems(void);
 int set_lang(int language);
 int cur_lang(void);
 int trimwhite(char *string);
-int stripbreath(char *word);
-int addbreath(char *word, int breathing);
+void stripbreath(char *word);
+void addbreath(char *word, int breathing);
 
 #endif

@@ -13,7 +13,7 @@
  * start with something like "*(/ellhn"
  * and end with "E(/llhn"
  */
-normucase(char *word)
+int normucase(char *word)
 {
 	register char * s;
 	register char * t;
@@ -35,6 +35,7 @@ normucase(char *word)
 	t = s+1;
 	Xstrcpy(s,t);
 	/*
- 	 * word now "E(/llhn"
+	 * word now "E(/llhn"
 	 */
+	return(1);
 }

@@ -1,3 +1,3 @@
 
 /* stripdiaer.c */
-int stripdiaer(char *);
+void stripdiaer(char *);

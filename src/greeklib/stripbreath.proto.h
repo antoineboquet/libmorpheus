@@ -1,3 +1,3 @@
 
 /* stripbreath.c */
-int stripbreath(char *);
+void stripbreath(char *);

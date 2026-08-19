@@ -9,7 +9,7 @@ static void add_apostrvowel(char *, char *, char *);
 gk_word * CreatGkword(int n);
 int 	checkstring1(gk_word * Gkword);
 int 	stand_phonetics(gk_word * Gkword);
-int 	standword(char * s);
+void 	standword(char * s);
 int 	is_blank(char * s);
 Dialect WantDialects = ALL_DIAL;
 

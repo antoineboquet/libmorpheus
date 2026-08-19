@@ -8,7 +8,7 @@
 
 #include "stripbreath.proto.h"
 
-stripbreath(char *word)
+void stripbreath(char *word)
 {
 	register char *p;
 	for (p=lastn(word,1);p>=word;p--)

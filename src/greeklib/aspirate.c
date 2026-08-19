@@ -7,7 +7,7 @@
 
 #include "aspirate.proto.h"
 
-aspirate(char *p)
+void aspirate(char *p)
 {
 	if (!Is_unasp(*p))
 		return;

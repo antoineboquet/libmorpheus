@@ -8,7 +8,7 @@
  * "parh(/bwsa" --> "parh/bwsa"
  */
 
-zap_extra_breath(char *s)
+void zap_extra_breath(char *s)
 {
 	int breath_is_extra = 0;
 	
@@ -34,7 +34,7 @@ zap_extra_breath(char *s)
 	}
 }
 
-has_extra_breath(char *s)
+int has_extra_breath(char *s)
 {	
 	int breath_is_extra = 0;
 	while(*s) {
@@ -62,8 +62,7 @@ has_extra_breath(char *s)
  *
  * e.g., go from a)nanti/r)r(hton to a)nanti/rrhton
  */
-zap_rr_breath(s)
-char *s;
+void zap_rr_breath(char *s)
 {
 	s++; /* careful about r(i/ptw etc. */
 	while(*s) {

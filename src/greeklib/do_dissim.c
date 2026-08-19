@@ -10,7 +10,7 @@
 
 #include "do_dissim.proto.h"
 
-do_dissim(char *s, Stemtype stype)
+int do_dissim(char *s, Stemtype stype)
 {
 	register char *p1, *p2, *cp;
 	
@@ -58,7 +58,7 @@ do_dissim(char *s, Stemtype stype)
 	return(0);
 }
 
-next_cons_rough(char *s)
+int next_cons_rough(char *s)
 {
 	char * cp, *next_cons();
 	int rval = 0;

@@ -1,3 +1,3 @@
 
 /* aspirate.c */
-int aspirate(char *);
+void aspirate(char *);

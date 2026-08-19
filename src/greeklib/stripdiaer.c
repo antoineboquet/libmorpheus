@@ -9,7 +9,7 @@
 
 #include "stripdiaer.proto.h"
 
-stripdiaer(char *word)
+void stripdiaer(char *word)
 {
 	register char *p;
 

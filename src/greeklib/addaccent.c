@@ -14,7 +14,7 @@
 #include <greek.h>
 
 
-addaccent(char *word, int accent, char *p)
+void addaccent(char *word, int accent, char *p)
 {
 	register char * t = p-1;
 

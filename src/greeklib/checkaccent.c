@@ -8,7 +8,7 @@
 #include "checkaccent.proto.h"
 
 
-checkaccent(char *word, int *syll, int *acc)
+int checkaccent(char *word, int *syll, int *acc)
 {
 	*syll = ULTIMA;
 	if( (*acc=getaccent(word,*syll)) != NOACCENT)

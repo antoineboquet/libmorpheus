@@ -3,7 +3,7 @@
 
 #include "Fclose.proto.h"
 
-xFclose(FILE *f)
+void xFclose(FILE *f)
 {
 	if( ! f ) {
 		fprintf(stderr,"hey! trying to close a NULL pointer!\n");
@@ -12,7 +12,7 @@ xFclose(FILE *f)
 	fclose(f);
 }
 
-xFree(char *p, char *errmess)
+int xFree(char *p, char *errmess)
 {
 	if( ! p ) {
 		fprintf(stderr,"asked to free a null pointer for %s!\n", errmess);

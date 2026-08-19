@@ -4,7 +4,7 @@
 
 #include "keyio.proto.h"
 
-WriteKey(char *key, int *offp, FILE *f)
+int WriteKey(char *key, int *offp, FILE *f)
 {
 	int nwritten;
 
@@ -15,7 +15,7 @@ WriteKey(char *key, int *offp, FILE *f)
 	return(nwritten);
 }
 
-ReadKey(char *key, int *offp, FILE *f)
+int ReadKey(char *key, int *offp, FILE *f)
 {
 	int nread;
 

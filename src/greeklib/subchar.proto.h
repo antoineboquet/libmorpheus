@@ -1,3 +1,3 @@
 
 /* subchar.c */
-int subchar(char *, int, int);
+void subchar(char *, int, int);

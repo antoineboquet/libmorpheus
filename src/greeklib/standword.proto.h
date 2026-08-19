@@ -1,5 +1,5 @@
 
 /* standword.c */
-int standword(char *);
-int zap2acc(char *);
-int striphyph(char *);
+void standword(char *);
+void zap2acc(char *);
+void striphyph(char *);
