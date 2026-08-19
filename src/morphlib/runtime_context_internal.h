@@ -40,6 +40,8 @@ struct morpheus_runtime_context {
 	int morph_key_count;
 	int morph_keys_initialized;
 	int morph_key_language;
+	int files_opened;
+	char volume_name[128];
 };
 
 morpheus_runtime_context *morpheus_runtime_context_current(void);

@@ -51,9 +51,10 @@ The first context boundary now owns the active language selection, the lazy
 Beta Code collation tables, the dynamically allocated morphology-flag lookup
 tables, the language-specific raw-preverb table, and both directions of the
 SmartA/SMK conversion state. It also owns the language-specific morphology-key
-tables and their sorted lookup index. The legacy `set_lang` and `cur_lang`
-entry points dispatch through an opaque runtime context, and context activation
-is thread-local. Context destruction releases allocated tables, including the
+tables and their sorted lookup index, plus file-open diagnostics and legacy
+volume-name state. The legacy `set_lang` and `cur_lang` entry points dispatch
+through an opaque runtime context, and context activation is thread-local.
+Context destruction releases allocated tables, including the
 inverse converter's 512 lookup strings, while a language change reloads the
 preverb and morphology-key data on their next use. Remaining caches and
 formatting state are still process-wide, so this remains an incremental

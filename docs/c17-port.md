@@ -142,7 +142,8 @@ the language-specific raw-preverb table, and both directions of SmartA/SMK
 conversion state. The inverse converter's 512 allocated lookup strings are
 released with their owning context. The language-specific morphology-key
 tables and their sorted pointer index are context-owned as well. Contexts have
-explicit create, activate, and destroy operations; activation is thread-local,
+explicit create, activate, and destroy operations; file-open diagnostics and
+legacy volume-name state are context-owned as well. Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
 invalidates its preverb and morphology-key data on the next lookup. Other

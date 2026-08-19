@@ -7,6 +7,7 @@
 #include "../src/morphlib/beta2smarta.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
+#include "../src/morphlib/morphpath.proto.h"
 #include "../src/morphlib/preverb3.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/morphstrcmp.proto.h"
@@ -18,6 +19,7 @@ int main(void)
 	morpheus_runtime_context *greek = morpheus_runtime_context_create();
 	morpheus_runtime_context *latin = morpheus_runtime_context_create();
 	morpheus_runtime_context *previous;
+	FILE *file;
 	char converted[16];
 
 	assert(greek);
@@ -29,7 +31,15 @@ int main(void)
 	assert(morpheus_runtime_context_language(greek) == GREEK);
 	assert(morpheus_runtime_context_language(latin) == LATIN);
 
-	previous = morpheus_runtime_context_activate(latin);
+	previous = morpheus_runtime_context_activate(greek);
+	assert(NumFilesOpened() == 0);
+	file = MorphFopen("conjfile","r");
+	assert(file);
+	fclose(file);
+	assert(NumFilesOpened() == 1);
+
+	morpheus_runtime_context_activate(latin);
+	assert(NumFilesOpened() == 0);
 	assert(cur_lang() == LATIN);
 	assert(morphstrcmp("a|","ai") == 0);
 	assert(!is_pretty_morphflag(PERS_NAME));

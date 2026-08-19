@@ -2,7 +2,6 @@
 #include <gkstring.h>
 
 #include "morphpath.proto.h"
-static int filesopened = 0;
 
 FILE *
  MorphFopen(char *fname, char *mode)
@@ -10,7 +9,7 @@ FILE *
  	FILE * f;
  	char tmpname[BUFSIZ];
 
- 	filesopened++;
+	morpheus_runtime_context_current()->files_opened++;
  	MorphPathName(fname,tmpname);
 
  	if( !(f=fopen(tmpname,mode)) ) {
@@ -27,6 +26,8 @@ FILE *
 
 int NumFilesOpened(void)
 {
+	int filesopened = morpheus_runtime_context_current()->files_opened;
+
 	printf("filesopened [%d]\n", filesopened );
 	return(filesopened);
 }
@@ -35,8 +36,6 @@ int NumFilesOpened(void)
  * take a short pathname (e.g. "lib/vowcontr.table") and derive from it a
  * full path name (e.g. "/usr/src/local/morpheus/lib/vowcontr.table")
  */
-static char volName[128];
-
 void MorphPathName(char *shorts, char *full)
  {
  	char * s;
@@ -44,7 +43,9 @@ void MorphPathName(char *shorts, char *full)
  
  	
 #ifdef MACINTOSH
- 	if( ! volName[0] ) {
+	char *volName = morpheus_runtime_context_current()->volume_name;
+
+	if( ! volName[0] ) {
  		GetVol((StringPtr) volName, &vRefNum);
  		PtoCstr((StringPtr)volName);
  	}
@@ -94,7 +95,9 @@ void SysFolderFile(char *fullname, char *shorts)
  	char vName[128];
  	
 #ifdef MACINTOSH
- 	GetVol((StringPtr)vName,&vRefNum);
+	char *volName = morpheus_runtime_context_current()->volume_name;
+
+	GetVol((StringPtr)vName,&vRefNum);
  	PtoCstr((StringPtr)vName);
   	
  	sprintf(fullname,"%s:[System Folder]:%s",volName, shorts );
