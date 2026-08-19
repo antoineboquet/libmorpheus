@@ -52,7 +52,7 @@
 void zap_rr_breath(char *word);
 
 /* Formatting helpers are implemented by morphlib. */
-int DialectNames(Dialect dialect, char *buffer, char *delimiter);
+void DialectNames(Dialect dialect, char *buffer, char *delimiter);
 int MorphNames(MorphFlags *flags, char *buffer, char *delimiter, int pretty);
 
 #endif

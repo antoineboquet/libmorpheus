@@ -551,7 +551,7 @@ int needs_augment2(gk_word *gkform, char *stem)
 
 
  
-int simpleaugment(char *s, bool syllabic)
+void simpleaugment(char *s, bool syllabic)
 {
 	gk_word * gkform;
 
@@ -597,7 +597,7 @@ int augmentit(gk_word *gkform, bool syllabic, int maxaugs)
 		return(do_tempaug(gkform,maxaugs));
 }
 
-int simpleredupit(char *s, int syllabic, int redupc)
+void simpleredupit(char *s, int syllabic, int redupc)
 {
 	gk_word * gkform;
 

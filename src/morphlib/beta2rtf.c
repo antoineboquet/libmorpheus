@@ -68,7 +68,7 @@ int _main(int argc, char *argv[])
 */
 }
 
-int conv_defline(char *s, FILE *fout)
+void conv_defline(char *s, FILE *fout)
 {
 	char res1[128], res2[128], result[BUFSIZ*6];
 	char * introp;

@@ -31,7 +31,7 @@ static int GetGkFlag();
 static int GetMorphKeys();
 #endif
 
-static int RearrangeMorphflags(gk_word *, gk_string *);
+static void RearrangeMorphflags(gk_word *, gk_string *);
 static int GetGkFlag(char *, gk_string *, char *, char *, char *);
 static char *p_eq_morph_keys(long, Morph_args *);
 static int keys_inited = 0;
@@ -152,7 +152,7 @@ printf("crasis now set to [%s]\n", crasis_of(Gkword) );
 }
 
 static 
-int RearrangeMorphflags(gk_word *Gkword, gk_string *gstr)
+void RearrangeMorphflags(gk_word *Gkword, gk_string *gstr)
 {
 	xfer_prvbflags(morphflags_of(Gkword),morphflags_of(prvb_gstr_of(Gkword)));
 	xfer_prvbflags(morphflags_of(gstr),morphflags_of(prvb_gstr_of(Gkword)));
@@ -361,7 +361,7 @@ int DomainNames(char *domp, char *res, char *dels)
 	}
 }
   
- int DialectNames(Dialect di, char *res, char *dels)
+ void DialectNames(Dialect di, char *res, char *dels)
 {
 	char * s;
 	int i;
@@ -390,7 +390,7 @@ int DomainNames(char *domp, char *res, char *dels)
 	return;
 }
 
- int GeogRegionNames(GeogRegion gr, char *res, char *dels)
+ void GeogRegionNames(GeogRegion gr, char *res, char *dels)
 {
 	char * s;
 	int i;

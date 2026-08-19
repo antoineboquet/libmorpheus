@@ -203,7 +203,7 @@ int is_prvb_morphflag(long mnum)
 
 void * zogalloc(size_t, size_t);
 
-int init_prvb_tab(void)
+void init_prvb_tab(void)
 {
 	
 	if( prvb_tab ) return;

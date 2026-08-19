@@ -36,7 +36,7 @@ int NumFilesOpened(void)
  */
 static char volName[128];
 
-int MorphPathName(char *shorts, char *full)
+void MorphPathName(char *shorts, char *full)
  {
  	char * s;
  	short vRefNum;

@@ -42,8 +42,8 @@
 #include "ultform.proto.h"
 #include "ulttakescirc.proto.h"
 
-int FixPersAcc2(gk_string *gstring, MorphFlags *flags, gk_string *stem,
-                char *ending, char *word, word_form form, int is_ending);
+void FixPersAcc2(gk_string *gstring, MorphFlags *flags, gk_string *stem,
+                 char *ending, char *word, word_form form, int is_ending);
 int init_betatab(void);
 int localtrimwhite(char *string, int length);
 int set_gkorder(char *table);

@@ -2,9 +2,9 @@
 /* conjstem.c */
 int fixcontr(char *, char *);
 int makeperf(char *);
-int fixperf(char *);
+void fixperf(char *);
 int conjstem(char *, char *);
-int conjoin(char *, char *);
+void conjoin(char *, char *);
 int do_sigma(char *, char *);
 int do_theta(char *);
 int do_mu(char *);

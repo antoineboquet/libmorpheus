@@ -33,7 +33,7 @@ static int charstyle_flag = 0;
 #define BOLD '1'
 
 #include "beta2smarta.proto.h"
-static int init_gktab(void);
+static void init_gktab(void);
 static int acctab[] = {
 	ACUTEFLAG,
 	GRAVEFLAG,
@@ -55,7 +55,7 @@ static int cur_font = GREEK;
 char * greekfont(),  * romanfont();
 
 static 
-int init_gktab(void)
+void init_gktab(void)
 {
 	
 	gkinit++;

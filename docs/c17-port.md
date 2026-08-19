@@ -34,8 +34,8 @@ aligned with that implementation.
 All six runtime modules are explicit-return-type boundaries. Their definitions
 no longer rely on implicit `int`, and their `qsort` calls use `const void *`
 comparators matching the standard-library callback. All six targets treat
-implicit `int` and
-incompatible pointer types as errors.
+implicit `int`, incompatible pointer types, and non-`void` functions that reach
+the end without returning a value as errors.
 
 Typing `anal` also made its historical common-prefix structure conversions
 visible. Calls that deliberately pass a generated word or analysis to helpers
@@ -51,6 +51,11 @@ Typing `morphlib` also exposed a disk-format width mismatch: `ReadKey` stores a
 32-bit offset, while `endtags` keeps the value in a `long`. `retrentry.c` now
 reads through an `int` temporary before assigning the structure field, instead
 of passing a `long *` to the 32-bit reader.
+
+The return-type boundary identifies allocation, accentuation, transliteration,
+and preverb helpers that only mutate their arguments. These procedures and
+their public prototypes now return `void`, so callers can no longer consume an
+indeterminate integer result.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now

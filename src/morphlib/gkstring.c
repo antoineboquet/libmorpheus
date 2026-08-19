@@ -17,7 +17,7 @@ printf("creat gstr %d\n", num * (sizeof * tmpgstring) );
 	return( tmpgstring );
 }
 
-int FreeGkString(gk_string *gstring)
+void FreeGkString(gk_string *gstring)
 {
 	if( ! gstring ) {
 		fprintf(stderr,"hey! asked to free NULL gstring \n");
@@ -68,7 +68,7 @@ printf("creat gword %d\n", num * (sizeof * tmpgword) );
 
 static gk_string BlnkGstr;
 
-int ClearGkstring(gk_string *gstr)
+void ClearGkstring(gk_string *gstr)
 {
 	gk_string *gstring;
 	gk_string *CreatGkString();
@@ -82,7 +82,7 @@ int ClearGkstring(gk_string *gstr)
 */
 }
 
-int FreeGkword(gk_word *Gkword)
+void FreeGkword(gk_word *Gkword)
 {
 	if( ! Gkword ) {
 		fprintf(stderr,"hey! asked to free NULL gkword \n");

@@ -18,6 +18,6 @@ int Dump_morphflag(MorphFlags *);
 int is_pretty_morphflag(long);
 int init_ugly_tab(void);
 int is_prvb_morphflag(long);
-int init_prvb_tab(void);
+void init_prvb_tab(void);
 int xfer_prvbflags(MorphFlags *, MorphFlags *);
 int MorphNames(MorphFlags *, char *, char *, int);

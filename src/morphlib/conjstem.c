@@ -33,7 +33,7 @@ int makeperf(char *s)
 		conjoin(s,"k");
 }
 
-int fixperf(char *s)
+void fixperf(char *s)
 {
 	register char *p;
 
@@ -94,7 +94,7 @@ int conjstem(char *stem, char *e)
 	conjoin(stem,ending);
 }
 
-int conjoin(char *stem, char *e)
+void conjoin(char *stem, char *e)
 {
 	/* observe the laws of euphony, if you please... */
 	register char *p;

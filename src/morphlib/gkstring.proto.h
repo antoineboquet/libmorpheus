@@ -1,12 +1,12 @@
 
 /* gkstring.c */
 gk_string *CreatGkString(int);
-int FreeGkString(gk_string *);
+void FreeGkString(gk_string *);
 gk_analysis *CreatGkAnal(int);
 int FreeGkAnal(gk_analysis *);
 gk_word *CreatGkword(int);
-int ClearGkstring(gk_string *);
-int FreeGkword(gk_word *);
+void ClearGkstring(gk_string *);
+void FreeGkword(gk_word *);
 int CpGkAnal(gk_word *, gk_word *);
 int CompGkString(const void *, const void *);
 int CompGkForms(gk_word *, gk_word *);
