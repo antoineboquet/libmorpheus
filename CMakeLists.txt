@@ -36,7 +36,9 @@ target_include_directories(
 target_compile_options(
   morpheus_build_options
   INTERFACE
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-fcommon>
+    # GCC 10 made this the default; keeping it explicit prevents a regression
+    # to the historical common-symbol behaviour on older toolchains.
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-fno-common>
 )
 
 add_library(morpheus_greeklib STATIC

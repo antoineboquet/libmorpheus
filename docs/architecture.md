@@ -35,9 +35,10 @@ The intended architecture extracts the analyzer behind a stable C ABI named
 the Bailly Deno API will consume structured results through FFI.
 
 The initial CMake milestone established a reproducible runtime build and a
-behavioral baseline. The runtime now builds in C17 mode, while the inherited
-K&R-style definitions and compiler extensions are removed incrementally. The
-extraction of the public API remains a separately testable change.
+behavioral baseline. The runtime now builds in C17 mode and rejects historical
+common-symbol linkage (`-fno-common`), while the inherited K&R-style
+definitions and compiler extensions are removed incrementally. The extraction
+of the public API remains a separately testable change.
 
 ## Known constraints
 
