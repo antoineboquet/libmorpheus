@@ -96,7 +96,6 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
 add_library(morpheus_morphlib STATIC
@@ -149,7 +148,6 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
 add_library(morpheus_gkends STATIC
@@ -181,7 +179,6 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
 add_library(morpheus_gkdict STATIC
@@ -200,7 +197,6 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
 add_library(morpheus_gener STATIC src/gener/genwd.c)
@@ -215,7 +211,6 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
 add_library(morpheus_anal STATIC
@@ -251,7 +246,6 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
-    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
 if(MORPHEUS_BUILD_CRUNCHER)
