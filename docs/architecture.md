@@ -46,3 +46,9 @@ The inherited engine contains process-wide mutable state, lazy global caches,
 and static formatting buffers. It is not currently reentrant or thread-safe.
 The first FFI implementation must serialize calls. True per-context concurrency
 requires moving this state into an opaque analyzer context.
+
+The first context boundary now owns the active language selection. The legacy
+`set_lang` and `cur_lang` entry points dispatch through an opaque runtime context,
+and context activation is thread-local. Remaining caches and formatting state
+are still process-wide, so this is an incremental isolation boundary rather
+than a thread-safety guarantee.

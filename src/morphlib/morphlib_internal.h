@@ -34,6 +34,7 @@
 #include "preverb.proto.h"
 #include "preverb2.proto.h"
 #include "preverb3.proto.h"
+#include "runtime_context.h"
 #include "setlang.proto.h"
 #include "smk2beta.proto.h"
 #include "sprntGkflags.h"

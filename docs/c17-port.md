@@ -128,13 +128,18 @@ independently owned analysis array.
 
 The `sanitizers` CMake preset instruments the full runtime with ASan and UBSan.
 CI runs both fixture suites with immediate failure on memory or undefined-
-behavior reports. Leak detection is disabled until the process-lifetime lookup
-tables move into the planned opaque context with an explicit destructor.
+behavior reports. The isolated runtime-context lifecycle test also enables leak
+detection; the full analyser retains it disabled until its process-lifetime
+caches have moved behind the same teardown boundary.
 
 The first instrumented fixture pass found and fixed three lifetime violations:
 empty ending strings no longer read before their stack buffer, preverb suffix
 checks now verify the available length before computing a suffix pointer, and
 the accent-insensitive comparison buffer remains alive until its final use.
+The first opaque runtime-context slice owns language selection. Contexts have
+explicit create, activate, and destroy operations; activation is thread-local,
+while the historical `set_lang` and `cur_lang` calls remain compatible. Other
+mutable caches still need to migrate before the analyser is reentrant.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
@@ -166,9 +171,8 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Move mutable process state into an opaque context, add deterministic teardown,
-   then enable leak detection and extract the public
-   `libmorpheus` ABI.
+1. Move the remaining mutable caches and formatting state into the opaque
+   context, then extract the public `libmorpheus` ABI.
 
 Every lot must keep both fixture suites passing: the inherited Perseids
 fixtures and the Greek Alpheios stemlib fixtures used by Bailly.

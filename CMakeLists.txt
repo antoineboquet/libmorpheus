@@ -184,6 +184,23 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+if(BUILD_TESTING)
+  add_executable(morpheus_runtime_context_test test/runtime-context.c)
+  target_link_libraries(
+    morpheus_runtime_context_test
+    PRIVATE morpheus_morphlib morpheus_build_options
+  )
+  add_test(NAME runtime_context COMMAND morpheus_runtime_context_test)
+  if(MORPHEUS_ENABLE_SANITIZERS)
+    set_tests_properties(
+      runtime_context
+      PROPERTIES
+        ENVIRONMENT
+          "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1;UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+  endif()
+endif()
+
 add_library(morpheus_gkends STATIC
   src/gkends/acccompos.c
   src/gkends/checkforbreath.c
