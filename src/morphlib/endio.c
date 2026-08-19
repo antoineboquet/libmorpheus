@@ -172,7 +172,7 @@ printf("gstrsize %d endlen %d unitsize %d, mod %d, nendings %d filelen %ld\n", g
 	return(nendings);
 }
 
-int localtrimwhite(char *s,int n)
+void localtrimwhite(char *s,int n)
 {
 	int i;
 	int sdone = 0;

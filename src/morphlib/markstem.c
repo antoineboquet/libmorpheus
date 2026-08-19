@@ -15,7 +15,7 @@
 #include <gkstring.h>
 
 #include "markstem.proto.h"
- int markstem(char *stemstr, gk_string *gstr)
+ void markstem(char *stemstr, gk_string *gstr)
 {
 	register char * lastp;
 

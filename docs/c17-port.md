@@ -62,6 +62,10 @@ Full object compilation also classifies double augmentation and the legacy Mac
 transliteration entry points as in-place procedures. Their contracts now return
 `void`; the standalone RTF converter instead returns an explicit success status.
 
+Stem contraction, ending-buffer cleanup, diagnostic output, collation-table
+initialization, and stem annotation are likewise side-effect-only procedures;
+their definitions and internal prototypes now expose that `void` contract.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before

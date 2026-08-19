@@ -5,7 +5,7 @@
 #include "conjstem.proto.h"
 
 
-int fixcontr(char *stem, char *verb)
+void fixcontr(char *stem, char *verb)
 /* expand stem for contract verbs */
 {
 	if (A_CONTR(verb) || E_CONTR(verb))
@@ -14,7 +14,7 @@ int fixcontr(char *stem, char *verb)
 		Xstrncat(stem,"w",MAXWORDSIZE);
 }
 
-int makeperf(char *s)
+void makeperf(char *s)
 {
 	register char *p;
 
@@ -67,7 +67,7 @@ void fixperf(char *s)
 	}
 }
 
-int conjstem(char *stem, char *e)
+void conjstem(char *stem, char *e)
 {
 	register char *p;
 	char ending[MAXWORDSIZE];
