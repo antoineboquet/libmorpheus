@@ -28,12 +28,11 @@ else { Xstrcpy(S,"}"), S ++; }*/
 #define ROMANFONT "}{"
 #define BOLDFONT "}{\\b "
 #define ITALICFONT "}{\\ulw "
-static int charstyle_flag = 0;
 #define ITALIC '3'
 #define BOLD '1'
 
 #include "beta2smarta.proto.h"
-static void init_gktab(void);
+static void init_gktab(morpheus_runtime_context *);
 static int acctab[] = {
 	ACUTEFLAG,
 	GRAVEFLAG,
@@ -48,17 +47,13 @@ static int acctab[] = {
 	ROUGHFLAG|CIRCUMFLAG
 };
 
-static int gktab[256];
-static int accenttab[256];
-static int gkinit = 0;
-static int cur_font = SMARTA_GREEK_FONT;
-char * greekfont(),  * romanfont();
-
 static 
-void init_gktab(void)
+void init_gktab(morpheus_runtime_context *context)
 {
+	int *accenttab = context->smarta_accent_table;
+	int *gktab = context->smarta_greek_table;
 	
-	gkinit++;
+	context->smarta_tables_initialized = 1;
 	
 	accenttab['/'] = ACUTEFLAG;
 	accenttab['\\'] = GRAVEFLAG;
@@ -84,9 +79,6 @@ void init_gktab(void)
 	gktab[HISUB] = 0271;
 }
 
-/*
-static int gktab[256];
-*/
 #define Is_accflag(X) (accenttab[X] > 0 && accenttab[X] <= ISUBFLAG )
 #define SMARTA 2
 #define SMK 4
@@ -103,29 +95,34 @@ void beta2smk(char *source, char *res)
 
 void set_greek(void)
 {
-	cur_font = SMARTA_GREEK_FONT;
+	morpheus_runtime_context_current()->smarta_current_font = SMARTA_GREEK_FONT;
 }
 
 void set_roman(void)
 {
-	cur_font = ROMAN;
+	morpheus_runtime_context_current()->smarta_current_font = ROMAN;
 }
 
 void beta2mac(char *source, char *res, int xlit)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int *accenttab = context->smarta_accent_table;
+	int *gktab = context->smarta_greek_table;
 	 char * sp;
 	/*unsigned*/ char * rp;
 	int acc;
 	int saw_isub = 0;
 	int long_vowel = 0;
 	
-	if( ! gkinit ) init_gktab();
+	if( ! context->smarta_current_font )
+		context->smarta_current_font = SMARTA_GREEK_FONT;
+	if( ! context->smarta_tables_initialized ) init_gktab(context);
 	
 	sp = source; rp = res;
 	
 	while(*sp) {
 		if( *sp == '$' ) {
-			if( charstyle_flag ) {
+			if( context->smarta_character_style ) {
 				if( rp == res ) {
 					END_CHARSTYLE(rp);
 /*					*rp++ = 0253;*/
@@ -150,7 +147,7 @@ void beta2mac(char *source, char *res, int xlit)
 					*rp++ = ' ';
 */
 				}
-				charstyle_flag = 0;
+				context->smarta_character_style = 0;
 			}
 			sp = greekfont(sp);
 			if( xlit == SMK ) {
@@ -160,30 +157,27 @@ void beta2mac(char *source, char *res, int xlit)
 			continue;
 		} else if( *sp == '&' ) {
 
-			if( charstyle_flag  && ! IS_CHARSTYLE(sp)) {
+			if( context->smarta_character_style && ! IS_CHARSTYLE(sp)) {
 				END_CHARSTYLE(rp);
-				charstyle_flag = 0;
+				context->smarta_character_style = 0;
 			}
-/*
-			} else if( ! charstyle_flag && IS_CHARSTYLE(sp)  ) {
-*/
 			if( IS_CHARSTYLE(sp) ) {
-				if( (*(sp+1) == '3' && charstyle_flag == BOLD ) &&
-					(*(sp+1) == '1' && charstyle_flag == ITALIC ) ) {
+				if( (*(sp+1) == '3' && context->smarta_character_style == BOLD ) &&
+					(*(sp+1) == '1' && context->smarta_character_style == ITALIC ) ) {
 						END_CHARSTYLE(rp);
-						charstyle_flag = 0;
+						context->smarta_character_style = 0;
 				}
 				if( *(sp+1) == '3' )
-					charstyle_flag = ITALIC;
+					context->smarta_character_style = ITALIC;
 				else if( *(sp+1) == '1' )
-					charstyle_flag = BOLD;
+					context->smarta_character_style = BOLD;
 /*
 				*rp++ = ' ';
 */
 				if( xlit == SMARTA ) 
 					*rp++ = 0137;
 				else {
-					if( charstyle_flag == ITALIC ) {
+					if( context->smarta_character_style == ITALIC ) {
 						Xstrcpy(rp,ITALICFONT); rp += Xstrlen(ITALICFONT);
 					} else {
 						Xstrcpy(rp,BOLDFONT); rp += Xstrlen(BOLDFONT);
@@ -193,7 +187,7 @@ void beta2mac(char *source, char *res, int xlit)
 				while(isspace(*sp)) sp++;
 			}
 			sp = romanfont(sp);
-			if( xlit == SMK && ! charstyle_flag && *(rp-1) != '}' ) {
+			if( xlit == SMK && ! context->smarta_character_style && *(rp-1) != '}' ) {
 				Xstrcpy(rp,ROMANFONT);  rp += Xstrlen(ROMANFONT);
 			}
 			continue;
@@ -223,7 +217,7 @@ void beta2mac(char *source, char *res, int xlit)
 					if( xlit == SMARTA ) 
 						*rp++ = EQUALS;
 					else {
-						if( cur_font == SMARTA_GREEK_FONT ) {
+						if( context->smarta_current_font == SMARTA_GREEK_FONT ) {
 							Xstrcpy(rp,ROMANFONT);
 							rp += Xstrlen(ROMANFONT);
 							Xstrcpy(rp,"=}{");
@@ -265,7 +259,7 @@ void beta2mac(char *source, char *res, int xlit)
 				}
 			continue;
 		}
-		if( *sp == '*' && cur_font == ROMAN ) {
+		if( *sp == '*' && context->smarta_current_font == ROMAN ) {
 			if( xlit == SMARTA ) {
 				*rp++ = UCASEMARKER;
 			} else if (xlit == SMK ) {
@@ -277,7 +271,7 @@ void beta2mac(char *source, char *res, int xlit)
 			sp++;
 			continue;
 		}
-		if( cur_font == ROMAN &&isalpha(*sp) ) {
+		if( context->smarta_current_font == ROMAN &&isalpha(*sp) ) {
 			if( isupper(*sp) ) {
 				*rp++ = UCASEMARKER;
 				*rp++ = *sp++;
@@ -523,7 +517,7 @@ int accnum(int n)
 char * 
 romanfont(char *s)
 {
-	cur_font = ROMAN;
+	morpheus_runtime_context_current()->smarta_current_font = ROMAN;
 	while(*s && *s=='&') s++;
 	if( isdigit(*s) ) while(isdigit(*s)) s++;
 	else if( *s == ' '&& *(s+1) == ' ' ) s++;
@@ -533,7 +527,7 @@ romanfont(char *s)
 char * 
 greekfont(char *s)
 {
-	cur_font = SMARTA_GREEK_FONT;
+	morpheus_runtime_context_current()->smarta_current_font = SMARTA_GREEK_FONT;
 	while(*s && *s=='$') s++;
 	if( isdigit(*s) ) while(isdigit(*s)) s++;
 	else if( *s == ' ' && *(s+1) == ' '  ) s++;

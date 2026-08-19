@@ -1,8 +1,10 @@
 #include <assert.h>
+#include <string.h>
 
 #include <gkstring.h>
 #include <prntflags.h>
 
+#include "../src/morphlib/beta2smarta.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/preverb3.proto.h"
 #include "../src/morphlib/runtime_context.h"
@@ -14,6 +16,7 @@ int main(void)
 	morpheus_runtime_context *greek = morpheus_runtime_context_create();
 	morpheus_runtime_context *latin = morpheus_runtime_context_create();
 	morpheus_runtime_context *previous;
+	char converted[16];
 
 	assert(greek);
 	assert(latin);
@@ -30,6 +33,9 @@ int main(void)
 	assert(!is_pretty_morphflag(PERS_NAME));
 	assert(is_prvb_morphflag(DISSIMILATION));
 	assert(is_rawpreverb("trans"));
+	set_roman();
+	beta2smarta("a",converted);
+	assert(!strcmp(converted,"A"));
 	set_lang(GREEK);
 	assert(is_rawpreverb("upo"));
 	set_lang(ITALIAN);
@@ -41,6 +47,8 @@ int main(void)
 	assert(!is_pretty_morphflag(PERS_NAME));
 	assert(is_prvb_morphflag(DISSIMILATION));
 	assert(is_rawpreverb("upo"));
+	beta2smarta("a",converted);
+	assert(!strcmp(converted,"a"));
 	morpheus_runtime_context_destroy(greek);
 	assert(cur_lang() == GREEK);
 

@@ -138,12 +138,12 @@ checks now verify the available length before computing a suffix pointer, and
 the accent-insensitive comparison buffer remains alive until its final use.
 The opaque runtime context owns language selection, the lazily initialized Beta
 Code collation tables, the dynamically allocated morphology-flag lookup tables,
-and the language-specific raw-preverb table. Contexts have explicit create,
-activate, and destroy operations; activation is thread-local, while the
-historical `set_lang` and `cur_lang` calls remain compatible. Destruction
-releases the allocated tables, and switching a context's language invalidates
-its preverb data on the next lookup. Other mutable caches still need to migrate
-before the analyser is reentrant.
+the language-specific raw-preverb table, and SmartA/SMK conversion state.
+Contexts have explicit create, activate, and destroy operations; activation is
+thread-local, while the historical `set_lang` and `cur_lang` calls remain
+compatible. Destruction releases the allocated tables, and switching a
+context's language invalidates its preverb data on the next lookup. Other
+mutable caches still need to migrate before the analyser is reentrant.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now

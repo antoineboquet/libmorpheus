@@ -17,6 +17,11 @@ struct morpheus_runtime_context {
 	gk_string *raw_preverb_table;
 	int raw_preverb_count;
 	int raw_preverb_language;
+	int smarta_greek_table[256];
+	int smarta_accent_table[256];
+	int smarta_tables_initialized;
+	int smarta_current_font;
+	int smarta_character_style;
 };
 
 morpheus_runtime_context *morpheus_runtime_context_current(void);
