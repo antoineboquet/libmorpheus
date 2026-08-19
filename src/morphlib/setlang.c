@@ -1,15 +1,10 @@
 #include "morphlib_internal.h"
 
-struct morpheus_runtime_context {
-	int language;
-	int heap_allocated;
-};
-
 static _Thread_local morpheus_runtime_context default_context = { 0, 0 };
 static _Thread_local morpheus_runtime_context *active_context;
 
-static morpheus_runtime_context *
-current_context(void)
+morpheus_runtime_context *
+morpheus_runtime_context_current(void)
 {
 	return(active_context ? active_context : &default_context);
 }
@@ -34,7 +29,7 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 morpheus_runtime_context *
 morpheus_runtime_context_activate(morpheus_runtime_context *context)
 {
-	morpheus_runtime_context *previous = current_context();
+	morpheus_runtime_context *previous = morpheus_runtime_context_current();
 
 	active_context = context;
 	return(previous);
@@ -55,10 +50,10 @@ morpheus_runtime_context_language(const morpheus_runtime_context *context)
 
 void set_lang(int n)
 {
-	current_context()->language = n;
+	morpheus_runtime_context_current()->language = n;
 }
 
 int cur_lang(void)
 {
-	return(current_context()->language);
+	return(morpheus_runtime_context_current()->language);
 }

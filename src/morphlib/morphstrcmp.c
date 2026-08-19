@@ -3,17 +3,15 @@
 
 #include "morphstrcmp.proto.h"
 
-static char comptab[128];
-static char betatab[128];
-static int tabinited = 0;
-static int betatabinited = 0;
-
 /*
  * Compare strings:  s1>s2: >0  s1==s2: 0  s1<s2: <0
  */
 int morphstrcmp(char *s1, char *s2)
 {
-	if( ! tabinited ) {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char *comptab = context->comparison_table;
+
+	if( ! context->comparison_table_initialized ) {
 		init_comptab();
 	}
 /*
@@ -31,7 +29,10 @@ fprintf(stderr,"looking at [%s] and [%s]\n", s1, s2 );
 
 int betastrcmp(char *s1, char *s2)
 {
-	if( ! betatabinited ) {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char *betatab = context->beta_table;
+
+	if( ! context->beta_table_initialized ) {
 		init_betatab();
 	}
 	while(1) {
@@ -55,7 +56,10 @@ int betastrcmp(char *s1, char *s2)
 
 int morphstrncmp(char *s1, char *s2, size_t n)
 {
-	if( ! tabinited ) {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char *comptab = context->comparison_table;
+
+	if( ! context->comparison_table_initialized ) {
 		init_comptab();
 	}
 	if (n <= 0) return ( 0 );
@@ -68,9 +72,11 @@ int morphstrncmp(char *s1, char *s2, size_t n)
 
 int dictstrcmp(char *s1, char *s2)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char *comptab = context->comparison_table;
 	register char * t1, * t2;
 	t1 = s1; t2 = s2;
-	if( ! tabinited ) {
+	if( ! context->comparison_table_initialized ) {
 		init_comptab();
 	}
 
@@ -124,9 +130,11 @@ int dictstrncmp(char *s1, char *s2, size_t n)
 
 void init_comptab(void)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char *comptab = context->comparison_table;
 	int i;
 	
-	tabinited++;
+	context->comparison_table_initialized = 1;
 	for(i=0;i<128;i++)
 		comptab[i] = i;
 	comptab['|'] = 'i'; /* iota subscript matches as an 'i' */
@@ -134,9 +142,11 @@ void init_comptab(void)
 
 void init_betatab(void)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char *betatab = context->beta_table;
 	int i;
 	
-	betatabinited++;
+	context->beta_table_initialized = 1;
 	for(i=0;i<128;i++) {
 /*		if( isalpha(i) )*/
 			betatab[i] = i;

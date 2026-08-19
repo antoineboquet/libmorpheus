@@ -34,7 +34,7 @@
 #include "preverb.proto.h"
 #include "preverb2.proto.h"
 #include "preverb3.proto.h"
-#include "runtime_context.h"
+#include "runtime_context_internal.h"
 #include "setlang.proto.h"
 #include "smk2beta.proto.h"
 #include "sprntGkflags.h"
@@ -45,7 +45,6 @@
 
 void FixPersAcc2(gk_string *gstring, MorphFlags *flags, gk_string *stem,
                  char *ending, char *word, word_form form, int is_ending);
-void init_betatab(void);
 void localtrimwhite(char *string, int length);
 void set_gkorder(char *table);
 

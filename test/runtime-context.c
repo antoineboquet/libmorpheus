@@ -1,6 +1,7 @@
 #include <assert.h>
 
 #include "../src/morphlib/runtime_context.h"
+#include "../src/morphlib/morphstrcmp.proto.h"
 #include "../src/morphlib/setlang.proto.h"
 
 #include <prntflags.h>
@@ -22,11 +23,13 @@ int main(void)
 
 	previous = morpheus_runtime_context_activate(latin);
 	assert(cur_lang() == LATIN);
+	assert(morphstrcmp("a|","ai") == 0);
 	set_lang(ITALIAN);
 	assert(morpheus_runtime_context_language(latin) == ITALIAN);
 
 	morpheus_runtime_context_activate(greek);
 	assert(cur_lang() == GREEK);
+	assert(morphstrcmp("a|","ai") == 0);
 	morpheus_runtime_context_destroy(greek);
 	assert(cur_lang() == GREEK);
 
