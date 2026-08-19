@@ -42,7 +42,7 @@ printf("creat ganal %d\n", num * (sizeof * tmpanal) );
 	return(tmpanal);
 }
 
-int FreeGkAnal(gk_analysis *gkanal)
+void FreeGkAnal(gk_analysis *gkanal)
 {
 	xFree((char *)gkanal,"freegkanal");
 /*
@@ -98,7 +98,7 @@ printf("free gkword \n");
 	xFree((char *)Gkword,"freegkword");
 }
 
-int CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
+void CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
 {
 	totanal_of(Gkword1) = totanal_of(Gkword2);
 	analysis_of(Gkword1) = analysis_of(Gkword2);
@@ -303,7 +303,7 @@ int low_bit_of(int n)
 			return(n & mask );
 		}
 	}
-		
+	return(0);
 }
 
 int
@@ -317,7 +317,7 @@ int RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 	return(CompByDictStr(gstr1,gstr2) * -1);
 }
 
- int PrntGkStrings(gk_string *gstr, FILE *f)
+ void PrntGkStrings(gk_string *gstr, FILE *f)
 {
 	while((gkstring_of(gstr))[0]) {
 		PrntGkStr(gstr,f);
@@ -329,7 +329,7 @@ int RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 /*
  *  this expects an array of data structures of type gk_string
  */
- int PrntGkParadigm(gk_string *gstr, FILE *f)
+ void PrntGkParadigm(gk_string *gstr, FILE *f)
 {
 	Stemtype stemtype;
 	int tense, mood, voice;
@@ -363,14 +363,14 @@ int RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 
 }
 
-int PrntGkStr(gk_string *gstr, FILE *f)
+void PrntGkStr(gk_string *gstr, FILE *f)
 {
 	fprintf(f,"%s ", gkstring_of(gstr) );
 	PrntGkFlags(gstr,f);
 	fprintf(f,"\n");
 }
 
- int PrntGkFlags(gk_string *gstr, FILE *f)
+ void PrntGkFlags(gk_string *gstr, FILE *f)
 {
 	PrntVerbInfo(forminfo_of(gstr),f);
 	PrntAdjInfo(forminfo_of(gstr),f);
@@ -381,7 +381,7 @@ int PrntGkStr(gk_string *gstr, FILE *f)
 	PrntDomains(domains_of(gstr),f);
 }
 
-int PrntDomains(char *doms, FILE *f)
+void PrntDomains(char *doms, FILE *f)
 {
 	char * p=doms;
 	
@@ -391,7 +391,7 @@ int PrntDomains(char *doms, FILE *f)
 	}
 }
   
- int PrntMorphFlags(MorphFlags *mf, FILE *f)
+ void PrntMorphFlags(MorphFlags *mf, FILE *f)
 {
 	char buf[256];
 	
@@ -399,7 +399,7 @@ int PrntDomains(char *doms, FILE *f)
  	fprintf(f,"%s ", buf );
 }
 
- int PrntVerbInfo(word_form vf, FILE *f)
+ void PrntVerbInfo(word_form vf, FILE *f)
 {
 	char paradigm[LONGSTRING];
 	
@@ -410,7 +410,7 @@ int PrntDomains(char *doms, FILE *f)
 	fprintf(f,"%s", paradigm);
 }
 
- int PrntParadigmInfo(word_form vf, FILE *f)
+ void PrntParadigmInfo(word_form vf, FILE *f)
 {
 	char paradigm[LONGSTRING];
 	paradigm[0] = 0;
@@ -420,7 +420,7 @@ int PrntDomains(char *doms, FILE *f)
 }
 	
 
-int AddParadigmInfo(char *s, word_form vf,char * dels)
+void AddParadigmInfo(char *s, word_form vf,char * dels)
 {
 	char * p;
 	
@@ -444,7 +444,7 @@ int AddParadigmInfo(char *s, word_form vf,char * dels)
 	
 }
 
-int AddPersNumInfo(char *s, word_form vf,char * dels)
+void AddPersNumInfo(char *s, word_form vf,char * dels)
 {
 	char * p;
 	
@@ -462,13 +462,13 @@ int AddPersNumInfo(char *s, word_form vf,char * dels)
 	
 }
 
-int PrntPersNumInfo(word_form vf, FILE *f)
+void PrntPersNumInfo(word_form vf, FILE *f)
 {
 	fprintf(f,"%s ", NameOfPerson(vf ) );
 	fprintf(f,"%s ", NameOfNumber(vf ) );
 }
 
- int PrntAdjInfo(word_form af, FILE *f)
+ void PrntAdjInfo(word_form af, FILE *f)
 {
 	char adjbuf[MAXWORDSIZE];
 	adjbuf[0] = 0;
@@ -482,7 +482,7 @@ int PrntPersNumInfo(word_form vf, FILE *f)
 */
 }
 
-int AddAdjInfo(char *s, word_form vf,char * dels)
+void AddAdjInfo(char *s, word_form vf,char * dels)
 {
 	char * p;
 	
@@ -506,7 +506,7 @@ int AddAdjInfo(char *s, word_form vf,char * dels)
 	
 }
 
-int
+void
  PrntStemtype(st,f)
  Stemtype st;
  FILE *f;
@@ -514,7 +514,7 @@ int
 	fprintf(f,"%s ", NameOfStemtype(st ) );
 }
 
-int
+void
  PrntDialect(di,f)
  Dialect di; 
  FILE *f;
@@ -537,7 +537,7 @@ int
 */
 }
 
-int AddDialect(di, dialb,dels)
+void AddDialect(di, dialb,dels)
 	Dialect di;
 	char *dialb;
 	char *dels;
@@ -655,7 +655,7 @@ int eq_forminfo(word_form f1, word_form f2)
 	return(1);
 }
 		
-int SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
+void SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 {
 		char dialbuf[LONGSTRING*2];
 		char * s;
@@ -767,7 +767,7 @@ int SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 }
 
 
-int DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
+void DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
 {
 		char dialbuf[LONGSTRING];
 		char * s;

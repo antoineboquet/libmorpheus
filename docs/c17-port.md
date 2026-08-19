@@ -54,9 +54,7 @@ of passing a `long *` to the 32-bit reader.
 The first return-contract pass identified allocation, accentuation,
 transliteration, and preverb helpers that only mutate their arguments. These
 procedures and their public prototypes now return `void`, so callers can no
-longer consume an indeterminate integer result. Strict missing-return checking
-will be enabled after the remaining historical status functions are classified
-under full object compilation.
+longer consume an indeterminate integer result.
 
 Full object compilation also classifies double augmentation and the legacy Mac
 transliteration entry points as in-place procedures. Their contracts now return
@@ -82,6 +80,12 @@ also return `void`, while the public analysis entry points retain their counts.
 Morphology-flag mutation, table initialization, debugging, and name rendering
 now return `void`. The `has_morphflags` predicate instead returns an explicit
 false value when no requested bit is present.
+
+The final `gkstring` pass classifies deallocation, shallow analysis copying,
+formatted output, and buffer-appending helpers as procedures. `low_bit_of`
+remains an integer query and now returns zero when no bit is selected. With all
+118 runtime sources passing full object compilation, all six libraries enforce
+`-Werror=return-type` in CMake.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
@@ -113,10 +117,9 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Complete return-value contracts under full object compilation.
-2. Correct format strings, buffer bounds, and ownership documentation with
+1. Correct format strings, buffer bounds, and ownership documentation with
    ASan/UBSan enabled in CI.
-3. Move mutable process state into an opaque context, then extract the public
+2. Move mutable process state into an opaque context, then extract the public
    `libmorpheus` ABI.
 
 Every lot must keep both fixture suites passing: the inherited Perseids
