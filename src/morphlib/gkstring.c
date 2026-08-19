@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 
 
@@ -524,7 +525,7 @@ int
 	char dialbuf[MAXWORDSIZE];
 
 	dialbuf[0] = 0;
-	AddDialect(di,dialbuf);
+	AddDialect(di,dialbuf," ");
 	fprintf(f,"%s ", dialbuf);
 /*
 	for(i=0;i<(((int)sizeof di) * 8);i++) {

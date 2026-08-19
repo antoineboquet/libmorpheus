@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 /*
  * copyright Gregory Crane
  * February 1987

@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>	
 
 #include "new_val.proto.h"
@@ -102,4 +103,3 @@ new_derivtype(gk_string *gstr, unsigned long val)
 {
 		set_derivtype(gstr,(Derivtype)val);
 }
-

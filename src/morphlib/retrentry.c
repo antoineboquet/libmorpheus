@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 #include <endtags.h>
 #define LINDEXSUFFIX "lindex"

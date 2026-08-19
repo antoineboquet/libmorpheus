@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <contract.h>
 
 #include "preverb3.proto.h"

@@ -246,5 +246,6 @@ char * NameOfDegree(word_form af);
 char * NameOfDialect(Dialect di);
 char * NameOfStemtype(Stemtype st);
 char * NameOfDerivtype(Derivtype st);
+char * NameOfDomain(Stemtype st);
 
 #endif

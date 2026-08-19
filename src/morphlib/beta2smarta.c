@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 #include <smk.h>
 #define ACUTEFLAG 		01

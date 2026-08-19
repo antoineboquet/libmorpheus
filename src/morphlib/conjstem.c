@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <ctype.h>
 #include <gkstring.h>
 

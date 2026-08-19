@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <contract.h>
 
 #include "loadeuph.proto.h"

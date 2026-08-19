@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 #define MAXAUG 8
 #define TEMP_AUGMENT SYLL_AUGMENT * 2

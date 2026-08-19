@@ -28,7 +28,7 @@ int PrntAdjInfo(word_form, FILE *);
 int AddAdjInfo(char *, word_form, char *);
 int PrntStemtype(Stemtype, FILE *);
 int PrntDialect(Dialect, FILE *);
-int AddDialect(Dialect, char *);
+int AddDialect(Dialect, char *, char *);
 Dialect AndDialect(Dialect, Dialect);
 int xInsertGstr(gk_string *, gk_string *, int, int (*compare )(), int);
 int GetTableLine(char *, int, FILE *);

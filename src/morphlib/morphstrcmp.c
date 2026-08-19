@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <greek.h>
 
 #include "morphstrcmp.proto.h"

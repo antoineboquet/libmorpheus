@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 
 add_morphflags(gk_string *gstr, MorphFlags * Flags)
@@ -275,4 +276,3 @@ xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
 fprintf(stderr,"%o %o %o %o \n", mf[0] , mf[1], mf[2], mf[3] );
 */
 }
-

@@ -140,6 +140,11 @@ target_link_libraries(
   PUBLIC morpheus_build_options
   PRIVATE morpheus_greeklib
 )
+target_compile_options(
+  morpheus_morphlib
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+)
 
 add_library(morpheus_gkends STATIC
   src/gkends/acccompos.c

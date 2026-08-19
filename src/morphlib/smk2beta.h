@@ -1,3 +1,5 @@
+#include "morphlib_internal.h"
+
 typedef struct {
 	char keystring[12];
 	int  keycode;
