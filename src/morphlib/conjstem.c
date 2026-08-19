@@ -5,7 +5,7 @@
 #include "conjstem.proto.h"
 
 
-fixcontr(char *stem, char *verb)
+int fixcontr(char *stem, char *verb)
 /* expand stem for contract verbs */
 {
 	if (A_CONTR(verb) || E_CONTR(verb))
@@ -14,7 +14,7 @@ fixcontr(char *stem, char *verb)
 		Xstrncat(stem,"w",MAXWORDSIZE);
 }
 
-makeperf(char *s)
+int makeperf(char *s)
 {
 	register char *p;
 
@@ -33,7 +33,7 @@ makeperf(char *s)
 		conjoin(s,"k");
 }
 
-fixperf(char *s)
+int fixperf(char *s)
 {
 	register char *p;
 
@@ -67,7 +67,7 @@ fixperf(char *s)
 	}
 }
 
-conjstem(char *stem, char *e)
+int conjstem(char *stem, char *e)
 {
 	register char *p;
 	char ending[MAXWORDSIZE];
@@ -94,7 +94,7 @@ conjstem(char *stem, char *e)
 	conjoin(stem,ending);
 }
 
-conjoin(char *stem, char *e)
+int conjoin(char *stem, char *e)
 {
 	/* observe the laws of euphony, if you please... */
 	register char *p;
@@ -138,7 +138,7 @@ conjoin(char *stem, char *e)
 	Xstrncat(stem,ending,MAXWORDSIZE);
 }
 
-do_sigma(char *s, char *ending)
+int do_sigma(char *s, char *ending)
 {
 	/* Smyth 537,545 */
 	register char *p;

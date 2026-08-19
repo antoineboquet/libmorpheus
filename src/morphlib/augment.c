@@ -4,7 +4,7 @@
 #define TEMP_AUGMENT SYLL_AUGMENT * 2
 
 #include "augment.proto.h"
-static augmentit(gk_word *, bool, int);
+static int augmentit(gk_word *, bool, int);
 typedef struct {
 	char noaug[MAXAUG];
 	char withaug[MAXAUG];
@@ -160,7 +160,7 @@ augtable SyllAugments[] = {
 	0,
 };
 
-do_syllaug(gk_word *gkform, int maxaugs)
+int do_syllaug(gk_word *gkform, int maxaugs)
 {
 	int i;
 	int naugs = 0;
@@ -213,7 +213,7 @@ fprintf(stderr,"temp: got naugs %d with max %d\n", naugs , maxaugs );
 	return(naugs);
 }
 
-do_tempaug(gk_word *gkform, int maxaugs)
+int do_tempaug(gk_word *gkform, int maxaugs)
 {
 	int i, wstart;
 	int naugs = 0;
@@ -275,7 +275,7 @@ fprintf(stderr,"temp: got naugs %d with max %d\n", naugs , maxaugs );
  *
  * if not, then these stems should only be attached to indicatives
  */
-unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Dialect dial, int wantsyllaugs, int wantredupl)
+int unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Dialect dial, int wantsyllaugs, int wantredupl)
 {
 	int rval = 0;
 	int compval;
@@ -375,7 +375,7 @@ unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Di
 }
 
 
-unaugfromlemma(char *stem, char *lemma)
+int unaugfromlemma(char *stem, char *lemma)
 {
 	char tmp[MAXWORDSIZE];
 	int i, withlen, noauglen;
@@ -442,7 +442,7 @@ unaugfromlemma(char *stem, char *lemma)
 	return(-1);
 }
 
-add_augment(gk_word *gkform, MorphFlags *mf, int maxaugs)
+int add_augment(gk_word *gkform, MorphFlags *mf, int maxaugs)
 {
 	bool syllabic;
 	char * res;
@@ -490,7 +490,7 @@ add_augment(gk_word *gkform, MorphFlags *mf, int maxaugs)
 	return(rval);
 }
 
-needs_augment(gk_string *gstr)
+int needs_augment(gk_string *gstr)
 {
 	gk_word * TmpGkword;
 	int rval;
@@ -508,7 +508,7 @@ needs_augment(gk_string *gstr)
 	return(rval);
 }
 
-needs_augment2(gk_word *gkform, char *stem)
+int needs_augment2(gk_word *gkform, char *stem)
 {
 	word_form v_form;
 	
@@ -551,7 +551,7 @@ needs_augment2(gk_word *gkform, char *stem)
 
 
  
-simpleaugment(char *s, bool syllabic)
+int simpleaugment(char *s, bool syllabic)
 {
 	gk_word * gkform;
 
@@ -568,7 +568,7 @@ simpleaugment(char *s, bool syllabic)
 }
 
 static
-augmentit(gk_word *gkform, bool syllabic, int maxaugs)
+int augmentit(gk_word *gkform, bool syllabic, int maxaugs)
 {
 	char * s = workword_of(gkform);
 	gk_string * stem_gstr = stem_gstr_of(gkform);
@@ -597,7 +597,7 @@ augmentit(gk_word *gkform, bool syllabic, int maxaugs)
 		return(do_tempaug(gkform,maxaugs));
 }
 
-simpleredupit(char *s, int syllabic, int redupc)
+int simpleredupit(char *s, int syllabic, int redupc)
 {
 	gk_word * gkform;
 
@@ -613,7 +613,7 @@ simpleredupit(char *s, int syllabic, int redupc)
 	FreeGkword(gkform);
 }
 
-redupit2(gk_word *gkform, int syllabic, int redupc, int nredups)
+int redupit2(gk_word *gkform, int syllabic, int redupc, int nredups)
 {
 /* Smyth 440-442 */
 	register char c;
@@ -648,7 +648,7 @@ simpleaugment(s,syllabic);
 	return(1);
 }
 
-un_redupl(char *src, char *res, int redupc)
+int un_redupl(char *src, char *res, int redupc)
 {
 	char sbuf[MAXWORDSIZE+1], * p;
 	
@@ -682,7 +682,7 @@ un_redupl(char *src, char *res, int redupc)
  * or
  *    e --> h [e.g., e)n]
  */
-add_double_augment(char *s, MorphFlags *oddpb)
+int add_double_augment(char *s, MorphFlags *oddpb)
 {
 	
 	simpleaugment(s,NO);

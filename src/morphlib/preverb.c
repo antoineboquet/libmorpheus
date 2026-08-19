@@ -14,8 +14,8 @@
 #include <preverb.h>
 
 #include "preverb.proto.h"
-static comp_preverb(char *, int, MorphFlags *);
-static getprvbform(char *, char *, MorphFlags *);
+static int comp_preverb(char *, int, MorphFlags *);
+static int getprvbform(char *, char *, MorphFlags *);
 static int verbose = 0;
 
 bool checkprevb(char *word, char *prevb, bool *brflg)
@@ -163,7 +163,7 @@ bool prvbcmp(char *prevb, char *word, bool *brflg)
 	return (NO);
 }
 
-getrest(char *workrest, char *word, char *workw, char *workp)
+int getrest(char *workrest, char *word, char *workw, char *workp)
 /* put non-preverb part of word into workrest */
 /* workw and workp are unaccented word and preverb, respectively */
 {
@@ -178,7 +178,7 @@ getrest(char *workrest, char *word, char *workw, char *workp)
 /* nb this assumes no more than one accent in word; what if there's more? */
 }
 
-rstprevb(char *word, char *prevb, gk_string *gstr)
+int rstprevb(char *word, char *prevb, gk_string *gstr)
 /* word <- prevb+word */
 /* prevb should be fully accented (i.e.,from the array) */
 {
@@ -440,7 +440,7 @@ rstprevb(char *word, char *prevb, gk_string *gstr)
 }
 
 static
-comp_preverb(char *pb, int unasp, MorphFlags *oddpb)
+int comp_preverb(char *pb, int unasp, MorphFlags *oddpb)
 {
 	char *s;
 	gk_string  Gstr;
@@ -487,7 +487,7 @@ comp_preverb(char *pb, int unasp, MorphFlags *oddpb)
 }
 
 static
-getprvbform(char *word, char *prevb, MorphFlags *oddpb)
+int getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 {
 	
 	stripacc(prevb); /* accents on the word stem take priority */
@@ -655,7 +655,7 @@ getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 		Xstrncat(prevb," + ",MAXWORDSIZE);
 }
 
-First_K_aspirate(char *word)
+int First_K_aspirate(char *word)
 {
 	while(*word&&!Is_cons(*word)) word++;
 	if( ! *word ) return(0);
@@ -663,7 +663,7 @@ First_K_aspirate(char *word)
 	return(0); 
 }
 
-shift_su_to_cu(char *s)
+int shift_su_to_cu(char *s)
 {
 	while(*s) {
 		if(*s=='s'&&*(s+1)=='u') *s = 'c';
@@ -671,7 +671,7 @@ shift_su_to_cu(char *s)
 	}
 }
 
-shift_eis_to_es(char *s)
+int shift_eis_to_es(char *s)
 {
 	while(*s) {
 		if(!Xstrncmp(s,"eis",3) || !Xstrncmp(s,"ei)s",4) ) {
@@ -681,7 +681,7 @@ shift_eis_to_es(char *s)
 		s++;
 	}
 }
-shift_pros_to_poti(char *s)
+int shift_pros_to_poti(char *s)
 {
 	char tmp[MAXWORDSIZE];
 	
@@ -695,7 +695,7 @@ shift_pros_to_poti(char *s)
 		s++;
 	}
 }
-shift_pros_to_proti(char *s)
+int shift_pros_to_proti(char *s)
 {
 	char tmp[MAXWORDSIZE];
 	
@@ -709,7 +709,7 @@ shift_pros_to_proti(char *s)
 		s++;
 	}
 }
-shift_upo_to_upai(char *s)
+int shift_upo_to_upai(char *s)
 {
 	char tmp[MAXWORDSIZE];
 	
@@ -728,7 +728,7 @@ shift_upo_to_upai(char *s)
 		s++;
 	}
 }
-shift_uper_to_upeir(char *s)
+int shift_uper_to_upeir(char *s)
 {
 	char tmp[MAXWORDSIZE];
 	
@@ -747,7 +747,7 @@ shift_uper_to_upeir(char *s)
 		s++;
 	}
 }
-shift_para_to_parai(char *s)
+int shift_para_to_parai(char *s)
 {
 	char tmp[MAXWORDSIZE];
 	
@@ -761,7 +761,7 @@ shift_para_to_parai(char *s)
 		s++;
 	}
 }
-shift_meta_to_peda(char *s)
+int shift_meta_to_peda(char *s)
 {
 	char tmp[MAXWORDSIZE];
 	
@@ -775,7 +775,7 @@ shift_meta_to_peda(char *s)
 		s++;
 	}
 }
-shift_en_to_eni(char *s)
+int shift_en_to_eni(char *s)
 {
 	char tmp[MAXWORDSIZE];
 	
@@ -796,7 +796,7 @@ shift_en_to_eni(char *s)
 	}
 }
 
-set_odd_prvb(MorphFlags *oddpb, char *work)
+int set_odd_prvb(MorphFlags *oddpb, char *work)
 {	
 
 	if( has_morphflag(oddpb,SIG_TO_CI) ) {

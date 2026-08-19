@@ -11,8 +11,8 @@
 #define ITALIC 3
 
 #include "smk2beta.proto.h"
-static conv(char *, char *);
-static add_acc(char *, int);
+static int conv(char *, char *);
+static int add_acc(char *, int);
 static int smkinited = 0;
 char *Xlit_table_smk[MAXCHAR+1];
 char *Xlit_table_smarta[MAXCHAR+1];
@@ -21,7 +21,7 @@ char smarta_char[MAXCHAR+1];
 static int fromsmk = 0;
 static int cur_font = 0;
 
-smarta2beta(char *start, char *result)
+int smarta2beta(char *start, char *result)
 {
 	Xlit_table = Xlit_table_smarta;
 	
@@ -30,7 +30,7 @@ smarta2beta(char *start, char *result)
 	conv(start,result);
 }
 
-smk2beta(char *start, char *result)
+int smk2beta(char *start, char *result)
 {
 	Xlit_table = Xlit_table_smk;
 
@@ -40,7 +40,7 @@ smk2beta(char *start, char *result)
 }
 
 static
-conv(char *start, char *result)
+int conv(char *start, char *result)
 {
 	char tmp[BUFSIZ];
 	/*unsigned*/ char * s = start;
@@ -141,7 +141,7 @@ return;
 	}
 }
 
-smk2betachar(int c)
+int smk2betachar(int c)
 {
 	if( c == 'v' ) return('w');
 	if( c == 'y' ) return('q');
@@ -150,7 +150,7 @@ smk2betachar(int c)
 	if( c == 'W' ) return('v');
 }
 
-init_smk(void)
+int init_smk(void)
 {
 	int i;
 	char tmp[80];
@@ -186,7 +186,7 @@ printf("%d) Xlit_table [%s]\n", Beta_SMK[i].keycode , Xlit_table[Beta_SMK[i].key
 
 }
 
-set_cur_font(int n, char *s)
+int set_cur_font(int n, char *s)
 {
 	if( fromsmk ) return;
 	
@@ -220,7 +220,7 @@ set_cur_font(int n, char *s)
 #define EISUB_ACUTE 0372
 #define WISUB_ACUTE 0304
 
-trap_upper(char *res, char *s)
+int trap_upper(char *res, char *s)
 {
 	char tmp[BUFSIZ];
 	
@@ -290,7 +290,7 @@ trap_upper(char *res, char *s)
 }
 
 static 
-add_acc(char *s, int anum)
+int add_acc(char *s, int anum)
 {
 	Xstrcpy(s,Xlit_table[(int)( anum & (0377))]);
 }

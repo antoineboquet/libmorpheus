@@ -2,10 +2,10 @@
 #include <gkstring.h>
 
 #include "fixacc.proto.h"
-static fixnacc2(char *, gk_string *, word_form, int, bool);
+static int fixnacc2(char *, gk_string *, word_form, int, bool);
 
 
-putsimpleacc(char *s)
+int putsimpleacc(char *s)
 {
 	gk_word * gkword;
 	MorphFlags * mflags;
@@ -27,7 +27,7 @@ putsimpleacc(char *s)
 	FreeGkword(gkword);
 }
 
-FixRecAcc(gk_word *gkform, MorphFlags *mflags, char *word)
+int FixRecAcc(gk_word *gkform, MorphFlags *mflags, char *word)
   /* add recessive accent */
 {
 	register char *p;
@@ -99,14 +99,14 @@ FixRecAcc(gk_word *gkform, MorphFlags *mflags, char *word)
  *
  * Yes, this is a kludge, but reasonable way to catch this, I think.
  */
-FixPersAcc(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, char *endstring, char *word, word_form form_info, int is_ending)
+int FixPersAcc(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, char *endstring, char *word, word_form form_info, int is_ending)
 {
   FixPersAcc2(gstring, mflags, stemgstr, endstring, word, form_info, is_ending);
 
   if(*(word+strlen(word)-1) == '*' ) *(word+strlen(word)-1) = 0;
 }
 
-FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, char *endstring, char *word, word_form form_info, int is_ending)
+int FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, char *endstring, char *word, word_form form_info, int is_ending)
 {
 	register char *p;
 	char tmp[MAXWORDSIZE];
@@ -327,7 +327,7 @@ FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, char *e
 }
 
 static
-fixnacc2(char *targstring, gk_string *gstring, word_form form_info, int is_ending, bool is_oblique)
+int fixnacc2(char *targstring, gk_string *gstring, word_form form_info, int is_ending, bool is_oblique)
 {
 	register char *p;
 	MorphFlags * mflags = morphflags_of(gstring);

@@ -3,7 +3,7 @@
 
 #include "endio.proto.h"
 
-WriteEnding(FILE *f, gk_string *gstr, int maxend)
+int WriteEnding(FILE *f, gk_string *gstr, int maxend)
 {
 	int32 max;
 
@@ -43,7 +43,7 @@ WriteEnding(FILE *f, gk_string *gstr, int maxend)
 }
 
 
-ReadEnding(FILE *f, gk_string *gstr, int maxend)
+int ReadEnding(FILE *f, gk_string *gstr, int maxend)
 {
 	int nread = 0;
 	if((nread=vax_fread(gkstring_of(gstr), sizeof * gkstring_of(gstr), maxend , f))<= 0)
@@ -87,7 +87,7 @@ ReadEnding(FILE *f, gk_string *gstr, int maxend)
  * the size of a default int on the current system, we cast the value
  * to 32 bits.
  */
-set_endheader(FILE *f, int maxstring)
+int set_endheader(FILE *f, int maxstring)
 {
 #ifdef DECALPHA
 	unsigned int morph_version;
@@ -114,7 +114,7 @@ set_endheader(FILE *f, int maxstring)
 /*
  * return the number of endings in this particular file
  */
-get_endheader(FILE *f, int *maxp)
+int get_endheader(FILE *f, int *maxp)
 {
 #ifdef DECALPHA
 	int morph_version;
@@ -172,7 +172,7 @@ printf("gstrsize %d endlen %d unitsize %d, mod %d, nendings %d filelen %ld\n", g
 	return(nendings);
 }
 
-localtrimwhite(char *s,int n)
+int localtrimwhite(char *s,int n)
 {
 	int i;
 	int sdone = 0;

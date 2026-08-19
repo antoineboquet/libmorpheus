@@ -4,7 +4,7 @@
 #include <gkstring.h>
 
 #include "preverb2.proto.h"
-static exp_prevb2(char *, char *, gk_string *);
+static int exp_prevb2(char *, char *, gk_string *);
 
 
 /*
@@ -28,7 +28,7 @@ static exp_prevb2(char *, char *, gk_string *);
  *		**UNLESS THE VERB COULD BE IONIC OR AEOLIC!
  *			in which case "kat" does not prejudice the breathing at all.
  */
-CombPbStem(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
+int CombPbStem(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 {
   if( ! * restofs ) return(YES);
   if( cur_lang() == LATIN || cur_lang() == ITALIAN ) 
@@ -37,7 +37,7 @@ CombPbStem(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 	return(CombPbStemG(curpb,restofs, dial,pbflags));
 }
 
-CombPbStemL(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
+int CombPbStemL(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 {
 	int lastc, lastc2, lastc3, curbreath;
 	char workrest[MAXWORDSIZE], noaccpb[MAXWORDSIZE];
@@ -177,7 +177,7 @@ CombPbStemL(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 	return(YES);
 }
 
-CombPbStemG(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
+int CombPbStemG(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 {
   int lastc, lastc2, lastc3, curbreath;
   char workrest[MAXWORDSIZE], noaccpb[MAXWORDSIZE];
@@ -405,7 +405,7 @@ CombPbStemG(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
   return(YES);
 }
 
-is_preverb(char *rawpb, char *fullpb, gk_string *gstr)
+int is_preverb(char *rawpb, char *fullpb, gk_string *gstr)
 {
   int rval;
   
@@ -427,7 +427,7 @@ is_preverb(char *rawpb, char *fullpb, gk_string *gstr)
  * returns 0 if rawpb does not break up into preverbs.
  * returns 1 if successful
  */
-exp_preverb(char *rawpb, char *fullpb, gk_string *gstr)
+int exp_preverb(char *rawpb, char *fullpb, gk_string *gstr)
 {
   char savepb[MAXWORDSIZE];
   char tmppb[MAXWORDSIZE];
@@ -451,7 +451,7 @@ exp_preverb(char *rawpb, char *fullpb, gk_string *gstr)
 }
 
 
-static recursion_level = 0;
+static int recursion_level = 0;
 /*
  * this does the real work of exp_preverb()
  *
@@ -464,7 +464,7 @@ static recursion_level = 0;
  * examine "summeta", and "meta" 
  */
 static 
-exp_prevb2(char *str, char *fullpb, gk_string *gstr)
+int exp_prevb2(char *str, char *fullpb, gk_string *gstr)
 {
   int i;
   char startpb[MAXWORDSIZE];

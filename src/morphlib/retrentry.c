@@ -41,8 +41,11 @@ init_preind(char *fname, int *maxkeys)
 	etags = (endtags *) calloc((size_t)flen + 1,(size_t) sizeof * etags );
 
 	for(i=0;  i < flen/*+1*/; i++) {
-		if( ! ReadKey(tagstring_of(etags+i),&tagoffset_of(etags+i),f))
+		int tagoffset;
+
+		if( ! ReadKey(tagstring_of(etags+i),&tagoffset,f))
 			break;
+		tagoffset_of(etags+i) = tagoffset;
 /*
 if( ! (i % 25) )
 printf(" i %d last tags [%s]\n",  i , tagstring_of(etags+i) );
@@ -78,7 +81,7 @@ return( roff  );
 }
 
 
-ChckFullIndex(char *s, char *keys, char *fname, long offset, int (*scmp )())
+int ChckFullIndex(char *s, char *keys, char *fname, long offset, int (*scmp )())
 {
 	FILE * f;
 	register char * a;

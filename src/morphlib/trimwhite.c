@@ -2,7 +2,7 @@
 
 #include "trimwhite.proto.h"
 
-trimwhite(char *s)
+int trimwhite(char *s)
 {
 	char * starts;
 
@@ -11,4 +11,3 @@ trimwhite(char *s)
 	while(isspace(*s) && s > starts )
 		*s-- = 0;
 }
-

@@ -17,7 +17,7 @@ printf("creat gstr %d\n", num * (sizeof * tmpgstring) );
 	return( tmpgstring );
 }
 
-FreeGkString(gk_string *gstring)
+int FreeGkString(gk_string *gstring)
 {
 	if( ! gstring ) {
 		fprintf(stderr,"hey! asked to free NULL gstring \n");
@@ -42,7 +42,7 @@ printf("creat ganal %d\n", num * (sizeof * tmpanal) );
 	return(tmpanal);
 }
 
-FreeGkAnal(gk_analysis *gkanal)
+int FreeGkAnal(gk_analysis *gkanal)
 {
 	xFree((char *)gkanal,"freegkanal");
 /*
@@ -68,7 +68,7 @@ printf("creat gword %d\n", num * (sizeof * tmpgword) );
 
 static gk_string BlnkGstr;
 
-ClearGkstring(gk_string *gstr)
+int ClearGkstring(gk_string *gstr)
 {
 	gk_string *gstring;
 	gk_string *CreatGkString();
@@ -82,7 +82,7 @@ ClearGkstring(gk_string *gstr)
 */
 }
 
-FreeGkword(gk_word *Gkword)
+int FreeGkword(gk_word *Gkword)
 {
 	if( ! Gkword ) {
 		fprintf(stderr,"hey! asked to free NULL gkword \n");
@@ -98,7 +98,7 @@ printf("free gkword \n");
 	xFree((char *)Gkword,"freegkword");
 }
 
-CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
+int CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
 {
 	totanal_of(Gkword1) = totanal_of(Gkword2);
 	analysis_of(Gkword1) = analysis_of(Gkword2);
@@ -292,7 +292,7 @@ int CompGkForms(gk_word *gkform1, gk_word *gkform2)
 	return(CompGkString(&Gstr1,&Gstr2));
 }
 
-low_bit_of(int n)
+int low_bit_of(int n)
 {
 	int i;
 	int mask = 0;
@@ -312,12 +312,12 @@ CompByDictStr(const void *gstr1, const void *gstr2)
 	return(dictstrcmp(gkstring_of((gk_string *)gstr1),gkstring_of((gk_string *)gstr2)));
 }
 
-RevCompByStr(gk_string *gstr1, gk_string *gstr2)
+int RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 {
 	return(CompByDictStr(gstr1,gstr2) * -1);
 }
 
- PrntGkStrings(gk_string *gstr, FILE *f)
+ int PrntGkStrings(gk_string *gstr, FILE *f)
 {
 	while((gkstring_of(gstr))[0]) {
 		PrntGkStr(gstr,f);
@@ -329,7 +329,7 @@ RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 /*
  *  this expects an array of data structures of type gk_string
  */
- PrntGkParadigm(gk_string *gstr, FILE *f)
+ int PrntGkParadigm(gk_string *gstr, FILE *f)
 {
 	Stemtype stemtype;
 	int tense, mood, voice;
@@ -363,14 +363,14 @@ RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 
 }
 
-PrntGkStr(gk_string *gstr, FILE *f)
+int PrntGkStr(gk_string *gstr, FILE *f)
 {
 	fprintf(f,"%s ", gkstring_of(gstr) );
 	PrntGkFlags(gstr,f);
 	fprintf(f,"\n");
 }
 
- PrntGkFlags(gk_string *gstr, FILE *f)
+ int PrntGkFlags(gk_string *gstr, FILE *f)
 {
 	PrntVerbInfo(forminfo_of(gstr),f);
 	PrntAdjInfo(forminfo_of(gstr),f);
@@ -381,7 +381,7 @@ PrntGkStr(gk_string *gstr, FILE *f)
 	PrntDomains(domains_of(gstr),f);
 }
 
-PrntDomains(char *doms, FILE *f)
+int PrntDomains(char *doms, FILE *f)
 {
 	char * p=doms;
 	
@@ -391,7 +391,7 @@ PrntDomains(char *doms, FILE *f)
 	}
 }
   
- PrntMorphFlags(MorphFlags *mf, FILE *f)
+ int PrntMorphFlags(MorphFlags *mf, FILE *f)
 {
 	char buf[256];
 	
@@ -399,7 +399,7 @@ PrntDomains(char *doms, FILE *f)
  	fprintf(f,"%s ", buf );
 }
 
- PrntVerbInfo(word_form vf, FILE *f)
+ int PrntVerbInfo(word_form vf, FILE *f)
 {
 	char paradigm[LONGSTRING];
 	
@@ -410,7 +410,7 @@ PrntDomains(char *doms, FILE *f)
 	fprintf(f,"%s", paradigm);
 }
 
- PrntParadigmInfo(word_form vf, FILE *f)
+ int PrntParadigmInfo(word_form vf, FILE *f)
 {
 	char paradigm[LONGSTRING];
 	paradigm[0] = 0;
@@ -420,7 +420,7 @@ PrntDomains(char *doms, FILE *f)
 }
 	
 
-AddParadigmInfo(char *s, word_form vf,char * dels)
+int AddParadigmInfo(char *s, word_form vf,char * dels)
 {
 	char * p;
 	
@@ -444,7 +444,7 @@ AddParadigmInfo(char *s, word_form vf,char * dels)
 	
 }
 
-AddPersNumInfo(char *s, word_form vf,char * dels)
+int AddPersNumInfo(char *s, word_form vf,char * dels)
 {
 	char * p;
 	
@@ -462,13 +462,13 @@ AddPersNumInfo(char *s, word_form vf,char * dels)
 	
 }
 
-PrntPersNumInfo(word_form vf, FILE *f)
+int PrntPersNumInfo(word_form vf, FILE *f)
 {
 	fprintf(f,"%s ", NameOfPerson(vf ) );
 	fprintf(f,"%s ", NameOfNumber(vf ) );
 }
 
- PrntAdjInfo(word_form af, FILE *f)
+ int PrntAdjInfo(word_form af, FILE *f)
 {
 	char adjbuf[MAXWORDSIZE];
 	adjbuf[0] = 0;
@@ -482,7 +482,7 @@ PrntPersNumInfo(word_form vf, FILE *f)
 */
 }
 
-AddAdjInfo(char *s, word_form vf,char * dels)
+int AddAdjInfo(char *s, word_form vf,char * dels)
 {
 	char * p;
 	
@@ -598,7 +598,7 @@ fprintf(stderr,"End dial [%o] stem [%o]\n", Dial1 , Dial2 );
 
 static int (*gkCompare)();
 
- xInsertGstr(gk_string *oldgstr, gk_string *newgstr, int len, int (*compare )(), int backwards)
+ int xInsertGstr(gk_string *oldgstr, gk_string *newgstr, int len, int (*compare )(), int backwards)
 {
 	char * news, *olds;
 	int i;
@@ -629,7 +629,7 @@ static int (*gkCompare)();
 	return(++len);
 }
 
-GetTableLine(char *s, int len, FILE *f)
+int GetTableLine(char *s, int len, FILE *f)
 {
 	while(fgets(s,len,f)) {
 		if( is_blank(s) )
@@ -641,7 +641,7 @@ GetTableLine(char *s, int len, FILE *f)
 	return(0);
 }
 
-eq_forminfo(word_form f1, word_form f2)
+int eq_forminfo(word_form f1, word_form f2)
 {
 	if( voice_of(f1) != voice_of(f2)) return(0);
 	if( mood_of(f1) != mood_of(f2)) return(0);
@@ -655,7 +655,7 @@ eq_forminfo(word_form f1, word_form f2)
 	return(1);
 }
 		
-SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
+int SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 {
 		char dialbuf[LONGSTRING*2];
 		char * s;
@@ -767,7 +767,7 @@ SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 }
 
 
-DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
+int DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
 {
 		char dialbuf[LONGSTRING];
 		char * s;

@@ -33,7 +33,7 @@ static int charstyle_flag = 0;
 #define BOLD '1'
 
 #include "beta2smarta.proto.h"
-static init_gktab(void);
+static int init_gktab(void);
 static int acctab[] = {
 	ACUTEFLAG,
 	GRAVEFLAG,
@@ -50,12 +50,12 @@ static int acctab[] = {
 
 static int gktab[256];
 static int accenttab[256];
-static gkinit = 0;
-static cur_font = GREEK;
+static int gkinit = 0;
+static int cur_font = GREEK;
 char * greekfont(),  * romanfont();
 
 static 
-init_gktab(void)
+int init_gktab(void)
 {
 	
 	gkinit++;
@@ -91,27 +91,27 @@ static int gktab[256];
 #define SMARTA 2
 #define SMK 4
 
-beta2smarta(char *source, char *res)
+int beta2smarta(char *source, char *res)
 {
 	beta2mac(source,res,SMARTA);
 }
 
-beta2smk(char *source, char *res)
+int beta2smk(char *source, char *res)
 {
 	beta2mac(source,res,SMK);
 }
 
-set_greek(void)
+int set_greek(void)
 {
 	cur_font = GREEK;
 }
 
-set_roman(void)
+int set_roman(void)
 {
 	cur_font = ROMAN;
 }
 
-beta2mac(char *source, char *res, int xlit)
+int beta2mac(char *source, char *res, int xlit)
 {
 	 char * sp;
 	/*unsigned*/ char * rp;
@@ -510,7 +510,7 @@ printf(" *rp [%o] n [%o] ", *rp , n  );
 	*rp = 0;
 }
 
-accnum(int n)
+int accnum(int n)
 {
 	int i;
 	
@@ -540,7 +540,7 @@ greekfont(char *s)
 	return(s);
 }
 
-smk_char_xlit(int c, char *s, int xlit)
+int smk_char_xlit(int c, char *s, int xlit)
 {
 			if( c == 's' && !isalpha(*s) && *s != '\'' && *s != '-' )
 				c = TERMINAL_SIGMA;

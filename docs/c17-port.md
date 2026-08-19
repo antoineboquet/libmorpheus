@@ -31,11 +31,10 @@ the three-argument `AddDialect` without its delimiter; it now passes the space
 separator expected by the formatted output. The `AddDialect` prototype was
 aligned with that implementation.
 
-The `anal`, `gener`, `gkdict`, `gkends`, and `greeklib` modules are
-explicit-return-type
-boundaries. Their functions now declare whether they return a status or no
-value, and their `qsort` calls use `const void *` comparators matching the
-standard-library callback. All five targets treat implicit `int` and
+All six runtime modules are explicit-return-type boundaries. Their definitions
+no longer rely on implicit `int`, and their `qsort` calls use `const void *`
+comparators matching the standard-library callback. All six targets treat
+implicit `int` and
 incompatible pointer types as errors.
 
 Typing `anal` also made its historical common-prefix structure conversions
@@ -47,6 +46,11 @@ Typing `greeklib` distinguishes in-place string mutators from queries and I/O
 status functions. Pure mutators now return `void`; capitalization normalizers
 return an explicit success flag, preserving their historical zero result when
 no conversion is possible.
+
+Typing `morphlib` also exposed a disk-format width mismatch: `ReadKey` stores a
+32-bit offset, while `endtags` keeps the value in a `long`. `retrentry.c` now
+reads through an `int` temporary before assigning the structure field, instead
+of passing a `long *` to the 32-bit reader.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
@@ -78,11 +82,9 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Extend the explicit-return-type and callback boundary now used by `anal`,
-   `gener`, `gkdict`, `gkends`, and `greeklib` to `morphlib`.
-2. Correct format strings, buffer bounds, and ownership documentation with
+1. Correct format strings, buffer bounds, and ownership documentation with
    ASan/UBSan enabled in CI.
-3. Move mutable process state into an opaque context, then extract the public
+2. Move mutable process state into an opaque context, then extract the public
    `libmorpheus` ABI.
 
 Every lot must keep both fixture suites passing: the inherited Perseids

@@ -11,7 +11,7 @@ char curkey[LONGSTRING];
 char prevkey[LONGSTRING];
 int nkeys = MODULUS + 1;
 
-index_list(char *listname, char *tagstring, int modulus)
+int index_list(char *listname, char *tagstring, int modulus)
 {
 	FILE * finput;
 	FILE * foutput;
@@ -74,7 +74,7 @@ index_list(char *listname, char *tagstring, int modulus)
 static int count = 0;
 
 #ifdef DECALPHA
-prockeyline(char *s, int modulus, int curoff, FILE *f)
+int prockeyline(char *s, int modulus, int curoff, FILE *f)
 #else
 prockeyline(char *s, int modulus, long curoff, FILE *f)
 #endif

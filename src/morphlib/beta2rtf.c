@@ -11,7 +11,7 @@
 char * domlist[MAXDOMAINS];
 char lastdom[BUFSIZ];
 
-_main(int argc, char *argv[])
+int _main(int argc, char *argv[])
 {
 	 char line[BUFSIZ*6];
 	FILE * f, *MorphFopen();
@@ -68,7 +68,7 @@ _main(int argc, char *argv[])
 */
 }
 
-conv_defline(char *s, FILE *fout)
+int conv_defline(char *s, FILE *fout)
 {
 	char res1[128], res2[128], result[BUFSIZ*6];
 	char * introp;
@@ -136,7 +136,7 @@ conv_defline(char *s, FILE *fout)
 	fprintf(fout,"%s\\par\n", s );
 }
 
-check_deflev(char *p, char *res, int len)
+int check_deflev(char *p, char *res, int len)
 {
 	char * s;
 	
@@ -163,13 +163,13 @@ check_deflev(char *p, char *res, int len)
 	return(0);
 }
 
-has_pref(char *s, char *prefs)
+int has_pref(char *s, char *prefs)
 {
 	return(!strncmp(s,prefs,strlen(prefs)));
 }
 
 
-is_greek(char *s)
+int is_greek(char *s)
 {
 	int n = 0;
 	
