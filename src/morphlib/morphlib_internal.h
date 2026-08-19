@@ -44,7 +44,7 @@
 
 void FixPersAcc2(gk_string *gstring, MorphFlags *flags, gk_string *stem,
                  char *ending, char *word, word_form form, int is_ending);
-int init_betatab(void);
+void init_betatab(void);
 void localtrimwhite(char *string, int length);
 void set_gkorder(char *table);
 

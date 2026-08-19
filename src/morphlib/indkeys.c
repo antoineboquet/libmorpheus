@@ -68,15 +68,16 @@ int index_list(char *listname, char *tagstring, int modulus)
 	}
 	fclose(finput);
 	fclose(foutput);
+	return(0);
 }
 
 
 static int count = 0;
 
 #ifdef DECALPHA
-int prockeyline(char *s, int modulus, int curoff, FILE *f)
+void prockeyline(char *s, int modulus, int curoff, FILE *f)
 #else
-prockeyline(char *s, int modulus, long curoff, FILE *f)
+void prockeyline(char *s, int modulus, long curoff, FILE *f)
 #endif
 {
 	char curlemma[LONGSTRING];

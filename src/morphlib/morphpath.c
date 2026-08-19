@@ -28,6 +28,7 @@ FILE *
 int NumFilesOpened(void)
 {
 	printf("filesopened [%d]\n", filesopened );
+	return(filesopened);
 }
 
 /*
@@ -86,7 +87,7 @@ void MorphPathName(char *shorts, char *full)
  }
  
  
-int SysFolderFile(char *fullname, char *shorts)
+void SysFolderFile(char *fullname, char *shorts)
  {
  	char * s;
  	short vRefNum = 0;

@@ -122,7 +122,7 @@ int dictstrncmp(char *s1, char *s2, size_t n)
 	return(morphstrncmp(b1,b2,n));
 }
 
-int init_comptab(void)
+void init_comptab(void)
 {
 	int i;
 	
@@ -132,7 +132,7 @@ int init_comptab(void)
 	comptab['|'] = 'i'; /* iota subscript matches as an 'i' */
 }
 
-int init_betatab(void)
+void init_betatab(void)
 {
 	int i;
 	
