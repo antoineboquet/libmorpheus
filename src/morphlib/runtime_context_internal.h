@@ -10,6 +10,8 @@ struct morpheus_runtime_context {
 	char beta_table[128];
 	int comparison_table_initialized;
 	int beta_table_initialized;
+	char *hidden_morphflag_table;
+	char *preverb_morphflag_table;
 };
 
 morpheus_runtime_context *morpheus_runtime_context_current(void);

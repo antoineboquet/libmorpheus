@@ -136,11 +136,12 @@ The first instrumented fixture pass found and fixed three lifetime violations:
 empty ending strings no longer read before their stack buffer, preverb suffix
 checks now verify the available length before computing a suffix pointer, and
 the accent-insensitive comparison buffer remains alive until its final use.
-The opaque runtime context owns language selection and the lazily initialized
-Beta Code collation tables. Contexts have explicit create, activate, and destroy
-operations; activation is thread-local, while the historical `set_lang` and
-`cur_lang` calls remain compatible. Other mutable caches still need to migrate
-before the analyser is reentrant.
+The opaque runtime context owns language selection, the lazily initialized Beta
+Code collation tables, and the dynamically allocated morphology-flag lookup
+tables. Contexts have explicit create, activate, and destroy operations;
+activation is thread-local, while the historical `set_lang` and `cur_lang`
+calls remain compatible. Destruction releases both flag tables. Other mutable
+caches still need to migrate before the analyser is reentrant.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now

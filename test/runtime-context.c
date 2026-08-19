@@ -1,10 +1,12 @@
 #include <assert.h>
 
+#include <gkstring.h>
+#include <prntflags.h>
+
+#include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/morphstrcmp.proto.h"
 #include "../src/morphlib/setlang.proto.h"
-
-#include <prntflags.h>
 
 int main(void)
 {
@@ -24,12 +26,16 @@ int main(void)
 	previous = morpheus_runtime_context_activate(latin);
 	assert(cur_lang() == LATIN);
 	assert(morphstrcmp("a|","ai") == 0);
+	assert(!is_pretty_morphflag(PERS_NAME));
+	assert(is_prvb_morphflag(DISSIMILATION));
 	set_lang(ITALIAN);
 	assert(morpheus_runtime_context_language(latin) == ITALIAN);
 
 	morpheus_runtime_context_activate(greek);
 	assert(cur_lang() == GREEK);
 	assert(morphstrcmp("a|","ai") == 0);
+	assert(!is_pretty_morphflag(PERS_NAME));
+	assert(is_prvb_morphflag(DISSIMILATION));
 	morpheus_runtime_context_destroy(greek);
 	assert(cur_lang() == GREEK);
 
