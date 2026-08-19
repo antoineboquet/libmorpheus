@@ -1,7 +1,7 @@
 
 /* preverb.c */
 bool checkprevb(char *, char *, bool *);
-bool prvbcmp(char *, char *, bool *);
+bool prvbcmp(const char *, char *, bool *);
 void getrest(char *, char *, char *, char *);
 void rstprevb(char *, char *, gk_string *);
 int First_K_aspirate(char *);

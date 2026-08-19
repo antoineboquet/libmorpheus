@@ -451,7 +451,6 @@ int exp_preverb(char *rawpb, char *fullpb, gk_string *gstr)
 }
 
 
-static int recursion_level = 0;
 /*
  * this does the real work of exp_preverb()
  *
@@ -501,7 +500,6 @@ int exp_prevb2(char *str, char *fullpb, gk_string *gstr)
       return(0);
     }
     
-    ++recursion_level;
     rval = exp_prevb2(str,fullpb,gstr);
     if(rval) {
       if( has_morphflag(morphflags_of(&Gstr),UNASP_PREVERB ) ) 

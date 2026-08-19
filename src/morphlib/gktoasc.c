@@ -1,4 +1,4 @@
-char gktoasc[]= {
+static const char gktoasc[] = {
 /*	alpha */	'a',	'a' + 01,
 /*	beta */		'b',	'a' + 02,
 /*	gamma */	'g',	'a' + 03,

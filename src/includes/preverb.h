@@ -7,7 +7,7 @@
 
 
 /* from Smyth #s 1681-1698 */
-char	prevbs [][MAXPRVBSIZE] = {
+static const char prevbs[][MAXPRVBSIZE] = {
 	"a)mf",
 	"a)mfi/",
 	"a)n",

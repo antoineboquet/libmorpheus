@@ -15,7 +15,7 @@ typedef struct {
 /*
  * Smyth 435
  */
-augtable TempAugments[] = {
+static const augtable TempAugments[] = {
 
 	"ai)",	"h)|",	(Dialect)ALL_DIAL,   0,
 	"ai(",	"h(|",	(Dialect)ALL_DIAL,   0,
@@ -93,7 +93,7 @@ augtable TempAugments[] = {
 /*
  * Smyth 431 
  */
-augtable SyllAugments[] = {
+static const augtable SyllAugments[] = {
 /*
  *	i)dw/n, ei)=don
  */

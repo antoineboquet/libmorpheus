@@ -16,7 +16,6 @@
 #include "preverb.proto.h"
 static void comp_preverb(char *, int, MorphFlags *);
 static void getprvbform(char *, char *, MorphFlags *);
-static int verbose = 0;
 
 bool checkprevb(char *word, char *prevb, bool *brflg)
 /* remove preverb from word and reply whether preverb was found */
@@ -50,17 +49,18 @@ bool checkprevb(char *word, char *prevb, bool *brflg)
 
 
 
-bool prvbcmp(char *prevb, char *word, bool *brflg)
+bool prvbcmp(const char *prevb, char *word, bool *brflg)
 /* does word begin with prevb? If so, strip it out */
 {
 	char workp[MAXPRVBSIZE],workw[MAXWORDSIZE];
 	char workrest[MAXWORDSIZE];
-	int lastc = *lastn(workp,1);
+	int lastc;
 
 	Xstrncpy(workp,prevb,MAXWORDSIZE);
 	Xstrncpy(workw,word,MAXWORDSIZE);
 	stripacc(workp);
 	stripacc(workw);
+	lastc = *lastn(workp,1);
 	*brflg = NO;
 
 	/* Stab #2: if preverb ends in vowel (but isn't "pro"), check
@@ -495,8 +495,6 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 	if (!*prevb) return;
 	prevb_len = Xstrlen(prevb);
 	
-	if (!verbose) {		/* process normally */
-	
 	/*
 	 * grc 7/14/89
 	 *
@@ -655,9 +653,6 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 
 		if (getbreath(word) != NOBREATH)
 			stripbreath(word);
-		}
-	else		/* be explicit */
-		Xstrncat(prevb," + ",MAXWORDSIZE);
 }
 
 int First_K_aspirate(char *word)
