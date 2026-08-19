@@ -349,7 +349,7 @@ char *
 }
 
 
-int DomainNames(char *domp, char *res, char *dels)
+void DomainNames(char *domp, char *res, char *dels)
 {
 	char * p = domp;
 	
@@ -554,7 +554,7 @@ InitStemSuffs(char *fname, void (*curfunc )(), Stemtype (*classfunc )(), int *sn
 }
 
 
-int init_stems(void)
+void init_stems(void)
 {
 	
 	arg_stemtype = InitStemSuffs(STEMTYPES,new_stemtype,GetStemClass,&nstems);
@@ -572,7 +572,7 @@ int has_octal(char *s)
 	return(0);
 }
 
-int init_keys(void)
+void init_keys(void)
 {
 	int sofar = 0;
 	int i;

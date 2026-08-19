@@ -7,7 +7,7 @@ static void add_apostrvowel(char *, char *, char *);
  * crasis, odd preverb forms (e.g. "cun" for "sun"), dialectical things like "tt" vs "ss" etc.
  */
 gk_word * CreatGkword(int n);
-int 	checkstring1(gk_word * Gkword);
+void 	checkstring1(gk_word * Gkword);
 void 	stand_phonetics(gk_word * Gkword);
 void 	standword(char * s);
 int 	is_blank(char * s);
@@ -88,10 +88,10 @@ int is_article(gk_word * Gkword)
 	return(0);
 }
 
-int end_phrase(gk_word * checkw,gk_word * Gkword)
+void end_phrase(gk_word * checkw,gk_word * Gkword)
 {
 }
-int checkstring1(gk_word *Gkword)
+void checkstring1(gk_word *Gkword)
 {
 
 	if( workword_of(Gkword)[0] == '\'' ) { /* check for prodelision */

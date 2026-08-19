@@ -75,6 +75,10 @@ Index construction and file-count queries now return explicit success or count
 values, while record emission, system-path rewriting, and comparison-table
 initialization are declared as `void` procedures.
 
+Morphology-key initialization and domain-name rendering now expose their
+side-effect-only contracts. The first analysis pass and its unused phrase hook
+also return `void`, while the public analysis entry points retain their counts.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before

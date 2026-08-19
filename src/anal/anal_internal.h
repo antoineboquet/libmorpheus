@@ -65,7 +65,7 @@ int chckvend(char *ending, char *keys);
 
 int cntlems(gk_word *word);
 int is_article(gk_word *word);
-int end_phrase(gk_word *candidate, gk_word *word);
+void end_phrase(gk_word *candidate, gk_word *word);
 int show_totanals(void);
 int show_totlems(void);
 void set_nocrasis(void);
