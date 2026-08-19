@@ -99,10 +99,18 @@ Bounded filename construction now rejects oversized converter and ending-table
 paths before opening files. Ending-table display lines and irregular-generation
 diagnostics use buffers large enough for the declared maximum component sizes.
 The same ending-table error path no longer attempts to close a null stream when
-an input file cannot be opened.
-This removes 14 of the 16 runtime format-overflow diagnostics; the two remaining
-sites assemble compound lemma and derivation keys and require an explicit
-truncation or failure contract before they can be changed safely.
+an input file cannot be opened. This removes 14 of the 16 library
+format-overflow diagnostics.
+
+The remaining compound-lemma and derivation-key builders now use scratch
+buffers matching their lookup contracts, then reject values that cannot fit in
+the historical destination fields. They no longer truncate keys or pass a
+60-byte lemma buffer to a lookup routine that may emit `LONGSTRING` bytes. The
+command-line client applies the same checked construction to input, output,
+failure, statistics, and destination paths; its destination mode now initializes
+all three output names. All 118 library sources plus `stdiomorph.c` pass with
+format, overflow, and truncation warnings promoted to errors. CMake enforces
+these checks across the runtime.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
@@ -134,8 +142,7 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Define failure semantics for compound lemma and derivation-key builders,
-   then document buffer ownership with ASan/UBSan enabled in CI.
+1. Document buffer ownership and enable ASan/UBSan in CI.
 2. Move mutable process state into an opaque context, then extract the public
    `libmorpheus` ABI.
 

@@ -114,10 +114,13 @@ int main(int argc, char *argv[])
       if (!strcmp(optarg,"-")) {
 	foutput = stdout;
 	fstats = ffailed = stderr;
-      } else {
-	Xstrcpy(outname,optarg);
-	sprintf(failedname,"%s.failed",outname);
-	sprintf(statsname,"%s.stats",outname);
+	    } else {
+	if( snprintf(outname,sizeof outname,"%s",optarg) >= (int)sizeof outname ||
+	    snprintf(failedname,sizeof failedname,"%s.failed",optarg) >= (int)sizeof failedname ||
+	    snprintf(statsname,sizeof statsname,"%s.stats",optarg) >= (int)sizeof statsname ) {
+	  fprintf(stderr,"output filename is too long\n");
+	  return(1);
+	}
 printf("outname [%s]\n", outname );
       }
       break;
@@ -132,20 +135,30 @@ printf("outname [%s]\n", outname );
 
     fstats = ffailed = stderr;
   } else {
-    Xstrcpy(fname,argv[optind++]);
-    Xstrcpy(inpname,fname);
-    strcat(inpname,".words");
+    if( snprintf(fname,sizeof fname,"%s",argv[optind++]) >= (int)sizeof fname ||
+	 snprintf(inpname,sizeof inpname,"%s.words",fname) >= (int)sizeof inpname ) {
+	  fprintf(stderr,"input filename is too long\n");
+	  return(1);
+	}
     
     if (optind >= argc) {
       if (outname[0] == '\0') {
-	sprintf(outname,"%s.morph",fname);
-	sprintf(failedname,"%s.failed",fname);
-	sprintf(statsname,"%s.stats",fname);
+	if( snprintf(outname,sizeof outname,"%s.morph",fname) >= (int)sizeof outname ||
+	    snprintf(failedname,sizeof failedname,"%s.failed",fname) >= (int)sizeof failedname ||
+	    snprintf(statsname,sizeof statsname,"%s.stats",fname) >= (int)sizeof statsname ) {
+	  fprintf(stderr,"output filename is too long\n");
+	  return(1);
+	}
       }
 fprintf(stdout,"files: [%s] [%s]\n", outname, failedname);
     } else {
-      Xstrcpy(destPath,argv[optind]);
-      sprintf(outname,"%s%c%s.morph",destPath, PATH_SEP, fname);
+      if( snprintf(destPath,sizeof destPath,"%s",argv[optind]) >= (int)sizeof destPath ||
+	  snprintf(outname,sizeof outname,"%s%c%s.morph",destPath,PATH_SEP,fname) >= (int)sizeof outname ||
+	  snprintf(failedname,sizeof failedname,"%s%c%s.failed",destPath,PATH_SEP,fname) >= (int)sizeof failedname ||
+	  snprintf(statsname,sizeof statsname,"%s%c%s.stats",destPath,PATH_SEP,fname) >= (int)sizeof statsname ) {
+	fprintf(stderr,"destination filename is too long\n");
+	return(1);
+	  }
     }
     
     fprintf(stderr,"Input: %s\nOutput: %s\n",inpname,outname);

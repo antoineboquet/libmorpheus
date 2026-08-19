@@ -399,8 +399,14 @@ checkcomderiv2(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, char
 		
 		}
 		
-		if( markedstem ) sprintf(stembuf,"%s%s",dstem,tmpdsuff );
-		else stembuf[0] = 0;
+		if( markedstem ) {
+			int stemlen = snprintf(stembuf,MAXWORDSIZE,"%s%s",dstem,tmpdsuff);
+
+			if( stemlen < 0 || stemlen >= MAXWORDSIZE ) {
+				fprintf(stderr,"derived stem is too long: [%s%s]\n",dstem,tmpdsuff);
+				continue;
+			}
+		} else stembuf[0] = 0;
 		
 		while(*s) {
 			if(*s == ':' )
@@ -409,7 +415,9 @@ checkcomderiv2(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, char
 		}
 
 		if( DstemTakesDsuff(derivsuff,dstemkeys,gstr,dstem,tmpdsuff))  {
-			char tmp1[LONGSTRING*2], tmp2[LONGSTRING*2];
+			char tmp1[LONGSTRING*2], tmp2[LONGSTRING*4];
+			int keylen;
+			size_t used;
 			
 			/*
 			 * grc 5/30/89
@@ -439,9 +447,6 @@ checkcomderiv2(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, char
 				! has_morphflag(morphflags_of(gstr),SYLL_AUGMENT) ) {
 					continue;
 			}
-			if( *rkeys ) 
-				Xstrncat(rkeys," ",LONGSTRING);
-			
 			if( *had_redupl ) {
 				gk_word * gkword;
 				add_morphflag(morphflags_of(gstr),REDUPL);
@@ -468,12 +473,23 @@ printf("curstemkyes [%s] %o\n", tmp1 , has_morphflag(morphflags_of(gstr),R_E_I_A
 			
 			sprintf(tmp2,"%s:%s%s", ((*had_redupl) ? dstem : stembuf), lemma , tmp1);
 */
-			sprintf(tmp2,"%s:%s%s",  stembuf, lemma , tmp1);
+			keylen = snprintf(tmp2,sizeof tmp2,"%s:%s%s",stembuf,lemma,tmp1);
+			if( keylen < 0 || keylen >= (int)sizeof tmp2 ) {
+				fprintf(stderr,"derivation key is too long\n");
+				continue;
+			}
 /*
 printf("success on [%s] and [%s]\n", derivsuff, dstemkeys );
 printf("about to add [%s]\n", tmp2 );
 */
-			Xstrncat( rkeys,tmp2,LONGSTRING);
+			used = strlen(rkeys);
+			if( used >= LONGSTRING ||
+			    (size_t)keylen + (used != 0) >= LONGSTRING - used ) {
+				fprintf(stderr,"derivation key buffer is full\n");
+				continue;
+			}
+			if( used ) rkeys[used++] = ' ';
+			memcpy(rkeys + used,tmp2,(size_t)keylen + 1);
 			rval++;
 		}	
 

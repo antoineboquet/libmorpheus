@@ -39,6 +39,10 @@ target_compile_options(
     # GCC 10 made this the default; keeping it explicit prevents a regression
     # to the historical common-symbol behaviour on older toolchains.
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-fno-common>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Wformat=2>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=format>
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-overflow>
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-truncation>
 )
 
 add_library(morpheus_greeklib STATIC
