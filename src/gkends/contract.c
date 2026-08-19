@@ -18,6 +18,19 @@ gk_string * CreatGkString();
 static int numcontr = 0;
 static int numeuphs = 0;
 
+static void
+fix_recessive_accent(gk_string *gstr)
+{
+	gk_word *gkform = CreatGkword(1);
+
+	if( ! gkform )
+		return;
+	forminfo_of(gkform) = forminfo_of(gstr);
+	*ends_gstr_of(gkform) = *gstr;
+	FixRecAcc(gkform,morphflags_of(gstr),gkstring_of(gstr));
+	FreeGkword(gkform);
+}
+
 gk_string *
  poss_contracts(gk_string *gstr, Dialect skipdial)
 {
@@ -95,6 +108,7 @@ gk_string *
  *	the matching routine looking for "eoi" will exit as soon as it fails on
  *	"eou", and will *not* see the second "eoi".
  */
+int
  sub_for_euph(gk_string *gstr, Dialect skipdial, gk_string *poss_subs, int possno, gk_string *sub_table, int len)
 {
 
@@ -165,6 +179,7 @@ PrntGkStr(poss_subs+sofar,stdout);
 	return(0);
 }
 
+int
 needs_sub(gk_string *gstr, Dialect skipdial, gk_string *matchgstr, char *haveseen, char *curstring, char *raw, char *cooked)
 {
 	char * getaccp();
@@ -315,7 +330,7 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
  * -a=s instead of -a/s for forms such as kata-ba/s
  */
 				if( Is_verbform(gstr) && (mood_of(forminfo_of(gstr)) != PARTICIPLE) && !strchr(gkstring_of(gstr),'!'))
-					FixRecAcc(gstr,morphflags_of(gstr),gkstring_of(gstr));
+					fix_recessive_accent(gstr);
 				else
 /*
  * end 3/17/91 mod

@@ -5,7 +5,7 @@ static gk_string * StoreGstr;
 #define MAXENDINGS 	10000
 
 #include "stor.proto.h"
-static cur_endcnt = 0;
+static int cur_endcnt = 0;
 static int maxstring = 0;
 gk_string * CreatGkString();
 int dictstrcmp();
@@ -13,6 +13,7 @@ int CompByDictStr(const void *gstr1, const void *gstr2);
  int
  CompGkString(const void *gstr1, const void *gstr2);
 
+int
 InitGstrMem(void)
 {
 	if( ! StoreGstr ) {
@@ -24,6 +25,7 @@ InitGstrMem(void)
 	return(1);
 }
 
+int
  AddNewGstr(gk_string *gstr)
 {
 	char * news;
@@ -55,16 +57,18 @@ InitGstrMem(void)
 
 	*(StoreGstr+cur_endcnt) = *gstr;
 	cur_endcnt++;
-
+	return(1);
 
 }
 
-ResetGstrBuf()
+void
+ResetGstrBuf(void)
 {
 
 	cur_endcnt = 0;
 }
 
+void
  PrntNewGstrings(FILE *f, int compiled_flag)
 {
 	int rval, i;
@@ -112,6 +116,7 @@ ResetGstrBuf()
 	}
 }
 
+void
 LPrntGstr(gk_string *gstr, FILE *f)
 {
 	char tmp[256], res[256], line[256];
@@ -144,6 +149,7 @@ LPrntGstr(gk_string *gstr, FILE *f)
 	}
 }
 
+int
 new_parad(gk_string *gstr1, gk_string *gstr2)
 {
 	word_form wf1, wf2;
@@ -168,6 +174,7 @@ new_parad(gk_string *gstr1, gk_string *gstr2)
  *
  * added so that we would be able to analyze "gh/rai+".
  */
+void
 hyphtodiaer(char *news)
 {
 	register char * s= news;

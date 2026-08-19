@@ -10,10 +10,10 @@ char * GetEndString();
 
 #include "retrends.proto.h"
 static gk_string *RetrCompEnds(gk_string *, gk_string *, int *, Dialect);
-static ProcEndRecord(char *, gk_string *);
+static void ProcEndRecord(char *, gk_string *);
 static char *GetEndString(char *, gk_string *);
-static NoWantGkEnd(gk_string *, gk_string *, int);
-static AddNewEnd(gk_string *, gk_string *, int);
+static int NoWantGkEnd(gk_string *, gk_string *, int);
+static void AddNewEnd(gk_string *, gk_string *, int);
 
 static gk_string  Cur_gkend;
 
@@ -100,6 +100,7 @@ printf("AvoidEnd:"); PrntAGstr(&AvoidEnd,stdout); printf("\n");
 	return(gstring);
 }
 
+int
  CompatKeys(char *keys1, char *keys2, gk_string *gstr)
 {
 	gk_string  Gstr;
@@ -138,6 +139,7 @@ printf("AvoidEnd:"); PrntAGstr(&AvoidEnd,stdout); printf("\n");
 }
  
  
+int
  EndingOk(char *keys, gk_string *gstr, gk_string *avoidgstr, int wantderiv)
 {
 	int good = 0;
@@ -302,7 +304,7 @@ printf("Cur_gkend:"); PrntGkFlags(&Cur_gkend,stdout); printf("\n\n");
 	return(ListOfEnds);
 }
 
-static
+static void
  ProcEndRecord(char *s, gk_string *gkend)
 {
 	gk_word * BlnkGkword;
@@ -330,7 +332,7 @@ static char *
 	return(s);
 }
 
-static
+static int
  NoWantGkEnd(gk_string *skipend, gk_string *haveend, int strict)
 {
 
@@ -367,6 +369,7 @@ static
  *		
  */
 /*static*/
+int
  WantGkEnd(gk_string *wantend, gk_string *haveend, bool writeflag, int strict)
 {
 	int compval;
@@ -654,6 +657,7 @@ printf("[%s] failing on rightmorphflags\n", gkstring_of(haveend) );
 	return(1);
 }
 
+int
  RightMorphflags(gk_string *wantend, gk_string *haveend)
 {
 /*
@@ -685,7 +689,7 @@ printf("[%s] failing on rightmorphflags\n", gkstring_of(haveend) );
 	return(1);
 }
 
-static 
+static void
  AddNewEnd(gk_string *gstrings, gk_string *newgstr, int sofar)
 {
 	int i, rval;
@@ -721,6 +725,7 @@ printf("starting with: "); PrntGkFlags(newgstr,stdout); printf("\n", rval );
 }
 
 
+void
 setwendstr(char *wendstr, char *str)
 {
 	char * p = str;
@@ -741,6 +746,7 @@ setwendstr(char *wendstr, char *str)
 	stripacc(wendstr);
 }
 
+int
 endstrcmp(char *wendstr, char *haveendstr)
 {
 	char tmp[MAXWORDSIZE];
@@ -773,6 +779,7 @@ printf("%s --> %s\n", haveendstr, tmp );
 	return(dictstrcmp(wendstr,haveendstr));
 }
 
+int
 noaccstrcmp(char *wendstr, char *hendstr)
 {
 	char tmp1[BUFSIZ];
@@ -787,6 +794,7 @@ noaccstrcmp(char *wendstr, char *hendstr)
 	return(strcmp(tmp1,tmp2));
 }
 
+int
 has_quantacc(char *s)
 {
 	int rval = 0;
@@ -795,6 +803,7 @@ has_quantacc(char *s)
 	return(rval);
 }
 
+void
 stripquantacc(char *s)
 {
 	stripquant(s);

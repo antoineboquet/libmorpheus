@@ -8,9 +8,10 @@ char ** endlines;
 static int endcount = 0;
 gk_string Gstr;
 static gk_string Blnk;
-static int xstrcmp();
+static int xstrcmp(const void *, const void *);
 #define DELIMITER " "
 
+int
 indexendtables(stype,is_deriv)
 Stemtype stype;
 int is_deriv;
@@ -172,16 +173,18 @@ printf("output file:%s\n", shortname );
 /*	index_list(shortname,NULL);*/
 	for(i=0;i<endcount;i++) free(*(endlines+i));
 	free((char *)endlines);
+	return(0);
 
 }
 
-xstrcmp(p1,p2)
-  char ** p1;
-  char ** p2;
+static int
+xstrcmp(const void *left, const void *right)
 {
+	const char * const *p1 = left;
+	const char * const *p2 = right;
 	int rval;
 	
-	rval = morphstrcmp(*p1,*p2);
+	rval = morphstrcmp((char *)*p1,(char *)*p2);
 
 /*
 fprintf(stderr,"rval [%d] for [%s] and [%s]\n", rval  , *p1, *p2 );

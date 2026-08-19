@@ -3,6 +3,7 @@
 
 #include "euphend.proto.h"
 
+int
  EuphEnd(gk_string *want, gk_string *have, int strict)
 {
 	Dialect d;

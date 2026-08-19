@@ -1,7 +1,7 @@
 #include <gkstring.h>
 #include "gkends_internal.h"
 #include <libfiles.h>
-static OpenDerivFile(void);
+static int OpenDerivFile(void);
 
 static FILE * fsuff = NULL;
 static int noderivfile = 0;
@@ -25,7 +25,7 @@ NextSuffTable(char *entry)
 		return(entry);
 }
 
-static
+static int
 OpenDerivFile(void)
 {
 	fsuff = MorphFopen(DERIVTYPES,"r");

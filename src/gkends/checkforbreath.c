@@ -3,6 +3,7 @@
 
 #include "checkforbreath.proto.h"
 
+void
 CheckForBreathing(gk_string *gstr)
 {
 	char * s = gkstring_of(gstr);

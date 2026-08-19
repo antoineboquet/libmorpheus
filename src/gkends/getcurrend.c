@@ -103,6 +103,7 @@ cacheconsistent();
 	return(NULL);
 }
 
+void
 cacheconsistent(void)
 {
 	int i;
@@ -124,6 +125,7 @@ cacheconsistent(void)
 		csize = i;
 	
 }
+void
 InsertEndCache(gk_string *gstr)
 {
 	int i;

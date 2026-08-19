@@ -16,6 +16,7 @@
 gk_string * CreatGkString();
 static gk_string Blnk;
 
+int
  expendtables(char *tabname, int maintable, int formcode)
 {
 	FILE * finput;
@@ -167,9 +168,11 @@ printf("%s\n", shortname );
 /*
 	indexendtables(stype);
 */
+	return(0);
 
 }
 
+int
 AddEndLine(/*FILE *f,*/ char *el, char *basename, int maxstring)
 {
 	char havestr[MAXWORDSIZE];

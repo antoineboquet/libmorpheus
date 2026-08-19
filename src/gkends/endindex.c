@@ -32,6 +32,7 @@ static int nvstemetags = 0;
 
 endind * init_endind();
 
+int
 chcknend(char *endstr, char *keys)
 {
 	long startoff;
@@ -56,6 +57,7 @@ chcknend(char *endstr, char *keys)
 }
 
 
+int
 chckdictent(char * possent, char *keys)
 {
 	long startoff;
@@ -79,6 +81,7 @@ chckdictent(char * possent, char *keys)
 	return( checkendind(DictEntTags,tmpendstr,keys,strncmp));
 }
 
+int
 chckcmpvb(char *endstr, char *keys)
 {
 	long startoff;
@@ -102,6 +105,7 @@ chckcmpvb(char *endstr, char *keys)
 	return( checkendind(CmpVbtags,tmpendstr,keys,strncmp));
 }
 
+int
 chckend(char *endstring) 
 {
 	char tmp[LONGSTRING];
@@ -111,6 +115,7 @@ chckend(char *endstring)
 	return(chckvend(endstring,tmp)||chcknend(endstring,tmp));
 }
 
+int
 chckvend(char *endstr, char *keys)
 {
 	long startoff;
@@ -129,6 +134,7 @@ chckvend(char *endstr, char *keys)
 	return(curhit);
 }
 
+int
 chckvstem(char *stemstr, char *keys)
 {
 	long startoff;
@@ -147,6 +153,7 @@ chckvstem(char *stemstr, char *keys)
 	return(curhit);
 }
 
+int
 chckdvend(char *endstr, char *keys)
 {
 	long startoff;
@@ -244,6 +251,7 @@ init_endind(char *fname, endind *etags)
 	return(etags);
 }
 
+int
 checkendind(endind *etags, char *endstr, char *keys, int (*scmp )())
 {
 	int high = 0;
@@ -301,4 +309,3 @@ printf("B returning with curtag [%s] tagstring [%s] and off %d\n", curtag, tagst
 	*keys = 0;
 	return(0);
 }
-

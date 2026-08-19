@@ -3,15 +3,16 @@
 #include "endfiles.h"
 
 #include "mkend.proto.h"
-static mk_compend(gk_string *, gk_string *, char *, char *);
-static update_end(gk_string *, gk_string *, char *, char *, char *);
-static join_end(gk_string *, char *, int);
+static void mk_compend(gk_string *, gk_string *, char *, char *);
+static void update_end(gk_string *, gk_string *, char *, char *, char *);
+static void join_end(gk_string *, char *, int);
 
 static gk_string WantGstr;
 static gk_string AvoidGstr;
 static gk_string CurGstr;
 static gk_string BlankGstr;
 
+void
  mk_end(char *havestr, gk_string *Have, gk_string *Avoid)
 {
 	char * s;
@@ -102,7 +103,7 @@ printf("no contr in: "); PrntGkStr(Have,stdout);
 }
 
 
-static 
+static void
  mk_compend(gk_string *Have, gk_string *Avoid, char *curstr, char *endtype)
 {
 	char fname[BUFSIZ];
@@ -118,7 +119,7 @@ static
 
 	if( ! (f=MorphFopen(line,"r")) ) {
 		fprintf(stderr,"could not open [%s]\n", endtype );
-		return(-1);
+		return;
 	}
 	while(fgets(line,sizeof line,f)) {
 		char curendstr[MAXWORDSIZE];
@@ -140,7 +141,7 @@ static
 	fclose(f);
 }
 
-static 
+static void
  update_end(gk_string *Have, gk_string *Avoid, char *stem, char *endstr, char *newkeys)
 {
 	char savestem[MAXWORDSIZE];
@@ -166,7 +167,7 @@ static
 	} 
 }
 
-static
+static void
  join_end(gk_string *Have, char *stem, int saw_vowel)
 {
 	gk_string SaveGstr;
@@ -207,6 +208,7 @@ printf("saw_vowel on [%s]\n", gkstring_of(Have) );
 	}
 }
 
+void
  CompStemEnd(gk_string *gstr, char *stem, char *endstr)
 {
 	int lastc;
@@ -287,6 +289,7 @@ printf("gks [%s] lastc [%c] stem [%s] endstr [%s]\n", gkstring_of(gstr), lastc ,
 	}
 }
 
+void
 zap_extra_lmarks(char *s)
 {
 	while(*s) {
