@@ -189,6 +189,8 @@ target_compile_options(
   morpheus_gkdict
   PRIVATE
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
 )
 
 add_library(morpheus_gener STATIC src/gener/genwd.c)

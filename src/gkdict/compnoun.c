@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "gkdict_internal.h"
 
+void
 checkforcompnoun(char * curstem,char * endkeys,char * stemkeys)
 {
 	char *s = curstem;
@@ -39,7 +40,8 @@ char *headtab[MAXTAILS];
 static int init_headtab = 0;
 static int nheads = 0;
 
-setup_headtab()
+int
+setup_headtab(void)
 {
 	FILE * fheads;
 	char line[1000];
@@ -61,6 +63,7 @@ setup_headtab()
 	return(1);
 }
 
+int
 is_nomhead(char * heads,char * headkeys)
 {
 	int rval = 0;

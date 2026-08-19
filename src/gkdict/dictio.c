@@ -31,6 +31,7 @@ init_dict(char *fname, int *ntags)
 /*
  * check to see if the current string is an irregular verb.
  */
+int
  chckirrverb(char *irregstr, char *lemmas)
 {
 	char workstem[MAXWORDSIZE];
@@ -74,6 +75,7 @@ init_dict(char *fname, int *ntags)
  * 
  * return 0 if "indeclstring" is not in the indeclinable list.
  */
+int
  chckindecl(char *indeclstr, char *lemmas)
 {
 	long startoff;
@@ -122,6 +124,7 @@ printf("startoff [%ld]\n", startoff );
  * 
  * return 0 if "indeclstring" is not in the indeclinable list.
  */
+int
  chckderiv(char *derivstr, char *derivkeys)
 {
 	long startoff;
@@ -161,6 +164,7 @@ printf("startoff [%ld]\n", startoff );
 }
 
 
+int
  chckstem(char *stemstr, char *stemkeys, int is_nom)
 {
 	long startoff;
@@ -352,6 +356,7 @@ add_stemcache(Stemcache *cache, char *stem, char *keys)
 endtags * LemmTags = NULL;
 static int num_of_ltags = 0;
 
+int
  prntlemmentry(char *lemma, char *preverb, FILE *f)
 {
 	long startoff = 0;
@@ -490,6 +495,7 @@ ErrorMess(errbuf);
 
 }
 
+int
 lemma_exists(char *lemma)
 {
 	FILE * flemm = NULL;
