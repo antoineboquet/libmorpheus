@@ -1,122 +1,102 @@
-# Morpheus
+# libmorpheus
 
-Morpheus is a morphological parsing tool originally written as part of the Perseus Project.
-It takes Ancient Greek or Latin text as input and then lemmatizes the text and performs a morphological analysis.
-For other versions of this codebase, see [PerseusDL/morpheus](https://github.com/PerseusDL/morpheus)
-and [alpheios-project/morpheus](https://github.com/alpheios-project/morpheus).
+`libmorpheus` is a modernization of the Morpheus morphological analyzer for
+Ancient Greek and Latin. The code baseline comes from the Perseids fork; the
+runtime data used by Bailly comes from Alpheios.
 
-## Building
+The first milestone establishes a reproducible runtime build and behavioral
+tests before changing the C dialect or extracting a public FFI API. The current
+runtime therefore still uses the inherited GNU C90-compatible mode. The target
+is C17 and an embeddable `libmorpheus` with `cruncher` retained as a compatibility
+client.
 
-### Docker
+See [the architecture baseline](docs/architecture.md) and
+[source provenance](docs/provenance.md) for the boundaries and exact upstream
+revisions.
 
-#### From Docker Hub
+## Clone
 
-```bash
-docker pull perseidsproject/morpheus
+The Alpheios stemlib is a pinned Git submodule:
 
-docker run -it perseidsproject/morpheus /bin/bash
+```sh
+git clone --recurse-submodules https://github.com/antoineboquet/libmorpheus.git
+cd libmorpheus
 ```
 
-(See project on [Docker Hub](https://hub.docker.com/r/perseidsproject/morpheus/).)
+For an existing clone:
 
-#### Building container
-
-```
-docker build -t morpheus .
-
-docker run -it morpheus /bin/bash
+```sh
+git submodule update --init --recursive
 ```
 
-### macOS
+## Build the runtime
 
 Requirements:
 
-- Xcode command line tools
+- CMake 3.25 or newer;
+- Ninja;
+- a C compiler;
+- Ruby 3.0 or newer for tests.
 
-```bash
-cd src/
-make clean
-CFLAGS='-std=gnu89 -Wno-return-type -Wno-implicit-function-declaration' make LOADLIBES='-ll'
-make install
+```sh
+cmake --preset dev
+cmake --build --preset dev
+ctest --preset dev
 ```
 
-(Tested on Apple M1, macOS Ventura 13.1, Apple clang version 14.0.0.)
+The resulting executable is `build/dev/cruncher`. The runtime-only CMake build
+does not require Flex because it consumes an already compiled stemlib.
 
-### Linux
+To configure against another compiled stemlib:
 
-Requirements:
-
-- `make`
-- `gcc`
-- `flex`
-
-```bash
-cd src/
-make clean
-CFLAGS='-std=gnu89 -fcommon' make
-make install
+```sh
+cmake --preset dev -DMORPHEUS_STEMLIB_DIR=/absolute/path/to/stemlib
 ```
 
-(Tested on Ubuntu 22.04)
+`MORPHEUS_STEMLIB_DIR` is used by the Alpheios fixture suite. At runtime,
+`cruncher` continues to read the `MORPHLIB` environment variable for backward
+compatibility:
 
-### Stemlibs
-
-The stemlibs are checked in and included in the repository.
-To rebuild the stemlibs, run the following commands (with the same
-`CFLAGS` used when compiling the binaries):
-
-```
-cd stemlib/Greek/
-make clean
-PATH="$PATH:../../bin" MORPHLIB='..' make
-PATH="$PATH:../../bin" MORPHLIB='..' make
-
-cd ../Latin/
-make clean
-PATH="$PATH:../../bin" MORPHLIB='..' make
-PATH="$PATH:../../bin" MORPHLIB='..' make
+```sh
+printf 'a)/nqrwpos\n' | \
+  MORPHLIB="$PWD/vendor/alpheios-morpheus/dist/stemlib" \
+  build/dev/cruncher -S
 ```
 
-## Usage
+## Tests and data baselines
 
-Example usage:
+Two behavioral suites intentionally remain separate:
 
+- `legacy_fixtures` runs the inherited Greek and Latin expectations against
+  the Perseids `stemlib` directory;
+- `alpheios_greek_fixtures` runs Bailly-oriented Greek smoke cases against
+  `vendor/alpheios-morpheus/dist/stemlib`.
+
+This prevents data-version differences from being mistaken for regressions in
+the C implementation.
+
+## Historical build
+
+The inherited Makefiles remain available during the transition:
+
+```sh
+make -C src clean
+CFLAGS='-std=gnu89 -fcommon' make -C src libs
+CFLAGS='-std=gnu89 -fcommon' make -C src/anal cruncher
 ```
-$ echo 'a)/nqrwpos' | MORPHLIB=stemlib bin/cruncher -S
-> a)/nqrwpos
-> <NL>N a)/nqrwpos  masc nom sg			os_ou</NL>
+
+## Current command-line interface
+
+```sh
+printf 'a)/nqrwpos\n' | \
+  MORPHLIB="$PWD/vendor/alpheios-morpheus/dist/stemlib" \
+  build/dev/cruncher -S
 ```
 
-```
-$ echo 'a)nqrwpos' | MORPHLIB=stemlib bin/cruncher -S -n
-> a)nqrwpos
-> <NL>N a)/nqrwpos,a)/nqrwpos  masc nom sg			os_ou</NL>
-```
+Important options retained from the Perseids implementation include `-L` for
+Latin, `-S` for non-strict case, `-n` to ignore accents, `-d` for database
+format, `-e` for numeric feature indices, `-k` to retain Beta Code, `-l` for
+lemma-only output, and `-V` for verbs only.
 
-```
-$ echo 'cactus' | MORPHLIB=stemlib bin/cruncher -S -L
-> cactus
-> <NL>N cactus  masc nom sg			us_i</NL>
-```
-
-### Command line options
-
-| Option | Description |
-| - | - |
-| -L | Set language to Latin |
-| -S | Turn off Strict case. For Greek, this allows words with an initial capital to be recognized. For languages in the Roman alphabet, allows words with initial capital or in all capitals. |
-| -n | Ignore accents.|
-| -d | Database format. This switch changes the output from "Perseus format" to "database format." Output appears in a series of tagged fields. |
-| -e | Ending index. Instead of showing the analysis in readable form, this switch gives the indices of the tense, mood, case, number, and so on (as appropriate) in the internal tables. |
-| -k | Keep beta-code. When "Perseus format" is enabled (the default), this switch does nothing. When "Perseus format" is off, output (Greek as well as Latin) is converted to the old Greek Keys encoding. This switch disables that conversion so that Greek output stays in beta-code. |
-| -l | Show lemma. When this switch is set, instead of printing the entire analysis, cruncher will only show the lemma or headword from which the given form is made. |
-| -P | Turn off Perseus format. Output will be in the form `$feminam& is^M &from$ femina^M $fe\_minam^M [&stem $fe\_min-& ]^M & a\_ae fem acc sg^M`. Note the returns, without line feeds, between the fields. |
-| -V | Analyze verbs only. |
-
-## Tests
-
-Requirements:
-
-- `ruby` (~3.0)
-
-`./test/test.rb`
+The C ABI and structured FFI result model have not yet been introduced; they
+are the next milestone after this reproducible baseline.

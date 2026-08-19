@@ -1,6 +1,7 @@
 # output files
 *.o
 *.a
+build/
 
 # binaries
 bin/

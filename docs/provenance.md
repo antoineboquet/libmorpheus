@@ -1,0 +1,28 @@
+# Source provenance
+
+The repository preserves the Git history of the Perseids Morpheus fork and uses
+the Alpheios precompiled stemlib as a separately versioned data dependency.
+
+## C implementation
+
+- Repository: <https://github.com/perseids-tools/morpheus.git>
+- Branch: `master`
+- Imported commit: `ab6898ffed335fc6169fa02c9940657a9b5a78e0`
+- License declared by that repository: Mozilla Public License 2.0
+
+## Greek stemlib
+
+- Repository: <https://github.com/alpheios-project/morpheus.git>
+- Branch tracked by the submodule: `master`
+- Initially pinned commit: `4632415fe93c85e9fdca47a0c5a13f31385f0023`
+- Runtime path: `vendor/alpheios-morpheus/dist/stemlib/Greek`
+
+The submodule commit, rather than the moving branch name, defines the exact data
+version used by any given `libmorpheus` revision. Updating to a newer Alpheios
+`master` must be committed as an explicit submodule update and followed by the
+behavioral test suite.
+
+The Alpheios repository's `LICENSE` file notes that its Morpheus fork does not
+carry an explicit independent license and refers to the Perseus Digital Library
+licensing statement. Code and data provenance must therefore remain documented
+separately when this project is distributed.

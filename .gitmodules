@@ -1,0 +1,4 @@
+[submodule "vendor/alpheios-morpheus"]
+	path = vendor/alpheios-morpheus
+	url = https://github.com/alpheios-project/morpheus.git
+	branch = master

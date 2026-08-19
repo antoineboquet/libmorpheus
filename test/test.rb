@@ -2,7 +2,10 @@
 
 require 'json'
 
-examples = JSON.parse(File.read('./test/fixture.json'))
+fixtures = ENV.fetch('MORPHEUS_FIXTURES', './test/fixture.json')
+examples = JSON.parse(File.read(fixtures))
+cruncher = ENV.fetch('MORPHEUS_CRUNCHER', 'bin/cruncher')
+stemlib = ENV.fetch('MORPHLIB', 'stemlib')
 
 failures = []
 examples.each do |example|
@@ -10,7 +13,7 @@ examples.each do |example|
   opts = example["opts"] || []
   expected = example["expected"]
 
-  actual = IO.popen({ 'MORPHLIB' => 'stemlib' }, ['bin/cruncher', *opts], 'r+') do |io|
+  actual = IO.popen({ 'MORPHLIB' => stemlib }, [cruncher, *opts], 'r+') do |io|
     io.puts(input)
     io.close_write
     io.read

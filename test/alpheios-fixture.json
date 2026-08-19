@@ -1,0 +1,27 @@
+[
+  {
+    "input": "a)/nqrwpos",
+    "opts": [],
+    "expected": "a)/nqrwpos\n<NL>N a)/nqrwpos  masc nom sg\t\t\tos_ou</NL>\n"
+  },
+  {
+    "input": "a)nqrwpos",
+    "opts": ["-S", "-n"],
+    "expected": "a)nqrwpos\n<NL>N a)/nqrwpos,a)/nqrwpos  masc nom sg\t\t\tos_ou</NL>\n"
+  },
+  {
+    "input": "parei=nai",
+    "opts": [],
+    "expected": "parei=nai\n<NL>V pa/reimi  pres inf act\t\t\tirreg_mi</NL><NL>V pari/hmi  aor inf act\t\t\tath_secondary</NL><NL>V pari/hmi  aor inf act\t\t\tirreg_mi</NL>\n"
+  },
+  {
+    "input": "a)/nqrwpos",
+    "opts": ["-d", "-k"],
+    "expected": "\n:raw a)/nqrwpos\n\n:workw a)/nqrwpos\n:lem a)/nqrwpos\n:prvb \t\t\t\t\n:aug1 \t\t\t\t\n:stem a)nqrwp\t masc\t\t\tos_ou\n:suff \t\t\t\t\n:end os\t masc nom sg\t\t\tos_ou\n"
+  },
+  {
+    "input": "*a)/nqrwpos",
+    "opts": ["-S"],
+    "expected": "*a)/nqrwpos\n<NL>N a)/nqrwpos,a)/nqrwpos  masc nom sg\t\t\tos_ou</NL>\n"
+  }
+]

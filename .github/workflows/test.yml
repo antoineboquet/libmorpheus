@@ -1,24 +1,39 @@
-name: Run tests
+name: Build and test
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
 
 jobs:
-  test:
+  cmake:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: ruby/setup-ruby@v1
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v4
         with:
-          ruby-version: 3.0
+          submodules: recursive
 
-      - name: Update packages
-        run: sudo apt-get update -qq
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
 
-      - name: Install dependencies
-        run: sudo apt-get install -qq -y build-essential flex-old
+      - name: Configure
+        run: cmake --preset dev
 
-      - name: Make
-        run: bash -c "cd src/ && CFLAGS='-std=gnu89 -fcommon' make && make install"
+      - name: Build
+        run: cmake --build --preset dev
 
-      - name: Run tests
-        run: ruby test/test.rb
+      - name: Test
+        run: ctest --preset dev
+
+  legacy-make:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build runtime with the inherited Makefiles
+        run: |
+          make -C src clean
+          CFLAGS='-std=gnu89 -fcommon' make -C src libs
+          CFLAGS='-std=gnu89 -fcommon' make -C src/anal cruncher
