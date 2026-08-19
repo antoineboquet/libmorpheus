@@ -1,8 +1,6 @@
-#include <gkstring.h>
+#include "gkdict_internal.h"
 
-#include "derivio.proto.h"
-static checkforderiv2(char *stemstr, char *stemkeys, char *had_redupl, char *redupstem);
-static checkforderiv2(char * stemstr,char * stemkeys,char * had_redupl,char * redupstem);
+static int checkforderiv2(char *stemstr, char *stemkeys, char *had_redupl, char *redupstem);
 int checkcomderivs(char * derivs,char * defstem,char * suffix,char * lemmkeys,char * nkeys,char * had_redupl,char * redupstem);
 int checkcomderiv(char * derivs,char * defstem,char * suffix,char * lemmkeys,char * nkeys,char * had_redupl,char * redupstem);
 int checkcomderiv2(char * asuffkeys,char * dstem,char * dstemkeys,char * suffix,char * lemma,char * lkeys,char * rkeys,char * had_redupl,int markedstem);

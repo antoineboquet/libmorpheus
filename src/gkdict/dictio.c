@@ -1,14 +1,5 @@
-#include <gkstring.h>
-#include <gkdict.h>
-#include <endtags.h>
+#include "gkdict_internal.h"
 #define STEMCACHE 0
-FILE * getlemmstart();
-endtags * init_preind(), *init_dict();
-FILE * MorphFopen();
-
-/*int dictstrcmp(), dictstrncmp(), morphstrcmp(), morphstrncmp();*/
-
-#include "../morphlib/morphstrcmp.proto.h"
 
 
 endtags * VbTags = NULL;
@@ -17,7 +8,6 @@ static int num_of_ntags = 0;
 static int num_of_vtags = 0;
 char * vbindex = VBINDEX;
 char * nomindex = NOMINDEX;
-#include "retrentry.proto.h"
  int Use_hqdict = 0;
 
 #if STEMCACHE
@@ -25,9 +15,6 @@ Stemcache * scache;
 int cacheflag = 1;
 #define CACHESIZE 48
 #endif
-
-#include "dictio.proto.h"
-
 
 endtags *
 init_dict(char *fname, int *ntags)

@@ -11,9 +11,10 @@ still accept several old declarations as extensions. Treating every warning as
 an error now would make the change too large to validate usefully against the
 historical analyser.
 
-The `cruncher` front end and the `anal` runtime module are strict boundaries.
-Their internal interfaces are declared in `src/anal/cruncher_internal.h` and
-`src/anal/anal_internal.h`; both targets compile with
+The `cruncher` front end plus the `anal` and `gkdict` runtime modules are strict
+boundaries. Their internal interfaces are declared in
+`src/anal/cruncher_internal.h`, `src/anal/anal_internal.h`, and
+`src/gkdict/gkdict_internal.h`; all three targets compile with
 `-Werror=implicit-function-declaration`.
 
 ## Scope of the runtime closure
@@ -36,8 +37,8 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Extend the explicit internal-interface boundary now used by `cruncher` and
-   `anal` to the remaining runtime modules, then enable
+1. Extend the explicit internal-interface boundary now used by `cruncher`,
+   `anal`, and `gkdict` to the remaining runtime modules, then enable
    `-Werror=implicit-function-declaration` for the whole runtime.
 2. Give every function an explicit return type and correct callbacks passed to
    standard-library functions such as `qsort`.

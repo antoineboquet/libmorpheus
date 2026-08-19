@@ -170,6 +170,11 @@ target_link_libraries(
   PUBLIC morpheus_build_options
   PRIVATE morpheus_gkends morpheus_morphlib morpheus_greeklib
 )
+target_compile_options(
+  morpheus_gkdict
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+)
 
 add_library(morpheus_gener STATIC src/gener/genwd.c)
 target_link_libraries(

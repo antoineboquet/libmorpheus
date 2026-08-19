@@ -1,8 +1,5 @@
 #include <stdio.h>
-#include <gkdict.h>
-#include <gkstring.h>
-
-int is_nomhead(char * heads,char * headkeys);
+#include "gkdict_internal.h"
 
 checkforcompnoun(char * curstem,char * endkeys,char * stemkeys)
 {
