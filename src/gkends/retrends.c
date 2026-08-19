@@ -59,7 +59,7 @@ printf("AvoidEnd:"); PrntAGstr(&AvoidEnd,stdout); printf("\n");
 */
 	if( ! stemtype_of(&WantEnd) ) {
 		printf("could not find a stemtype for [%s] with restricts [%s]\n", 
-			restricts );
+			stemkeys, restricts );
 		return(NULL);
 	}
 

@@ -96,13 +96,13 @@ void prockeyline(char *s, int modulus, long curoff, FILE *f)
 	
 	if( ++nkeys >= modulus && morphstrcmp(curkey,prevkey) ) {
 		if( prntflag )
-			fprintf(stdout,"%s\t%ld\n", curkey , curoff );
+			fprintf(stdout,"%s\t%ld\n", curkey , (long)curoff );
 
 		WriteKey(curkey,&curoff,f);
 		nkeys = 0;
 	} else {
 		if( prntflag )
-			printf("not writing key [%s]:nkeys %d modulus %d prev %s curkey [%s] curoff %ld\n",s,nkeys, modulus, prevkey, curkey , curoff );
+			printf("not writing key [%s]:nkeys %d modulus %d prev %s curkey [%s] curoff %ld\n",s,nkeys, modulus, prevkey, curkey , (long)curoff );
 	}
 	Xstrncpy(prevkey,curkey,LONGSTRING);
 

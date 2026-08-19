@@ -7,7 +7,7 @@
 #define MAXCHAR 		256
 #define MAXSUBSTRING 	6
 #define ROMAN 1
-#define GREEK 2
+#define SMK_GREEK_FONT 2
 #define ITALIC 3
 
 #include "smk2beta.proto.h"
@@ -82,7 +82,7 @@ return;
 		}
 		
 		if(isupper(*s) && ! fromsmk ) {
-			if( cur_font == GREEK || ! cur_font ) 
+			if( cur_font == SMK_GREEK_FONT || ! cur_font )
 				set_cur_font(ROMAN,result);
 			tmp[0] = tolower(*s);
 			tmp[1] = 0;
@@ -101,7 +101,7 @@ return;
 			continue;
 		}
 		if(*s == '`' && ! fromsmk ) {
-			if( ! cur_font || cur_font == GREEK ) {
+			if( ! cur_font || cur_font == SMK_GREEK_FONT ) {
 				set_cur_font(ROMAN,result);
 			}
 			strcat(result,":");
@@ -110,7 +110,7 @@ return;
 		}
 		
 		if( (*s & 0377) >= 0202 && (*s & 0377) <= 0212 ) {
-			set_cur_font(GREEK,result);	
+			set_cur_font(SMK_GREEK_FONT,result);
 			strcat(result,Xlit_table[(int)(*s++ & (0377))]);
 			
 			/*
@@ -134,7 +134,7 @@ return;
 			if( ! fromsmk ) {
 				if( (smarta_char[(int)(*s & (0377))] || islower(*s)) && 
 				  (cur_font == ROMAN || cur_font == ITALIC || ! cur_font ) )
-					set_cur_font(GREEK,result);	
+					set_cur_font(SMK_GREEK_FONT,result);
 			}
 			strcat(result,Xlit_table[(int)(*s++ & (0377))]);
 		}
@@ -193,7 +193,7 @@ void set_cur_font(int n, char *s)
 	
 	if( n != cur_font ) {
 		switch(n) {
-			case GREEK:
+			case SMK_GREEK_FONT:
 				strcat(s,"$");
 				break;
 			case ROMAN:
@@ -226,7 +226,7 @@ void trap_upper(char *res, char *s)
 	char tmp[BUFSIZ];
 	
 	if( isupper(*s) ) {
-		if( !cur_font || cur_font == GREEK ) {
+		if( !cur_font || cur_font == SMK_GREEK_FONT ) {
 			set_cur_font(ROMAN,res);
 		}
 
@@ -239,7 +239,7 @@ void trap_upper(char *res, char *s)
 	
 	if( islower(*s) ) {
 		if( !cur_font || cur_font == ROMAN || cur_font == ITALIC ) {
-			set_cur_font(GREEK,res);
+			set_cur_font(SMK_GREEK_FONT,res);
 		}
 		tmp[0] = '*';
 		tmp[1] = *s;
@@ -285,7 +285,7 @@ void trap_upper(char *res, char *s)
 	}
 	if( tmp[0] ) {
 		if( ! cur_font || cur_font == ROMAN || cur_font == ITALIC )
-			set_cur_font(GREEK,res);
+			set_cur_font(SMK_GREEK_FONT,res);
 		strcat(res,tmp);
 	}
 }

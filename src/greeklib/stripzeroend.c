@@ -1,7 +1,5 @@
 #include "greeklib_internal.h"
 #include <greek.h>
-#define Is_zeroend(X) (X=='*')
-
 #include "stripzeroend.proto.h"
 void stripzeroend(char *word)
 {

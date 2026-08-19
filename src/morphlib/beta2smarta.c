@@ -15,7 +15,7 @@
 #define SMARTA_ROUGH_RHO		0373
 #define SMK_ROUGH_RHO		075
 #define TERMINAL_SIGMA	'w'
-#define GREEK 			0100
+#define SMARTA_GREEK_FONT 	0100
 #define ROMAN 			0200
 #define AISUB			046
 #define HISUB			0372
@@ -51,7 +51,7 @@ static int acctab[] = {
 static int gktab[256];
 static int accenttab[256];
 static int gkinit = 0;
-static int cur_font = GREEK;
+static int cur_font = SMARTA_GREEK_FONT;
 char * greekfont(),  * romanfont();
 
 static 
@@ -103,7 +103,7 @@ void beta2smk(char *source, char *res)
 
 void set_greek(void)
 {
-	cur_font = GREEK;
+	cur_font = SMARTA_GREEK_FONT;
 }
 
 void set_roman(void)
@@ -223,7 +223,7 @@ void beta2mac(char *source, char *res, int xlit)
 					if( xlit == SMARTA ) 
 						*rp++ = EQUALS;
 					else {
-						if( cur_font == GREEK ) {
+						if( cur_font == SMARTA_GREEK_FONT ) {
 							Xstrcpy(rp,ROMANFONT);
 							rp += Xstrlen(ROMANFONT);
 							Xstrcpy(rp,"=}{");
@@ -533,7 +533,7 @@ romanfont(char *s)
 char * 
 greekfont(char *s)
 {
-	cur_font = GREEK;
+	cur_font = SMARTA_GREEK_FONT;
 	while(*s && *s=='$') s++;
 	if( isdigit(*s) ) while(isdigit(*s)) s++;
 	else if( *s == ' ' && *(s+1) == ' '  ) s++;

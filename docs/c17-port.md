@@ -87,6 +87,14 @@ remains an integer query and now returns zero when no bit is selected. With all
 118 runtime sources passing full object compilation, all six libraries enforce
 `-Werror=return-type` in CMake.
 
+The first format-contract pass aligns `size_t` diagnostics with `%zu`, makes
+32-bit and native offsets explicit at variadic call sites, and supplies the
+missing word argument in an ending-retrieval diagnostic. The legacy numeric
+ending index now copies the `word_form` bitfield representation into a checked
+unsigned scalar before printing it, instead of passing a structure through a
+variadic integer conversion. Local font and domain-table constants were also
+renamed to avoid collisions with public macros.
+
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
 constructs the required temporary word and copies the ending metadata before
@@ -117,8 +125,8 @@ runtime closure and must be resolved when the stemlib build tools are ported.
 
 ## Next compatibility-preserving lots
 
-1. Correct format strings, buffer bounds, and ownership documentation with
-   ASan/UBSan enabled in CI.
+1. Replace the remaining unbounded formatting operations, then document buffer
+   ownership with ASan/UBSan enabled in CI.
 2. Move mutable process state into an opaque context, then extract the public
    `libmorpheus` ABI.
 

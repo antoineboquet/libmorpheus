@@ -332,6 +332,9 @@ int CompAnals(const void* Anal1, const void* Anal2)
 static gk_string EndGstr;
 static word_form forminfo;
 
+_Static_assert(sizeof(word_form) <= sizeof(unsigned int),
+               "word_form index must fit in unsigned int");
+
 void DumpPerseusAnalysis(
 		    gk_word *Gkword,
 		    PrntFlags prntflags,
@@ -384,7 +387,10 @@ void DumpPerseusAnalysis(
   fprintf(fout,"%s ", lemma_of(anal) );
 
   if (prntflags & ENDING_INDEX) {
-    fprintf(fout,"\t%d</NL>",forminfo_of(anal));
+    unsigned int form_index = 0;
+
+    memcpy(&form_index, &forminfo_of(anal), sizeof forminfo_of(anal));
+    fprintf(fout,"\t%u</NL>",form_index);
   }
   else {
     GregSprintGkFlags((gk_string *)anal,tmp," "," ",1);
