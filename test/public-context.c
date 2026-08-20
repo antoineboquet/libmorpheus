@@ -4,6 +4,7 @@
 int main(void)
 {
   morpheus_context *context=NULL;
+  assert(morpheus_abi_version()==MORPHEUS_ABI_VERSION);
   char oversized_path[513];
   morpheus_config config={MORPHEUS_ABI_VERSION,sizeof config,"/tmp/morpheus-stemlib",MORPHEUS_LANGUAGE_GREEK};
   assert(morpheus_open(NULL,&context)==MORPHEUS_INVALID_ARGUMENT);

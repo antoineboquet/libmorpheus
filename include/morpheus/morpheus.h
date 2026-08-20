@@ -49,6 +49,8 @@ typedef uint64_t morpheus_options;
 #define MORPHEUS_OPTION_IGNORE_ACCENTS (UINT64_C(1) << 1)
 #define MORPHEUS_OPTION_VERBS_ONLY (UINT64_C(1) << 2)
 typedef struct { uint32_t abi_version; uint32_t struct_size; const char *stemlib_path; uint32_t language; } morpheus_config;
+uint32_t morpheus_abi_version(void);
+size_t morpheus_analysis_size(void);
 const char *morpheus_status_message(morpheus_status status);
 morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **context);
 void morpheus_close(morpheus_context *context);

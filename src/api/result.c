@@ -1,5 +1,10 @@
 #include "api_internal.h"
 #include <stdlib.h>
+size_t morpheus_analysis_size(void)
+{
+  return(sizeof(morpheus_analysis));
+}
+
 morpheus_result *morpheus_result_create(size_t count)
 {
   morpheus_result *result=calloc(1,sizeof *result);

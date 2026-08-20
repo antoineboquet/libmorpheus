@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../morphlib/runtime_context_internal.h"
+uint32_t morpheus_abi_version(void)
+{
+  return(MORPHEUS_ABI_VERSION);
+}
+
 const char *morpheus_status_message(morpheus_status status)
 {
   switch(status) {
