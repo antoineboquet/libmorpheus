@@ -1,13 +1,7 @@
 #include <gkstring.h>
 #include "gkends_internal.h"
 #include "endfiles.h"
-#define MAX_END_TABLE	12000
-char ** endlines;
-static int endcount = 0;
-gk_string Gstr;
-static gk_string Blnk;
-static int xstrcmp(const void *, const void *);
-#define DELIMITER " "
+static const gk_string Blnk;
 
 #include "countendtables.proto.h"
 
@@ -39,8 +33,6 @@ countendtables(Stemtype stype, int is_deriv)
 		dirp = DERIVTABLEDIR;
 	else
 		dirp = ENDTABLEDIR;
-	
-	endlines = (char **) calloc(MAX_END_TABLE,sizeof *endlines);
 	
 /*
 	while( (curtable=NextEndTable(&index,stype))) {
@@ -98,17 +90,3 @@ countendtables(Stemtype stype, int is_deriv)
 	printf("grand total: %d types %d endings\n",ntypes, totends );
 }
 
-static int
-xstrcmp(const void *left, const void *right)
-{
-	const char * const *p1 = left;
-	const char * const *p2 = right;
-	int rval;
-	
-	rval = morphstrcmp((char *)*p1,(char *)*p2);
-
-/*
-fprintf(stderr,"rval [%d] for [%s] and [%s]\n", rval  , *p1, *p2 );
-*/
-	return(rval);
-}

@@ -214,10 +214,10 @@ without blocking the library intended for Bailly.
 
 ## Verified linkage constraint
 
-`-fno-common` links the `cruncher` runtime. Two duplicate tentative globals
-(`Gstr` and `endlines`) remain in index-building utilities
-(`countendtables.c` and `indexendtables.c`). They are not linked into the
-runtime closure and must be resolved when the stemlib build tools are ported.
+`-fno-common` links the `cruncher` runtime. `countendtables.c` no longer
+contributes the historical duplicate `Gstr` and `endlines` symbols or allocates
+an unused ending-line table. `indexendtables.c` still carries the corresponding
+file-scope workspace outside the runtime closure.
 
 ## Next compatibility-preserving lots
 
