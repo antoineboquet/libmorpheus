@@ -52,10 +52,12 @@ Beta Code collation tables, the dynamically allocated morphology-flag lookup
 tables, the language-specific raw-preverb table, and both directions of the
 SmartA/SMK conversion state. It also owns the language-specific morphology-key
 tables and their sorted lookup index, plus file-open diagnostics and legacy
-volume-name state. The legacy `set_lang` and `cur_lang` entry points dispatch
+volume-name state. The language-specific vowel-contraction and consonant-
+euphony tables used while composing endings are context-owned as well. The
+legacy `set_lang` and `cur_lang` entry points dispatch
 through an opaque runtime context, and context activation is thread-local.
 Context destruction releases allocated tables, including the
 inverse converter's 512 lookup strings, while a language change reloads the
-preverb and morphology-key data on their next use. Remaining caches and
-formatting state are still process-wide, so this remains an incremental
-isolation boundary rather than a thread-safety guarantee.
+preverb, morphology-key, contraction, and euphony data on their next use.
+Remaining caches and formatting state are still process-wide, so this remains
+an incremental isolation boundary rather than a thread-safety guarantee.

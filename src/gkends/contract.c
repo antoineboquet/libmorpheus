@@ -6,17 +6,54 @@
 #include "contract.h"
 #include <string.h>
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "contract.proto.h"
+#include "lcontr.proto.h"
 
-gk_string * Vow_contr;
-gk_string * Cons_euph;
-gk_string * load_ccontr();
-gk_string * load_vcontr();
-gk_string * CreatGkString();
+static gk_string *
+vowel_contraction_table(int *count)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int language = cur_lang();
 
-static int numcontr = 0;
-static int numeuphs = 0;
+	if (context->vowel_contraction_table &&
+	    context->vowel_contraction_language != language) {
+		FreeGkString(context->vowel_contraction_table);
+		context->vowel_contraction_table = NULL;
+		context->vowel_contraction_count = 0;
+	}
+	if (!context->vowel_contraction_table) {
+		context->vowel_contraction_table =
+			load_vcontr(&context->vowel_contraction_count);
+		if (context->vowel_contraction_table)
+			context->vowel_contraction_language = language;
+	}
+	*count = context->vowel_contraction_count;
+	return(context->vowel_contraction_table);
+}
+
+static gk_string *
+consonant_euphony_table(int *count)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int language = cur_lang();
+
+	if (context->consonant_euphony_table &&
+	    context->consonant_euphony_language != language) {
+		FreeGkString(context->consonant_euphony_table);
+		context->consonant_euphony_table = NULL;
+		context->consonant_euphony_count = 0;
+	}
+	if (!context->consonant_euphony_table) {
+		context->consonant_euphony_table =
+			load_ccontr(&context->consonant_euphony_count);
+		if (context->consonant_euphony_table)
+			context->consonant_euphony_language = language;
+	}
+	*count = context->consonant_euphony_count;
+	return(context->consonant_euphony_table);
+}
 
 static void
 fix_recessive_accent(gk_string *gstr)
@@ -35,17 +72,20 @@ gk_string *
  poss_contracts(gk_string *gstr, Dialect skipdial)
 {
 	gk_string * Poss_contracts;
+	gk_string *vow_contr;
+	int numcontr;
 
 	Poss_contracts = CreatGkString(MAXCONTRACTS+1);
-	if( ! Vow_contr ) {
-		Vow_contr = load_vcontr(&numcontr);
-		if( ! Vow_contr ) {
-			fprintf(stderr,"Could not create poss_contracts!\n");
-			return(NULL);
-		}
+	if( ! Poss_contracts )
+		return(NULL);
+	vow_contr = vowel_contraction_table(&numcontr);
+	if( ! vow_contr ) {
+		fprintf(stderr,"Could not create poss_contracts!\n");
+		FreeGkString(Poss_contracts);
+		return(NULL);
 	}
 
-	if(sub_for_euph(gstr,skipdial,Poss_contracts,MAXCONTRACTS,Vow_contr,numcontr))
+	if(sub_for_euph(gstr,skipdial,Poss_contracts,MAXCONTRACTS,vow_contr,numcontr))
 		return(Poss_contracts);
 /*
 printf("empty\n");
@@ -60,21 +100,24 @@ gk_string *
  do_euph(gk_string *gstr, Dialect skipdial)
 {
 	gk_string * euphs;
+	gk_string *cons_euph;
 	int hits = 0;
+	int numeuphs;
 	char * is_substring();
 	char * orgstr;
 	char * curs;
 
 	euphs = (gk_string *) CreatGkString(MAXEUPHS);
-	if( ! Cons_euph ) {
-		Cons_euph = load_ccontr(&numeuphs);
-		if( ! Cons_euph ) {
-			fprintf(stderr,"Could not create Cons_euph!\n");
-			return(NULL);
-		}
+	if( ! euphs )
+		return(NULL);
+	cons_euph = consonant_euphony_table(&numeuphs);
+	if( ! cons_euph ) {
+		fprintf(stderr,"Could not create Cons_euph!\n");
+		FreeGkString(euphs);
+		return(NULL);
 	}
 	
-	hits = sub_for_euph(gstr,skipdial,euphs,MAXEUPHS,Cons_euph,numeuphs);
+	hits = sub_for_euph(gstr,skipdial,euphs,MAXEUPHS,cons_euph,numeuphs);
 
 	if( hits )
 		return(euphs);

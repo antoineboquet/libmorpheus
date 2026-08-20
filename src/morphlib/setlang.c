@@ -29,6 +29,10 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 	free(context->preverb_morphflag_table);
 	if (context->raw_preverb_table)
 		FreeGkString(context->raw_preverb_table);
+	if (context->vowel_contraction_table)
+		FreeGkString(context->vowel_contraction_table);
+	if (context->consonant_euphony_table)
+		FreeGkString(context->consonant_euphony_table);
 	for (i = 0; i < sizeof context->smk_beta_table /
 				 sizeof context->smk_beta_table[0]; i++) {
 		free(context->smk_beta_table[i]);

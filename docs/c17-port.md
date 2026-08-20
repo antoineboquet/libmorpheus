@@ -143,11 +143,14 @@ conversion state. The inverse converter's 512 allocated lookup strings are
 released with their owning context. The language-specific morphology-key
 tables and their sorted pointer index are context-owned as well. Contexts have
 explicit create, activate, and destroy operations; file-open diagnostics and
-legacy volume-name state are context-owned as well. Activation is thread-local,
+legacy volume-name state are context-owned as well. The ending composer's
+language-specific vowel-contraction and consonant-euphony tables now share the
+same ownership and teardown boundary. Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
-invalidates its preverb and morphology-key data on the next lookup. Other
-mutable caches still need to migrate before the analyser is reentrant.
+invalidates its preverb, morphology-key, contraction, and euphony data on the
+next lookup. Other mutable caches still need to migrate before the analyser is
+reentrant.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now

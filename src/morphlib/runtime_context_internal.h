@@ -18,6 +18,12 @@ struct morpheus_runtime_context {
 	gk_string *raw_preverb_table;
 	int raw_preverb_count;
 	int raw_preverb_language;
+	gk_string *vowel_contraction_table;
+	int vowel_contraction_count;
+	int vowel_contraction_language;
+	gk_string *consonant_euphony_table;
+	int consonant_euphony_count;
+	int consonant_euphony_language;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;
