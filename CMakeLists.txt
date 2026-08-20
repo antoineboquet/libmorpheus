@@ -851,6 +851,22 @@ if(BUILD_TESTING)
     morpheus_public_analysis_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_analysis COMMAND morpheus_public_analysis_test)
+  add_executable(
+    morpheus_public_context_isolation_test
+    test/public-context-isolation.c
+  )
+  target_compile_definitions(
+    morpheus_public_context_isolation_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  target_link_libraries(
+    morpheus_public_context_isolation_test
+    PRIVATE morpheus morpheus_build_options
+  )
+  add_test(
+    NAME public_context_isolation
+    COMMAND morpheus_public_context_isolation_test
+  )
 endif()
 
 if(MORPHEUS_BUILD_CRUNCHER)
