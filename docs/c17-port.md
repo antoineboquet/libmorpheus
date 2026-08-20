@@ -145,12 +145,13 @@ tables and their sorted pointer index are context-owned as well. Contexts have
 explicit create, activate, and destroy operations; file-open diagnostics and
 legacy volume-name state are context-owned as well. The ending composer's
 language-specific vowel-contraction and consonant-euphony tables now share the
-same ownership and teardown boundary. Activation is thread-local,
+same ownership and teardown boundary. The 45-entry ending-table cache and its
+circular replacement state are context-owned too. Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
-invalidates its preverb, morphology-key, contraction, and euphony data on the
-next lookup. Other mutable caches still need to migrate before the analyser is
-reentrant.
+invalidates its preverb, morphology-key, contraction, euphony, and ending-table
+data on the next lookup. Other mutable caches still need to migrate before the
+analyser is reentrant.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now

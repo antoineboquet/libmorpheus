@@ -249,13 +249,30 @@ if(BUILD_TESTING)
     NAME contraction_context
     COMMAND morpheus_contraction_context_test
   )
+  add_executable(
+    morpheus_ending_cache_context_test
+    test/ending-cache-context.c
+  )
+  target_link_libraries(
+    morpheus_ending_cache_context_test
+    PRIVATE morpheus_gkends morpheus_morphlib morpheus_build_options
+  )
+  add_test(
+    NAME ending_cache_context
+    COMMAND morpheus_ending_cache_context_test
+  )
   set_tests_properties(
-    contraction_context
+    contraction_context ending_cache_context
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
   if(MORPHEUS_ENABLE_SANITIZERS)
     set_property(
       TEST contraction_context APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+    set_property(
+      TEST ending_cache_context APPEND PROPERTY ENVIRONMENT
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )

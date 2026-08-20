@@ -6,6 +6,8 @@
 
 #include "runtime_context.h"
 
+#define MORPHEUS_END_CACHE_SIZE 45
+
 struct morpheus_runtime_context {
 	int language;
 	int heap_allocated;
@@ -24,6 +26,11 @@ struct morpheus_runtime_context {
 	gk_string *consonant_euphony_table;
 	int consonant_euphony_count;
 	int consonant_euphony_language;
+	gk_string *ending_cache[MORPHEUS_END_CACHE_SIZE];
+	int ending_cache_current;
+	int ending_cache_size;
+	int ending_cache_language;
+	int ending_cache_initialized;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;
