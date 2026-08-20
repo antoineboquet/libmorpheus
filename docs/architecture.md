@@ -105,5 +105,7 @@ The crasis and enclitic-suffix rule tables are private immutable data rather
 than exported writable arrays.
 The analyzer's quick-search mode is selected on the active context, preserving
 both the exhaustive and early-return paths without process-wide state.
-Remaining caches and formatting state are still process-wide, so this remains
-an incremental isolation boundary rather than a thread-safety guarantee.
+The runtime libraries no longer retain writable file-scope analysis state,
+apart from the explicitly thread-local default and active context selectors.
+The compatibility CLI keeps its timing workspace local to `main`, and the
+compile-disabled dictionary stem-cache implementation has been removed.

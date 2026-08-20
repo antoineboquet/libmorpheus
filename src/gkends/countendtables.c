@@ -1,8 +1,6 @@
 #include <gkstring.h>
 #include "gkends_internal.h"
 #include "endfiles.h"
-static const gk_string Blnk;
-
 #include "countendtables.proto.h"
 
 void
@@ -23,6 +21,7 @@ countendtables(Stemtype stype, int is_deriv)
 	char savestr[LONGSTRING];
 	char markedstr[MAXWORDSIZE];
 	gk_string Gstr;
+	const gk_string blank = { 0 };
 	FILE * finput, *foutput;
 	int maxstring = 0;
 	int ntypes = 0;
@@ -74,7 +73,7 @@ countendtables(Stemtype stype, int is_deriv)
 		if(! (finput=MorphFopen(shortname,"rb"))) {
 			continue;
 		}
-		Gstr = Blnk;	
+		Gstr = blank;	
 		nends = get_endheader(finput,&maxstring);
 		totends += nends;
 		ntypes++;

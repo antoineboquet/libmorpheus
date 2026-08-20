@@ -184,6 +184,11 @@ The six built-in crasis and enclitic-suffix tables are now `static const`, with
 const-correct helper boundaries for their string fields.
 The legacy `quickflag` analysis mode is now an active-context option, with
 independent exhaustive and early-return selection for each analyzer context.
+The compatibility client's timing workspace is local to `main`; the dormant
+`STEMCACHE` implementation has been removed; and ending-table utilities keep
+their zero-value work records within each invocation. The runtime libraries no
+longer retain writable file-scope analysis state outside the explicitly
+thread-local context selectors.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

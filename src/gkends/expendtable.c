@@ -14,7 +14,6 @@
 
 #include "expendtable.proto.h"
 gk_string * CreatGkString();
-static gk_string Blnk;
 
 int
  expendtables(char *tabname, int maintable, int formcode)
@@ -32,6 +31,7 @@ int
 	char * typep;
 	char *s;
 	gk_string TmpGstr;
+	const gk_string blank = { 0 };
 	Stemtype stype;
 
 	
@@ -56,7 +56,7 @@ int
 		if( formcode == DODERIV ) strcat(basename," is_deriv"); 
 		else if( formcode == DOWORD ) strcat(basename," indeclform"); 
 */	
-		TmpGstr = Blnk;
+		TmpGstr = blank;
 		stype = 0;
 		
 		if( formcode == DODERIV ) {
