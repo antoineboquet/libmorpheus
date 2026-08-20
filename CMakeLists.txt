@@ -867,6 +867,15 @@ if(BUILD_TESTING)
     NAME public_context_isolation
     COMMAND morpheus_public_context_isolation_test
   )
+  add_executable(morpheus_public_fixture_test test/public-fixtures.c)
+  target_compile_definitions(
+    morpheus_public_fixture_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  target_link_libraries(
+    morpheus_public_fixture_test PRIVATE morpheus morpheus_build_options
+  )
+  add_test(NAME public_fixtures COMMAND morpheus_public_fixture_test)
 endif()
 
 if(MORPHEUS_BUILD_CRUNCHER)
