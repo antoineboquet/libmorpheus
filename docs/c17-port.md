@@ -152,7 +152,9 @@ reload when its language changes. Derivation-result caching, counters, and the
 eight reusable reduplication buffers are isolated and released with the context
 as well. The compound-noun head table is also context-owned, dynamically grown,
 and released at teardown. Buffered analysis output and its formatting cursors
-are isolated and released with their active context. Activation is thread-local,
+are isolated and released with their active context. The reusable augmented-
+stem and possible-stem analysis buffers share the same ownership boundary.
+Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
 invalidates its preverb, morphology-key, contraction, euphony, ending-table,

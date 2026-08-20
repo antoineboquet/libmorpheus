@@ -52,6 +52,17 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 		free(context->compound_head_table[i]);
 	free(context->compound_head_table);
 	free(context->analysis_print_buffer);
+	for (i = 0; i < MORPHEUS_AUGMENT_STEM_COUNT; i++) {
+		if (context->analysis_augmented_stems[i])
+			FreeGkString(context->analysis_augmented_stems[i]);
+		if (context->analysis_augmented_quantities[i])
+			FreeGkString(context->analysis_augmented_quantities[i]);
+	}
+	for (i = 0; i < MORPHEUS_POSSIBLE_STEM_COUNT; i++) {
+		if (context->analysis_possible_stems[i])
+			FreeGkString(context->analysis_possible_stems[i]);
+		free(context->analysis_possible_keys[i]);
+	}
 	for (i = 0; i < sizeof context->smk_beta_table /
 				 sizeof context->smk_beta_table[0]; i++) {
 		free(context->smk_beta_table[i]);

@@ -429,13 +429,37 @@ if(BUILD_TESTING)
     NAME analysis_output_context
     COMMAND morpheus_analysis_output_context_test
   )
+  add_executable(
+    morpheus_stem_buffer_context_test
+    test/stem-buffer-context.c
+  )
+  target_link_libraries(
+    morpheus_stem_buffer_context_test
+    PRIVATE
+      morpheus_anal
+      morpheus_gener
+      morpheus_gkends
+      morpheus_gkdict
+      morpheus_morphlib
+      morpheus_greeklib
+      morpheus_build_options
+  )
+  add_test(
+    NAME stem_buffer_context
+    COMMAND morpheus_stem_buffer_context_test
+  )
   set_tests_properties(
-    analysis_output_context
+    analysis_output_context stem_buffer_context
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
   if(MORPHEUS_ENABLE_SANITIZERS)
     set_property(
       TEST analysis_output_context APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+    set_property(
+      TEST stem_buffer_context APPEND PROPERTY ENVIRONMENT
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )

@@ -1,5 +1,5 @@
 #include "anal_internal.h"
-#define MAX_POSS_STEMS	10
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkhalf1.proto.h"
 
@@ -144,31 +144,44 @@ printf("half1 stem preverb [%s] stem [%s] end [%s]\n", preverb_of(Gkword) , stem
 	return(rval);
 }
 
-static gk_string * poss_stems[MAX_POSS_STEMS];
-static char * poss_keys[MAX_POSS_STEMS];
-static int init_stor = 0;
+static int
+initialize_possible_stems(morpheus_runtime_context *context)
+{
+	int i;
+
+	if (context->analysis_possible_stems_initialized) return(1);
+	for (i = 0; i < MORPHEUS_POSSIBLE_STEM_COUNT; i++) {
+		if (!context->analysis_possible_stems[i])
+			context->analysis_possible_stems[i] = CreatGkString(1);
+		if (!context->analysis_possible_keys[i])
+			context->analysis_possible_keys[i] = malloc((size_t)LONGSTRING);
+		if (!context->analysis_possible_stems[i] ||
+		    !context->analysis_possible_keys[i])
+			return(0);
+	}
+	context->analysis_possible_stems_initialized = 1;
+	return(1);
+}
 
 int checkhalf2(gk_word *Gkword, char *endkeys)
 {
 	int i;
 	int rval = 0;
-	
-	if( ! init_stor ) {
-		init_stor = 1;
-		for(i=0;i<MAX_POSS_STEMS;i++) {
-			poss_stems[i] = CreatGkString(1);
-			poss_keys[i] = (char *)malloc((size_t)LONGSTRING);
-		}
-	}
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	gk_string **poss_stems = context->analysis_possible_stems;
+	char **poss_keys = context->analysis_possible_keys;
 
-	for(i=0;i<MAX_POSS_STEMS;i++) {
+	if (!initialize_possible_stems(context)) return(0);
+
+	for(i=0;i<MORPHEUS_POSSIBLE_STEM_COUNT;i++) {
 		ClearGkstring(poss_stems[i]);
 /*
 		set_gkstring(poss_stems[i],"");
 */
 		*poss_keys[i] = 0;
 	}
-	rval = checkstem(stem_of(Gkword),endkeys, poss_stems,poss_keys,MAX_POSS_STEMS-1);
+	rval = checkstem(stem_of(Gkword),endkeys,poss_stems,poss_keys,
+		MORPHEUS_POSSIBLE_STEM_COUNT-1);
 
 /*
 fprintf(stderr,"rval %d for pb [%s] stem [%s] endkeys [%s]\n", rval, preverb_of(Gkword), stem_of(Gkword) , endkeys );
@@ -178,14 +191,6 @@ fprintf(stderr,"rval %d for pb [%s] stem [%s] endkeys [%s]\n", rval, preverb_of(
 			goto finish;
 	}
 	finish:
-/*
-		for(i=0;i<MAX_POSS_STEMS;i++) {
-			FreeGkString(poss_stems[i]);
-			free(poss_keys[i]);
-			poss_stems[i] = NULL;
-			poss_keys[i] = NULL;
-		}
-*/
 		if( rval ) return(1);
 		else return(0);
 }

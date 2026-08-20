@@ -10,6 +10,8 @@
 #define MORPHEUS_END_CACHE_SIZE 45
 #define MORPHEUS_DERIVATION_BUFFER_COUNT 4
 #define MORPHEUS_DERIVATION_CACHE_SIZE 12
+#define MORPHEUS_AUGMENT_STEM_COUNT 12
+#define MORPHEUS_POSSIBLE_STEM_COUNT 10
 
 struct morpheus_runtime_context {
 	int language;
@@ -64,6 +66,12 @@ struct morpheus_runtime_context {
 	char analysis_previous_word[MAXWORDSIZE];
 	char analysis_previous_stem[MAXWORDSIZE];
 	int analysis_current_number;
+	gk_string *analysis_augmented_stems[MORPHEUS_AUGMENT_STEM_COUNT];
+	gk_string *analysis_augmented_quantities[MORPHEUS_AUGMENT_STEM_COUNT];
+	int analysis_augmented_stems_initialized;
+	gk_string *analysis_possible_stems[MORPHEUS_POSSIBLE_STEM_COUNT];
+	char *analysis_possible_keys[MORPHEUS_POSSIBLE_STEM_COUNT];
+	int analysis_possible_stems_initialized;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;
