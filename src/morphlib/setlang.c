@@ -35,6 +35,8 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 		FreeGkString(context->consonant_euphony_table);
 	if (context->suffix_table_file)
 		fclose(context->suffix_table_file);
+	if (context->ending_store)
+		FreeGkString(context->ending_store);
 	for (i = 0; i < MORPHEUS_END_CACHE_SIZE; i++) {
 		if (context->ending_cache[i])
 			FreeGkString(context->ending_cache[i]);

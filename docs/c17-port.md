@@ -160,6 +160,8 @@ Ending-selection scratch records are call-local, and its prefix-match state is
 isolated per runtime context.
 Suffix-table iteration keeps its stream and unavailable state in the active
 context, with teardown closing an open stream.
+The ending-construction store and its counters are isolated and released with
+their owning runtime context.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

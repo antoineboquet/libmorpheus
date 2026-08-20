@@ -518,9 +518,26 @@ if(BUILD_TESTING)
     NAME suffix_stream_context
     COMMAND morpheus_suffix_stream_context_test
   )
+  add_executable(
+    morpheus_ending_store_context_test
+    test/ending-store-context.c
+  )
+  target_link_libraries(
+    morpheus_ending_store_context_test
+    PRIVATE
+      morpheus_gkends
+      morpheus_morphlib
+      morpheus_greeklib
+      morpheus_build_options
+  )
+  add_test(
+    NAME ending_store_context
+    COMMAND morpheus_ending_store_context_test
+  )
   set_tests_properties(
     analysis_output_context stem_buffer_context irregular_buffer_context
     crasis_option_context ending_match_context suffix_stream_context
+    ending_store_context
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
   if(MORPHEUS_ENABLE_SANITIZERS)
@@ -551,6 +568,11 @@ if(BUILD_TESTING)
     )
     set_property(
       TEST suffix_stream_context APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+    set_property(
+      TEST ending_store_context APPEND PROPERTY ENVIRONMENT
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )

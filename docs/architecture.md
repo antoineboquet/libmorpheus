@@ -81,5 +81,7 @@ Ending-selection work records are call-local, while the prefix-matching mode
 shared by `setwendstr` and `endstrcmp` belongs to the active context.
 The suffix-table input stream and its unavailable marker are also context-owned
 and the stream is closed when its context is destroyed.
+The reusable ending-construction store, its entry count, and maximum serialized
+length belong to the active context and are released during teardown.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

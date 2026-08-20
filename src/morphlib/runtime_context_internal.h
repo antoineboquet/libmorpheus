@@ -40,6 +40,9 @@ struct morpheus_runtime_context {
 	int ending_start_match;
 	FILE *suffix_table_file;
 	int suffix_table_unavailable;
+	gk_string *ending_store;
+	int ending_store_count;
+	int ending_store_max_string;
 	endtags *verb_dictionary_tags;
 	endtags *nominal_dictionary_tags;
 	endtags *lemma_dictionary_tags;
