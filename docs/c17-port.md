@@ -168,6 +168,8 @@ Analysis and lemma accounting, including the sticky storage-error marker, is
 isolated per runtime context.
 Greek-string reset and sorted insertion no longer rely on shared workspace or a
 process-global comparator callback.
+Recursive ending generation also uses call-local unrestricted-form workspace
+instead of static Greek-string records.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

@@ -7,11 +7,6 @@ static void mk_compend(gk_string *, gk_string *, char *, char *);
 static void update_end(gk_string *, gk_string *, char *, char *, char *);
 static void join_end(gk_string *, char *, int);
 
-static gk_string WantGstr;
-static gk_string AvoidGstr;
-static gk_string CurGstr;
-static gk_string BlankGstr;
-
 void
  mk_end(char *havestr, gk_string *Have, gk_string *Avoid)
 {
@@ -23,6 +18,7 @@ void
 	gk_string * do_euph();
 	gk_string * fix_eta();
 	int saw_vowel = 0;
+	gk_string no_avoid = { 0 };
 	
 	Xstrcpy(savestr,havestr);
 	s = savestr;
@@ -47,7 +43,7 @@ void
 	if( (euph_forms = fix_eta((Have)) )) {
 		int i;
 		for(i=0;gkstring_of(euph_forms+i)[0];i++) {
-			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&AvoidGstr);
+			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&no_avoid);
 		}
 		FreeGkString(euph_forms);
 	}
@@ -56,7 +52,7 @@ void
 	if( (euph_forms = do_euph(Have,dialect_of(Avoid)) )) {
 		int i;
 		for(i=0;gkstring_of(euph_forms+i)[0];i++) {
-			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&AvoidGstr);
+			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&no_avoid);
 		}
 		FreeGkString(euph_forms);
 		return;
@@ -69,7 +65,7 @@ void
 		int i;
 
 		for(i=0;gkstring_of(contr_forms+i)[0];i++) {
-			mk_end(gkstring_of(contr_forms+i),contr_forms+i,&AvoidGstr);
+			mk_end(gkstring_of(contr_forms+i),contr_forms+i,&no_avoid);
 		}
 		FreeGkString(contr_forms);
 		
@@ -90,7 +86,7 @@ printf("no contr in: "); PrntGkStr(Have,stdout);
 			
 			add_numovable(&TmpGstr);
 
-			mk_end(gkstring_of(&TmpGstr),&TmpGstr,&AvoidGstr);
+			mk_end(gkstring_of(&TmpGstr),&TmpGstr,&no_avoid);
 		}
 
 		if( do_dissim(gkstring_of(Have),stemtype_of(Have))) {

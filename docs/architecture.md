@@ -89,5 +89,7 @@ Accepted-analysis and distinct-lemma totals, along with the sticky allocation
 error state, belong to the active runtime context.
 Greek-string clearing now uses a call-local zero value, and sorted insertion
 invokes its caller-supplied comparator directly instead of storing it globally.
+Recursive ending generation now uses call-local unrestricted-form workspace,
+eliminating its four remaining shared Greek-string records.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.
