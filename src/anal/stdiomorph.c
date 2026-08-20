@@ -14,15 +14,6 @@
 #endif
 
 #include <time.h>
-long prevmemory = 0;
-time_t start_time = 0;
-time_t prev_time = 0;
-time_t end_time = 0;
-double avg_time = 0;
-double long_time = 0;
-double string_time = 0;
-char long_string[BUFSIZ];
-int timeit = 1;
 
 #define ARGS "ILalmnbckidsxSVpPeTo:"
 #define PATH_SEP '/'
@@ -32,6 +23,14 @@ static void trimdigit(char *s);
 int main(int argc, char *argv[])
 {
   FILE * finput, *foutput, *ffailed, *fstats;
+  clock_t start_time = 0;
+  clock_t prev_time = 0;
+  clock_t end_time = 0;
+  double avg_time = 0;
+  double long_time = 0;
+  double string_time = 0;
+  char long_string[BUFSIZ] = { 0 };
+  int timeit = 1;
 
 	finput = foutput = ffailed = fstats = NULL;
   char line[BUFSIZ*4];
@@ -40,7 +39,6 @@ int main(int argc, char *argv[])
   
   PrntFlags flags = (PERSEUS_FORMAT|STRICT_CASE);
   int rval;
-  long freemem = 0;
   long nwords = 0;
   long nhits = 0;
   char * p;
