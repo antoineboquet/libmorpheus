@@ -2,7 +2,7 @@
 #include "morphargs.h"
 #include "libfiles.h"
 
-struct {
+static const struct {
 	char 	class_name[MAXWORDSIZE];
 	long 	class_num;
 	}  arg_stemclass[] = {
@@ -37,7 +37,7 @@ struct {
 		0,
 };
 
-Morph_args arg_degree[] = {
+static const Morph_args arg_degree[] = {
 	"comp",		COMPARATIVE, new_degree,
 	"comparative",	COMPARATIVE, new_degree,
 	"superl",	SUPERLATIVE, new_degree,
@@ -45,7 +45,7 @@ Morph_args arg_degree[] = {
 	0,
 };
 
-Morph_args arg_person[] = {
+static const Morph_args arg_person[] = {
 	"1st",		PERS1, new_person,
 	"first",	PERS1, new_person,
 	"pers1",	PERS1, new_person,
@@ -58,7 +58,7 @@ Morph_args arg_person[] = {
 	0,
 };
 
-Morph_args arg_morphflags[] = {
+static const Morph_args arg_morphflags[] = {
 	"syll_augment",	SYLL_AUGMENT,	new_morphflags,
 	"syll_aug",	SYLL_AUGMENT,	new_morphflags,
 	"comp_only",	COMP_ONLY,	new_morphflags,
@@ -162,7 +162,7 @@ Morph_args arg_morphflags[] = {
 };
 
 
-Morph_args arg_gender[] = {
+static const Morph_args arg_gender[] = {
 	"masc",		MASCULINE,		new_gender,
 	"masculine",	MASCULINE,	new_gender,
 	"fem",		FEMININE,		new_gender,
@@ -177,7 +177,7 @@ Morph_args arg_gender[] = {
 	0,
 };
 
-Morph_args arg_case[] = {
+static const Morph_args arg_case[] = {
 	"nom/voc",	NOMINATIVE|VOCATIVE,		new_case,
 	"nom/acc",	NOMINATIVE|ACCUSATIVE,		new_case,
 	"nom/voc/acc",	NOMINATIVE|VOCATIVE|ACCUSATIVE,		new_case,
@@ -201,7 +201,7 @@ Morph_args arg_case[] = {
 	0,
 };
 
-Morph_args arg_number[] = {
+static const Morph_args arg_number[] = {
 	"sg",		SINGULAR,	new_number,
 	"sing",		SINGULAR,	new_number,
 	"singular",	SINGULAR,	new_number,
@@ -211,7 +211,7 @@ Morph_args arg_number[] = {
 	0,
 };
 
-Morph_args arg_tense[] = {
+static const Morph_args arg_tense[] = {
 	"pres",			PRESENT,	new_tense,
 	"present",		PRESENT,	new_tense,
 	"fut",			FUTURE,	new_tense,
@@ -231,7 +231,7 @@ Morph_args arg_tense[] = {
 	0,
 };
 
-Morph_args arg_voice[] = {
+static const Morph_args arg_voice[] = {
 	"mid",			MIDDLE,		new_voice,
 	"middle",		MIDDLE,		new_voice,
 	"act",			ACTIVE,		new_voice,
@@ -245,7 +245,7 @@ Morph_args arg_voice[] = {
 	0,
 };
 
-Morph_args arg_mood[] = {
+static const Morph_args arg_mood[] = {
 	"ind",			INDICATIVE,			new_mood,
 	"indic",		INDICATIVE,			new_mood,
 	"indicative",		INDICATIVE,			new_mood,
@@ -273,7 +273,7 @@ Morph_args arg_mood[] = {
 
 /* dialects */
 
-Morph_args arg_dialect[] = {
+static const Morph_args arg_dialect[] = {
 	"attic",		ATTIC,		new_dialect,
 	"att",			ATTIC,		new_dialect,
 	"epic",			EPIC,		new_dialect,
@@ -306,7 +306,7 @@ Morph_args arg_dialect[] = {
 
 /* Geographical Regions */
 
-Morph_args arg_geogregion[] = {
+static const Morph_args arg_geogregion[] = {
 	"phocis",		PHOCIS,		new_region,
 	"locris",		LOCRIS,		new_region,
 	"elis",	  		ELIS,		new_region,
@@ -328,7 +328,7 @@ Morph_args arg_geogregion[] = {
 };
 
 
-Morph_args *MatchMorphKey(char *);
+const Morph_args *MatchMorphKey(char *);
 Morph_args *InitStemSuffs(char *, void (*curfunc )(), Stemtype (*classfunc )(), int *);
-int keycomp2(char *, Morph_args **);
-int add_keyarr(Morph_args **, Morph_args *);
+int keycomp2(char *, const Morph_args *const *);
+int add_keyarr(const Morph_args **, const Morph_args *);

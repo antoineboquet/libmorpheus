@@ -33,7 +33,7 @@ struct morpheus_runtime_context {
 	Morph_args *stem_type_arguments;
 	Morph_args *derivation_type_arguments;
 	Morph_args *domain_arguments;
-	Morph_args **morph_key_table;
+	const Morph_args **morph_key_table;
 	int morph_key_stem_count;
 	int morph_key_derivation_count;
 	int morph_key_domain_count;

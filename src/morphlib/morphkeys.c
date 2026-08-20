@@ -33,7 +33,7 @@ static int GetMorphKeys();
 
 static void RearrangeMorphflags(gk_word *, gk_string *);
 static int GetGkFlag(char *, gk_string *, char *, char *, char *);
-static char *p_eq_morph_keys(long, Morph_args *);
+static char *p_eq_morph_keys(long, const Morph_args *);
 #define KEY_CONTEXT (morpheus_runtime_context_current())
 #define keys_inited (KEY_CONTEXT->morph_keys_initialized && \
 	KEY_CONTEXT->morph_key_language == cur_lang())
@@ -225,7 +225,7 @@ static
 char * 
  NextEndTable(int *index, Stemtype mask)
 {
-	Morph_args * morph_args;
+	Morph_args *morph_args;
 	Dialect oldmask = mask;
 	
 	mask &= (PPARTMASK|ADJSTEM|NOUNSTEM);
@@ -373,7 +373,7 @@ void DomainNames(char *domp, char *res, char *dels)
 	Dialect mask = 1;
 	Dialect sofar = 0;
 	Morph_flags mf;
-	Morph_args * morph_args;
+	const Morph_args *morph_args;
 	
 	morph_args = arg_dialect;
 	
@@ -402,7 +402,7 @@ void DomainNames(char *domp, char *res, char *dels)
 	GeogRegion mask = 1;
 	GeogRegion sofar = 0;
 	Morph_flags mf;
-	Morph_args * morph_args;
+	const Morph_args *morph_args;
 	
 	morph_args = arg_geogregion;
 	
@@ -461,7 +461,7 @@ char *
 }
 
 
-Morph_args * 
+const Morph_args *
 MatchMorphKey(char *field)
 {		
 	int rval;
@@ -480,7 +480,7 @@ MatchMorphKey(char *field)
 Stemtype
 GetStemNum(char *field)
 {
-	Morph_args * mp, *MatchMorphKey();
+	const Morph_args *mp;
 	
 	mp = MatchMorphKey(field);
 	if( ! mp )
@@ -489,13 +489,13 @@ GetStemNum(char *field)
 }
 
 static char *
- p_eq_morph_keys(long flag, Morph_args *morph_args)
+ p_eq_morph_keys(long flag, const Morph_args *morph_args)
 {
 	if( ! flag )
 		return("");
 	while( morph_args->morph_key[0] ) {
 		if( ( flag == morph_args->morph_flags ) ) {
-			return(morph_args->morph_key);
+			return((char *)morph_args->morph_key);
 		}
 		morph_args++;
 	}
@@ -612,7 +612,7 @@ void init_keys(void)
 		 + LENGTH_OF(arg_mood)
 		 + LENGTH_OF(arg_dialect)
 		 + LENGTH_OF(arg_geogregion);
-	key_table = (Morph_args **) calloc((size_t)nkeys+1,(size_t)sizeof * key_table );
+	key_table = (const Morph_args **) calloc((size_t)nkeys+1,(size_t)sizeof * key_table );
 	if (!key_table) {
 		fprintf(stderr,"could not allocate morphology key index\n");
 		exit(EXIT_FAILURE);
@@ -667,17 +667,17 @@ getchar();
 int
 keycomp1(const void *k1, const void *k2)
 {
-	Morph_args ** m1, **m2;
+	const Morph_args *const *m1, *const *m2;
 
-	m1 = (Morph_args **) k1;
-	m2 = (Morph_args **) k2;
+	m1 = (const Morph_args *const *) k1;
+	m2 = (const Morph_args *const *) k2;
 	return(strcmp( (*m1)->morph_key, (*m2)->morph_key ));
 }
 
 int
-keycomp2(char *s, Morph_args **kp)
+keycomp2(char *s, const Morph_args *const *kp)
 {
-	Morph_args * m;
+	const Morph_args *m;
 	int rval = 0;
 	m = *kp;
 
@@ -686,9 +686,9 @@ keycomp2(char *s, Morph_args **kp)
 	return(rval);
 }
 
- int add_keyarr(Morph_args **ktab, Morph_args *morph_args)
+ int add_keyarr(const Morph_args **ktab, const Morph_args *morph_args)
 {
-	register Morph_args * ms = morph_args;
+	const Morph_args *ms = morph_args;
 	
 	while( morph_args->morph_key[0] ) {
 		*ktab++ = morph_args++;
@@ -721,7 +721,7 @@ GetIsProse(char *classp)
  int AddMorphKey(gk_string *gstr, char *field)
 {
 	void (*func)(gk_string *, Morph_flags);
-	Morph_args * mp, *MatchMorphKey(char*);
+	const Morph_args *mp;
 	
 	mp = MatchMorphKey(field);
 	if( ! mp )
