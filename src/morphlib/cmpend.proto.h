@@ -1,3 +1,3 @@
 
 /* cmpend.c */
-int cmpend(char *, char *, char *);
+int cmpend(const char *, const char *, char *);

@@ -223,12 +223,12 @@ typedef struct {
   Stemtype stemtype;
 } enclitic_word;
 
-enclitic_word GreekSuff[] = {
+static const enclitic_word GreekSuff[] = {
   "per", NOUNSTEM|ADJSTEM,
   "", 0				/* sentinel */
 };
 
-enclitic_word LatinSuff[] = {
+static const enclitic_word LatinSuff[] = {
   "que", 0,
   "cumque", 0,
   "cunque", 0,
@@ -245,7 +245,7 @@ enclitic_word LatinSuff[] = {
 };
 
 /* these should only work with verbs, excluding participles */
-enclitic_word ItalianSuff[] = {
+static const enclitic_word ItalianSuff[] = {
   "glie", PPARTMASK,
   "gli", PPARTMASK,		/* needs to be before "li" */
   "mi", PPARTMASK,
@@ -279,7 +279,7 @@ int checkstring3(gk_word *Gkword)
   int totanal, acount;
   int idx;
 
-  enclitic_word *EnclitArr;
+  const enclitic_word *EnclitArr;
   
   switch (cur_lang()) {
     

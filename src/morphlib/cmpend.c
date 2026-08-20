@@ -7,10 +7,10 @@
  * son of morpheus
  * 2/6/87
  */
-int cmpend(char *word, char *ending, char *stem)
+int cmpend(const char *word, const char *ending, char *stem)
 {
-	register char * s1 = word;
-	register char * s2 = ending;
+	register const char *s1 = word;
+	register const char *s2 = ending;
 
 	if( ! *s1  || ! *s2 ) return(0);
 

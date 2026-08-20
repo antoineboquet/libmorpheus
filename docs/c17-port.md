@@ -180,6 +180,8 @@ The dictionary HQ mode and its cache invalidation snapshot now live in the
 active runtime context.
 The unused `BinLookPrnt` diagnostic global and its conditional output paths
 were removed, with exact and lower-bound lookup behavior covered by a test.
+The six built-in crasis and enclitic-suffix tables are now `static const`, with
+const-correct helper boundaries for their string fields.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

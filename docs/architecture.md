@@ -101,5 +101,7 @@ Dictionary HQ selection is now an active-context option and no longer changes
 dictionary lookup mode for unrelated analyzers.
 Binary lookup no longer exposes a process-wide diagnostic switch; lookup
 behavior is covered directly without mutable debug state.
+The crasis and enclitic-suffix rule tables are private immutable data rather
+than exported writable arrays.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.
