@@ -166,6 +166,8 @@ The six ending and stem indexes loaded by `endindex` follow the same ownership
 and teardown boundary.
 Analysis and lemma accounting, including the sticky storage-error marker, is
 isolated per runtime context.
+Greek-string reset and sorted insertion no longer rely on shared workspace or a
+process-global comparator callback.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

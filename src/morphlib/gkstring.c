@@ -66,14 +66,9 @@ printf("creat gword %d\n", num * (sizeof * tmpgword) );
 	return( tmpgword );
 }
 
-static gk_string BlnkGstr;
-
 void ClearGkstring(gk_string *gstr)
 {
-	gk_string *gstring;
-	gk_string *CreatGkString();
-	
-	*gstr = BlnkGstr;
+	*gstr = (gk_string){ 0 };
 	return;
 /*
 	gstring = CreatGkString(1);
@@ -596,15 +591,11 @@ fprintf(stderr,"End dial [%o] stem [%o]\n", Dial1 , Dial2 );
 
 }
 
-static int (*gkCompare)();
-
  int xInsertGstr(gk_string *oldgstr, gk_string *newgstr, int len, int (*compare )(), int backwards)
 {
 	char * news, *olds;
 	int i;
 	
-	gkCompare = compare;
-
 	news = gkstring_of(newgstr);
 
 	if( len == 0 ) {
@@ -614,10 +605,10 @@ static int (*gkCompare)();
 			olds = gkstring_of(oldgstr+i-1);
 			*(oldgstr+i) = *(oldgstr+i-1);
 			if( backwards == NO ) {
-				if(((*gkCompare)(olds,news)) <= 0 )  {
+				if(((*compare)(olds,news)) <= 0 )  {
 					break;
 				}
-			} else if( ((*gkCompare)(olds,news)) > 0 )  {
+			} else if( ((*compare)(olds,news)) > 0 )  {
 				break;
 			}
 			
