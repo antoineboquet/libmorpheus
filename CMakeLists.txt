@@ -958,6 +958,7 @@ if(MORPHEUS_BUILD_CRUNCHER)
   target_link_libraries(
     cruncher
     PRIVATE
+      morpheus
       morpheus_anal
       morpheus_gener
       morpheus_gkends
