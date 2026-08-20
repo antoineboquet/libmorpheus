@@ -773,7 +773,7 @@ endif()
 
 add_library(morpheus SHARED src/api/context.c src/api/result.c src/api/analyze.c)
 target_include_directories(morpheus PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
-target_link_libraries(morpheus PRIVATE morpheus_anal morpheus_gener morpheus_gkends morpheus_gkdict morpheus_morphlib morpheus_greeklib morpheus_build_options)
+target_link_libraries(morpheus PUBLIC morpheus_build_options PRIVATE morpheus_anal morpheus_gener morpheus_gkends morpheus_gkdict morpheus_morphlib morpheus_greeklib)
 set_target_properties(morpheus PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 0)
 install(TARGETS morpheus LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 install(FILES include/morpheus/morpheus.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/morpheus)
