@@ -203,8 +203,14 @@ if(BUILD_TESTING)
     NAME gkstring_helper_context
     COMMAND morpheus_gkstring_helper_context_test
   )
+  add_executable(morpheus_binlook_test test/binlook.c)
+  target_link_libraries(
+    morpheus_binlook_test
+    PRIVATE morpheus_greeklib morpheus_build_options
+  )
+  add_test(NAME binlook COMMAND morpheus_binlook_test)
   set_tests_properties(
-    runtime_context gkstring_helper_context
+    runtime_context gkstring_helper_context binlook
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
   if(MORPHEUS_ENABLE_SANITIZERS)
@@ -215,6 +221,11 @@ if(BUILD_TESTING)
     )
     set_property(
       TEST gkstring_helper_context APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+    set_property(
+      TEST binlook APPEND PROPERTY ENVIRONMENT
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )

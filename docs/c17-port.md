@@ -178,6 +178,8 @@ Unused analyzer memory counters, debug state, and blank work records were
 removed instead of carrying inert shared state into the library ABI.
 The dictionary HQ mode and its cache invalidation snapshot now live in the
 active runtime context.
+The unused `BinLookPrnt` diagnostic global and its conditional output paths
+were removed, with exact and lower-bound lookup behavior covered by a test.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

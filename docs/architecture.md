@@ -99,5 +99,7 @@ Dormant memory counters, debug switches, and blank analysis records left over
 from the legacy front ends have been removed from the runtime objects.
 Dictionary HQ selection is now an active-context option and no longer changes
 dictionary lookup mode for unrelated analyzers.
+Binary lookup no longer exposes a process-wide diagnostic switch; lookup
+behavior is covered directly without mutable debug state.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.
