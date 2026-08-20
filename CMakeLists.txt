@@ -10,6 +10,7 @@ project(
 include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+find_package(Threads REQUIRED)
 
 option(MORPHEUS_BUILD_CRUNCHER "Build the legacy-compatible cruncher CLI" ON)
 option(
@@ -876,6 +877,22 @@ if(BUILD_TESTING)
     morpheus_public_fixture_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_fixtures COMMAND morpheus_public_fixture_test)
+  add_executable(
+    morpheus_public_parallel_context_test
+    test/public-parallel-contexts.c
+  )
+  target_compile_definitions(
+    morpheus_public_parallel_context_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  target_link_libraries(
+    morpheus_public_parallel_context_test
+    PRIVATE morpheus morpheus_build_options Threads::Threads
+  )
+  add_test(
+    NAME public_parallel_contexts
+    COMMAND morpheus_public_parallel_context_test
+  )
 endif()
 
 if(MORPHEUS_BUILD_CRUNCHER)
