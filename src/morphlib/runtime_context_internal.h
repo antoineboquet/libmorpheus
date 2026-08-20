@@ -38,6 +38,8 @@ struct morpheus_runtime_context {
 	int ending_cache_language;
 	int ending_cache_initialized;
 	int ending_start_match;
+	FILE *suffix_table_file;
+	int suffix_table_unavailable;
 	endtags *verb_dictionary_tags;
 	endtags *nominal_dictionary_tags;
 	endtags *lemma_dictionary_tags;
