@@ -2,6 +2,7 @@
 #define MORPHEUS_RUNTIME_CONTEXT_INTERNAL_H
 
 #include <gkstring.h>
+#include <endtags.h>
 #include "morphargs.h"
 
 #include "runtime_context.h"
@@ -31,6 +32,15 @@ struct morpheus_runtime_context {
 	int ending_cache_size;
 	int ending_cache_language;
 	int ending_cache_initialized;
+	endtags *verb_dictionary_tags;
+	endtags *nominal_dictionary_tags;
+	endtags *lemma_dictionary_tags;
+	int verb_dictionary_tag_count;
+	int nominal_dictionary_tag_count;
+	int lemma_dictionary_tag_count;
+	int dictionary_tag_language;
+	int dictionary_tag_hq_mode;
+	int dictionary_tags_initialized;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;

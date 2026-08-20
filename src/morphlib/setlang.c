@@ -37,6 +37,9 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 		if (context->ending_cache[i])
 			FreeGkString(context->ending_cache[i]);
 	}
+	free(context->verb_dictionary_tags);
+	free(context->nominal_dictionary_tags);
+	free(context->lemma_dictionary_tags);
 	for (i = 0; i < sizeof context->smk_beta_table /
 				 sizeof context->smk_beta_table[0]; i++) {
 		free(context->smk_beta_table[i]);

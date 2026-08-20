@@ -1,14 +1,45 @@
 #include "gkdict_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #define STEMCACHE 0
 
+int Use_hqdict = 0;
 
-endtags * VbTags = NULL;
-endtags * NomTags = NULL;
-static int num_of_ntags = 0;
-static int num_of_vtags = 0;
-char * vbindex = VBINDEX;
-char * nomindex = NOMINDEX;
- int Use_hqdict = 0;
+#define DICT_CONTEXT (morpheus_runtime_context_current())
+#define VbTags (DICT_CONTEXT->verb_dictionary_tags)
+#define NomTags (DICT_CONTEXT->nominal_dictionary_tags)
+#define LemmTags (DICT_CONTEXT->lemma_dictionary_tags)
+#define num_of_vtags (DICT_CONTEXT->verb_dictionary_tag_count)
+#define num_of_ntags (DICT_CONTEXT->nominal_dictionary_tag_count)
+#define num_of_ltags (DICT_CONTEXT->lemma_dictionary_tag_count)
+#define vbindex (Use_hqdict ? STEMLIST : VBINDEX)
+#define nomindex (Use_hqdict ? STEMLIST : NOMINDEX)
+
+static morpheus_runtime_context *
+dictionary_context(void)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int language = cur_lang();
+
+	if (!context->dictionary_tags_initialized) {
+		context->dictionary_tag_language = language;
+		context->dictionary_tag_hq_mode = Use_hqdict;
+		context->dictionary_tags_initialized = 1;
+	} else if (context->dictionary_tag_language != language ||
+		   context->dictionary_tag_hq_mode != Use_hqdict) {
+		free(context->verb_dictionary_tags);
+		free(context->nominal_dictionary_tags);
+		free(context->lemma_dictionary_tags);
+		context->verb_dictionary_tags = NULL;
+		context->nominal_dictionary_tags = NULL;
+		context->lemma_dictionary_tags = NULL;
+		context->verb_dictionary_tag_count = 0;
+		context->nominal_dictionary_tag_count = 0;
+		context->lemma_dictionary_tag_count = 0;
+		context->dictionary_tag_language = language;
+		context->dictionary_tag_hq_mode = Use_hqdict;
+	}
+	return(context);
+}
 
 #if STEMCACHE
 Stemcache * scache;
@@ -19,10 +50,9 @@ int cacheflag = 1;
 endtags *
 init_dict(char *fname, int *ntags)
 {
+	dictionary_context();
 	if( Use_hqdict ) {
 		fname = STEMLIST;
-		vbindex = STEMLIST;
-		nomindex = STEMLIST;
 	}
 	return(init_preind(fname,ntags));
 }
@@ -37,6 +67,8 @@ int
 	char workstem[MAXWORDSIZE];
 	int rval;
 	long startoff;
+
+	dictionary_context();
 	
 	workstem[0] = '1';
 	Xstrncpy(workstem+1,irregstr,MAXWORDSIZE);
@@ -81,6 +113,8 @@ int
 	long startoff;
 	int rval = 0;
 	char tmpindecl[MAXWORDSIZE];
+
+	dictionary_context();
 	
 	*lemmas = 0;
 	if( ! NomTags ) {
@@ -130,6 +164,8 @@ int
 	long startoff;
 	int rval = 0;
 	char tmpderivstr[MAXWORDSIZE];
+
+	dictionary_context();
 	
 /*
 	*derivkeys = 0;
@@ -175,6 +211,8 @@ int
 	char tmpkeys[LONGSTRING];
 	char * indfile;
 	endtags * CurTags = NULL;
+
+	dictionary_context();
 	
 	stripquant(stemstr);
 	stripdiaer(stemstr);
@@ -353,9 +391,6 @@ add_stemcache(Stemcache *cache, char *stem, char *keys)
 }
 #endif
 
-endtags * LemmTags = NULL;
-static int num_of_ltags = 0;
-
 int
  prntlemmentry(char *lemma, char *preverb, FILE *f)
 {
@@ -423,6 +458,8 @@ FILE *
 	long startoff;
 	int comp = 0;
 	char shorttag[MAXWORDSIZE];
+
+	dictionary_context();
 	
  
  	if( ! LemmTags ) {
