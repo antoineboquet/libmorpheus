@@ -172,6 +172,10 @@ export class MorpheusLibrary {
     }
     this.#analysisSize =
       Number(this.#native.symbols.morpheus_analysis_size());
+    if (this.#analysisSize < 860) {
+      this.#native.close();
+      throw new Error("libmorpheus analysis record is smaller than ABI version 1");
+    }
   }
 
   createContext(stemlibPath: string, language: MorpheusLanguage) {

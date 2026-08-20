@@ -74,6 +74,34 @@ jobs:
       - name: Test ThreadSanitizer
         run: ctest --preset thread-sanitizer
 
+  deno:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Configure library
+        run: cmake --preset dev
+
+      - name: Build library
+        run: cmake --build --preset dev
+
+      - name: Check binding
+        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+
+      - name: Test binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
   legacy-make:
     runs-on: ubuntu-latest
     steps:
