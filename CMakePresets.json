@@ -34,6 +34,15 @@
       "cacheVariables": {
         "MORPHEUS_ENABLE_SANITIZERS": "ON"
       }
+    },
+    {
+      "name": "thread-sanitizer",
+      "displayName": "Thread sanitizer",
+      "inherits": "dev",
+      "binaryDir": "${sourceDir}/build/thread-sanitizer",
+      "cacheVariables": {
+        "MORPHEUS_ENABLE_THREAD_SANITIZER": "ON"
+      }
     }
   ],
   "buildPresets": [
@@ -48,6 +57,10 @@
     {
       "name": "sanitizers",
       "configurePreset": "sanitizers"
+    },
+    {
+      "name": "thread-sanitizer",
+      "configurePreset": "thread-sanitizer"
     }
   ],
   "testPresets": [
@@ -61,6 +74,16 @@
     {
       "name": "sanitizers",
       "configurePreset": "sanitizers",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "thread-sanitizer",
+      "configurePreset": "thread-sanitizer",
+      "environment": {
+        "TSAN_OPTIONS": "halt_on_error=1:second_deadlock_stack=1"
+      },
       "output": {
         "outputOnFailure": true
       }

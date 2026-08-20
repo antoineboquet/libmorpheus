@@ -18,6 +18,15 @@ option(
   "Build the runtime with AddressSanitizer and UndefinedBehaviorSanitizer"
   OFF
 )
+option(
+  MORPHEUS_ENABLE_THREAD_SANITIZER
+  "Build the runtime with ThreadSanitizer"
+  OFF
+)
+
+if(MORPHEUS_ENABLE_SANITIZERS AND MORPHEUS_ENABLE_THREAD_SANITIZER)
+  message(FATAL_ERROR "AddressSanitizer and ThreadSanitizer cannot be combined")
+endif()
 
 set(
   MORPHEUS_STEMLIB_DIR
@@ -71,6 +80,29 @@ if(MORPHEUS_ENABLE_SANITIZERS)
     message(
       FATAL_ERROR
       "MORPHEUS_ENABLE_SANITIZERS requires GCC, Clang, or AppleClang"
+    )
+  endif()
+endif()
+
+if(MORPHEUS_ENABLE_THREAD_SANITIZER)
+  if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(
+      morpheus_build_options
+      INTERFACE
+        -fsanitize=thread
+        -fno-omit-frame-pointer
+        -fno-sanitize-recover=all
+    )
+    target_link_options(
+      morpheus_build_options
+      INTERFACE
+        -fsanitize=thread
+        -fno-sanitize-recover=all
+    )
+  else()
+    message(
+      FATAL_ERROR
+      "MORPHEUS_ENABLE_THREAD_SANITIZER requires GCC or Clang"
     )
   endif()
 endif()
