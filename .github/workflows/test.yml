@@ -52,6 +52,28 @@ jobs:
           UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
         run: ctest --preset sanitizers
 
+  thread-sanitizer:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure ThreadSanitizer
+        run: cmake --preset thread-sanitizer
+
+      - name: Build ThreadSanitizer
+        run: cmake --build --preset thread-sanitizer
+
+      - name: Test ThreadSanitizer
+        run: ctest --preset thread-sanitizer
+
   legacy-make:
     runs-on: ubuntu-latest
     steps:

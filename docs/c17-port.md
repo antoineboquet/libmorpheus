@@ -127,10 +127,10 @@ a shallow copy of the analysis pointer and count, so it does not create a second
 independently owned analysis array.
 
 The `sanitizers` CMake preset instruments the full runtime with ASan and UBSan.
-CI runs both fixture suites with immediate failure on memory or undefined-
-behavior reports. The isolated runtime-context lifecycle test also enables leak
-detection; the full analyser retains it disabled until its process-lifetime
-caches have moved behind the same teardown boundary.
+The separate `thread-sanitizer` preset instruments it with TSan and exercises
+two public contexts concurrently. CI runs both fixture suites with immediate
+failure on memory, undefined-behavior, or data-race reports. The isolated
+runtime-context lifecycle test also enables leak detection.
 
 The first instrumented fixture pass found and fixed three lifetime violations:
 empty ending strings no longer read before their stack buffer, preverb suffix
@@ -189,12 +189,12 @@ The compatibility client's timing workspace is local to `main`; the dormant
 their zero-value work records within each invocation. The runtime libraries no
 longer retain writable file-scope analysis state outside the explicitly
 thread-local context selectors.
-Activation is thread-local,
-while the historical `set_lang` and `cur_lang` calls remain compatible.
-Destruction releases the allocated tables, and switching a context's language
-invalidates its preverb, morphology-key, contraction, euphony, ending-table,
-and dictionary-index data on the next lookup. Other mutable caches still need
-to migrate before the analyser is reentrant.
+Activation is thread-local, while the historical `set_lang` and `cur_lang`
+calls remain compatible. Destruction releases the allocated tables, and
+switching a context's language invalidates its preverb, morphology-key,
+contraction, euphony, ending-table, and dictionary-index data on the next
+lookup. Distinct contexts can now be analyzed concurrently; callers must still
+serialize simultaneous use of the same context.
 
 Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 `gk_word *` and accesses fields beyond the smaller structure. `contract.c` now
@@ -226,8 +226,8 @@ now invocation-local; the counter therefore also starts cleanly on every run.
 
 ## Next compatibility-preserving lots
 
-1. Move the remaining mutable caches and formatting state into the opaque
-   context, then extract the public `libmorpheus` ABI.
+The next work concentrates on hardening the public ABI, converting `cruncher`
+into a client of that ABI, and validating the Deno FFI boundary.
 
 Every lot must keep both fixture suites passing: the inherited Perseids
 fixtures and the Greek Alpheios stemlib fixtures used by Bailly.

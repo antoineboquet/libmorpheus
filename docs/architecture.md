@@ -30,22 +30,19 @@ data source.
 
 ## Modernization boundary
 
-The intended architecture extracts the analyzer behind a stable C ABI named
-`libmorpheus`. `cruncher` will become a compatibility client of that ABI, while
-the Bailly Deno API will consume structured results through FFI.
-
-The initial CMake milestone established a reproducible runtime build and a
-behavioral baseline. The runtime now builds in C17 mode and rejects historical
-common-symbol linkage (`-fno-common`), while the inherited K&R-style
-definitions and compiler extensions are removed incrementally. The extraction
-of the public API remains a separately testable change.
+The analyzer is now exposed through a versioned C ABI named `libmorpheus`,
+with opaque contexts, caller-independent result ownership, structured analyses,
+and per-request options. The library is installable as the CMake target
+`Morpheus::morpheus`. `cruncher` remains the compatibility client while its
+historical formatting path is validated by the fixture suites.
 
 ## Known constraints
 
-The inherited engine contains process-wide mutable state, lazy global caches,
-and static formatting buffers. It is not currently reentrant or thread-safe.
-The first FFI implementation must serialize calls. True per-context concurrency
-requires moving this state into an opaque analyzer context.
+Mutable runtime caches and formatting buffers now belong to opaque contexts,
+and active-context selection is thread-local. Calls using distinct contexts may
+run concurrently; a single context remains thread-affine and must not be used
+simultaneously by multiple threads. The public parallel-context test exercises
+Greek and Latin analysis concurrently.
 
 The first context boundary now owns the active language selection, the lazy
 Beta Code collation tables, the dynamically allocated morphology-flag lookup
