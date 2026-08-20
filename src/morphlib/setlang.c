@@ -3,6 +3,15 @@
 static _Thread_local morpheus_runtime_context default_context = { 0, 0 };
 static _Thread_local morpheus_runtime_context *active_context;
 
+static void
+destroy_end_index(endind *index)
+{
+	if (!index) return;
+	free(endbuffer_of(index));
+	free(endeptr_of(index));
+	free(index);
+}
+
 morpheus_runtime_context *
 morpheus_runtime_context_current(void)
 {
@@ -37,6 +46,12 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 		fclose(context->suffix_table_file);
 	if (context->ending_store)
 		FreeGkString(context->ending_store);
+	destroy_end_index(context->dictionary_entry_index);
+	destroy_end_index(context->compound_verb_index);
+	destroy_end_index(context->verb_ending_index);
+	destroy_end_index(context->derivation_ending_index);
+	destroy_end_index(context->nominal_ending_index);
+	destroy_end_index(context->verb_stem_index);
 	for (i = 0; i < MORPHEUS_END_CACHE_SIZE; i++) {
 		if (context->ending_cache[i])
 			FreeGkString(context->ending_cache[i]);

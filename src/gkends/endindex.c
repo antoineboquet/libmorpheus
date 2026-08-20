@@ -1,6 +1,6 @@
 #include <gkstring.h>
-#include <endindex.h>
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "../morphlib/morphstrcmp.proto.h"
 #include "endfiles.h"
@@ -12,31 +12,34 @@
 long matchendtag();
 /*int dictstrcmp(), dictstrncmp(), morphstrcmp(), morphstrncmp();*/
 
-endind * DictEntTags = NULL;
-static int ndictenttags = 0;
-
-endind * CmpVbtags = NULL;
-static int ncmpvbtags = 0;
-
-endind * VbEtags = NULL;
-static int nvbetags = 0;
-
-endind * DerEtags = NULL;
-static int nderetags = 0;
-
-endind * NomEtags = NULL;
-static int nnometags = 0;
-
-endind * VstemEtags = NULL;
-static int nvstemetags = 0;
-
 endind * init_endind();
+static endind *load_end_index(endind **, char *, const char *);
+
+static endind *
+load_end_index(endind **slot, char *filename, const char *description)
+{
+	if (*slot) return(*slot);
+	*slot = calloc(1,sizeof **slot);
+	if (!*slot) {
+		fprintf(stderr,"could not allocate %s\n",description);
+		return(NULL);
+	}
+	if (!init_endind(filename,*slot)) {
+		free(endbuffer_of(*slot));
+		free(endeptr_of(*slot));
+		free(*slot);
+		*slot = NULL;
+	}
+	return(*slot);
+}
 
 int
 chcknend(char *endstr, char *keys)
 {
 	long startoff;
 	char tmpendstr[MAXWORDSIZE+1];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *NomEtags;
 
 	Xstrncpy(tmpendstr,endstr,(int)sizeof  tmpendstr);
 	/*
@@ -45,14 +48,9 @@ chcknend(char *endstr, char *keys)
 	 */
 	stripquant(tmpendstr);
 	
-	if( ! NomEtags ) {
-		NomEtags = (endind *) calloc((size_t)1, (size_t) sizeof * NomEtags);
-		if( ! NomEtags ) {
-			fprintf(stderr,"could not allcoate NomEtags\n");
-			return(0);
-		}
-		init_endind(NENDLIST,NomEtags);
-	}
+	NomEtags = load_end_index(&context->nominal_ending_index,NENDLIST,
+		"nominal ending index");
+	if (!NomEtags) return(0);
 	return( checkendind(NomEtags,tmpendstr,keys,morphstrncmp));
 }
 
@@ -62,6 +60,8 @@ chckdictent(char * possent, char *keys)
 {
 	long startoff;
 	char tmpendstr[MAXWORDSIZE+1];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *DictEntTags;
 
 	Xstrncpy(tmpendstr,possent,(int)sizeof  tmpendstr);
 	/*
@@ -70,14 +70,9 @@ chckdictent(char * possent, char *keys)
 	 */
 	stripquant(tmpendstr);
 	
-	if( ! DictEntTags ) {
-		DictEntTags = (endind *) calloc((size_t)1, (size_t) sizeof * DictEntTags);
-		if( ! DictEntTags ) {
-			fprintf(stderr,"could not allcoate DictEntTags\n");
-			return(0);
-		}
-		init_endind(DICTENTLIST,DictEntTags);
-	}
+	DictEntTags = load_end_index(&context->dictionary_entry_index,DICTENTLIST,
+		"dictionary entry index");
+	if (!DictEntTags) return(0);
 	return( checkendind(DictEntTags,tmpendstr,keys,strncmp));
 }
 
@@ -86,6 +81,8 @@ chckcmpvb(char *endstr, char *keys)
 {
 	long startoff;
 	char tmpendstr[MAXWORDSIZE+1];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *CmpVbtags;
 
 	Xstrncpy(tmpendstr,endstr,(int)sizeof  tmpendstr);
 	/*
@@ -94,14 +91,9 @@ chckcmpvb(char *endstr, char *keys)
 	 */
 	stripquant(tmpendstr);
 	
-	if( ! CmpVbtags ) {
-		CmpVbtags = (endind *) calloc((size_t)1, (size_t) sizeof * CmpVbtags);
-		if( ! CmpVbtags ) {
-			fprintf(stderr,"could not allcoate CmpVbtags\n");
-			return(0);
-		}
-		init_endind(CMPVBLIST,CmpVbtags);
-	}
+	CmpVbtags = load_end_index(&context->compound_verb_index,CMPVBLIST,
+		"compound verb index");
+	if (!CmpVbtags) return(0);
 	return( checkendind(CmpVbtags,tmpendstr,keys,strncmp));
 }
 
@@ -120,15 +112,12 @@ chckvend(char *endstr, char *keys)
 {
 	long startoff;
 	int curhit;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *VbEtags;
 	
-	if( ! VbEtags ) {
-		VbEtags = (endind *) calloc((size_t)1, (size_t)sizeof * VbEtags);
-		if( ! VbEtags ) {
-			fprintf(stderr,"could not allcoate VbEtags\n");
-			return(0);
-		}
-		init_endind(VENDLIST,VbEtags);
-	}
+	VbEtags = load_end_index(&context->verb_ending_index,VENDLIST,
+		"verb ending index");
+	if (!VbEtags) return(0);
 	curhit = checkendind(VbEtags,endstr,keys,morphstrncmp);
 
 	return(curhit);
@@ -139,15 +128,12 @@ chckvstem(char *stemstr, char *keys)
 {
 	long startoff;
 	int curhit;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *VstemEtags;
 	
-	if( ! VstemEtags ) {
-		VstemEtags = (endind *) calloc((size_t)1, (size_t)sizeof * VstemEtags);
-		if( ! VstemEtags ) {
-			fprintf(stderr,"could not allcoate VstemEtags\n");
-			return(0);
-		}
-		init_endind(VBINDEX,VstemEtags);
-	}
+	VstemEtags = load_end_index(&context->verb_stem_index,VBINDEX,
+		"verb stem index");
+	if (!VstemEtags) return(0);
 	curhit = checkendind(VstemEtags,stemstr,keys,morphstrncmp);
 
 	return(curhit);
@@ -158,15 +144,12 @@ chckdvend(char *endstr, char *keys)
 {
 	long startoff;
 	int curhit;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *DerEtags;
 	
-	if( ! DerEtags ) {
-		DerEtags = (endind *) calloc((size_t)1, (size_t)sizeof * DerEtags);
-		if( ! DerEtags ) {
-			fprintf(stderr,"could not allcoate DerEtags\n");
-			return(0);
-		}
-		init_endind(DERENDLIST,DerEtags);
-	}
+	DerEtags = load_end_index(&context->derivation_ending_index,DERENDLIST,
+		"derivation ending index");
+	if (!DerEtags) return(0);
 
 	curhit = checkendind(DerEtags,endstr,keys,morphstrncmp);
 
@@ -206,6 +189,7 @@ init_endind(char *fname, endind *etags)
 	if( !(endbuffer_of(etags) = (char *)calloc((size_t)flen + 1, (size_t)sizeof * endbuffer_of(etags)  ))) {
 
 		fprintf(stderr,"could not build buffer for endtags\n");
+		xFclose(f);
 		return(NULL);
 	}
 	s = endbuffer_of(etags);
@@ -217,6 +201,7 @@ init_endind(char *fname, endind *etags)
 		if( nread <= 0 ) break;
 		sofar += (long)nread;
 	}
+	xFclose(f);
 	for(i=0;i<sofar;i++) {
 		if(*(s+i) == '\n' )
 			nlines++;

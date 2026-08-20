@@ -3,6 +3,7 @@
 
 #include <gkstring.h>
 #include <endtags.h>
+#include <endindex.h>
 #include "morphargs.h"
 
 #include "runtime_context.h"
@@ -43,6 +44,12 @@ struct morpheus_runtime_context {
 	gk_string *ending_store;
 	int ending_store_count;
 	int ending_store_max_string;
+	endind *dictionary_entry_index;
+	endind *compound_verb_index;
+	endind *verb_ending_index;
+	endind *derivation_ending_index;
+	endind *nominal_ending_index;
+	endind *verb_stem_index;
 	endtags *verb_dictionary_tags;
 	endtags *nominal_dictionary_tags;
 	endtags *lemma_dictionary_tags;
