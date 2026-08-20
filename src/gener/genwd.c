@@ -15,9 +15,6 @@ CompareGkForms(const void *left, const void *right)
 #define NextStem(f,stem,stemkeys) NextDictLine(f,stem,stemkeys,":")
 #define NextLemma(f,lemma,lemmakeys) NextDictLine(f,lemma,lemmakeys,":le:")
 
-gk_string BlankGstr;
-gk_word TmpGkword;
-
 void
 GenDictEntry(Gkword,dentry)
  gk_word *Gkword;
@@ -25,6 +22,8 @@ GenDictEntry(Gkword,dentry)
 {
 	
 	gk_word * gkforms;
+	gk_word TmpGkword;
+	gk_string BlankGstr = { 0 };
 	int formcnt;
 	Stemtype stype;
 	char keys[LONGSTRING*4];

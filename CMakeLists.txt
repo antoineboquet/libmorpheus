@@ -390,6 +390,37 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+if(BUILD_TESTING)
+  add_executable(
+    morpheus_dictionary_entry_workspace_test
+    test/dictionary-entry-workspace.c
+  )
+  target_link_libraries(
+    morpheus_dictionary_entry_workspace_test
+    PRIVATE
+      morpheus_gener
+      morpheus_gkends
+      morpheus_morphlib
+      morpheus_greeklib
+      morpheus_build_options
+  )
+  add_test(
+    NAME dictionary_entry_workspace
+    COMMAND morpheus_dictionary_entry_workspace_test
+  )
+  set_tests_properties(
+    dictionary_entry_workspace
+    PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  if(MORPHEUS_ENABLE_SANITIZERS)
+    set_property(
+      TEST dictionary_entry_workspace APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+  endif()
+endif()
+
 add_library(morpheus_anal STATIC
   src/anal/checkcrasis.c
   src/anal/checkdict.c

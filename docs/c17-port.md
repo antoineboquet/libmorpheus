@@ -172,6 +172,8 @@ Recursive ending generation also uses call-local unrestricted-form workspace
 instead of static Greek-string records.
 The analysis dialect-selection mask is isolated per runtime context while
 preserving the historical all-dialects default.
+Dictionary-entry generation no longer stores its temporary word and blank
+ending in process-wide objects.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
