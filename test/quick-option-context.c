@@ -1,5 +1,7 @@
 #include <assert.h>
 
+#include <gkstring.h>
+
 #include "../src/anal/checkword.proto.h"
 #include "../src/morphlib/runtime_context.h"
 
