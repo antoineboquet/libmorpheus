@@ -75,5 +75,7 @@ The reusable augmented-stem and possible-stem work arrays used by verb analysis
 also belong to the active context and are released during context teardown.
 The three reusable irregular-form and irregular-key buffers follow the same
 ownership and teardown rules.
+The crasis-analysis disable option is stored in the active context, so changing
+it no longer affects other contexts in the process.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

@@ -1,5 +1,6 @@
 #include "anal_internal.h"
 #define MAXCRASIS 12
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkcrasis.proto.h"
 typedef struct {
@@ -207,8 +208,6 @@ typedef struct {
 "eccistam",		"ecce",		"istam",	(Dialect)0,
  };
 
-int nocrasis = 0;
-
 int checkcrasis(gk_word *Gkword)
 {
 	int i;
@@ -217,7 +216,7 @@ int checkcrasis(gk_word *Gkword)
 	char* mungedword;
 	int rval = 0;
 	
-	if( nocrasis ) return(0);
+	if( morpheus_runtime_context_current()->analysis_crasis_disabled ) return(0);
 	
 	if( cur_lang() == LATIN )
 	{
@@ -253,7 +252,7 @@ int checkcrasis(gk_word *Gkword)
 
 void set_nocrasis(void)
 {
-	nocrasis = 1;
+	morpheus_runtime_context_current()->analysis_crasis_disabled = 1;
 }
 
 int testcrasis(gk_word *Gkword, char *mungedword, char *wordstart, char *preword,Dialect possdial)
