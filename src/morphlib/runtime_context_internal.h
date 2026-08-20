@@ -90,6 +90,9 @@ struct morpheus_runtime_context {
 	char *analysis_irregular_keys[MORPHEUS_IRREGULAR_FORM_COUNT];
 	int analysis_irregular_buffers_initialized;
 	int analysis_crasis_disabled;
+	int analysis_total_analyses;
+	int analysis_total_lemmas;
+	int analysis_storage_error;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;

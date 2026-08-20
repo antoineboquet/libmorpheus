@@ -164,6 +164,8 @@ The ending-construction store and its counters are isolated and released with
 their owning runtime context.
 The six ending and stem indexes loaded by `endindex` follow the same ownership
 and teardown boundary.
+Analysis and lemma accounting, including the sticky storage-error marker, is
+isolated per runtime context.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

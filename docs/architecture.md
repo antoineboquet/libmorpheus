@@ -85,5 +85,7 @@ The reusable ending-construction store, its entry count, and maximum serialized
 length belong to the active context and are released during teardown.
 The six lazily loaded ending and stem indexes are context-owned and their text
 buffers, pointer tables, and descriptors are released during teardown.
+Accepted-analysis and distinct-lemma totals, along with the sticky allocation
+error state, belong to the active runtime context.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

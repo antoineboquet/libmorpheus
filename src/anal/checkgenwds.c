@@ -1,9 +1,7 @@
 #include "anal_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkgenwds.proto.h"
-
-static int anals_seen = 0;
-static int lems_seen = 0;
 
 static int append_text(char *dest, size_t capacity, const char *source)
 {
@@ -184,7 +182,6 @@ printf("liked [%s] hits [%d]\n", checks , hits);
 	return(hits);
 }
 
-static int analerror  = 0;
 int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 {
 	gk_analysis * curanal;
@@ -192,8 +189,9 @@ int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	int newlem = 1;
 	char tmplem[LONGSTRING];
 	char cmplem[LONGSTRING];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
-	if (analerror) {
+	if (context->analysis_storage_error) {
 		fprintf(stderr,"something wrong with the analysis storage!\n");
 		return(0);
 	}
@@ -201,12 +199,12 @@ int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	if( analysis_of(Gkword) == NULL ) {
 		if( ! ( analysis_of(Gkword) = (gk_analysis *)CreatGkAnal(MAXANALYSES+1) )) {
 			fprintf(stderr,"not enough memory for greek analysis\n");
-			analerror++;
+			context->analysis_storage_error++;
 			return(0);
 		}
 		if( totanal_of(Gkword) != 0 ) {
 			fprintf(stderr,"hey! anal pointer NULL but totanal is %d\n", totanal_of(Gkword) );
-			analerror++;
+			context->analysis_storage_error++;
 			return(0);
 		}
 	}
@@ -397,19 +395,19 @@ printf("\n");
 		}
 	}
 	totanal_of(Gkword)++;
-	anals_seen++;
-	lems_seen += newlem;
+	context->analysis_total_analyses++;
+	context->analysis_total_lemmas += newlem;
 	return(1);
 }
 
 int show_totanals(void)
 {
-	return(anals_seen);
+	return(morpheus_runtime_context_current()->analysis_total_analyses);
 }
 
 int show_totlems(void)
 {
-	return(lems_seen);
+	return(morpheus_runtime_context_current()->analysis_total_lemmas);
 }
 
 void merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
