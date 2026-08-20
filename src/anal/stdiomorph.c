@@ -42,7 +42,7 @@ main(int argc, char **argv)
   int last_count=0;
   clock_t start_time=0;
   clock_t longest_time=0;
-  char longest_word[BUFSIZ]={0};
+  char longest_word[BUFSIZ*4]={0};
 
   while((option=getopt(argc,argv,ARGS)) != -1) {
     switch(option) {
