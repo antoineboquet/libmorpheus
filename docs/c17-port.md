@@ -170,6 +170,8 @@ Greek-string reset and sorted insertion no longer rely on shared workspace or a
 process-global comparator callback.
 Recursive ending generation also uses call-local unrestricted-form workspace
 instead of static Greek-string records.
+The analysis dialect-selection mask is isolated per runtime context while
+preserving the historical all-dialects default.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

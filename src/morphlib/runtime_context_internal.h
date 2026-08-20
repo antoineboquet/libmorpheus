@@ -90,6 +90,8 @@ struct morpheus_runtime_context {
 	char *analysis_irregular_keys[MORPHEUS_IRREGULAR_FORM_COUNT];
 	int analysis_irregular_buffers_initialized;
 	int analysis_crasis_disabled;
+	Dialect analysis_wanted_dialects;
+	int analysis_wanted_dialects_initialized;
 	int analysis_total_analyses;
 	int analysis_total_lemmas;
 	int analysis_storage_error;

@@ -1,4 +1,5 @@
 #include "anal_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include "checkstring.proto.h"
 static int checkstring4(gk_word *);
 static void add_apostrvowel(char *, char *, char *);
@@ -11,8 +12,6 @@ void 	checkstring1(gk_word * Gkword);
 void 	stand_phonetics(gk_word * Gkword);
 void 	standword(char * s);
 int 	is_blank(char * s);
-Dialect WantDialects = ALL_DIAL;
-
 gk_word BlankWord, CheckWord;
 
 int
@@ -33,7 +32,7 @@ int checkstring(char *string, PrntFlags prntflags, FILE *fout)
 
 	Gkword = (gk_word *) CreatGkword(1 );
 
-	set_dialect(Gkword,WantDialects);
+	set_dialect(Gkword,GetWantDialect());
 	set_workword(Gkword,string);
 	set_prntflags(Gkword,prntflags);
 	set_rawword(Gkword,workword_of(Gkword));
@@ -971,23 +970,30 @@ SetWantDialect((Dialect )( ATTIC|PROSE));
 
 void SetWantDialect(Dialect dial)
 {
-	WantDialects = dial;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	context->analysis_wanted_dialects = dial;
+	context->analysis_wanted_dialects_initialized = 1;
 }
 
 void AddWantDialect(Dialect dial)
 {
-	WantDialects |= dial;
+	SetWantDialect(GetWantDialect() | dial);
 }
 
 void ZapWantDialect(Dialect dial)
 {
-	WantDialects &= (~dial);
+	SetWantDialect(GetWantDialect() & (~dial));
 }
 
 Dialect
 GetWantDialect(void)
 {
-	return(WantDialects);
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	if (!context->analysis_wanted_dialects_initialized)
+		return(ALL_DIAL);
+	return(context->analysis_wanted_dialects);
 }
 
 int updateDialect(Dialect dial)
