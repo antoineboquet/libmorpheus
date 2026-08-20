@@ -11,6 +11,8 @@ typedef struct morpheus_result morpheus_result;
 typedef enum { MORPHEUS_OK=0, MORPHEUS_INVALID_ARGUMENT=1, MORPHEUS_ABI_MISMATCH=2, MORPHEUS_NO_MEMORY=3, MORPHEUS_INPUT_TOO_LONG=4, MORPHEUS_OUT_OF_RANGE=5, MORPHEUS_INTERNAL_ERROR=6 } morpheus_status;
 typedef enum { MORPHEUS_LANGUAGE_GREEK=0, MORPHEUS_LANGUAGE_LATIN=1, MORPHEUS_LANGUAGE_ITALIAN=2 } morpheus_language;
 #define MORPHEUS_TEXT_CAPACITY 64u
+#define MORPHEUS_DOMAIN_CAPACITY 24u
+#define MORPHEUS_MORPH_FLAG_CAPACITY 12u
 typedef enum { MORPHEUS_PART_OF_SPEECH_UNKNOWN=0, MORPHEUS_PART_OF_SPEECH_NOUN=1, MORPHEUS_PART_OF_SPEECH_VERB=2, MORPHEUS_PART_OF_SPEECH_ADJECTIVE=3 } morpheus_part_of_speech;
 typedef struct {
   uint32_t struct_size;
@@ -36,6 +38,11 @@ typedef struct {
   char suffix[MORPHEUS_TEXT_CAPACITY];
   char ending[MORPHEUS_TEXT_CAPACITY];
   char crasis[MORPHEUS_TEXT_CAPACITY];
+  char dictionary_form[MORPHEUS_TEXT_CAPACITY];
+  char english_form[MORPHEUS_TEXT_CAPACITY];
+  char raw_preverb[MORPHEUS_TEXT_CAPACITY];
+  char domains[MORPHEUS_DOMAIN_CAPACITY];
+  uint8_t morph_flags[MORPHEUS_MORPH_FLAG_CAPACITY];
 } morpheus_analysis;
 typedef uint64_t morpheus_options;
 #define MORPHEUS_OPTION_STRICT_CASE (UINT64_C(1) << 0)

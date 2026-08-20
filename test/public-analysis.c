@@ -18,6 +18,10 @@ int main(void)
   assert(morpheus_result_get(result,0,&analysis)==MORPHEUS_OK);
   assert(analysis.struct_size==sizeof analysis);
   assert(analysis.raw[0] && analysis.lemma[0]);
+  assert(analysis.dictionary_form[MORPHEUS_TEXT_CAPACITY-1]==0);
+  assert(analysis.english_form[MORPHEUS_TEXT_CAPACITY-1]==0);
+  assert(analysis.raw_preverb[MORPHEUS_TEXT_CAPACITY-1]==0);
+  assert(analysis.domains[MORPHEUS_DOMAIN_CAPACITY-1]==0);
   morpheus_result_free(result);
   result=NULL;
   assert(morpheus_analyze(context,unbreathed,sizeof unbreathed-1,

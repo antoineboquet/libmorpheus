@@ -4,9 +4,9 @@
 #include "../anal/anal_internal.h"
 #include "../morphlib/runtime_context.h"
 
-static void copy_text(char destination[MORPHEUS_TEXT_CAPACITY], const char *source)
+static void copy_text(char *destination, size_t capacity, const char *source)
 {
-  snprintf(destination,MORPHEUS_TEXT_CAPACITY,"%s",source);
+  snprintf(destination,capacity,"%s",source);
 }
 
 static void copy_analysis(morpheus_analysis *destination, const gk_analysis *source)
@@ -28,15 +28,20 @@ static void copy_analysis(morpheus_analysis *destination, const gk_analysis *sou
   destination->mood=(uint32_t)mood_of(forminfo_of(source));
   destination->voice=(uint32_t)voice_of(forminfo_of(source));
   destination->degree=(uint32_t)degree_of(forminfo_of(source));
-  copy_text(destination->raw,rawword_of(source));
-  copy_text(destination->workword,workword_of(source));
-  copy_text(destination->lemma,lemma_of(source));
-  copy_text(destination->preverb,preverb_of(source));
-  copy_text(destination->augment,aug1_of(source));
-  copy_text(destination->stem,stem_of(source));
-  copy_text(destination->suffix,suffix_of(source));
-  copy_text(destination->ending,endstring_of(source));
-  copy_text(destination->crasis,crasis_of(source));
+  copy_text(destination->raw,sizeof destination->raw,rawword_of(source));
+  copy_text(destination->workword,sizeof destination->workword,workword_of(source));
+  copy_text(destination->lemma,sizeof destination->lemma,lemma_of(source));
+  copy_text(destination->preverb,sizeof destination->preverb,preverb_of(source));
+  copy_text(destination->augment,sizeof destination->augment,aug1_of(source));
+  copy_text(destination->stem,sizeof destination->stem,stem_of(source));
+  copy_text(destination->suffix,sizeof destination->suffix,suffix_of(source));
+  copy_text(destination->ending,sizeof destination->ending,endstring_of(source));
+  copy_text(destination->crasis,sizeof destination->crasis,crasis_of(source));
+  copy_text(destination->dictionary_form,sizeof destination->dictionary_form,dictform_of(source));
+  copy_text(destination->english_form,sizeof destination->english_form,source->st_engform);
+  copy_text(destination->raw_preverb,sizeof destination->raw_preverb,rawprvb_of(source));
+  copy_text(destination->domains,sizeof destination->domains,domains_of(source));
+  memcpy(destination->morph_flags,morphflags_of(source),sizeof destination->morph_flags);
 }
 
 morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_code, size_t length, morpheus_options options, morpheus_result **result)
