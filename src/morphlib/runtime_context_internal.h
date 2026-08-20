@@ -12,6 +12,7 @@
 #define MORPHEUS_DERIVATION_CACHE_SIZE 12
 #define MORPHEUS_AUGMENT_STEM_COUNT 12
 #define MORPHEUS_POSSIBLE_STEM_COUNT 10
+#define MORPHEUS_IRREGULAR_FORM_COUNT 3
 
 struct morpheus_runtime_context {
 	int language;
@@ -72,6 +73,9 @@ struct morpheus_runtime_context {
 	gk_string *analysis_possible_stems[MORPHEUS_POSSIBLE_STEM_COUNT];
 	char *analysis_possible_keys[MORPHEUS_POSSIBLE_STEM_COUNT];
 	int analysis_possible_stems_initialized;
+	char *analysis_irregular_forms[MORPHEUS_IRREGULAR_FORM_COUNT];
+	char *analysis_irregular_keys[MORPHEUS_IRREGULAR_FORM_COUNT];
+	int analysis_irregular_buffers_initialized;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;

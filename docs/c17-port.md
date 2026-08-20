@@ -154,6 +154,7 @@ as well. The compound-noun head table is also context-owned, dynamically grown,
 and released at teardown. Buffered analysis output and its formatting cursors
 are isolated and released with their active context. The reusable augmented-
 stem and possible-stem analysis buffers share the same ownership boundary.
+The reusable irregular-verb form and key buffers are context-owned as well.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

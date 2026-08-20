@@ -63,6 +63,10 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 			FreeGkString(context->analysis_possible_stems[i]);
 		free(context->analysis_possible_keys[i]);
 	}
+	for (i = 0; i < MORPHEUS_IRREGULAR_FORM_COUNT; i++) {
+		free(context->analysis_irregular_forms[i]);
+		free(context->analysis_irregular_keys[i]);
+	}
 	for (i = 0; i < sizeof context->smk_beta_table /
 				 sizeof context->smk_beta_table[0]; i++) {
 		free(context->smk_beta_table[i]);
