@@ -925,6 +925,18 @@ if(BUILD_TESTING)
     NAME public_parallel_contexts
     COMMAND morpheus_public_parallel_context_test
   )
+  if(NOT MORPHEUS_ENABLE_SANITIZERS AND
+     NOT MORPHEUS_ENABLE_THREAD_SANITIZER)
+    add_test(
+      NAME installed_package_consumer
+      COMMAND
+        "${CMAKE_COMMAND}"
+        "-DMORPHEUS_BUILD_DIR=${PROJECT_BINARY_DIR}"
+        "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+        "-DMORPHEUS_GENERATOR=${CMAKE_GENERATOR}"
+        -P "${PROJECT_SOURCE_DIR}/test/test-installed-package.cmake"
+    )
+  endif()
 endif()
 
 if(MORPHEUS_BUILD_CRUNCHER)
