@@ -18,40 +18,38 @@ teststring(char *string)
 	return(checkstring(string,(PrntFlags)0,stdout));
 }
 
-int checkstring(char *string, PrntFlags prntflags, FILE *fout)
+gk_word *
+morpheus_check_word(char *string, PrntFlags prntflags)
 {
-	gk_word * Gkword = NULL;
-	FILE * fcurout = fout;
-	int nanals = 0;
-	int nlems = 0;
-
-	if( is_blank(string) ) return(0);
-	if( strlen(string) >= MAXWORDSIZE ) return(0);
-
-	Gkword = (gk_word *) CreatGkword(1 );
-
-	set_dialect(Gkword,GetWantDialect());
-	set_workword(Gkword,string);
-	set_prntflags(Gkword,prntflags);
-	set_rawword(Gkword,workword_of(Gkword));
-	if( cur_lang() != ITALIAN ) standword(workword_of(Gkword));
-	stand_phonetics(Gkword);
-	
-	checkstring1(Gkword);
-
-	if( prntflags & LEMCOUNT ) {
-		nlems = cntlems(Gkword);
-		FreeGkword( Gkword );
-		return(nlems);
-	}
-
-	if( prntflags && (nanals=totanal_of(Gkword)) > 0 ) {
-		PrntAnalyses(Gkword,prntflags,fcurout);
-	}
-	FreeGkword( Gkword );
-	return(nanals);
+  gk_word *Gkword;
+  if(is_blank(string) || strlen(string) >= MAXWORDSIZE) return(NULL);
+  Gkword=CreatGkword(1);
+  if(!Gkword) return(NULL);
+  set_dialect(Gkword,GetWantDialect());
+  set_workword(Gkword,string);
+  set_prntflags(Gkword,prntflags);
+  set_rawword(Gkword,workword_of(Gkword));
+  if(cur_lang() != ITALIAN) standword(workword_of(Gkword));
+  stand_phonetics(Gkword);
+  checkstring1(Gkword);
+  return(Gkword);
 }
 
+int checkstring(char *string, PrntFlags prntflags, FILE *fout)
+{
+  gk_word *Gkword=morpheus_check_word(string,prntflags);
+  int nanals;
+  if(!Gkword) return(0);
+  if(prntflags & LEMCOUNT) {
+    int nlems=cntlems(Gkword);
+    FreeGkword(Gkword);
+    return(nlems);
+  }
+  nanals=totanal_of(Gkword);
+  if(prntflags && nanals > 0) PrntAnalyses(Gkword,prntflags,fout);
+  FreeGkword(Gkword);
+  return(nanals);
+}
 
 int cntlems(gk_word *Gkword )
 {

@@ -37,9 +37,14 @@ typedef struct {
   char ending[MORPHEUS_TEXT_CAPACITY];
   char crasis[MORPHEUS_TEXT_CAPACITY];
 } morpheus_analysis;
+typedef uint64_t morpheus_options;
+#define MORPHEUS_OPTION_STRICT_CASE (UINT64_C(1) << 0)
+#define MORPHEUS_OPTION_IGNORE_ACCENTS (UINT64_C(1) << 1)
+#define MORPHEUS_OPTION_VERBS_ONLY (UINT64_C(1) << 2)
 typedef struct { uint32_t abi_version; uint32_t struct_size; const char *stemlib_path; uint32_t language; } morpheus_config;
 morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **context);
 void morpheus_close(morpheus_context *context);
+morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_code, size_t length, morpheus_options options, morpheus_result **result);
 size_t morpheus_result_count(const morpheus_result *result);
 morpheus_status morpheus_result_get(const morpheus_result *result, size_t index, morpheus_analysis *analysis);
 void morpheus_result_free(morpheus_result *result);

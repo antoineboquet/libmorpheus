@@ -1,6 +1,7 @@
 
 /* checkstring.c */
 int checkstring(char *, PrntFlags, FILE *);
+gk_word *morpheus_check_word(char *, PrntFlags);
 void checkstring1(gk_word *);
 int checkstring2(gk_word *);
 int checkstring3(gk_word *);
