@@ -9,6 +9,7 @@ project(
 
 include(CTest)
 include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
 
 option(MORPHEUS_BUILD_CRUNCHER "Build the legacy-compatible cruncher CLI" ON)
 option(
@@ -772,21 +773,83 @@ if(BUILD_TESTING)
 endif()
 
 add_library(morpheus SHARED src/api/context.c src/api/result.c src/api/analyze.c)
-target_include_directories(morpheus PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> PRIVATE "${PROJECT_SOURCE_DIR}/src/includes")
-target_link_libraries(morpheus PUBLIC morpheus_build_options PRIVATE morpheus_anal morpheus_gener morpheus_gkends morpheus_gkdict morpheus_morphlib morpheus_greeklib)
-set_target_properties(morpheus PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION 0)
-install(TARGETS morpheus LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-install(FILES include/morpheus/morpheus.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/morpheus)
+add_library(Morpheus::morpheus ALIAS morpheus)
+target_include_directories(
+  morpheus
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  PRIVATE "${PROJECT_SOURCE_DIR}/src/includes"
+)
+target_link_libraries(
+  morpheus
+  PRIVATE
+    morpheus_anal
+    morpheus_gener
+    morpheus_gkends
+    morpheus_gkdict
+    morpheus_morphlib
+    morpheus_greeklib
+    morpheus_build_options
+)
+set_target_properties(
+  morpheus
+  PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION 0
+    EXPORT_NAME morpheus
+)
+install(
+  TARGETS morpheus
+  EXPORT MorpheusTargets
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+install(
+  FILES include/morpheus/morpheus.h
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/morpheus
+)
+configure_package_config_file(
+  cmake/MorpheusConfig.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/MorpheusConfig.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Morpheus"
+)
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/MorpheusConfigVersion.cmake"
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+install(
+  EXPORT MorpheusTargets
+  NAMESPACE Morpheus::
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Morpheus"
+)
+install(
+  FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/MorpheusConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/MorpheusConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Morpheus"
+)
 if(BUILD_TESTING)
   add_executable(morpheus_public_context_test test/public-context.c)
-  target_link_libraries(morpheus_public_context_test PRIVATE morpheus)
+  target_link_libraries(
+    morpheus_public_context_test PRIVATE morpheus morpheus_build_options
+  )
   add_test(NAME public_context COMMAND morpheus_public_context_test)
   add_executable(morpheus_public_result_test test/public-result.c)
-  target_link_libraries(morpheus_public_result_test PRIVATE morpheus)
+  target_link_libraries(
+    morpheus_public_result_test PRIVATE morpheus morpheus_build_options
+  )
   add_test(NAME public_result COMMAND morpheus_public_result_test)
   add_executable(morpheus_public_analysis_test test/public-analysis.c)
-  target_compile_definitions(morpheus_public_analysis_test PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib")
-  target_link_libraries(morpheus_public_analysis_test PRIVATE morpheus)
+  target_compile_definitions(
+    morpheus_public_analysis_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  target_link_libraries(
+    morpheus_public_analysis_test PRIVATE morpheus morpheus_build_options
+  )
   add_test(NAME public_analysis COMMAND morpheus_public_analysis_test)
 endif()
 
