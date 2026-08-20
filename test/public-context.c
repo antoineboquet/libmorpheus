@@ -25,5 +25,11 @@ int main(void)
   assert(morpheus_open(&config,&context)==MORPHEUS_OK);
   assert(context);
   morpheus_close(context);
+  context=NULL;
+  assert(morpheus_open_path(MORPHEUS_ABI_VERSION,
+                            (const uint8_t *)config.stemlib_path,
+                            strlen(config.stemlib_path),
+                            MORPHEUS_LANGUAGE_GREEK,&context)==MORPHEUS_OK);
+  morpheus_close(context);
   return(0);
 }

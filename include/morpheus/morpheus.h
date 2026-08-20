@@ -52,6 +52,7 @@ typedef struct { uint32_t abi_version; uint32_t struct_size; const char *stemlib
 uint32_t morpheus_abi_version(void);
 size_t morpheus_analysis_size(void);
 const char *morpheus_status_message(morpheus_status status);
+morpheus_status morpheus_open_path(uint32_t abi_version, const uint8_t *stemlib_path, size_t stemlib_path_length, uint32_t language, morpheus_context **context);
 morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **context);
 void morpheus_close(morpheus_context *context);
 morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_code, size_t length, morpheus_options options, morpheus_result **result);

@@ -56,4 +56,23 @@ morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **
   *context=runtime;
   return(MORPHEUS_OK);
 }
+morpheus_status morpheus_open_path(uint32_t abi_version, const uint8_t *stemlib_path, size_t stemlib_path_length, uint32_t language, morpheus_context **context)
+{
+  char path[MAXPATHNAME];
+  morpheus_config config;
+
+  if(!stemlib_path || !context) return(MORPHEUS_INVALID_ARGUMENT);
+  if(!stemlib_path_length) return(MORPHEUS_INVALID_ARGUMENT);
+  if(stemlib_path_length >= sizeof path) return(MORPHEUS_INPUT_TOO_LONG);
+  if(memchr(stemlib_path,0,stemlib_path_length))
+    return(MORPHEUS_INVALID_ARGUMENT);
+  memcpy(path,stemlib_path,stemlib_path_length);
+  path[stemlib_path_length]=0;
+  config.abi_version=abi_version;
+  config.struct_size=sizeof config;
+  config.stemlib_path=path;
+  config.language=language;
+  return(morpheus_open(&config,context));
+}
+
 void morpheus_close(morpheus_context *context) { morpheus_runtime_context_destroy(context); }
