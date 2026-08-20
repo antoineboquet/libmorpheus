@@ -33,7 +33,7 @@ else { Xstrcpy(S,"}"), S ++; }*/
 
 #include "beta2smarta.proto.h"
 static void init_gktab(morpheus_runtime_context *);
-static int acctab[] = {
+static const int acctab[] = {
 	ACUTEFLAG,
 	GRAVEFLAG,
 	CIRCUMFLAG,
