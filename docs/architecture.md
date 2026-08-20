@@ -95,5 +95,7 @@ The requested-dialect mask used by analysis belongs to the active runtime
 context and defaults independently to all dialects.
 Dictionary-entry generation uses call-local word and blank-ending records, so
 concurrent callers no longer overwrite a shared temporary word.
+Dormant memory counters, debug switches, and blank analysis records left over
+from the legacy front ends have been removed from the runtime objects.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

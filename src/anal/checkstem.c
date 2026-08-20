@@ -5,7 +5,6 @@
 int comstemtypes(char *, char *, char *);
 static int wantcurstemtype(char *, char *);
 extern int verbose;
-static int digstem = 0;
 
 char * is_substring();
 
@@ -130,9 +129,6 @@ int stemexists(char *s, char *endkeys, char *stemkeys, int is_nom)
 fprintf(stderr,"stemexists: s [%s] stemkeys [%s] endkeys [%s]\n", s , stemkeys, endkeys);
 */
 	rval = chckstem(s,stemkeys,is_nom);
-if( ! rval && digstem ) {
-longeststem(s);
-}
 /*
 if( rval ) printf("rval %d for [%s] with keys [%s]\n", rval , s , stemkeys );
 */

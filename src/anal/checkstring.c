@@ -12,8 +12,6 @@ void 	checkstring1(gk_word * Gkword);
 void 	stand_phonetics(gk_word * Gkword);
 void 	standword(char * s);
 int 	is_blank(char * s);
-gk_word BlankWord, CheckWord;
-
 int
 teststring(char *string)
 {

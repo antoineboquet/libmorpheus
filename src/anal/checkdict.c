@@ -4,7 +4,6 @@
 
 #include "checkdict.proto.h"
 gk_word * GenStemForms();
-static int count = 0;
 char * 	GetLemmStem();
 
 extern int verbose;
