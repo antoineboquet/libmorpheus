@@ -66,5 +66,7 @@ pre-index data on their next use.
 The derivation subsystem's circular result cache, diagnostic counters, and
 reduplication scratch buffers are context-owned too; only the result cache is
 language-invalidated because the scratch buffers are cleared before each use.
+The lazily loaded compound-noun head table is dynamically sized and owned by
+the active context; teardown releases both its entries and pointer index.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

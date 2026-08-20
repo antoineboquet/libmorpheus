@@ -55,6 +55,10 @@ struct morpheus_runtime_context {
 	int derivation_checked_suffixes;
 	int derivation_checked_stems;
 	int derivation_real_stems;
+	char **compound_head_table;
+	int compound_head_count;
+	int compound_head_capacity;
+	int compound_head_table_initialized;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;
