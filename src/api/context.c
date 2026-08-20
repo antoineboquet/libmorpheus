@@ -2,6 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../morphlib/runtime_context_internal.h"
+const char *morpheus_status_message(morpheus_status status)
+{
+  switch(status) {
+  case MORPHEUS_OK: return("success");
+  case MORPHEUS_INVALID_ARGUMENT: return("invalid argument");
+  case MORPHEUS_ABI_MISMATCH: return("ABI version mismatch");
+  case MORPHEUS_NO_MEMORY: return("memory allocation failed");
+  case MORPHEUS_INPUT_TOO_LONG: return("input is too long");
+  case MORPHEUS_OUT_OF_RANGE: return("result index is out of range");
+  case MORPHEUS_INTERNAL_ERROR: return("internal error");
+  default: return("unknown status");
+  }
+}
+
 static int runtime_language(uint32_t language)
 {
   switch(language) {
@@ -25,6 +39,10 @@ morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **
   runtime=morpheus_runtime_context_create();
   if(!runtime) return(MORPHEUS_NO_MEMORY);
   path_length=strlen(config->stemlib_path);
+  if(path_length >= MAXPATHNAME) {
+    morpheus_runtime_context_destroy(runtime);
+    return(MORPHEUS_INPUT_TOO_LONG);
+  }
   runtime->stemlib_path=malloc(path_length+1);
   if(!runtime->stemlib_path) { morpheus_runtime_context_destroy(runtime); return(MORPHEUS_NO_MEMORY); }
   memcpy(runtime->stemlib_path,config->stemlib_path,path_length+1);

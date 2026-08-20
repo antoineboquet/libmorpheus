@@ -54,20 +54,31 @@ void MorphPathName(char *shorts, char *full)
 /*
  	sprintf(full,"/as/fass/faculty/gcrane/morph/stemlib/%s", shorts );
 */
+	const char *language_directory;
+	int written;
+
 	s = morpheus_runtime_context_current()->stemlib_path;
 	if (!s) s = getenv("MORPHLIB");
 
 	if( ! s ) {
-		printf("MORPHLIB not set in your environment!\n");
+		full[0] = 0;
+		fprintf(stderr,"MORPHLIB not set in your environment!\n");
 		return;
 	}
-	
-	if( cur_lang() == LATIN ) 
-		sprintf(full,"%s/Latin/%s", s , shorts );
-	else if ( cur_lang() == ITALIAN ) 
-		sprintf(full,"%s/Italian/%s", s , shorts );
+
+	if( cur_lang() == LATIN )
+		language_directory = "Latin";
+	else if ( cur_lang() == ITALIAN )
+		language_directory = "Italian";
 	else
-		sprintf(full,"%s/Greek/%s", s , shorts );
+		language_directory = "Greek";
+
+	written = snprintf(full,BUFSIZ,"%s/%s/%s",s,language_directory,shorts);
+	if (written < 0 || written >= BUFSIZ) {
+		full[0] = 0;
+		fprintf(stderr,"MorphPathName: path is too long\n");
+		return;
+	}
 	
  	/*
  	 * this checks to make keep compatibility with the Mac
