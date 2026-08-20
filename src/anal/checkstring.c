@@ -18,8 +18,8 @@ teststring(char *string)
 	return(checkstring(string,(PrntFlags)0,stdout));
 }
 
-gk_word *
-morpheus_check_word(char *string, PrntFlags prntflags)
+static gk_word *
+check_word_once(char *string, PrntFlags prntflags)
 {
   gk_word *Gkword;
   if(is_blank(string) || strlen(string) >= MAXWORDSIZE) return(NULL);
@@ -33,6 +33,29 @@ morpheus_check_word(char *string, PrntFlags prntflags)
   stand_phonetics(Gkword);
   checkstring1(Gkword);
   return(Gkword);
+}
+
+gk_word *
+morpheus_check_word(char *string, PrntFlags prntflags)
+{
+  gk_word *word=check_word_once(string,prntflags);
+  char retry[MAXWORDSIZE];
+
+  if(!word || totanal_of(word) || cur_lang() == LATIN ||
+     !(prntflags & IGNORE_ACCENTS))
+    return(word);
+
+  FreeGkword(word);
+  Xstrncpy(retry,string,sizeof retry);
+  stripbreath(retry);
+  addbreath(retry,')');
+  word=check_word_once(retry,prntflags);
+  if(!word || totanal_of(word)) return(word);
+
+  FreeGkword(word);
+  stripbreath(retry);
+  addbreath(retry,'(');
+  return(check_word_once(retry,prntflags));
 }
 
 int checkstring(char *string, PrntFlags prntflags, FILE *fout)

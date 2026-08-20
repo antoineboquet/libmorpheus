@@ -221,19 +221,6 @@ fprintf(stdout,"files: [%s] [%s]\n", outname, failedname);
     /*set_nocrasis();*/
 
     rval = checkstring(line,flags,foutput);
-    if( cur_lang() != LATIN && ! rval && (flags & IGNORE_ACCENTS) ) {
-	char tmpform[BUFSIZ];
-
-	Xstrcpy(tmpform,line);
-	stripbreath(tmpform);
-	addbreath(tmpform,')');
-        rval = checkstring(tmpform,flags,foutput);
-	if( ! rval ) {
-		stripbreath(tmpform);
-		addbreath(tmpform,'(');
-		rval = checkstring(tmpform,flags,foutput);
-	}
-    }
     
     if( timeit ) {
       end_time = clock();
