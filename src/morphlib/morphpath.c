@@ -54,7 +54,8 @@ void MorphPathName(char *shorts, char *full)
 /*
  	sprintf(full,"/as/fass/faculty/gcrane/morph/stemlib/%s", shorts );
 */
-	s = getenv("MORPHLIB");
+	s = morpheus_runtime_context_current()->stemlib_path;
+	if (!s) s = getenv("MORPHLIB");
 
 	if( ! s ) {
 		printf("MORPHLIB not set in your environment!\n");

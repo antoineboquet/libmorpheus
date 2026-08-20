@@ -18,6 +18,7 @@
 struct morpheus_runtime_context {
 	int language;
 	int heap_allocated;
+	char *stemlib_path;
 	char comparison_table[128];
 	char beta_table[128];
 	int comparison_table_initialized;
