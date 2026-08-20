@@ -1,8 +1,17 @@
 #include "anal_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkword.proto.h"
 
-extern int quickflag;
+int get_quickflag(void)
+{
+	return(morpheus_runtime_context_current()->analysis_quick_enabled);
+}
+
+void set_quickflag(int enabled)
+{
+	morpheus_runtime_context_current()->analysis_quick_enabled = !!enabled;
+}
 
 int checkword(gk_word *Gkword)
 {
@@ -25,14 +34,14 @@ int checkword(gk_word *Gkword)
 	 * 
 	 * 
 	 */
-	if( rval && quickflag ) {
+	if( rval && get_quickflag() ) {
 		return(rval);
 	}
 	if( ! (has_morphflag(morphflags_of(stem_gstr_of(Gkword)) , UNAUGMENTED) ) )
 		rval += checknom(Gkword);		
 
 
-	if( rval && quickflag ) {
+	if( rval && get_quickflag() ) {
 		return(rval);
 	}
 /*

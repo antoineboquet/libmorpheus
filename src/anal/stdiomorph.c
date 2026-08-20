@@ -14,7 +14,6 @@
 #endif
 
 #include <time.h>
-int quickflag = 0;
 long prevmemory = 0;
 time_t start_time = 0;
 time_t prev_time = 0;

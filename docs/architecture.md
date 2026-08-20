@@ -103,5 +103,7 @@ Binary lookup no longer exposes a process-wide diagnostic switch; lookup
 behavior is covered directly without mutable debug state.
 The crasis and enclitic-suffix rule tables are private immutable data rather
 than exported writable arrays.
+The analyzer's quick-search mode is selected on the active context, preserving
+both the exhaustive and early-return paths without process-wide state.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

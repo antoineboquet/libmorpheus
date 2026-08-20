@@ -182,6 +182,8 @@ The unused `BinLookPrnt` diagnostic global and its conditional output paths
 were removed, with exact and lower-bound lookup behavior covered by a test.
 The six built-in crasis and enclitic-suffix tables are now `static const`, with
 const-correct helper boundaries for their string fields.
+The legacy `quickflag` analysis mode is now an active-context option, with
+independent exhaustive and early-return selection for each analyzer context.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
