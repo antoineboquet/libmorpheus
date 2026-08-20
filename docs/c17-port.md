@@ -226,8 +226,9 @@ now invocation-local; the counter therefore also starts cleanly on every run.
 
 ## Next compatibility-preserving lots
 
-The next work concentrates on hardening the public ABI, converting `cruncher`
-into a client of that ABI, and validating the Deno FFI boundary.
+The public ABI, installed CMake consumer, Deno FFI boundary, and compatibility
+client are now established. The next work concentrates on API documentation,
+packaging, benchmarks, and removal of transitional internal build surfaces.
 
 Every lot must keep both fixture suites passing: the inherited Perseids
 fixtures and the Greek Alpheios stemlib fixtures used by Bailly.

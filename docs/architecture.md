@@ -33,8 +33,9 @@ data source.
 The analyzer is now exposed through a versioned C ABI named `libmorpheus`,
 with opaque contexts, caller-independent result ownership, structured analyses,
 and per-request options. The library is installable as the CMake target
-`Morpheus::morpheus`. `cruncher` remains the compatibility client while its
-historical formatting path is validated by the fixture suites.
+`Morpheus::morpheus`. `cruncher` is now a client of the installed public target. Its historical text
+formats are provided through an owned memory-buffer compatibility API and
+remain validated by both fixture suites.
 
 ## Known constraints
 
