@@ -8,7 +8,7 @@ extern "C" {
 #define MORPHEUS_ABI_VERSION 1u
 typedef struct morpheus_runtime_context morpheus_context;
 typedef struct morpheus_result morpheus_result;
-typedef enum { MORPHEUS_OK=0, MORPHEUS_INVALID_ARGUMENT=1, MORPHEUS_ABI_MISMATCH=2, MORPHEUS_NO_MEMORY=3, MORPHEUS_INPUT_TOO_LONG=4, MORPHEUS_OUT_OF_RANGE=5, MORPHEUS_INTERNAL_ERROR=6 } morpheus_status;
+typedef enum { MORPHEUS_OK=0, MORPHEUS_INVALID_ARGUMENT=1, MORPHEUS_ABI_MISMATCH=2, MORPHEUS_NO_MEMORY=3, MORPHEUS_INPUT_TOO_LONG=4, MORPHEUS_OUT_OF_RANGE=5, MORPHEUS_INTERNAL_ERROR=6, MORPHEUS_BUFFER_TOO_SMALL=7 } morpheus_status;
 typedef enum { MORPHEUS_LANGUAGE_GREEK=0, MORPHEUS_LANGUAGE_LATIN=1, MORPHEUS_LANGUAGE_ITALIAN=2 } morpheus_language;
 #define MORPHEUS_TEXT_CAPACITY 64u
 #define MORPHEUS_DOMAIN_CAPACITY 24u
@@ -56,6 +56,7 @@ morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **
 void morpheus_close(morpheus_context *context);
 morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_code, size_t length, morpheus_options options, morpheus_result **result);
 size_t morpheus_result_count(const morpheus_result *result);
+morpheus_status morpheus_result_copy(const morpheus_result *result, size_t index, void *buffer, size_t buffer_size);
 morpheus_status morpheus_result_get(const morpheus_result *result, size_t index, morpheus_analysis *analysis);
 void morpheus_result_free(morpheus_result *result);
 #ifdef __cplusplus

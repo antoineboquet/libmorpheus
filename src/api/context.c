@@ -17,6 +17,7 @@ const char *morpheus_status_message(morpheus_status status)
   case MORPHEUS_INPUT_TOO_LONG: return("input is too long");
   case MORPHEUS_OUT_OF_RANGE: return("result index is out of range");
   case MORPHEUS_INTERNAL_ERROR: return("internal error");
+  case MORPHEUS_BUFFER_TOO_SMALL: return("output buffer is too small");
   default: return("unknown status");
   }
 }
