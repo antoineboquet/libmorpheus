@@ -151,7 +151,8 @@ pre-indexes for verbs, nominals, and lemmas now belong to the active context and
 reload when its language changes. Derivation-result caching, counters, and the
 eight reusable reduplication buffers are isolated and released with the context
 as well. The compound-noun head table is also context-owned, dynamically grown,
-and released at teardown. Activation is thread-local,
+and released at teardown. Buffered analysis output and its formatting cursors
+are isolated and released with their active context. Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
 invalidates its preverb, morphology-key, contraction, euphony, ending-table,

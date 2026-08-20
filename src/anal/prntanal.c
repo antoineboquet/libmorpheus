@@ -1,13 +1,15 @@
 #include "anal_internal.h"
-static char * pbuf = NULL;
+#include "../morphlib/runtime_context_internal.h"
+
+#define ANALYSIS_CONTEXT (morpheus_runtime_context_current())
+#define pbuf (ANALYSIS_CONTEXT->analysis_print_buffer)
+#define prevlemma (ANALYSIS_CONTEXT->analysis_previous_lemma)
+#define prevword (ANALYSIS_CONTEXT->analysis_previous_word)
+#define prevstem (ANALYSIS_CONTEXT->analysis_previous_stem)
+#define curan (ANALYSIS_CONTEXT->analysis_current_number)
 #define NEWLINE "\r"
 
 #include "prntanal.proto.h"
-
-static char prevlemma[MAXWORDSIZE];
-static char prevword[MAXWORDSIZE];
-static char prevstem[MAXWORDSIZE];
-static int curan = 0;
 
 int PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 {
@@ -329,9 +331,6 @@ int CompAnals(const void* Anal1, const void* Anal2)
   return(strcmp(lemma_of((gk_analysis*)Anal1),lemma_of((gk_analysis*)Anal2)));
 }
 
-static gk_string EndGstr;
-static word_form forminfo;
-
 _Static_assert(sizeof(word_form) <= sizeof(unsigned int),
                "word_form index must fit in unsigned int");
 
@@ -419,6 +418,8 @@ void DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FI
 
 void DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
 {
+  gk_string EndGstr;
+  const word_form empty_form = { 0 };
   char tmp[LONGSTRING];
   char tmp2[LONGSTRING];
   char workw[LONGSTRING];
@@ -570,7 +571,7 @@ void DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FI
   }
   if( endstring_of(anal)[0] ) {
     EndGstr = *(ends_gstr_of(anal));
-    forminfo_of(&EndGstr) = forminfo;
+    forminfo_of(&EndGstr) = empty_form;
 	
     DumpGstr(":end",&EndGstr,fout,(int)(prntflags & PARSE_FORMAT ));
   }

@@ -68,5 +68,8 @@ reduplication scratch buffers are context-owned too; only the result cache is
 language-invalidated because the scratch buffers are cleared before each use.
 The lazily loaded compound-noun head table is dynamically sized and owned by
 the active context; teardown releases both its entries and pointer index.
+Buffered analysis output and its previous-analysis formatting markers are now
+context-owned as well, preventing one active context from exposing another's
+most recently rendered result.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

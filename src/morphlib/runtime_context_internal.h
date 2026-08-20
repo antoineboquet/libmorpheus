@@ -59,6 +59,11 @@ struct morpheus_runtime_context {
 	int compound_head_count;
 	int compound_head_capacity;
 	int compound_head_table_initialized;
+	char *analysis_print_buffer;
+	char analysis_previous_lemma[MAXWORDSIZE];
+	char analysis_previous_word[MAXWORDSIZE];
+	char analysis_previous_stem[MAXWORDSIZE];
+	int analysis_current_number;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;

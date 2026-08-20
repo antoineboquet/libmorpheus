@@ -51,6 +51,7 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 	for (i = 0; i < (size_t)context->compound_head_count; i++)
 		free(context->compound_head_table[i]);
 	free(context->compound_head_table);
+	free(context->analysis_print_buffer);
 	for (i = 0; i < sizeof context->smk_beta_table /
 				 sizeof context->smk_beta_table[0]; i++) {
 		free(context->smk_beta_table[i]);
