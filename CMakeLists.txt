@@ -805,7 +805,7 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-add_library(morpheus SHARED src/api/context.c src/api/result.c src/api/analyze.c)
+add_library(morpheus SHARED src/api/context.c src/api/result.c src/api/analyze.c src/api/compat.c)
 add_library(Morpheus::morpheus ALIAS morpheus)
 target_include_directories(
   morpheus
@@ -875,6 +875,15 @@ if(BUILD_TESTING)
     morpheus_public_result_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_result COMMAND morpheus_public_result_test)
+  add_executable(morpheus_public_compat_test test/public-compat.c)
+  target_compile_definitions(
+    morpheus_public_compat_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  target_link_libraries(
+    morpheus_public_compat_test PRIVATE morpheus morpheus_build_options
+  )
+  add_test(NAME public_compat COMMAND morpheus_public_compat_test)
   add_executable(morpheus_public_analysis_test test/public-analysis.c)
   target_compile_definitions(
     morpheus_public_analysis_test

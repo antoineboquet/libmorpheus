@@ -8,6 +8,7 @@ extern "C" {
 #define MORPHEUS_ABI_VERSION 1u
 typedef struct morpheus_runtime_context morpheus_context;
 typedef struct morpheus_result morpheus_result;
+typedef struct morpheus_compat_output morpheus_compat_output;
 typedef enum { MORPHEUS_OK=0, MORPHEUS_INVALID_ARGUMENT=1, MORPHEUS_ABI_MISMATCH=2, MORPHEUS_NO_MEMORY=3, MORPHEUS_INPUT_TOO_LONG=4, MORPHEUS_OUT_OF_RANGE=5, MORPHEUS_INTERNAL_ERROR=6, MORPHEUS_BUFFER_TOO_SMALL=7 } morpheus_status;
 typedef enum { MORPHEUS_LANGUAGE_GREEK=0, MORPHEUS_LANGUAGE_LATIN=1, MORPHEUS_LANGUAGE_ITALIAN=2 } morpheus_language;
 #define MORPHEUS_TEXT_CAPACITY 64u
@@ -45,6 +46,24 @@ typedef struct {
   uint8_t morph_flags[MORPHEUS_MORPH_FLAG_CAPACITY];
 } morpheus_analysis;
 typedef uint64_t morpheus_options;
+typedef uint32_t morpheus_compat_flags;
+#define MORPHEUS_COMPAT_SHOW_ANAL UINT32_C(01)
+#define MORPHEUS_COMPAT_SHOW_LEMMA UINT32_C(02)
+#define MORPHEUS_COMPAT_SHOW_MISSES UINT32_C(04)
+#define MORPHEUS_COMPAT_BUFFER_ANALYSES UINT32_C(010)
+#define MORPHEUS_COMPAT_CHECK_PREVERB UINT32_C(020)
+#define MORPHEUS_COMPAT_KEEP_BETA UINT32_C(040)
+#define MORPHEUS_COMPAT_SHOW_FULL_INFO UINT32_C(0100)
+#define MORPHEUS_COMPAT_DATABASE_FORMAT UINT32_C(0200)
+#define MORPHEUS_COMPAT_DATABASE_SHORT UINT32_C(0600)
+#define MORPHEUS_COMPAT_STRICT_CASE UINT32_C(01000)
+#define MORPHEUS_COMPAT_PARSE_FORMAT UINT32_C(02000)
+#define MORPHEUS_COMPAT_PERSEUS_FORMAT UINT32_C(04000)
+#define MORPHEUS_COMPAT_ENDING_INDEX UINT32_C(010000)
+#define MORPHEUS_COMPAT_IGNORE_ACCENTS UINT32_C(020000)
+#define MORPHEUS_COMPAT_LEXICON_OUTPUT UINT32_C(040000)
+#define MORPHEUS_COMPAT_LEMMA_COUNT UINT32_C(0200000)
+#define MORPHEUS_COMPAT_VERBS_ONLY UINT32_C(0400000)
 #define MORPHEUS_OPTION_STRICT_CASE (UINT64_C(1) << 0)
 #define MORPHEUS_OPTION_IGNORE_ACCENTS (UINT64_C(1) << 1)
 #define MORPHEUS_OPTION_VERBS_ONLY (UINT64_C(1) << 2)
@@ -60,6 +79,12 @@ size_t morpheus_result_count(const morpheus_result *result);
 morpheus_status morpheus_result_copy(const morpheus_result *result, size_t index, void *buffer, size_t buffer_size);
 morpheus_status morpheus_result_get(const morpheus_result *result, size_t index, morpheus_analysis *analysis);
 void morpheus_result_free(morpheus_result *result);
+morpheus_status morpheus_compat_analyze(morpheus_context *context, const uint8_t *beta_code, size_t length, morpheus_compat_flags flags, morpheus_compat_output **output);
+const char *morpheus_compat_output_data(const morpheus_compat_output *output);
+size_t morpheus_compat_output_length(const morpheus_compat_output *output);
+size_t morpheus_compat_output_analysis_count(const morpheus_compat_output *output);
+size_t morpheus_compat_output_lemma_count(const morpheus_compat_output *output);
+void morpheus_compat_output_free(morpheus_compat_output *output);
 #ifdef __cplusplus
 }
 #endif
