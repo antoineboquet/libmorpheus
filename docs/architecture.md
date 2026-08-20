@@ -77,5 +77,7 @@ The three reusable irregular-form and irregular-key buffers follow the same
 ownership and teardown rules.
 The crasis-analysis disable option is stored in the active context, so changing
 it no longer affects other contexts in the process.
+Ending-selection work records are call-local, while the prefix-matching mode
+shared by `setwendstr` and `endstrcmp` belongs to the active context.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

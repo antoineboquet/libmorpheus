@@ -1,5 +1,6 @@
 #include <gkstring.h>
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include <modes.h>
 #include "endfiles.h" 
 
@@ -15,14 +16,7 @@ static char *GetEndString(char *, gk_string *);
 static int NoWantGkEnd(gk_string *, gk_string *, int);
 static void AddNewEnd(gk_string *, gk_string *, int);
 
-static gk_string  Cur_gkend;
-
-static gk_string WantEnd;
-static gk_string AvoidEnd;
-static gk_string BlankGkend;
-static gk_word BlankGkword;
 gk_string * CreatGkString();
-static int start_match = 0;
 
 gk_string *
  chckendings(char *endstr, char *restricts, char *stemstr, char *prevbstr, Dialect dial, int *nends)
@@ -32,6 +26,8 @@ gk_string *
 	Dialect OrDialect;
 	gk_string * tmpgstr;
 	gk_word  * BlnkGkword;
+	gk_string WantEnd = { 0 };
+	gk_string AvoidEnd = { 0 };
 
 
 	Xstrncpy(stemkeys,restricts,(int)sizeof stemkeys);
@@ -41,9 +37,6 @@ gk_string *
  * use this information to get appropriate endings (e.g., if the stem
  * is deponent, we don't want to get any active endings ).
  */
-
-	WantEnd = BlankGkend;
-	AvoidEnd = BlankGkend;
 
 	tmpgstr = &WantEnd;
 
@@ -103,8 +96,8 @@ printf("AvoidEnd:"); PrntAGstr(&AvoidEnd,stdout); printf("\n");
 int
  CompatKeys(char *keys1, char *keys2, gk_string *gstr)
 {
-	gk_string  Gstr;
-	gk_string  Gstr2;
+	gk_string  Gstr = { 0 };
+	gk_string  Gstr2 = { 0 };
 	gk_word * BlnkGkword;
 	int rval = 0;
 	int is_deriv = 0;
@@ -112,9 +105,7 @@ int
 	BlnkGkword = CreatGkword(1);
 	
 	is_deriv = has_morphflag(morphflags_of(gstr),IS_DERIV);
-	Gstr = BlankGkend;
-	Gstr2 = BlankGkend;
-	*gstr = BlankGkend;
+	*gstr = (gk_string){ 0 };
 	if( is_deriv ) add_morphflag(morphflags_of(gstr),IS_DERIV);
 	ScanAsciiKeys(keys1,BlnkGkword,gstr,NULL);
 	ScanAsciiKeys(keys2,BlnkGkword,&Gstr2,NULL);
@@ -144,8 +135,8 @@ int
 {
 	int good = 0;
 	gk_word * BlnkGkword;
+	gk_string Cur_gkend = { 0 };
 	
-	Cur_gkend = BlankGkend;
 	BlnkGkword = CreatGkword(1);
 	ScanAsciiKeys(keys,BlnkGkword,&Cur_gkend,avoidgstr);
 	FreeGkword(BlnkGkword);
@@ -224,6 +215,7 @@ static gk_string *
 	int maxend = 0;
 	char fname[BUFSIZ];
 	int i;
+	gk_string Cur_gkend;
 
 	*nends = 0;
 	
@@ -738,10 +730,10 @@ setwendstr(char *wendstr, char *str)
 
 	if(s > wendstr && *(s-1) == HARDSHORT ) *--s = 0;
 	if(s > wendstr && *(s-1) == '-') {
-		start_match = 1;
+		morpheus_runtime_context_current()->ending_start_match = 1;
 		s--;
 	} else
-		start_match = 0;
+		morpheus_runtime_context_current()->ending_start_match = 0;
 	*s = 0;
 	stripacc(wendstr);
 }
@@ -755,7 +747,7 @@ endstrcmp(char *wendstr, char *haveendstr)
 	int wlen, j;
 	
 	
-	if( start_match) {
+	if( morpheus_runtime_context_current()->ending_start_match ) {
 		wlen = Xstrlen(wendstr);
 		hp = haveendstr;
 		sp = tmp;

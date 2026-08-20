@@ -156,6 +156,8 @@ are isolated and released with their active context. The reusable augmented-
 stem and possible-stem analysis buffers share the same ownership boundary.
 The reusable irregular-verb form and key buffers are context-owned as well.
 The crasis-analysis disable option is isolated per runtime context.
+Ending-selection scratch records are call-local, and its prefix-match state is
+isolated per runtime context.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
