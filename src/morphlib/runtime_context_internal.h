@@ -59,6 +59,7 @@ struct morpheus_runtime_context {
 	int dictionary_tag_language;
 	int dictionary_tag_hq_mode;
 	int dictionary_tags_initialized;
+	int dictionary_hq_mode;
 	gk_string *derivation_stem_buffers[MORPHEUS_DERIVATION_BUFFER_COUNT];
 	gk_string *derivation_quantity_buffers[MORPHEUS_DERIVATION_BUFFER_COUNT];
 	int derivation_buffers_initialized;

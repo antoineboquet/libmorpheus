@@ -176,6 +176,8 @@ Dictionary-entry generation no longer stores its temporary word and blank
 ending in process-wide objects.
 Unused analyzer memory counters, debug state, and blank work records were
 removed instead of carrying inert shared state into the library ABI.
+The dictionary HQ mode and its cache invalidation snapshot now live in the
+active runtime context.
 Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language

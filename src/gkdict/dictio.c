@@ -2,8 +2,6 @@
 #include "../morphlib/runtime_context_internal.h"
 #define STEMCACHE 0
 
-int Use_hqdict = 0;
-
 #define DICT_CONTEXT (morpheus_runtime_context_current())
 #define VbTags (DICT_CONTEXT->verb_dictionary_tags)
 #define NomTags (DICT_CONTEXT->nominal_dictionary_tags)
@@ -11,8 +9,20 @@ int Use_hqdict = 0;
 #define num_of_vtags (DICT_CONTEXT->verb_dictionary_tag_count)
 #define num_of_ntags (DICT_CONTEXT->nominal_dictionary_tag_count)
 #define num_of_ltags (DICT_CONTEXT->lemma_dictionary_tag_count)
-#define vbindex (Use_hqdict ? STEMLIST : VBINDEX)
-#define nomindex (Use_hqdict ? STEMLIST : NOMINDEX)
+#define vbindex (DICT_CONTEXT->dictionary_hq_mode ? STEMLIST : VBINDEX)
+#define nomindex (DICT_CONTEXT->dictionary_hq_mode ? STEMLIST : NOMINDEX)
+
+void
+SetHqDict(int enabled)
+{
+	DICT_CONTEXT->dictionary_hq_mode = enabled != 0;
+}
+
+int
+GetHqDict(void)
+{
+	return(DICT_CONTEXT->dictionary_hq_mode);
+}
 
 static morpheus_runtime_context *
 dictionary_context(void)
@@ -22,10 +32,10 @@ dictionary_context(void)
 
 	if (!context->dictionary_tags_initialized) {
 		context->dictionary_tag_language = language;
-		context->dictionary_tag_hq_mode = Use_hqdict;
+		context->dictionary_tag_hq_mode = context->dictionary_hq_mode;
 		context->dictionary_tags_initialized = 1;
 	} else if (context->dictionary_tag_language != language ||
-		   context->dictionary_tag_hq_mode != Use_hqdict) {
+		   context->dictionary_tag_hq_mode != context->dictionary_hq_mode) {
 		free(context->verb_dictionary_tags);
 		free(context->nominal_dictionary_tags);
 		free(context->lemma_dictionary_tags);
@@ -36,7 +46,7 @@ dictionary_context(void)
 		context->nominal_dictionary_tag_count = 0;
 		context->lemma_dictionary_tag_count = 0;
 		context->dictionary_tag_language = language;
-		context->dictionary_tag_hq_mode = Use_hqdict;
+		context->dictionary_tag_hq_mode = context->dictionary_hq_mode;
 	}
 	return(context);
 }
@@ -51,7 +61,7 @@ endtags *
 init_dict(char *fname, int *ntags)
 {
 	dictionary_context();
-	if( Use_hqdict ) {
+	if( GetHqDict() ) {
 		fname = STEMLIST;
 	}
 	return(init_preind(fname,ntags));
