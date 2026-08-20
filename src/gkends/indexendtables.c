@@ -4,10 +4,6 @@
 #include "nextsufftab.proto.h"
 #include "../morphlib/morphkeys.proto.h"
 #define MAX_END_TABLE	20000
-char ** endlines;
-static int endcount = 0;
-gk_string Gstr;
-static gk_string Blnk;
 static int xstrcmp(const void *, const void *);
 #define DELIMITER " "
 
@@ -19,6 +15,10 @@ int is_deriv;
 
 	int index = 0;
 	int i;
+	int endcount = 0;
+	char **endlines;
+	gk_string Gstr;
+	const gk_string Blnk = { 0 };
 	char * curtable, *basen, * dirp;
 	char shortname[LONGSTRING+MAXPATHNAME];
 	char curderivname[LONGSTRING];

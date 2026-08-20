@@ -214,10 +214,10 @@ without blocking the library intended for Bailly.
 
 ## Verified linkage constraint
 
-`-fno-common` links the `cruncher` runtime. `countendtables.c` no longer
-contributes the historical duplicate `Gstr` and `endlines` symbols or allocates
-an unused ending-line table. `indexendtables.c` still carries the corresponding
-file-scope workspace outside the runtime closure.
+`-fno-common` links the `cruncher` runtime. The ending-table counting and
+indexing utilities no longer contribute the historical duplicate `Gstr` and
+`endlines` symbols. Their temporary records, line table, and entry counter are
+now invocation-local; the counter therefore also starts cleanly on every run.
 
 ## Next compatibility-preserving lots
 
