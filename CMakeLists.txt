@@ -311,13 +311,30 @@ if(BUILD_TESTING)
     NAME dictionary_context
     COMMAND morpheus_dictionary_context_test
   )
+  add_executable(
+    morpheus_derivation_context_test
+    test/derivation-context.c
+  )
+  target_link_libraries(
+    morpheus_derivation_context_test
+    PRIVATE morpheus_gkdict morpheus_morphlib morpheus_build_options
+  )
+  add_test(
+    NAME derivation_context
+    COMMAND morpheus_derivation_context_test
+  )
   set_tests_properties(
-    dictionary_context
+    dictionary_context derivation_context
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
   if(MORPHEUS_ENABLE_SANITIZERS)
     set_property(
       TEST dictionary_context APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+    set_property(
+      TEST derivation_context APPEND PROPERTY ENVIRONMENT
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )

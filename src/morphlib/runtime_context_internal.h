@@ -8,6 +8,8 @@
 #include "runtime_context.h"
 
 #define MORPHEUS_END_CACHE_SIZE 45
+#define MORPHEUS_DERIVATION_BUFFER_COUNT 4
+#define MORPHEUS_DERIVATION_CACHE_SIZE 12
 
 struct morpheus_runtime_context {
 	int language;
@@ -41,6 +43,18 @@ struct morpheus_runtime_context {
 	int dictionary_tag_language;
 	int dictionary_tag_hq_mode;
 	int dictionary_tags_initialized;
+	gk_string *derivation_stem_buffers[MORPHEUS_DERIVATION_BUFFER_COUNT];
+	gk_string *derivation_quantity_buffers[MORPHEUS_DERIVATION_BUFFER_COUNT];
+	int derivation_buffers_initialized;
+	char derivation_cache_stems[MORPHEUS_DERIVATION_CACHE_SIZE]
+		[MAXWORDSIZE+1];
+	char *derivation_cache_keys[MORPHEUS_DERIVATION_CACHE_SIZE];
+	int derivation_cache_index;
+	int derivation_cache_language;
+	int derivation_cache_initialized;
+	int derivation_checked_suffixes;
+	int derivation_checked_stems;
+	int derivation_real_stems;
 	int smarta_greek_table[256];
 	int smarta_accent_table[256];
 	int smarta_tables_initialized;

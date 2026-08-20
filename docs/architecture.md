@@ -63,5 +63,8 @@ Context destruction releases allocated tables, including the
 inverse converter's 512 lookup strings, while a language change reloads the
 preverb, morphology-key, contraction, euphony, ending-table, and dictionary
 pre-index data on their next use.
+The derivation subsystem's circular result cache, diagnostic counters, and
+reduplication scratch buffers are context-owned too; only the result cache is
+language-invalidated because the scratch buffers are cleared before each use.
 Remaining caches and formatting state are still process-wide, so this remains
 an incremental isolation boundary rather than a thread-safety guarantee.

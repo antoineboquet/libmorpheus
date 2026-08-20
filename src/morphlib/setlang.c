@@ -40,6 +40,14 @@ morpheus_runtime_context_destroy(morpheus_runtime_context *context)
 	free(context->verb_dictionary_tags);
 	free(context->nominal_dictionary_tags);
 	free(context->lemma_dictionary_tags);
+	for (i = 0; i < MORPHEUS_DERIVATION_BUFFER_COUNT; i++) {
+		if (context->derivation_stem_buffers[i])
+			FreeGkString(context->derivation_stem_buffers[i]);
+		if (context->derivation_quantity_buffers[i])
+			FreeGkString(context->derivation_quantity_buffers[i]);
+	}
+	for (i = 0; i < MORPHEUS_DERIVATION_CACHE_SIZE; i++)
+		free(context->derivation_cache_keys[i]);
 	for (i = 0; i < sizeof context->smk_beta_table /
 				 sizeof context->smk_beta_table[0]; i++) {
 		free(context->smk_beta_table[i]);

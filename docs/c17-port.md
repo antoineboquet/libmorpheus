@@ -148,7 +148,9 @@ language-specific vowel-contraction and consonant-euphony tables now share the
 same ownership and teardown boundary. The 45-entry ending-table cache and its
 circular replacement state are context-owned too. The three dictionary
 pre-indexes for verbs, nominals, and lemmas now belong to the active context and
-reload when its language changes. Activation is thread-local,
+reload when its language changes. Derivation-result caching, counters, and the
+eight reusable reduplication buffers are isolated and released with the context
+as well. Activation is thread-local,
 while the historical `set_lang` and `cur_lang` calls remain compatible.
 Destruction releases the allocated tables, and switching a context's language
 invalidates its preverb, morphology-key, contraction, euphony, ending-table,

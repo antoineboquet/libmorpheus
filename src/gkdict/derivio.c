@@ -1,14 +1,44 @@
 #include "gkdict_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 static int checkforderiv2(char *stemstr, char *stemkeys, char *had_redupl, char *redupstem);
 int checkcomderivs(char * derivs,char * defstem,char * suffix,char * lemmkeys,char * nkeys,char * had_redupl,char * redupstem);
 int checkcomderiv(char * derivs,char * defstem,char * suffix,char * lemmkeys,char * nkeys,char * had_redupl,char * redupstem);
 int checkcomderiv2(char * asuffkeys,char * dstem,char * dstemkeys,char * suffix,char * lemma,char * lkeys,char * rkeys,char * had_redupl,int markedstem);
 
-static gk_string BlnkGstr;
-int checkedsuffs = 0;
-int checkedderivs = 0;
-int realderivs = 0;
+#define DERIV_CONTEXT (morpheus_runtime_context_current())
+#define checkedsuffs (DERIV_CONTEXT->derivation_checked_suffixes)
+#define checkedderivs (DERIV_CONTEXT->derivation_checked_stems)
+#define realderivs (DERIV_CONTEXT->derivation_real_stems)
+
+static void
+clear_derivation_cache(morpheus_runtime_context *context)
+{
+	int i;
+
+	for (i = 0; i < MORPHEUS_DERIVATION_CACHE_SIZE; i++) {
+		context->derivation_cache_stems[i][0] = 0;
+		free(context->derivation_cache_keys[i]);
+		context->derivation_cache_keys[i] = NULL;
+	}
+	context->derivation_cache_index = 0;
+}
+
+static morpheus_runtime_context *
+derivation_context(void)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int language = cur_lang();
+
+	if (!context->derivation_cache_initialized) {
+		context->derivation_cache_language = language;
+		context->derivation_cache_initialized = 1;
+	} else if (context->derivation_cache_language != language) {
+		clear_derivation_cache(context);
+		context->derivation_cache_language = language;
+	}
+	return(context);
+}
 int
 checkforderiv(char *stemstr, char *stemkeys)
 {
@@ -17,6 +47,8 @@ checkforderiv(char *stemstr, char *stemkeys)
 	char * p, * is_substring();
 	char stemkeys2[LONGSTRING];
 	int oldsuffs = checkedsuffs;
+
+	derivation_context();
 
 	stemkeys2[0] = 0;
 	checkedderivs++;
@@ -62,20 +94,17 @@ checkforredupderiv(char *stemstr, char *stemkeys)
 	return(checkaugredup(stemstr,stemkeys));
 }
 
-#define MAXREDUPLS 	04
-static int init_stor = 0;
-static 	gk_string * tstemtab[MAXREDUPLS];
+#define MAXREDUPLS MORPHEUS_DERIVATION_BUFFER_COUNT
 /*
  * store stems that would have a quantity marked
  * e.g., a)_kolouqh/seis -- doric future perfect
  *
  * grc 3/21/91
  */
-static 	gk_string * tqstemtab[MAXREDUPLS];
-
 int
 checkaugredup(char *stemstr, char *stemkeys)
 {
+	morpheus_runtime_context *context = derivation_context();
 	int hits = 0;
 	int i;
 	int poss_redupls = 0;
@@ -85,16 +114,21 @@ checkaugredup(char *stemstr, char *stemkeys)
 
 
 
-	if( ! init_stor ) {
-		init_stor = 1;
+	if( ! context->derivation_buffers_initialized ) {
 		for(i=0;i<MAXREDUPLS;i++) {
-			tstemtab[i] = CreatGkString(1);
-			tqstemtab[i] = CreatGkString(1);
+			if (!context->derivation_stem_buffers[i])
+				context->derivation_stem_buffers[i] = CreatGkString(1);
+			if (!context->derivation_quantity_buffers[i])
+				context->derivation_quantity_buffers[i] = CreatGkString(1);
+			if (!context->derivation_stem_buffers[i] ||
+			    !context->derivation_quantity_buffers[i])
+				return(0);
 		}
+		context->derivation_buffers_initialized = 1;
 	}
 	for(i=0;i<MAXREDUPLS;i++) {
-		ClearGkstring(tstemtab[i]);
-		ClearGkstring(tqstemtab[i]);
+		ClearGkstring(context->derivation_stem_buffers[i]);
+		ClearGkstring(context->derivation_quantity_buffers[i]);
 	}
 
 	/*
@@ -108,19 +142,25 @@ checkaugredup(char *stemstr, char *stemkeys)
 		if( *(stemstr+2) != 'z' && *(stemstr+2) != 'c' && *(stemstr+2) != 'y' )
 			return(0);
 	}
-	poss_redupls = unaugment(stemstr,tstemtab,tqstemtab,MAXREDUPLS,(Dialect)ALL_DIAL,1,1);
+	poss_redupls = unaugment(stemstr,context->derivation_stem_buffers,
+		context->derivation_quantity_buffers,MAXREDUPLS,
+		(Dialect)ALL_DIAL,1,1);
 
 	for(i=0;i<poss_redupls;i++) {
 		char tempstem[BUFSIZ];
 		tmpkeys[0] = 0;
 /*
-printf("checking [%s] [%s] [%s]\n", stemstr , gkstring_of(tstemtab[i]) , tmpkeys );
+printf("checking [%s] [%s] [%s]\n", stemstr,
+gkstring_of(context->derivation_stem_buffers[i]), tmpkeys);
 */
 		tempstem[0] = 0;
-		SprintGkFlags(tstemtab[i],tmpkeys,"	",1);
-		Xstrncpy(tempstem,gkstring_of(tstemtab[i]),(int)sizeof tempstem );
+		SprintGkFlags(context->derivation_stem_buffers[i],tmpkeys,"	",1);
+		Xstrncpy(tempstem,gkstring_of(context->derivation_stem_buffers[i]),
+			(int)sizeof tempstem );
 
-		if( has_morphflag(morphflags_of(tstemtab[i]),SYLL_AUGMENT)  ) 
+		if( has_morphflag(
+			morphflags_of(context->derivation_stem_buffers[i]),
+			SYLL_AUGMENT) )
 			Xstrcpy(had_redupl,"syll_aug");
 		else
 			Xstrcpy(had_redupl,"temp_aug");
@@ -137,7 +177,8 @@ printf("checking [%s] [%s] [%s]\n", stemstr , gkstring_of(tstemtab[i]) , tmpkeys
 		}
 
 		if( checkforderiv2(tempstem,tmpkeys,had_redupl,
-				gkstring_of(tqstemtab[i])[0] ? gkstring_of(tqstemtab[i]) :"") ) {
+				gkstring_of(context->derivation_quantity_buffers[i])[0] ?
+				gkstring_of(context->derivation_quantity_buffers[i]) :"") ) {
 			if(*stemkeys) Xstrncat(stemkeys," ",LONGSTRING);
 			Xstrncat(stemkeys,tmpkeys,LONGSTRING);
 			hits++;
@@ -555,19 +596,17 @@ need_rei_alpha(char *dsuffkeys)
 	return(rval);
 }
 
-#define BADTRIES 12
-char * cache_stems[BADTRIES];
-char * cache_keys[BADTRIES];
-static int badinit = 0;
-static int badindex = 0;
 int
 stemstr_in_cache(char *s, char *stemkeys)
 {
+	morpheus_runtime_context *context = derivation_context();
 	int i;
 	
-	for(i=0;i<BADTRIES;i++) {
-		if( ! strcmp(s,cache_stems[i]) ) {
-			if( cache_keys[i] ) Xstrncpy(stemkeys,cache_keys[i] ,LONGSTRING);
+	for(i=0;i<MORPHEUS_DERIVATION_CACHE_SIZE;i++) {
+		if( context->derivation_cache_stems[i][0] &&
+		    ! strcmp(s,context->derivation_cache_stems[i]) ) {
+			if( context->derivation_cache_keys[i] )
+				Xstrncpy(stemkeys,context->derivation_cache_keys[i],LONGSTRING);
 			else *stemkeys = 0;
 			return(1);
 		}
@@ -579,28 +618,23 @@ stemstr_in_cache(char *s, char *stemkeys)
 void
 add_deriv_cache(char *s, char *keys)
 {
-	int i;
-	
-	if( ! badinit ) {
-		for(i=0;i<BADTRIES;i++) {
-			cache_stems[i] = (char *)malloc((size_t)MAXWORDSIZE+1);
-			cache_stems[i][0] = 0;
-			cache_keys[i] = NULL;
-		}
-		badinit = 1;
-	}
-	if( badindex >= BADTRIES ) badindex = 0;
-	Xstrncpy(cache_stems[badindex],s,MAXWORDSIZE);
-	if( cache_keys[badindex] ) {
-		free(cache_keys[badindex]);
+	morpheus_runtime_context *context = derivation_context();
+	int index = context->derivation_cache_index;
+
+	if( index >= MORPHEUS_DERIVATION_CACHE_SIZE ) index = 0;
+	Xstrncpy(context->derivation_cache_stems[index],s,MAXWORDSIZE);
+	if( context->derivation_cache_keys[index] ) {
+		free(context->derivation_cache_keys[index]);
 	}
 	if( ! *keys ) {
-		cache_keys[badindex] = NULL;
+		context->derivation_cache_keys[index] = NULL;
 	} else {
-		cache_keys[badindex] = (char *)malloc((size_t)Xstrlen(keys)+1);
-		Xstrcpy(cache_keys[badindex],keys);
+		context->derivation_cache_keys[index] =
+			(char *)malloc((size_t)Xstrlen(keys)+1);
+		if (context->derivation_cache_keys[index])
+			Xstrcpy(context->derivation_cache_keys[index],keys);
 	}
-	badindex++;
+	context->derivation_cache_index = index + 1;
 }
 
 int
