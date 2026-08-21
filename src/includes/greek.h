@@ -590,26 +590,10 @@ grc 8/21/88 added 'c' (xi) to palatals
 /*extern lookup_res_type lookup_res;
 extern bool debug,verbose,grkchars;*/
 
-extern char tenses[][MAXWORDSIZE];
-extern char moods[][MAXWORDSIZE];
-extern char voices[][MAXWORDSIZE];
-extern char pernums[][MAXWORDSIZE];
-extern char casenums[][MAXWORDSIZE];
-extern char genders[][MAXWORDSIZE];
-extern char degrees[][MAXWORDSIZE];
-extern char prefl_types[][MAXWORDSIZE];
-
 char *getsyll(char *, int);
 char *getsyll2(char *, int);
 char *getaccp(char *, int);
-/*
-char getaccent(),getbreath();
-*/
-bool Is_diphth();
-char *skipwhite();
-char *parse_nounform(),*parse_verbform(),*parse_adjform();
 char *next_cons(char *);
-ext_type calc_vbext(),calc_adjext(),findhyp();
 /*#include "binlook.proto.h"*/
 
 /* addaccent.c */
