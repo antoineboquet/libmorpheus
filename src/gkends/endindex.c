@@ -235,13 +235,13 @@ init_endind(char *fname, endind *etags)
 }
 
 int
-checkendind(endind *etags, char *endstr, char *keys, int (*scmp )())
+checkendind(endind *etags, char *endstr, char *keys, int (*scmp)(const char *, const char *, size_t))
 {
 	int high = 0;
 	int low = 0;
 	int mid = 0;
 	int comp;
-	int i, ntags;
+	int ntags;
 	char curtag[MAXWORDSIZE];
 	size_t taglen;
 	char ** pp;

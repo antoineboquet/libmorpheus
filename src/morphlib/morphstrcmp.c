@@ -54,7 +54,7 @@ int betastrcmp(char *s1, char *s2)
 
 }
 
-int morphstrncmp(char *s1, char *s2, size_t n)
+int morphstrncmp(const char *s1, const char *s2, size_t n)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	char *comptab = context->comparison_table;
@@ -99,7 +99,7 @@ int dictstrcmp(char *s1, char *s2)
 	}
 }
 
-int dictstrncmp(char *s1, char *s2, size_t n)
+int dictstrncmp(const char *s1, const char *s2, size_t n)
 {
 	char b1[BUFSIZ/2];
 	char b2[BUFSIZ/2];
