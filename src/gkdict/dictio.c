@@ -324,6 +324,8 @@ FILE *
 	char shorttag[MAXWORDSIZE];
 
 	dictionary_context();
+	*lemmoff = -1;
+	*lemmfile = 0;
 	
  
  	if( ! LemmTags ) {
@@ -335,14 +337,11 @@ FILE *
 	shorttag[6] = 0;
 
 	startoff = ChckPreIndex(LemmTags,shorttag,num_of_ltags,NO,morphstrcmp);
-	if (startoff < 0) {
-		*lemmoff = -1;
-		*lemmfile = 0;
+	if (startoff < 0)
 		return(NULL);
-	}
 
 	if( (f=MorphFopen(WORDLIST,"r")) == NULL ) {
-		fprintf(stderr,"getlemmstart: could not find %s\n", line );
+		fprintf(stderr,"getlemmstart: could not open %s\n", WORDLIST);
 		return(NULL);
 	}
 	fseek(f,startoff,0);
@@ -350,7 +349,11 @@ FILE *
 	Xstrncpy(shorttag,lemma,MAXWORDSIZE);
 	stripquant(shorttag);
 
-	sprintf(curtarget,":le:%s", shorttag );
+	if (snprintf(curtarget,sizeof curtarget,":le:%s",shorttag) >=
+	    (int)sizeof curtarget) {
+		xFclose(f);
+		return(NULL);
+	}
 
 	while(1) {
 		char curlemm[MAXWORDSIZE];
@@ -395,7 +398,7 @@ ErrorMess(errbuf);
 		return(NULL);
 	}
 	
-	Xstrncpy(lemmfile,WORDLIST,MAXWORDSIZE); 
+	Xstrncpy(lemmfile,WORDLIST,LONGSTRING); 
 	fseek(f,*lemmoff,0);
 	return(f);
 
