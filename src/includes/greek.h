@@ -28,6 +28,7 @@ typedef unsigned long int32;
 #include <sys/file.h>
 #endif
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #ifdef ANSI
 #include <string.h>
@@ -584,7 +585,6 @@ grc 8/21/88 added 'c' (xi) to palatals
 /*	FUNCTION DECLARATIONS		*/
 /*======================================*/
 
-extern int errno;
 
 extern	grkfd fds[MAXFILES];
 extern	filehead fheaders[MAXFILES];
