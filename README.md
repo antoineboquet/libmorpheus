@@ -182,6 +182,38 @@ Important retained options include `-L` for Latin, `-S` for non-strict case,
 indices, `-k` to retain Beta Code, `-l` for lemma-only output, and `-V` for
 verbs only.
 
+## Alpine container images
+
+The default multi-stage image builds and tests the C17 runtime on musl, then
+ships only the installed library, `cruncher`, its runtime dependencies, and
+the pinned Alpheios stemlib:
+
+```sh
+docker build --target runtime -t morpheus .
+printf 'a)/nqrwpos\n' | docker run --rm -i morpheus -S
+```
+
+The Dockerfile is multiarchitecture. With BuildKit/QEMU configured, the same
+source builds both immediate Linux targets:
+
+```sh
+docker buildx build \
+  --platform linux/amd64,linux/arm64 \
+  --target runtime \
+  .
+```
+
+A separate `deno-runtime` target contains Deno, the shared library, the typed
+binding, and the stemlib for use as an application base:
+
+```sh
+docker build --target deno-runtime -t morpheus-deno .
+```
+
+Its `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` variables already point to the
+container paths. Application code can import the bundled binding from
+`/opt/morpheus/share/morpheus/deno/mod.ts`.
+
 ## Behavioral baselines
 
 Two fixture suites intentionally remain separate:
