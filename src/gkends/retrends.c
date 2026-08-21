@@ -478,7 +478,6 @@ printf("failing on wtense %o htense %o\n", wtense, htense );
  * an ending that is common to both (but not, for example, to a neuter
  * stem, e.g. -es in nom pl for masc and fem, but -a for neuter)
  */
-/*
 
 /*
  * only fail if gender set for both.
@@ -496,11 +495,12 @@ printf("failing with hgender %o and wgender %o\n", hgender , wgender );
 				return(0);
 			}
 		}
-		if( writeflag )
+		if( writeflag ) {
 			if( Want_Gender(wform,hform) )
 				set_gender(forminfo_of(haveend), Want_Gender(wform, hform));
 			else
 			   	set_gender(forminfo_of(haveend), wgender );
+		}
 	}
 
 	if( wcase ) {

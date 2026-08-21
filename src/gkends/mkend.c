@@ -5,7 +5,7 @@
 #include "mkend.proto.h"
 static void mk_compend(gk_string *, gk_string *, char *, char *);
 static void update_end(gk_string *, gk_string *, char *, char *, char *);
-static void join_end(gk_string *, char *, int);
+static void join_end(gk_string *, char *);
 
 void
  mk_end(char *havestr, gk_string *Have, gk_string *Avoid)
@@ -14,7 +14,6 @@ void
 	char savestr[MAXWORDSIZE];
 	gk_string * contr_forms;
 	gk_string * euph_forms;
-	int saw_vowel = 0;
 	gk_string no_avoid = { 0 };
 	
 	Xstrcpy(savestr,havestr);
@@ -22,8 +21,6 @@ void
 
 
 	while(*s) {
-		if( Is_vowel(*s) ) saw_vowel = 1;
-		
 		if( *s == '@' ) {
 
 			*s = 0;
@@ -33,7 +30,7 @@ void
 		s++;
 	}
 	
-	join_end(Have,gkstring_of(Have),saw_vowel);
+	join_end(Have,gkstring_of(Have));
 
 
 
@@ -160,26 +157,15 @@ static void
 }
 
 static void
- join_end(gk_string *Have, char *stem, int saw_vowel)
+ join_end(gk_string *Have, char *stem)
 {
-	gk_string SaveGstr;
 	set_gkstring(Have,stem);
-/*
-	set_morphflags(&SaveGstr,morphflags_of(Have));
-*/
-	/* mod 2/21/88 */
-/*
-	if( Is_penult_accent(morphflags_of(Have)) ) {
-		if( saw_vowel) {
-/*
-printf("saw_vowel on [%s]\n", gkstring_of(Have) );
-*
-			zap_morphflag(morphflags_of(Have),STEM_ACC);
-			add_morphflag(morphflags_of(Have),SUFF_ACC);
-		}
-	} else */ /* end mod */
-	
-	
+
+	/*
+	 * A historical 2/21/88 branch moved STEM_ACC to SUFF_ACC for
+	 * penult-accented forms after a vowel; that behavior remains disabled.
+	 */
+
 	if( ! Needs_accent(morphflags_of(Have)) 
 	&& ! has_morphflag(morphflags_of(Have),SUFF_ACC)
 	&& ! has_morphflag(morphflags_of(Have),HAS_AUGMENT)
