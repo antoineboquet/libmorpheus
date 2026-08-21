@@ -96,7 +96,7 @@ static int GoodAnals(gk_word *Gkword, int lemmflag)
       difflems ++;
       Xstrcpy(curlem,lemma_of(Anal));
     }
-    if( (strchr(lemma_of(Anal),'-') == NULL ) ) {
+    if(strchr(lemma_of(Anal),'-') == NULL) {
       goodanals++;
     }
   }
