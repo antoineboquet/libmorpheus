@@ -21,6 +21,6 @@ typedef struct endind {
 #define endeptr_of(X) ((X)->eptr)
 #define endlen_of(X) ((X)->nelems)
 
-endind * init_endind();
+endind *init_endind(char *, endind *);
 
 #endif

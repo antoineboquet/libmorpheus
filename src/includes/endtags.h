@@ -22,6 +22,6 @@ typedef struct {
 #define tagstring_of(X) (X)->tagstring
 #define tagoffset_of(X) (X)->tagoffset
 
-endtags * init_preind();
+endtags *init_preind(char *, int *);
 
 #endif

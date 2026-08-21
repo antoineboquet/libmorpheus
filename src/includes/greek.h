@@ -283,8 +283,7 @@ typedef struct {
 /*
 #define	COMMON_GNDR	4
 */
-/*
-#define	ADVERB		5 /* NB!! */
+/* #define ADVERB 5 */
 
 /* values for degree field */
 #define NDEGREES	3
@@ -603,13 +602,16 @@ extern char genders[][MAXWORDSIZE];
 extern char degrees[][MAXWORDSIZE];
 extern char prefl_types[][MAXWORDSIZE];
 
-char *getsyll(), *getsyll2(), *getaccp();
+char *getsyll(char *, int);
+char *getsyll2(char *, int);
+char *getaccp(char *, int);
 /*
 char getaccent(),getbreath();
 */
 bool Is_diphth();
 char *skipwhite();
-char *parse_nounform(),*parse_verbform(),*parse_adjform(), *next_cons();
+char *parse_nounform(),*parse_verbform(),*parse_adjform();
+char *next_cons(char *);
 ext_type calc_vbext(),calc_adjext(),findhyp();
 /*#include "binlook.proto.h"*/
 

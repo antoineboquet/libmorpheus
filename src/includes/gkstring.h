@@ -194,10 +194,10 @@ typedef struct {
 #define Is_zeroend(X) (X == ZEROEND)
 #define set_zeroend( gs ) sprintf(endstring_of(gs),"%c", ZEROEND )
 
-gk_string * CreatGkString();
-gk_word * CreatGkword();
-gk_analysis * CreatGkAnal();
-FILE * getlemmstart();
+gk_string *CreatGkString(int);
+gk_word *CreatGkword(int);
+gk_analysis *CreatGkAnal(int);
+FILE *getlemmstart(char *, char *, long *);
 FILE * MorphFopen(char *, char *);
 
 #ifdef LIGHTSPEED
