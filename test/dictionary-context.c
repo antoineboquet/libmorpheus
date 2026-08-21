@@ -47,6 +47,15 @@ main(void)
 	morpheus_runtime_context_activate(latin);
 	assert_indeclinable("et",1);
 
+	morpheus_runtime_context_activate(greek);
+	{
+		FILE *output = tmpfile();
+
+		assert(output);
+		assert(prntlemmentry("zzzzzzzz",NULL,output) == -1);
+		fclose(output);
+	}
+
 	morpheus_runtime_context_activate(previous);
 	morpheus_runtime_context_destroy(greek);
 	morpheus_runtime_context_destroy(latin);

@@ -266,25 +266,23 @@ int
  prntlemmentry(char *lemma, char *preverb, FILE *f)
 {
 	long startoff = 0;
-	char *lemmfile= NULL;
-	char *line = NULL;
+	char lemmfile[LONGSTRING] = {0};
+	char line[LONGSTRING] = {0};
 	FILE * fword = NULL;
 
 	if( (fword=getlemmstart(lemma,lemmfile,&startoff)) == NULL ) {
-		sprintf(line,"No Lemma found under [%s]\n", lemma );
+		snprintf(line,sizeof line,"No Lemma found under [%s]\n", lemma );
 		ErrorMess(line);
 		return(-1);
 	}
-	lemmfile = (char *)malloc((size_t)LONGSTRING);
-	line = (char *)malloc((size_t)LONGSTRING);
-	*line = * lemmfile = 0;
-	while(fgets(line,LONGSTRING, fword) ) {
+	while(fgets(line,(int)sizeof line, fword) ) {
 		if( is_blank(line) ) {
 			fprintf(f,"\n\n");
 			break;
 		}
 		trimwhite(line);
-		if( *preverb && !Xstrncmp(line,LEMMTAG,Xstrlen(LEMMTAG)) ) {
+		if( preverb && *preverb &&
+			!Xstrncmp(line,LEMMTAG,Xstrlen(LEMMTAG)) ) {
 			rstprevb(line+Xstrlen(LEMMTAG),preverb,0);
 			fprintf(f,"%s\n", line );
 			continue;
@@ -295,10 +293,6 @@ int
 			fprintf(f,"%s\n", line );
 	}
 	xFclose(fword);
-	fword = NULL;
-	xFree(line,"line prntlem");
-	xFree(lemmfile,"lemmfile prntlem");
-	line = lemmfile = NULL;
 	return(1);
 }
 
