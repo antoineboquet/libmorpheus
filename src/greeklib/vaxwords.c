@@ -56,33 +56,28 @@ int put_int32(const int32 *lword, FILE *f)
  */
 int get_short(unsigned short *sword, FILE *f)
 {
-	unsigned short tmp;
-	unsigned short i;
+	unsigned int value = 0;
+	unsigned int i;
 	int c;
 
-	for(*sword=0,i=0;i<2;i++) {
+	for(i=0;i<2;i++) {
 		c = getc(f);
 		if(c == EOF)
 			return(0);
-		tmp = (unsigned short)(c&0377);
-		tmp = tmp << (8 * i);
-
-		*sword += tmp;
+		value |= (unsigned int)(c&0377) << (8U*i);
 	}
+	*sword = (unsigned short)value;
 	return(1);
 }
 
 int put_short(const unsigned short *sword, FILE *f)
 {
-	
-	unsigned short tmp;
-	int i;
-	unsigned short c;
+	unsigned int value = *sword;
+	unsigned int i;
+	int c;
 
 	for(i=0;i<2;i++) {
-		tmp = *sword;
-		tmp = tmp >> (8 * i);
-		c = tmp & 0377;
+		c = (int)((value >> (8U*i)) & 0377U);
 		if(fputc(c , f ) == EOF)
 			return(0);
 
