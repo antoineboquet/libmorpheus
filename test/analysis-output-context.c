@@ -20,6 +20,28 @@ render_empty_analysis(const char *word)
 	assert(!PrntAnalyses(&candidate,KEEP_BETA,stdout));
 }
 
+static void
+assert_analysis_sort_is_stable(void)
+{
+	gk_analysis analyses[4] = { 0 };
+
+	set_lemma(&analyses[0],"zeta");
+	set_rawword(&analyses[0],"zeta-first");
+	set_lemma(&analyses[1],"alpha");
+	set_rawword(&analyses[1],"alpha-first");
+	set_lemma(&analyses[2],"zeta");
+	set_rawword(&analyses[2],"zeta-second");
+	set_lemma(&analyses[3],"alpha");
+	set_rawword(&analyses[3],"alpha-second");
+
+	SortAnals(analyses,4);
+
+	assert(!strcmp(rawword_of(&analyses[0]),"alpha-first"));
+	assert(!strcmp(rawword_of(&analyses[1]),"alpha-second"));
+	assert(!strcmp(rawword_of(&analyses[2]),"zeta-first"));
+	assert(!strcmp(rawword_of(&analyses[3]),"zeta-second"));
+}
+
 int
 main(void)
 {
@@ -29,6 +51,7 @@ main(void)
 
 	assert(greek);
 	assert(latin);
+	assert_analysis_sort_is_stable();
 	previous = morpheus_runtime_context_activate(greek);
 	assert(!anal_buf());
 	render_empty_analysis("alpha");

@@ -319,11 +319,23 @@ int CompAnals(const void*, const void*);
 
 void SortAnals(gk_analysis *Anal, int nanals)
 {
-  /*
-    lqsort(Anal,(long)nanals,(int)sizeof * Anal,CompAnals);
-    */
-  qsort(Anal,(long)nanals,(int)sizeof * Anal,CompAnals);
+  int i;
 
+  /*
+   * The comparator intentionally groups analyses by lemma only.  Preserve
+   * discovery order within each lemma so output does not depend on the
+   * platform-specific ordering of equal qsort elements.
+   */
+  for (i = 1; i < nanals; i++) {
+    gk_analysis current = Anal[i];
+    int j = i;
+
+    while (j > 0 && CompAnals(&current, &Anal[j - 1]) < 0) {
+      Anal[j] = Anal[j - 1];
+      j--;
+    }
+    Anal[j] = current;
+  }
 }
 
 int CompAnals(const void* Anal1, const void* Anal2)
