@@ -2,13 +2,12 @@
 #include <gkdict.h>
 
 #include "dictstems.proto.h"
-
-char * is_substring();
+#include "../gkdict/dictio.proto.h"
+#include "../greeklib/issubstring.proto.h"
 
 int dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemtype, char *pparttab[], int maxpparts)
 {
-	FILE * f;
-	FILE * getlemmstart();
+	FILE *f = NULL;
 	char *line = NULL;
 	char *lemmfile = NULL;
 	char *tmp = NULL;
@@ -22,10 +21,14 @@ int dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemt
 
 	int anystem = 0;
 	
-	line = (char *)malloc((size_t)(BUFSIZ*4)+1);
-	lemmfile = (char *)malloc((size_t)LONGSTRING+1);
-	tmp = (char *)malloc((size_t)(BUFSIZ*4)+1);
-	line[BUFSIZ*4] = lemmfile[LONGSTRING] = tmp[BUFSIZ*4] = 0;
+	line = malloc((size_t)(BUFSIZ * 4) + 1);
+	lemmfile = malloc((size_t)LONGSTRING + 1);
+	tmp = malloc((size_t)(BUFSIZ * 4) + 1);
+	if (!line || !lemmfile || !tmp) {
+		gotpparts = -1;
+		goto finish;
+	}
+	line[BUFSIZ * 4] = lemmfile[LONGSTRING] = tmp[BUFSIZ * 4] = 0;
 	
 	lemmfile[0] = 0;
 	startoff = 0;
@@ -59,7 +62,7 @@ int dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemt
  *   the option "wantacc" is now an argument passed to this routine
  * telling whether or not you should pay attention to the accent.
  */
-	Xstrncpy(wantstem,orgstem,(BUFSIZ*4));
+	Xstrncpy(wantstem,orgstem,(int)sizeof wantstem);
 	stripquant(wantstem);
 	if( wantacc == NO ) 
 		stripacc(wantstem);
