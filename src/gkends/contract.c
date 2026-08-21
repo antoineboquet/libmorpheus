@@ -11,6 +11,8 @@
 #include "contract.proto.h"
 #include "lcontr.proto.h"
 
+static const gk_string Blnk;
+
 static gk_string *
 vowel_contraction_table(int *count)
 {

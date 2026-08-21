@@ -3,6 +3,8 @@
 
 #include "loadeuph.proto.h"
 
+static const gk_string Blnk;
+
 gk_string *
 load_euph_tab(char *filename, int *gotno, int is_contr)
 {
