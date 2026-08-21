@@ -1,3 +1,7 @@
+#include <stdio.h>
+
+#include <endtags.h>
+#include <gkdict.h>
 
 /* dictio.c */
 void SetHqDict(int enabled);
