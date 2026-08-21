@@ -864,6 +864,15 @@ install(
     "${CMAKE_CURRENT_BINARY_DIR}/MorpheusConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Morpheus"
 )
+configure_file(
+  cmake/libmorpheus.pc.in
+  "${CMAKE_CURRENT_BINARY_DIR}/libmorpheus.pc"
+  @ONLY
+)
+install(
+  FILES "${CMAKE_CURRENT_BINARY_DIR}/libmorpheus.pc"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+)
 if(BUILD_TESTING)
   add_executable(morpheus_public_context_test test/public-context.c)
   target_link_libraries(
@@ -945,6 +954,19 @@ if(BUILD_TESTING)
         "-DMORPHEUS_GENERATOR=${CMAKE_GENERATOR}"
         -P "${PROJECT_SOURCE_DIR}/test/test-installed-package.cmake"
     )
+    find_program(MORPHEUS_PKG_CONFIG_EXECUTABLE pkg-config)
+    if(MORPHEUS_PKG_CONFIG_EXECUTABLE)
+      add_test(
+        NAME installed_pkg_config
+        COMMAND
+          "${CMAKE_COMMAND}"
+          "-DMORPHEUS_BUILD_DIR=${PROJECT_BINARY_DIR}"
+          "-DMORPHEUS_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+          "-DMORPHEUS_PKG_CONFIG=${MORPHEUS_PKG_CONFIG_EXECUTABLE}"
+          "-DMORPHEUS_VERSION=${PROJECT_VERSION}"
+          -P "${PROJECT_SOURCE_DIR}/test/test-installed-pkgconfig.cmake"
+      )
+    endif()
   endif()
 endif()
 
