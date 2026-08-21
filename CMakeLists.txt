@@ -288,6 +288,12 @@ if(BUILD_TESTING)
     PRIVATE morpheus_greeklib morpheus_build_options
   )
   add_test(NAME binlook COMMAND morpheus_binlook_test)
+  add_executable(morpheus_longbyposition_test test/longbyposition.c)
+  target_link_libraries(
+    morpheus_longbyposition_test
+    PRIVATE morpheus_greeklib morpheus_build_options
+  )
+  add_test(NAME longbyposition COMMAND morpheus_longbyposition_test)
   set_tests_properties(
     runtime_context gkstring_helper_context binlook
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"

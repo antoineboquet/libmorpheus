@@ -266,3 +266,9 @@ as a complete element. `endio.c` and `vaxwords.c` compile with
 `-Werror=conversion` and `-Werror=sign-conversion`, and a header/record
 round-trip test fixes the on-disk contract independently of the external
 stemlib corpus.
+
+The historical long-by-position helper now distinguishes an ambiguous stop
+plus liquid cluster from an unambiguously long two-consonant cluster. A focused
+test covers single consonants, double consonants, double letters, both cluster
+orders, and vowel diacritics; it also prevents the former always-false boolean
+expression from returning unnoticed.

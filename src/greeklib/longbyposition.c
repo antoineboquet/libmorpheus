@@ -21,7 +21,8 @@ int longbyposition(char *s)
 	
 	if(! Is_cons(*(s+1))) return(0);
 	
-	if( Is_labial(*(s+1) && Is_stop(*s))) return(2);
+	/* A stop followed by a liquid may or may not make position. */
+	if(Is_stop(*s) && Is_liquid(*(s+1))) return(2);
 
 	if( Is_cons(*s) ) return(1);
 	return(0);
