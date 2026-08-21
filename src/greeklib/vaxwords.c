@@ -12,7 +12,7 @@
  * read in a 32 bit data word that has been written out to the disk on
  * a vax -- gets around different byte orders on different machines
  */
-void get_int32(int32 *lword, FILE *f)
+int get_int32(int32 *lword, FILE *f)
 {
 	
 	int32 tmp;
@@ -21,15 +21,18 @@ void get_int32(int32 *lword, FILE *f)
 
 	for(*lword=0,i=0;i<4;i++) {
 		c = getc(f);
+		if(c == EOF)
+			return(0);
 		tmp = (int32)c;
 		tmp &= 0377;
 		tmp = tmp << (8 * i);
 
 		*lword += tmp;
 	}
+	return(1);
 }
 
-void put_int32(int32 *lword, FILE *f)
+int put_int32(const int32 *lword, FILE *f)
 {
 	
 	int32 tmp;
@@ -40,66 +43,36 @@ void put_int32(int32 *lword, FILE *f)
 		tmp = *lword;
 		tmp = tmp >> (8 * i);
 		c = tmp & 0377;
-		fputc(c , f );
+		if(fputc(c , f ) == EOF)
+			return(0);
 
 	}
-}
-
-/*
- * read or write in a double -- note that doubles can be 8 or 10 bytes
- */ 
-void get_double(double *lword, int dsize, FILE *f)
-{
-	
-	int32 tmp;
-	int i;
-	int c;
-
-	for(*lword=0,i=0;i<dsize;i++) {
-		c = getc(f);
-		tmp = (long)c;
-		tmp = tmp << (8 * i);
-
-		*lword += tmp;
-	}
-}
-
-void put_double(double *lword, int dsize, FILE *f)
-{
-	
-	int32 tmp;
-	int i;
-	int c;
-
-	for(i=0;i<dsize;i++) {
-		tmp = *lword;
-		tmp = tmp >> (8 * i);
-		c = tmp & 0377;
-		fputc(c , f );
-
-	}
+	return(1);
 }
 
 /*
  * read in a 16 bit data word that has been written out to the disk on
  * a vax -- gets around different byte orders on different machines
  */
-void get_short(unsigned short *sword, FILE *f)
+int get_short(unsigned short *sword, FILE *f)
 {
 	unsigned short tmp;
 	unsigned short i;
-	unsigned int c;
+	int c;
 
 	for(*sword=0,i=0;i<2;i++) {
 		c = getc(f);
-		tmp = (short)(c&0377);
+		if(c == EOF)
+			return(0);
+		tmp = (unsigned short)(c&0377);
 		tmp = tmp << (8 * i);
 
 		*sword += tmp;
 	}
+	return(1);
 }
 
-void put_short(short *sword, FILE *f)
+int put_short(const unsigned short *sword, FILE *f)
 {
 	
 	unsigned short tmp;
@@ -110,9 +83,11 @@ void put_short(short *sword, FILE *f)
 		tmp = *sword;
 		tmp = tmp >> (8 * i);
 		c = tmp & 0377;
-		fputc(c , f );
+		if(fputc(c , f ) == EOF)
+			return(0);
 
 	}
+	return(1);
 }
 
 /*
@@ -122,29 +97,30 @@ void put_short(short *sword, FILE *f)
  */
 
 
-int vax_fread(char *Buffer, size_t size, int nswap, FILE *f)
+int vax_fread(void *Buffer, size_t size, int nswap, FILE *f)
 {
     register int i;
-    register unsigned t;
     int32 * longp;
     unsigned short * shortp;
-     double * doubp, *sdoubp;
-/*
-     short double * sdoubp;
-*/
+	size_t count;
+
+	if(nswap < 0)
+		return(-1);
 	
 	switch( size )  {
 
 	    case 1:
 					/* BYTES */
-		return( fread( Buffer, size, nswap , f) );
+		count = fread(Buffer,size,(size_t)nswap,f);
+		if(count < (size_t)nswap && ferror(f))
+			return(-1);
+		return((int)count);
 	    case 2:			/* SHORTS */
 		shortp = (unsigned short *)Buffer;
 
-		shortp = (unsigned short *)Buffer;
-
-		for ( i=1; i <= nswap; i++)  {
-			get_short(shortp,f);
+		for ( i=0; i < nswap; i++)  {
+			if(!get_short(shortp,f))
+				return(i == 0 && ferror(f) ? -1 : i);
 			shortp++;
 		}
 		return(nswap);
@@ -152,8 +128,9 @@ int vax_fread(char *Buffer, size_t size, int nswap, FILE *f)
 	    case 4:			/* LONGS */
 
 		longp = ( int32 *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			get_int32(longp,f);
+		for ( i=0; i < nswap; i++)  {
+			if(!get_int32(longp,f))
+				return(i == 0 && ferror(f) ? -1 : i);
 			longp++;
 		}
 		return(nswap);
@@ -161,31 +138,14 @@ int vax_fread(char *Buffer, size_t size, int nswap, FILE *f)
 		case 8: /* DOUBLES */
 #ifdef DECALPHA
 		longp = ( int32 *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			get_int32(longp,f);
+		for ( i=0; i < nswap; i++)  {
+			if(!get_int32(longp,f))
+				return(i == 0 && ferror(f) ? -1 : i);
 			longp++;
 		}
 		return(nswap);
 
 #endif
-/*			
-		sdoubp = (double *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			get_double((double *)sdoubp,size,f);
-			sdoubp++;
-		}
-		return(nswap);
-
-
-		case 10:
-
-		doubp = (double *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			get_double(longp,size,f);
-			longp++;
-		}
-		return(nswap);
-*/
 		
 	    default:
 
@@ -194,69 +154,55 @@ int vax_fread(char *Buffer, size_t size, int nswap, FILE *f)
 	}
 }
 
-int vax_fwrite(char *Buffer, size_t size, int nswap, FILE *f)
+int vax_fwrite(const void *Buffer, size_t size, int nswap, FILE *f)
 {
     register int i;
-    register unsigned t;
-    register int32 * longp;
-    register short * shortp;
-    register double * doubp, *sdoubp;
-/*
-    register short double * sdoubp;
-*/
+	const int32 *longp;
+	const unsigned short *shortp;
+	size_t count;
+
+	if(nswap < 0)
+		return(-1);
 	
 	switch( size )  {
 	    case 1:
 					/* BYTES */
-		return( fwrite( Buffer, size, nswap , f) );
+		count = fwrite(Buffer,size,(size_t)nswap,f);
+		if(count < (size_t)nswap && ferror(f))
+			return(-1);
+		return((int)count);
 
 	    case 2:			/* SHORTS */
 
-		shortp = (short *)Buffer;
+		shortp = (const unsigned short *)Buffer;
 
-		for ( i=1; i <= nswap; i++)  {
-			put_short(shortp,f);
+		for ( i=0; i < nswap; i++)  {
+			if(!put_short(shortp,f))
+				return(i == 0 ? -1 : i);
 			shortp++;
 		}
 		return(nswap);
 
 	    case 4:			/* LONGS */
 
-		longp = (int32 *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			put_int32(longp,f);
+		longp = (const int32 *)Buffer;
+		for ( i=0; i < nswap; i++)  {
+			if(!put_int32(longp,f))
+				return(i == 0 ? -1 : i);
 			longp++;
 		}
 		return(nswap);
 
 	    case 8:			/* DOUBLES */
 #ifdef DECALPHA
-		longp = (int32 *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			put_int32(longp,f);
+		longp = (const int32 *)Buffer;
+		for ( i=0; i < nswap; i++)  {
+			if(!put_int32(longp,f))
+				return(i == 0 ? -1 : i);
 			longp++;
 		}
 		return(nswap);
 #endif
-
-/*
-		sdoubp = (double *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			put_double(sdoubp,size,f);
-			longp++;
-		}
-		return(nswap);
-*/
-
-	    case 10:			/* DOUBLES */
-/*
-		doubp = (double *)Buffer;
-		for ( i=1; i <= nswap; i++)  {
-			put_double(longp,size,f);
-			longp++;
-		}
-		return(nswap);
-*/
 	    default:
 
 		fprintf(stderr, "vax_words: byte swap error, size = %zu\n", size);

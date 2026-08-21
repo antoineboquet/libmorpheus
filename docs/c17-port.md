@@ -258,3 +258,11 @@ Byte-indexed collation and conversion tables are checked with
 `-Werror=char-subscripts`. The context-owned comparison tables cover all 256
 byte values and preserve an unsigned identity order outside the ASCII Beta Code
 range. Dedicated tests run with both `-fsigned-char` and `-funsigned-char`.
+
+The stemlib ending I/O boundary uses explicit 32-bit header words, checked
+`long` file positions, and `size_t` record-size arithmetic. Its VAX-order
+helpers now report partial 16/32-bit reads instead of treating truncated input
+as a complete element. `endio.c` and `vaxwords.c` compile with
+`-Werror=conversion` and `-Werror=sign-conversion`, and a header/record
+round-trip test fixes the on-disk contract independently of the external
+stemlib corpus.

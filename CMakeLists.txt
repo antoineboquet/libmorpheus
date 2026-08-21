@@ -67,6 +67,14 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-truncation>
 )
 
+set_source_files_properties(
+  src/greeklib/vaxwords.c
+  src/morphlib/endio.c
+  PROPERTIES
+    COMPILE_OPTIONS
+      "$<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=conversion>;$<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=sign-conversion>"
+)
+
 if(MORPHEUS_ENABLE_SANITIZERS)
   if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     target_compile_options(
@@ -251,6 +259,17 @@ if(BUILD_TESTING)
     PRIVATE morpheus_morphlib morpheus_build_options
   )
   add_test(NAME byte_collation COMMAND morpheus_byte_collation_test)
+  add_executable(morpheus_stemlib_io_test test/stemlib-io.c)
+  target_link_libraries(
+    morpheus_stemlib_io_test
+    PRIVATE morpheus_morphlib morpheus_build_options
+  )
+  add_test(
+    NAME stemlib_io
+    COMMAND
+      morpheus_stemlib_io_test
+      "${CMAKE_CURRENT_BINARY_DIR}/stemlib-io-test.bin"
+  )
   add_executable(
     morpheus_gkstring_helper_context_test
     test/gkstring-helper-context.c
