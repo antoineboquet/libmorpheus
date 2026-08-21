@@ -41,7 +41,8 @@ void stand_phonetics(gk_word *Gkword)
 		if( *s == H_AS_ROUGH ) {
 				Xstrcpy(s,s+1);
 				addbreath(s,ROUGHBR);
-				if( islower(*s) ) *s = toupper(*s);
+				if( islower((unsigned char)*s) )
+					*s = (char)toupper((unsigned char)*s);
 				continue;
 		}
 		
@@ -65,7 +66,7 @@ void stand_phonetics(gk_word *Gkword)
 			Xstrcpy(s,s+1);
 		}
 		*/
-		if( isalpha(*s) ) lastc = *s;
+		if( isalpha((unsigned char)*s) ) lastc = *s;
 		s++;
 	}
 	

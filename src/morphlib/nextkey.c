@@ -12,11 +12,11 @@ int nextkey(char *keylist, char *nextkey)
 	register char * a = keylist;
 	register char * b = nextkey;
 
-	while(isspace(*a)) a++;
+	while(isspace((unsigned char)*a)) a++;
 	if( !*a ) return(0);
-	while(*a && !isspace(*a)) *b++ = *a++;
+	while(*a && !isspace((unsigned char)*a)) *b++ = *a++;
 	*b = 0;
-	while(isspace(*a)) a++;
+	while(isspace((unsigned char)*a)) a++;
 	if( *a ) Xstrcpy(keylist,a);
 	else  *keylist = 0;
 	return(1);

@@ -19,12 +19,12 @@ bool is_diphth(char *p, char *word)
 	if( Is_diaeresis(*(p+1)) )
 		return(NO);
 
-	c2 = *p; 
+	c2 = (unsigned char)*p; 
 	if( isupper(c2) ) c2 = tolower(c2);
 	if (c2 != 'i' && c2 != 'u')
 		return (NO);
 
-	c1 = *(p-1);
+	c1 = (unsigned char)*(p-1);
 	if( isupper(c1) ) c1 = tolower(c1);
 
 	if (!Is_vowel(c1))

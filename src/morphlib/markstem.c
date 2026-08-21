@@ -22,7 +22,7 @@
 	lastp = stemstr;
 	while(*lastp) lastp++;
 	
-	while(lastp>stemstr&&!isalpha(*lastp)) lastp--;
+	while(lastp>stemstr&&!isalpha((unsigned char)*lastp)) lastp--;
 
 	if( (Is_nounform(gstr) 
 	  || Is_adjform(gstr) 

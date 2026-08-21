@@ -362,7 +362,7 @@ NextDictLine(FILE *f, char *word, char *wordkeys, char *starts)
 /*
  * check for blank line 
  */
-		while(isspace(*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 		if( ! *s ) return(0);
 		
 	}

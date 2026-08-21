@@ -55,7 +55,7 @@ int _main(int argc, char *argv[])
 		exit(-1);
 	}
 	while(fgets(line,sizeof line,f)) {
-		if( isspace(line[0]) || line[0] == '?' || line[0] == '#' ) {
+		if( isspace((unsigned char)line[0]) || line[0] == '?' || line[0] == '#' ) {
 /*			fprintf(fout,"\\par\n");*/
 			continue;
 		}
@@ -87,8 +87,8 @@ void conv_defline(char *s, FILE *fout)
 	
 	if( has_pref(s,":dnum") ) {
 		
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 		
 		
 
@@ -110,16 +110,16 @@ void conv_defline(char *s, FILE *fout)
 		}
 		fprintf(fout,"\\pard\\plain{%s {%s",  introp, res2 );
 
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 
 		beta2smk(s,result);
 		fprintf(fout,"%s}\\par\\pard\\plain}\n",  result );
 		return;
 	}
 	if( has_pref(s,":xref") ) {
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 		
 		beta2smk(s,result);
 		fprintf(fout,"\\s6{%s}\\par\\pard\\plain\n", result );
@@ -133,8 +133,8 @@ void conv_defline(char *s, FILE *fout)
 		return;
 	}
 	if( has_pref(s,":comm") ) {
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 		
 		beta2smk(s,result);
 		fprintf(fout,"\\s8{%s}\\par\n", result );
@@ -162,11 +162,11 @@ int check_deflev(char *p, char *res, int len)
 	if( *res ==  '*' ) {
 		res++;
 		if( *res == 'i' || * res == 'v' ) return(2);
-		if( isalpha(*res) ) return(4);
+		if( isalpha((unsigned char)*res) ) return(4);
 		return(0);
 	}
-	if( isdigit(*res) ) return(3);
-	if( isalpha(*res) ) return(5);
+	if( isdigit((unsigned char)*res) ) return(3);
+	if( isalpha((unsigned char)*res) ) return(5);
 	
 	return(0);
 }
@@ -181,7 +181,7 @@ int is_greek(char *s)
 {
 	int n = 0;
 	
-	while(*s&&!isspace(*s)) {
+	while(*s&&!isspace((unsigned char)*s)) {
 		switch(*s) {
 			case '=':
 			case '/':

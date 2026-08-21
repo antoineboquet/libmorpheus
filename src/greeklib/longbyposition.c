@@ -14,7 +14,7 @@
  
 int longbyposition(char *s)
 {
-	while(Is_vowel(*s)||(*s && ! isalpha(*s))) s++;
+	while(Is_vowel(*s)||(*s && ! isalpha((unsigned char)*s))) s++;
 
 /* 'z', 'c', and 'y' make position */
 	if(Is_dblcons(*s)) return(1);

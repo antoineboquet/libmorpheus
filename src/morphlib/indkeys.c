@@ -100,7 +100,7 @@ static void prockeyline(
 	for(i=0;i<KEYLEN;i++) {
 		state->curkey[i] = *p++;
 		state->curkey[i+1] = 0;
-		if( (! *p) || isspace( * p ) )
+		if( (! *p) || isspace((unsigned char)*p) )
 			break;
 	}
 	

@@ -307,11 +307,11 @@ static char *
 	char *a;
 
 	a = tmp; 
-	while( isspace( *s ) ) s++;
+	while( isspace((unsigned char)*s) ) s++;
 	if( ! *s ) return(NULL);
-	while( ! isspace( *s ) && *s ) *a++ = *s++;
+	while( ! isspace((unsigned char)*s) && *s ) *a++ = *s++;
 	*a = 0;
-	while( isspace( *s ) ) s++;
+	while( isspace((unsigned char)*s) ) s++;
 	if( !*s ) return(NULL);
 	set_gkstring(gkend,tmp);
 	return(s);
@@ -745,7 +745,7 @@ endstrcmp(char *wendstr, char *haveendstr)
 		hp = haveendstr;
 		sp = tmp;
 		for(i=0;i<wlen;) {
-			if( ! isalpha(*hp) && *(wendstr+i) != *hp ) {
+			if( ! isalpha((unsigned char)*hp) && *(wendstr+i) != *hp ) {
 				hp++;
 				continue;
 			}

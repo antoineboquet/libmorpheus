@@ -81,11 +81,11 @@ int dictstrcmp(char *s1, char *s2)
 	}
 
 	while(1) {
-		while(! isalpha(*s1) && *s1 != '|'  && *s1 != HARDLONG && *s1 ) s1++;
-		while(! isalpha(*s2) && *s2 != '|'  && *s2 != HARDLONG && *s2 ) s2++;
+		while(! isalpha((unsigned char)*s1) && *s1 != '|'  && *s1 != HARDLONG && *s1 ) s1++;
+		while(! isalpha((unsigned char)*s2) && *s2 != '|'  && *s2 != HARDLONG && *s2 ) s2++;
 		if(comptab[*s1] != comptab[*s2]) 
 			return(comptab[*s1] - comptab[*s2]);
-		if (*s1=='\0'||isspace(*s1))
+		if (*s1=='\0'||isspace((unsigned char)*s1))
 
 			return(0);
  /*
@@ -93,8 +93,8 @@ int dictstrcmp(char *s1, char *s2)
  */
 		s1++; s2++;
 /*
-		while(! isalpha(*s1) && *s1 != '|'  && *s1 ) s1++;
-		while(! isalpha(*s2) && *s2 != '|' && *s2 ) s2++;
+		while(! isalpha((unsigned char)*s1) && *s1 != '|'  && *s1 ) s1++;
+		while(! isalpha((unsigned char)*s2) && *s2 != '|' && *s2 ) s2++;
 */
 	}
 }
@@ -107,7 +107,7 @@ int dictstrncmp(const char *s1, const char *s2, size_t n)
 	
 	s = b1;
 	while(*s1) {
-		if( ! isalpha(*s1) ) {
+		if( ! isalpha((unsigned char)*s1) ) {
 			s1++;
 			continue;
 		}
@@ -117,7 +117,7 @@ int dictstrncmp(const char *s1, const char *s2, size_t n)
 	
 	s = b2;
 	while(*s1) {
-		if( ! isalpha(*s2) ) {
+		if( ! isalpha((unsigned char)*s2) ) {
 			s2++;
 			continue;
 		}

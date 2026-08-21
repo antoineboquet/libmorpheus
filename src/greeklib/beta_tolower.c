@@ -21,7 +21,7 @@ int beta_tolower(char *word)
 	if( *word != BETA_UCASE_MARKER ) return(0);
 
 	s = word;
-	while(!isalpha(*s)&&*s) s++;
+	while(!isalpha((unsigned char)*s)&&*s) s++;
 	*word = *s;
 	Xstrcpy(s,s+1);
 	return(1);

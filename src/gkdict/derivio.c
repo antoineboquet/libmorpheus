@@ -643,6 +643,6 @@ ends_in_vowel(char *s)
 	char * p;
 	
 	p = lastn(s,1);
-	while(p>=s&&!isalpha(*p)) p--;
+	while(p>=s&&!isalpha((unsigned char)*p)) p--;
 	return(Is_vowel(*p));
 }

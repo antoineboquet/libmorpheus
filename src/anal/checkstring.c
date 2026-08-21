@@ -324,7 +324,7 @@ int checkstring3(gk_word *Gkword)
   rval=checkstring4(Gkword);
 
 
-  if(  (isupper(*string) || *string == BETA_UCASE_MARKER) && !(prntflags_of(Gkword)&STRICT_CASE) ) {
+  if(  (isupper((unsigned char)*string) || *string == BETA_UCASE_MARKER) && !(prntflags_of(Gkword)&STRICT_CASE) ) {
     /*
      * check to see if we failed because we 
      * have a word that is upper case
@@ -336,7 +336,7 @@ int checkstring3(gk_word *Gkword)
      * grc -- 8/14/93
      */
     if( cur_lang() == LATIN || cur_lang() == ITALIAN ) {
-      *string = tolower(*string);
+      *string = (char)tolower((unsigned char)*string);
       /*
        * 12/18/97 grc
        * Vbi --> ubi
@@ -344,7 +344,7 @@ int checkstring3(gk_word *Gkword)
        * Vtinam --> utinam etc.
        */
 
-      if(*string == 'v' && isalpha(*(string+1)) /* &&
+      if(*string == 'v' && isalpha((unsigned char)*(string+1)) /* &&
 	* 
 	 * 07/12/2006 grc
 	 * loosen this up for "vacuus/uacuus"
@@ -365,7 +365,7 @@ int checkstring3(gk_word *Gkword)
     {
 	for (idx = 0;  string[idx] != 0;  idx ++)
 	{
-	    string[idx] = tolower(string[idx]);
+	    string[idx] = (char)tolower((unsigned char)string[idx]);
 	    if (string[idx] == 'v' && strchr("aeiou", string[idx+1]) == 0)
 	      string[idx] = 'u';
 	}
@@ -374,7 +374,7 @@ int checkstring3(gk_word *Gkword)
 	  set_workword(Gkword,saveword);
 	  return(rval);
         }
-	*string = toupper(*string);
+	*string = (char)toupper((unsigned char)*string);
 	if ((rval = checkstring4(Gkword)) > 0 )
 	{
 	  set_workword(Gkword,saveword);

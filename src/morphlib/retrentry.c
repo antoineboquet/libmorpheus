@@ -122,9 +122,9 @@ fprintf(stderr,"starts comp [%d] s [%s] buf [%s]\n", comp , s , buf );
 firstline = 0;
 }
 */
-		if( ! comp && isspace(*(buf+slen)) ) {
+		if( ! comp && isspace((unsigned char)*(buf+slen)) ) {
 			a = buf+slen;
-			while(isspace(*a)) a++;
+			while(isspace((unsigned char)*a)) a++;
 			Xstrncpy(keys,a,LONGSTRING);
 			rval = 1;
 			break;

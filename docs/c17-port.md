@@ -26,6 +26,11 @@ Both conversion directions also pass byte values to the `<ctype.h>` interfaces
 through `unsigned char`, as required by C. The inverse converter interprets the
 legacy octal SmartA/SMK ranges as unsigned bytes, so accented capitals no longer
 disappear on targets where plain `char` is signed.
+The same contract now covers every active `<ctype.h>` call in the runtime
+closure: string bytes are converted to `unsigned char` before classification or
+case conversion, while integer temporaries are initialized from unsigned bytes.
+This removes the remaining locale-sensitive undefined behavior for input bytes
+above `0x7f` without changing ASCII Beta Code processing.
 
 The entire `cruncher` runtime closure is now a strict boundary. Its internal
 interfaces are declared in `src/anal/cruncher_internal.h`,

@@ -566,8 +566,8 @@ void init_stems(void)
 	
 int has_octal(char *s)
 {
-	while(*s&& !isspace(*s)) s++;
-	while(isspace(*s)) s++;
+	while(*s&& !isspace((unsigned char)*s)) s++;
+	while(isspace((unsigned char)*s)) s++;
 	if(*s == '0' ) return(1);
 	return(0);
 }

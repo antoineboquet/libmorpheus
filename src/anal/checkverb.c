@@ -85,7 +85,7 @@ fprintf(stderr,"trying reg stem [%s] [%s] preverb [%s] rval %d\n", stem_of(Gkwor
  *
  * this loop is to get past that little bug
  */
- 		while(*wp&&!isalpha(*wp)&&*wp!='|'&&*wp!='('&&*wp!=')') wp++;
+ 		while(*wp&&!isalpha((unsigned char)*wp)&&*wp!='|'&&*wp!='('&&*wp!=')') wp++;
 
 
 	}

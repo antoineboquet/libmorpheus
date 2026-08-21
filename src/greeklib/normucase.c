@@ -21,14 +21,14 @@ int normucase(char *word)
 	if( *word != BETA_UCASE_MARKER ) return(0);
 
 	s = word;
-	while(!isalpha(*s)&&*s) s++;
+	while(!isalpha((unsigned char)*s)&&*s) s++;
 
 	/*
 	 * in case of "*(/ellhn", s points now to "ellhn"
  	 */
-	if( ! islower(*s) )
+	if( ! islower((unsigned char)*s) )
 		return(0);
-	*word = toupper(*s);
+	*word = (char)toupper((unsigned char)*s);
 	/*
  	 * word now "E(/ellhn"
 	 */

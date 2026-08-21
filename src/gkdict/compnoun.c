@@ -23,11 +23,11 @@ checkforcompnoun(char * curstem,char * endkeys,char * stemkeys)
 				char * p;
 				p = headkeys;
 				while(*p) {
-					while(isspace(*p)) p++;
+					while(isspace((unsigned char)*p)) p++;
 					if(!*p) break;
 					printf("%s-", firsth);
 					if(*p==':') p++;
-					while(*p&&!isspace(*p)) putchar(*p++);
+					while(*p&&!isspace((unsigned char)*p)) putchar(*p++);
 					putchar('\n');
 				}
 			}
@@ -141,9 +141,9 @@ is_nomhead(char * heads,char * headkeys)
 		if( !strncmp(tmptab,tmphead,strlen(tmphead)) ) {
 			Xstrcpy(headentry,context->compound_head_table[i]);
 			s = headentry+strlen(tmphead)-1;
-			while(isspace(*s)) *s++ = ':';	
-			while(*s&&!isspace(*s)) s++;
-			while(isspace(*s)) *s++ = ':';	
+			while(isspace((unsigned char)*s)) *s++ = ':';	
+			while(*s&&!isspace((unsigned char)*s)) s++;
+			while(isspace((unsigned char)*s)) *s++ = ':';	
 			strcat(headkeys,headentry);
 			strcat(headkeys," ");
 			rval = 1;

@@ -4,7 +4,7 @@
 
 int is_blank(char *s)
 {
-	while(*s && isspace(*s)) s++;
+	while(*s && isspace((unsigned char)*s)) s++;
 	if( ! *s  ) return(1);
 	return(0);
 }

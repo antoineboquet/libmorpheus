@@ -8,6 +8,6 @@ void trimwhite(char *s)
 
 	starts = s;
 	while(*s) s++; s--;
-	while(isspace(*s) && s > starts )
+	while(isspace((unsigned char)*s) && s > starts )
 		*s-- = 0;
 }

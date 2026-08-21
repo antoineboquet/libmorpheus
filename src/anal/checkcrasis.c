@@ -225,7 +225,7 @@ int checkcrasis(gk_word *Gkword)
 		{
 			if (string[i] == 0)
 				break;
-			string[i] = tolower(string[i]);
+			string[i] = (char)tolower((unsigned char)string[i]);
 		}
 		for(i=0;i<LENGTH_OF(LatSync);i++) {
 			mungedword = LatSync[i].mungedword;

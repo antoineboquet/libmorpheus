@@ -373,7 +373,7 @@ void DumpPerseusAnalysis(
      *
      * only english words are upper case
      */
-    if( isupper(lemma_of(anal)[0]) && cur_lang() == GREEK )
+    if( isupper((unsigned char)lemma_of(anal)[0]) && cur_lang() == GREEK )
       fprintf(fout,"E ");
     else
       fprintf(fout,"N ");
@@ -604,9 +604,9 @@ void DumpGstr(char *tags, gk_string *gstr, FILE *fout, int fullrec)
   if( fullrec ) {
     char *s = tmp;
     while(*s) {
-      if(isspace(*s)) {
+      if(isspace((unsigned char)*s)) {
 	fprintf(fout," ");
-	while(isspace(*s)) s++;
+	while(isspace((unsigned char)*s)) s++;
 	continue;
       } else
 	fprintf(fout,"%c", *s++);

@@ -56,8 +56,8 @@ printf("rval %d workword [%s] keys [%s]\n", rval, workword, keys );
 */
 		set_stem(Gkword,workword );
 		hits += IndeclWorks(Gkword,stemkeys);
-		while(*keys && ! isspace(*keys) ) keys++;
-		while(isspace(*keys)) keys++;
+		while(*keys && ! isspace((unsigned char)*keys) ) keys++;
+		while(isspace((unsigned char)*keys)) keys++;
 
 	}
 	finish:

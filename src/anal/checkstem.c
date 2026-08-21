@@ -178,8 +178,8 @@ comstemtypes(char *stem, char *stemkeys, char *endkeys)
 			if(*stembuf)
 				Xstrncat(tmp,stembuf,(int)LONGSTRING);
 		}
-		while(! isspace(*s) && *s ) s++;
-		while( isspace(*s) ) s++;
+		while(! isspace((unsigned char)*s) && *s ) s++;
+		while( isspace((unsigned char)*s) ) s++;
 	}
 	Xstrncpy((char *)stemkeys,(char *)p,(size_t)LONGSTRING);
 
@@ -218,20 +218,20 @@ parsefield(char *s, char *buf, int c, int len)
 	
 	*buf = 0;
 /*
-	while(*s&&*s!=c&&!isspace(*s)) *buf++ = *s++;
+	while(*s&&*s!=c&&!isspace((unsigned char)*s)) *buf++ = *s++;
 */
-	for(i=0;*s&&*s!=c&&!isspace(*s);i++) {
+	for(i=0;*s&&*s!=c&&!isspace((unsigned char)*s);i++) {
 		*buf++ = *s++;
 		if( i >= len ) {
 			fprintf(stderr,"Hey %d chars; %d s [%s] left!\n", len , Xstrlen(s) ,s );
 			*buf = 0;
-			while(*s&&!isspace(*s)) s++;
+			while(*s&&!isspace((unsigned char)*s)) s++;
 			break;
 		}
 	}
 	
 	*buf = 0;
-	if( isspace(*s) ) return("");
+	if( isspace((unsigned char)*s) ) return("");
 	if(*s) s++;
 	return(s);
 }
