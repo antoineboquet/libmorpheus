@@ -9,10 +9,8 @@
 
 #include "endindex.proto.h"
 
-long matchendtag();
 /*int dictstrcmp(), dictstrncmp(), morphstrcmp(), morphstrncmp();*/
 
-endind * init_endind();
 static endind *load_end_index(endind **, char *, const char *);
 
 static endind *

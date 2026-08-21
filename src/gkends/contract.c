@@ -105,7 +105,6 @@ gk_string *
 	gk_string *cons_euph;
 	int hits = 0;
 	int numeuphs;
-	char * is_substring();
 	char * orgstr;
 	char * curs;
 
@@ -227,7 +226,6 @@ PrntGkStr(poss_subs+sofar,stdout);
 int
 needs_sub(gk_string *gstr, Dialect skipdial, gk_string *matchgstr, char *haveseen, char *curstring, char *raw, char *cooked)
 {
-	char * getaccp();
 	register char * p1, *p2;
 	int rval = 0;
 	int syllno;

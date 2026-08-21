@@ -7,6 +7,7 @@
 #include "checkforbreath.proto.h"
 #include "contract.proto.h"
 #include "fixeta.proto.h"
+#include "getcurrend.proto.h"
 #include "lcontr.proto.h"
 #include "euphend.proto.h"
 #include "merge.proto.h"

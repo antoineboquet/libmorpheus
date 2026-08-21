@@ -4,7 +4,6 @@
 #include "gkends_internal.h"
 
 #include "acccompos.proto.h"
-char * skip_to_syll();
 
 void
 AccComposForm(gk_string *gstr)

@@ -4,11 +4,6 @@
 #include <modes.h>
 #include "endfiles.h" 
 
-#ifdef LIGHTSPEED
-char * GetEndString();
-
-#endif
-
 #include "retrends.proto.h"
 static gk_string *RetrCompEnds(gk_string *, gk_string *, int *, Dialect);
 static void ProcEndRecord(char *, gk_string *);
@@ -207,7 +202,7 @@ static gk_string *
  RetrCompEnds(gk_string *wantgkend, gk_string *avoidgkend, int *nends, Dialect OrDialect)
 {
 	gk_string * ListOfEnds;
-	gk_string * CurrentList, *GetCurrentEndList();
+	gk_string *CurrentList;
 	int rval, avoidrval;
 	int lno = 0;
 	int maxend = 0;
