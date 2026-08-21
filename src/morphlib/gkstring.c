@@ -584,7 +584,8 @@ fprintf(stderr,"End dial [%o] stem [%o]\n", Dial1 , Dial2 );
 
 }
 
- int xInsertGstr(gk_string *oldgstr, gk_string *newgstr, int len, int (*compare )(), int backwards)
+ int xInsertGstr(gk_string *oldgstr, gk_string *newgstr, int len,
+                 int (*compare)(char *, char *), int backwards)
 {
 	char * news, *olds;
 	int i;

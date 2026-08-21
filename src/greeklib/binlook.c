@@ -1,6 +1,7 @@
 #include <greek.h>
 
-int binlook(char *table, char *tag, int nelems, int size, bool exact_match, int (*compare )())
+int binlook(char *table, char *tag, int nelems, int size, bool exact_match,
+            int (*compare)(char *, char *))
 {
 	int high;
 	int low;

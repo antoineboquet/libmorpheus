@@ -670,8 +670,9 @@ keycomp1(const void *k1, const void *k2)
 }
 
 int
-keycomp2(char *s, const Morph_args *const *kp)
+keycomp2(char *s, char *entry)
 {
+	const Morph_args *const *kp = (const Morph_args *const *)entry;
 	const Morph_args *m;
 	int rval = 0;
 	m = *kp;
