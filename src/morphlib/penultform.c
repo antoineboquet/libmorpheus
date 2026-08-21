@@ -27,16 +27,6 @@ int penult_form(gk_string *gstring, word_form form_info)
 			number_of(form_info) == SINGULAR &&
 			(case_of(form_info) == NOMINATIVE || case_of(form_info)==ACCUSATIVE))
 			/* neuter active participles */
-	    
-	    /*|| (stemtype == AOR1_REG && 
-			voice_of(form_info) == ACTIVE && 
-			mood_of(form_info) == INFINITIVE) 
-		       	/* 1st aorist active inf *
-	    || (stemtype == AOR2_REG && 
-			voice_of(form_info) == MIDDLE && 
-			mood_of(form_info) == INFINITIVE) 
-		       	/* 2nd aorist middle inf */
-		       	
 	    || (voice_of(form_info) & MEDIO_PASS && 
 			mood_of(form_info) == INFINITIVE && 
 			tense_of(form_info) == PERFECT ) )

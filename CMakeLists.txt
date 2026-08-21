@@ -61,6 +61,8 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=strict-prototypes>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=old-style-definition>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=char-subscripts>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=comment>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=parentheses>
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=overflow>
     $<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:-Werror=constant-conversion>
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-overflow>

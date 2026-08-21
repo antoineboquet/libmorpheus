@@ -366,11 +366,11 @@ void beta2mac(char *source, char *res, int xlit)
 				*rp = 'V';
 			else if (*rp == 'V' )
 				*rp = 'C';
-			else if( *rp == 'v' ) /* digamma *
+			else if( *rp == 'v' ) (digamma)
 				*rp = 'W';
 			else if( *rp == '*' && xlit == SMARTA ) {
 					*rp = UCASEMARKER;
-			} /*else if ( xlit == SMK && ) {
+			} else if ( xlit == SMK && ) {
 					unsigned char * t = sp;
 					if( Is_accflag(*sp)) {
 							*rp = ' ';

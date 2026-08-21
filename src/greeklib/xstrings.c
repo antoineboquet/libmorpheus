@@ -7,7 +7,7 @@
 int
 Xstrcpy(char *s1, const char *s2)
 {
-	while (*s1++ = *s2++);
+	while((*s1++ = *s2++));
 	return(1);
 }
 

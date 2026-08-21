@@ -151,7 +151,7 @@ int
 
 /*
 		if( maintable ) {
-			if( AddEndLine(/*foutput,*line,basename,maxstring) < 0 )
+			if( AddEndLine(foutput,*line,basename,maxstring) < 0 )
 
 				break;
 		} else {

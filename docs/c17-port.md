@@ -272,3 +272,8 @@ plus liquid cluster from an unambiguously long two-consonant cluster. A focused
 test covers single consonants, double consonants, double letters, both cluster
 orders, and vowel diacritics; it also prevents the former always-false boolean
 expression from returning unnoticed.
+
+Nested block-comment markers and ambiguous assignment or logical conditions
+are rejected with `-Werror=comment` and `-Werror=parentheses`. Historical code
+kept only for reference remains commented as one well-formed block, while
+active conditions now state their intended grouping explicitly.

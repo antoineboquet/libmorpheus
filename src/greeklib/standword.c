@@ -17,8 +17,9 @@
 	 * changed this so that it would only remove the * if it appears in the middle of a 
 	 * word
 	 */
-	  /* || \
-	/* grc 6/28/89 -- '*' is long mark in smk  X == '*' )*/
+/*
+ * grc 6/28/89 -- '*' is a long mark in SMK, so it is not junk.
+ */
 /*
  * 1) strip any white space or garbage at the start of a word
  * 2) standardize some printing conventions: e.g. $ai(/dhn& is converted to $*(/aidhn&.

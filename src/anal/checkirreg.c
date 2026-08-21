@@ -129,8 +129,8 @@ printf("rval b %d irrform [%s] irkkeys [%s]\n", rval , irrform, IrrKeys[0] );
  * on the irrform 
  */
 
-	if( (cur_lang() != LATIN &&
-	     (!*rawprvb || !Is_asp(*(rawprvb + Xstrlen(rawprvb) - 1))) ||
+	if( ((cur_lang() != LATIN &&
+	      (!*rawprvb || !Is_asp(*(rawprvb + Xstrlen(rawprvb) - 1)))) ||
 	     mfi_prvb(rawprvb)) && getbreath(irrform) == NOBREATH) {
 		addbreath(irrform,SMOOTHBR);
 		if( has_morphflag(morphflags_of(stem_gstr_of(&Workword)),UNASP_PREVERB) ) {
