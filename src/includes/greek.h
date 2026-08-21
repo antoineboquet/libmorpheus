@@ -586,9 +586,6 @@ grc 8/21/88 added 'c' (xi) to palatals
 /*======================================*/
 
 
-extern	grkfd fds[MAXFILES];
-extern	filehead fheaders[MAXFILES];
-extern	int openlist[NFILES],nopen;
 
 /*extern lookup_res_type lookup_res;
 extern bool debug,verbose,grkchars;*/
