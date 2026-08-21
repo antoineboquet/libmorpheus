@@ -4,7 +4,7 @@
 
 #include "keyio.proto.h"
 
-int WriteKey(char *key, int *offp, FILE *f)
+int WriteKey(char *key, morpheus_stemlib_offset *offp, FILE *f)
 {
 	int nwritten;
 
@@ -15,7 +15,7 @@ int WriteKey(char *key, int *offp, FILE *f)
 	return(nwritten);
 }
 
-int ReadKey(char *key, int *offp, FILE *f)
+int ReadKey(char *key, morpheus_stemlib_offset *offp, FILE *f)
 {
 	int nread;
 

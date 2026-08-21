@@ -165,6 +165,14 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+if(BUILD_TESTING)
+  add_executable(morpheus_stemlib_abi_test test/stemlib-abi.c)
+  target_link_libraries(
+    morpheus_stemlib_abi_test PRIVATE morpheus_build_options
+  )
+  add_test(NAME stemlib_abi COMMAND morpheus_stemlib_abi_test)
+endif()
+
 add_library(morpheus_morphlib STATIC
   src/morphlib/adddomain.c
   src/morphlib/addninfix.c

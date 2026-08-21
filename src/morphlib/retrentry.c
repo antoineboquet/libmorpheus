@@ -41,7 +41,7 @@ init_preind(char *fname, int *maxkeys)
 	etags = (endtags *) calloc((size_t)flen + 1,(size_t) sizeof * etags );
 
 	for(i=0;  i < flen/*+1*/; i++) {
-		int tagoffset;
+		morpheus_stemlib_offset tagoffset;
 
 		if( ! ReadKey(tagstring_of(etags+i),&tagoffset,f))
 			break;

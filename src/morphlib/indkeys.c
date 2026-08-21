@@ -2,7 +2,7 @@
 #include <gkstring.h>
 #include <endfiles.h>
 #include <endtags.h>
-#define DECALPHA 1
+#include <stdint.h>
 
 #include "indkeys.proto.h"
 
@@ -12,11 +12,13 @@ typedef struct {
 	int nkeys;
 } index_key_state;
 
-#ifdef DECALPHA
-static void prockeyline(char *, int, int, FILE *, index_key_state *);
-#else
-static void prockeyline(char *, int, long, FILE *, index_key_state *);
-#endif
+static void prockeyline(
+	char *,
+	int,
+	morpheus_stemlib_offset,
+	FILE *,
+	index_key_state *
+);
 
 int index_list(char *listname, char *tagstring, int modulus)
 {
@@ -27,11 +29,7 @@ int index_list(char *listname, char *tagstring, int modulus)
 	char line[LONGSTRING*4];
 	char curlemma[LONGSTRING];
 	char field[LONGSTRING];
-#ifdef DECALPHA
-	int curoff;
-#else
-	long curoff;
-#endif
+	morpheus_stemlib_offset curoff;
 	int i;
 	int taglen;
 	
@@ -50,11 +48,15 @@ int index_list(char *listname, char *tagstring, int modulus)
 	}
 	if( tagstring ) taglen = Xstrlen(tagstring);
 	for(i=0;;i++) {
-#ifdef DECALPHA
-		curoff = (int)ftell(finput);
-#else
-		curoff = ftell(finput);
-#endif
+		long file_offset = ftell(finput);
+
+		if(file_offset < 0 || (uintmax_t)file_offset > UINT32_MAX) {
+			fprintf(stderr, "Index offset is outside the 32-bit stemlib format\n");
+			fclose(finput);
+			fclose(foutput);
+			return(-1);
+		}
+		curoff = (morpheus_stemlib_offset)file_offset;
 		if( ! fgets(line,sizeof line,finput) )
 			break;
 		if( Xstrlen(line) >= LONGSTRING ) {
@@ -80,13 +82,13 @@ int index_list(char *listname, char *tagstring, int modulus)
 }
 
 
-#ifdef DECALPHA
-static void prockeyline(char *s, int modulus, int curoff, FILE *f,
-	index_key_state *state)
-#else
-static void prockeyline(char *s, int modulus, long curoff, FILE *f,
-	index_key_state *state)
-#endif
+static void prockeyline(
+	char *s,
+	int modulus,
+	morpheus_stemlib_offset curoff,
+	FILE *f,
+	index_key_state *state
+)
 {
 	char curlemma[LONGSTRING];
 	char * p;
