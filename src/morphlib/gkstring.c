@@ -502,17 +502,13 @@ void AddAdjInfo(char *s, word_form vf,char * dels)
 }
 
 void
- PrntStemtype(st,f)
- Stemtype st;
- FILE *f;
+PrntStemtype(Stemtype st, FILE *f)
 {
 	fprintf(f,"%s ", NameOfStemtype(st ) );
 }
 
 void
- PrntDialect(di,f)
- Dialect di; 
- FILE *f;
+PrntDialect(Dialect di, FILE *f)
 {
 	char * s;
 	int i;
@@ -532,10 +528,7 @@ void
 */
 }
 
-void AddDialect(di, dialb,dels)
-	Dialect di;
-	char *dialb;
-	char *dels;
+void AddDialect(Dialect di, char *dialb, char *dels)
 {
 	char * s;
 	int i;
