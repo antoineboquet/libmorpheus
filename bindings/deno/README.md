@@ -1,7 +1,7 @@
 # Deno binding
 
-The binding loads the installed shared library directly with `Deno.dlopen`.
-It requires Deno 2 and a 64-bit x86 or ARM runtime.
+The binding loads the libmorpheus shared library directly with `Deno.dlopen`.
+It requires Deno 2 on a 64-bit x86 or ARM runtime.
 
 ```ts
 import {
@@ -22,15 +22,28 @@ const analyses = await context.analyze(
 );
 ```
 
-Run applications with the FFI permission, for example:
+Use the platform's installed library name: typically `libmorpheus.so` on
+Linux and `libmorpheus.dylib` on macOS. Run applications with FFI permission:
 
 ```sh
 deno run --allow-ffi app.ts
 ```
 
-Analysis executes on a Deno blocking thread. Calls made through one context are
-serialized by the wrapper because a context must not be used concurrently.
-Separate contexts may analyze in parallel. Results are copied into TypeScript
-objects before their native allocation is released. Close contexts before
-closing their parent library; `using` and `await using` provide deterministic
-cleanup.
+Analysis is declared as a nonblocking FFI call and executes away from Deno's
+main event loop. Calls made through one context are serialized by the wrapper
+because a native context must not be used concurrently. Separate contexts may
+analyze in parallel. Results are copied into TypeScript objects before their
+native allocation is released.
+
+Close contexts before closing their parent library. `using` and `await using`
+provide deterministic cleanup; `MorpheusLibrary.close()` rejects an early
+close while contexts remain active.
+
+To check and run the binding tests against a local build:
+
+```sh
+deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+MORPHEUS_LIBRARY="$PWD/build/dev/libmorpheus.so" \
+MORPHEUS_STEMLIB="$PWD/stemlib" \
+deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+```
