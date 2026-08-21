@@ -15,8 +15,9 @@ The runtime now provides:
 
 See [the architecture baseline](docs/architecture.md),
 [the C17 port notes](docs/c17-port.md), and
-[source provenance](docs/provenance.md) for the implementation boundaries and
-exact upstream revisions.
+[source provenance](docs/provenance.md), and
+[platform support](docs/portability.md) for the implementation boundaries,
+exact upstream revisions, and tested deployment targets.
 
 ## Clone
 

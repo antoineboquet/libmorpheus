@@ -102,6 +102,78 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
 
+  alpine:
+    name: Alpine (${{ matrix.architecture }})
+    strategy:
+      matrix:
+        include:
+          - architecture: x86_64
+            runner: ubuntu-24.04
+          - architecture: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Verify native architecture
+        run: test "$(uname -m)" = "${{ matrix.architecture }}"
+
+      - name: Build and test Alpine runtime image
+        run: docker build --target runtime --tag morpheus:ci .
+
+      - name: Smoke-test cruncher image
+        run: |
+          output="$(printf 'a)/nqrwpos\n' | docker run --rm -i morpheus:ci -S)"
+          test -n "$output"
+
+      - name: Build Alpine Deno base image
+        run: docker build --target deno-runtime --tag morpheus-deno:ci .
+
+      - name: Smoke-test Deno base image
+        run: docker run --rm morpheus-deno:ci --version
+
+  apple-silicon:
+    runs-on: macos-15
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Verify native architecture
+        run: test "$(uname -m)" = arm64
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Configure
+        run: cmake --preset dev
+
+      - name: Build
+        run: cmake --build --preset dev
+
+      - name: Test native runtime
+        run: ctest --preset dev
+
+      - name: Check binding
+        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+
+      - name: Test binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.dylib
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
   legacy-make:
     runs-on: ubuntu-latest
     steps:
