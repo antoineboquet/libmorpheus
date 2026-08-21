@@ -329,6 +329,7 @@ static const Morph_args arg_geogregion[] = {
 
 
 const Morph_args *MatchMorphKey(char *);
-Morph_args *InitStemSuffs(char *, void (*curfunc )(), Stemtype (*classfunc )(), int *);
+Morph_args *InitStemSuffs(char *, void (*)(gk_string *, unsigned long),
+                           Stemtype (*)(char *), int *);
 int keycomp2(char *, char *);
 int add_keyarr(const Morph_args **, const Morph_args *);

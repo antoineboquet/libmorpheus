@@ -496,11 +496,9 @@ static char *
 	}
 	return("");
 }
-Morph_args * InitStemSuffs(char * fname,void 	(*curfunc)(),Stemtype 	(*classfunc)(),int * snum);
-
-
 Morph_args * 
-InitStemSuffs(char *fname, void (*curfunc )(), Stemtype (*classfunc )(), int *snum)
+InitStemSuffs(char *fname, void (*curfunc)(gk_string *, unsigned long),
+              Stemtype (*classfunc)(char *), int *snum)
 {
 	FILE * f;
 	int i, j;
@@ -716,7 +714,7 @@ GetIsProse(char *classp)
 
  int AddMorphKey(gk_string *gstr, char *field)
 {
-	void (*func)(gk_string *, Morph_flags);
+	void (*func)(gk_string *, unsigned long);
 	const Morph_args *mp;
 	
 	mp = MatchMorphKey(field);
