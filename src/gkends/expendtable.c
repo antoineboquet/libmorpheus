@@ -13,7 +13,6 @@
 #include "compostypes.h"
 
 #include "expendtable.proto.h"
-gk_string * CreatGkString();
 
 int
  expendtables(char *tabname, int maintable, int formcode)

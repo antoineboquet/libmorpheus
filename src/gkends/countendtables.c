@@ -2,6 +2,8 @@
 #include "gkends_internal.h"
 #include "endfiles.h"
 #include "countendtables.proto.h"
+#include "nextsufftab.proto.h"
+#include "../morphlib/morphkeys.proto.h"
 
 void
 countendtables(Stemtype stype, int is_deriv)
@@ -26,7 +28,6 @@ countendtables(Stemtype stype, int is_deriv)
 	int maxstring = 0;
 	int ntypes = 0;
 	char * typestr;
-	char * NextEndTable(), *NextSuffTable();
 	
 	if( is_deriv ) 
 		dirp = DERIVTABLEDIR;
