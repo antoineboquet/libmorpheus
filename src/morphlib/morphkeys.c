@@ -26,11 +26,6 @@ static char * p_eq_morph_keys();
 Stemtype GetStemClass(char * );
 Stemtype GetIsProse(char *);
 
-#ifndef LIGHTSPEED
-static int GetGkFlag();
-static int GetMorphKeys();
-#endif
-
 static void RearrangeMorphflags(gk_word *, gk_string *);
 static int GetGkFlag(char *, gk_string *, char *, char *, char *);
 static char *p_eq_morph_keys(long, const Morph_args *);

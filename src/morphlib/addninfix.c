@@ -13,7 +13,6 @@
 int addninfix(char *word)
 {
 	char * syllp;
-	char *getaccp();
 	int c = 'n';
 	
 
