@@ -29,8 +29,7 @@ static const char gktoasc[] = {
 };
 
 
-void set_gkorder( s )
-register char * s;
+void set_gkorder(char *s)
 {
 	int i;
 

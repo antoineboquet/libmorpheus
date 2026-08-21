@@ -575,7 +575,6 @@ void init_keys(void)
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	int sofar = 0;
 	int i;
-	int morph_key_comp();
 	
 	if (context->morph_keys_initialized) {
 		free(context->morph_key_table);

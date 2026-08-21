@@ -36,8 +36,8 @@ set(
 )
 
 # The runtime is built as C17. GNU/Clang extensions remain enabled temporarily
-# while the inherited K&R-style definitions and missing prototypes are migrated
-# incrementally under the behavioral fixture suites.
+# while the remaining non-ISO dependencies are migrated incrementally under
+# the behavioral fixture suites.
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS ON)
@@ -57,6 +57,8 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-fno-common>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Wformat=2>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=format>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=strict-prototypes>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=old-style-definition>
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-overflow>
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-truncation>
 )
