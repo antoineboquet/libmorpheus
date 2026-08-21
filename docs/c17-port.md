@@ -6,13 +6,15 @@ The runtime closure used by `cruncher` builds in C17 mode with `-fno-common`.
 This removes the dependency on the GNU `-fcommon` compatibility switch that
 the inherited Perseids build required.
 
-This is not yet a fully ISO-only C17 port: CMake still enables compiler
-extensions while the remaining non-ISO dependencies are audited separately.
-The runtime and test closure does, however, reject non-prototype declarations
-and K&R-style definitions with `-Werror=strict-prototypes` and
-`-Werror=old-style-definition`. This covers declarations reached transitively
-through the historical headers as well as declarations written directly in the
-compiled sources.
+CMake now disables compiler language extensions, so GCC and Clang compile the
+runtime and test closure with `-std=c17` rather than `-std=gnu17`. POSIX
+interfaces such as `open_memstream` are requested explicitly with feature-test
+macros in the translation units that use them. The shared build options enforce
+`-Wpedantic -Werror=pedantic`, reject non-prototype declarations with
+`-Werror=strict-prototypes`, and reject K&R-style definitions with
+`-Werror=old-style-definition`. These checks cover declarations reached
+transitively through the historical headers as well as declarations written
+directly in the compiled sources.
 
 The entire `cruncher` runtime closure is now a strict boundary. Its internal
 interfaces are declared in `src/anal/cruncher_internal.h`,

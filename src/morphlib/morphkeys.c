@@ -525,7 +525,9 @@ InitStemSuffs(char *fname, void (*curfunc)(gk_string *, unsigned long),
 		declnum = stemnum = 0;
 
 		if( has_octal(line)) {
-			sscanf(line,"%s %o %s", stemname , &n , decl );
+			unsigned int octal_n = 0;
+			sscanf(line,"%s %o %s", stemname , &octal_n , decl );
+			n = (int)octal_n;
 			stemnum = (Stemtype) n;
 		} else {
 			sscanf(line,"%s %d %s", stemname , &n , decl );
