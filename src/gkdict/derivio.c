@@ -44,7 +44,7 @@ checkforderiv(char *stemstr, char *stemkeys)
 {
 	int rval = 0;
 	int rval2 = 0;
-	char * p, * is_substring();
+	char *p;
 	char stemkeys2[LONGSTRING];
 	int oldsuffs = checkedsuffs;
 
