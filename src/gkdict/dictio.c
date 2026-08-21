@@ -336,6 +336,11 @@ FILE *
 	shorttag[6] = 0;
 
 	startoff = ChckPreIndex(LemmTags,shorttag,num_of_ltags,NO,morphstrcmp);
+	if (startoff < 0) {
+		*lemmoff = -1;
+		*lemmfile = 0;
+		return(NULL);
+	}
 
 	if( (f=MorphFopen(WORDLIST,"r")) == NULL ) {
 		fprintf(stderr,"getlemmstart: could not find %s\n", line );

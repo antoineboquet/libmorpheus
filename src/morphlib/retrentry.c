@@ -24,7 +24,7 @@ init_preind(char *fname, int *maxkeys)
 	int i, j;
 	char tmp[LONGSTRING];
 
-
+	*maxkeys = 0;
 	sprintf(tmp,"%s.%s", fname , LINDEXSUFFIX );
 	
 	if( (f=MorphFopen(tmp,"rb"))==NULL) {
@@ -64,7 +64,9 @@ ChckPreIndex(endtags *etags, char *tag, int ntags, int exact_match, int (*scmp )
 	int rval;
 	long roff;
 	char curtag[KEYLEN+1];
-	
+
+	if (!etags || ntags <= 0)
+		return((long)-1);
 	if( Xstrlen(tag) > KEYLEN ) exact_match = NO;
 	strncpy(curtag,tag,KEYLEN);
 	curtag[KEYLEN] = 0;
