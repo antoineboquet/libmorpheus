@@ -1,3 +1,5 @@
+#ifndef MORPHEUS_CONTRACT_H
+#define MORPHEUS_CONTRACT_H
 /*
  * Greg Crane 
  * June 1987
@@ -15,3 +17,5 @@ gk_string * load_euph_tab();
 char * is_substring();
 
 static gk_string Blnk;
+
+#endif
