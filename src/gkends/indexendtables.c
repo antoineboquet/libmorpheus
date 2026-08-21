@@ -8,9 +8,7 @@ static int xstrcmp(const void *, const void *);
 #define DELIMITER " "
 
 int
-indexendtables(stype,is_deriv)
-Stemtype stype;
-int is_deriv;
+indexendtables(Stemtype stype, int is_deriv)
 {
 
 	int index = 0;
@@ -42,6 +40,7 @@ int is_deriv;
 		if( is_deriv ) {
 			gk_string * gstring;
 			gk_word * tmpGkword;
+			int derivtype;
 			int rconj;
 		
 			curtable = NextSuffTable(tmp);
@@ -51,12 +50,13 @@ int is_deriv;
 			gstring = CreatGkString(1);
 			tmpGkword = CreatGkword(1);
 			ScanAsciiKeys(curtable,tmpGkword,gstring,NULL);
+			derivtype = derivtype_of(gstring);
 			rconj = Is_regconj(gstring);
 			
 			FreeGkString(gstring);
 			FreeGkword(tmpGkword);
 			if( ! rconj ) {
-				printf("[%s] not a regular conj [%o] [%o]\n", curtable , derivtype_of(gstring), REG_DERIV);
+				printf("[%s] not a regular conj [%o] [%o]\n", curtable, derivtype, REG_DERIV);
 				continue;
 			}
 		} else 
