@@ -60,7 +60,7 @@ int do_dissim(char *s, Stemtype stype)
 
 int next_cons_rough(char *s)
 {
-	char * cp, *next_cons();
+	char *cp;
 	int rval = 0;
 	
 	cp = next_cons(s);
