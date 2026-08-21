@@ -78,7 +78,7 @@ return( roff  );
 
 
 int ChckFullIndex(char *s, char *keys, char *fname, long offset,
-                  int (*scmp)(char *, char *, size_t))
+                  int (*scmp)(const char *, const char *, size_t))
 {
 	FILE * f;
 	register char * a;
