@@ -29,12 +29,12 @@ static const char gktoasc[] = {
 };
 
 
-void set_gkorder(char *s)
+void set_gkorder(unsigned char *s)
 {
 	int i;
 
 	for(i=0;i< sizeof gktoasc;) {
-		s[ gktoasc[ i ] ] = gktoasc[ i+1 ] ;
+		s[(unsigned char)gktoasc[i]] = gktoasc[i+1];
 		i += 2;
 	}
 }

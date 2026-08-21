@@ -253,3 +253,8 @@ packaging, benchmarks, and removal of transitional internal build surfaces.
 
 Every lot must keep both fixture suites passing: the inherited Perseids
 fixtures and the Greek Alpheios stemlib fixtures used by Bailly.
+
+Byte-indexed collation and conversion tables are checked with
+`-Werror=char-subscripts`. The context-owned comparison tables cover all 256
+byte values and preserve an unsigned identity order outside the ASCII Beta Code
+range. Dedicated tests run with both `-fsigned-char` and `-funsigned-char`.

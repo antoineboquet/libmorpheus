@@ -85,7 +85,9 @@ static char byte_value(unsigned int value)
 	return (char)(unsigned char)value;
 }
 
-#define Is_accflag(X) (accenttab[X] > 0 && accenttab[X] <= ISUBFLAG )
+#define Is_accflag(X) \
+	(accenttab[(unsigned char)(X)] > 0 && \
+	 accenttab[(unsigned char)(X)] <= ISUBFLAG)
 #define SMARTA 2
 #define SMK 4
 
@@ -395,7 +397,7 @@ void beta2mac(char *source, char *res, int xlit)
 				 * don't count the hard short marker (no way to print it for now)
 				 */
 				 else		
-					acc += accenttab[*sp++];
+					acc += accenttab[(unsigned char)*sp++];
 			}
 /*
 printf("got [%o] ", acc );
@@ -481,7 +483,7 @@ printf("got [%o] ", acc );
 						*rp = byte_value(0376);
 					else 
 						*rp = byte_value(0243);
-				} else if( !gktab[*rp] ) {
+				} else if( !gktab[(unsigned char)*rp] ) {
 					*(rp+1) = *rp;
 					*rp = '?';
 					rp += 2;

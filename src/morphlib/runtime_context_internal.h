@@ -14,13 +14,14 @@
 #define MORPHEUS_AUGMENT_STEM_COUNT 12
 #define MORPHEUS_POSSIBLE_STEM_COUNT 10
 #define MORPHEUS_IRREGULAR_FORM_COUNT 3
+#define MORPHEUS_BYTE_TABLE_SIZE 256
 
 struct morpheus_runtime_context {
 	int language;
 	int heap_allocated;
 	char *stemlib_path;
-	char comparison_table[128];
-	char beta_table[128];
+	unsigned char comparison_table[MORPHEUS_BYTE_TABLE_SIZE];
+	unsigned char beta_table[MORPHEUS_BYTE_TABLE_SIZE];
 	int comparison_table_initialized;
 	int beta_table_initialized;
 	char *hidden_morphflag_table;

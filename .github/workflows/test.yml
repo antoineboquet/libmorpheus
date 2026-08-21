@@ -117,11 +117,15 @@ jobs:
           CFLAGS: -f${{ matrix.char_mode }}-char
         run: cmake -S . -B build/char-mode -G Ninja
 
-      - name: Build byte conversion test
-        run: cmake --build build/char-mode --target morpheus_byte_conversion_test
+      - name: Build byte portability tests
+        run: >-
+          cmake --build build/char-mode --target
+          morpheus_byte_conversion_test morpheus_byte_collation_test
 
-      - name: Test byte conversions
-        run: ./build/char-mode/morpheus_byte_conversion_test
+      - name: Test byte portability
+        run: |
+          ./build/char-mode/morpheus_byte_conversion_test
+          ./build/char-mode/morpheus_byte_collation_test
 
   alpine:
     name: Alpine (${{ matrix.architecture }})
