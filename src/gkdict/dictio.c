@@ -318,7 +318,6 @@ FILE *
 	char line[LONGSTRING];
 	char tmp[LONGSTRING];
 	long curoff;
-	long ftell();
 	FILE * f = NULL;
 	long startoff;
 	int comp = 0;

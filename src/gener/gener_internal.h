@@ -3,6 +3,8 @@
 
 #include <gkstring.h>
 
+#include "genwd.proto.h"
+
 #include "../gkends/retrends.proto.h"
 #include "../greeklib/isblank.proto.h"
 #include "../greeklib/nsylls.proto.h"
@@ -19,11 +21,6 @@
 #include "../morphlib/morphkeys.proto.h"
 #include "../morphlib/nextkey.proto.h"
 #include "../morphlib/preverb.proto.h"
-
-void GenDictEntry(gk_word *word, char *dictionary_entry);
-int GenNxtWord(FILE *input, int mode, FILE *output);
-gk_word *GenStemForms(gk_word *word, char *keys, int mode);
-gk_word *GenIrregForm(gk_word *word, char *keys, int mode);
 
 int NextDictLine(FILE *input, char *word, char *word_keys, char *prefix);
 int BuildAWord(gk_word *word, gk_string *ending, gk_word *forms);

@@ -3,9 +3,6 @@
 #define MAXPPARTS 12
 
 #include "checkdict.proto.h"
-gk_word * GenStemForms();
-char * 	GetLemmStem();
-
 extern int verbose;
 
 int checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
@@ -19,7 +16,6 @@ int checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
 	char * pbptr;
 	char curkeys[LONGSTRING+1];
 	char keyp[LONGSTRING+1];
-	char *is_substring();
 
 	hits = 0;
 	

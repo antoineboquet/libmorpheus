@@ -5,12 +5,6 @@
 #define MAXENDINGS 	10000
 
 #include "stor.proto.h"
-gk_string * CreatGkString();
-int dictstrcmp();
-int CompByDictStr(const void *gstr1, const void *gstr2);
- int
- CompGkString(const void *gstr1, const void *gstr2);
-
 int
 InitGstrMem(void)
 {

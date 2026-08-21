@@ -14,9 +14,6 @@ void
 	char savestr[MAXWORDSIZE];
 	gk_string * contr_forms;
 	gk_string * euph_forms;
-	gk_string * poss_contracts();
-	gk_string * do_euph();
-	gk_string * fix_eta();
 	int saw_vowel = 0;
 	gk_string no_avoid = { 0 };
 	
@@ -104,7 +101,6 @@ static void
 {
 	char fname[BUFSIZ];
 	FILE * f;
-	FILE * MorphFopen();
 	int i;
 	char line[BUFSIZ];
 	char savestem[MAXWORDSIZE];

@@ -17,7 +17,6 @@ int checkindecl(gk_word *Gkword)
 	char *keys;
 	char keybuf[LONGSTRING];
 	char workword[MAXWORDSIZE];
-	char * parsefield();
 	char stemkeys[LONGSTRING];
 	char tmpword[MAXWORDSIZE];
 	register char * sp;
@@ -77,7 +76,6 @@ static int IndeclWorks(gk_word *Gkword, char *keys)
 {
 	int i;
 	int rval = 0;
-	gk_word * GenIrregForm();
 	gk_word * Forms;
 
 /*

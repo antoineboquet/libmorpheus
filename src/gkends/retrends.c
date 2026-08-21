@@ -16,8 +16,6 @@ static char *GetEndString(char *, gk_string *);
 static int NoWantGkEnd(gk_string *, gk_string *, int);
 static void AddNewEnd(gk_string *, gk_string *, int);
 
-gk_string * CreatGkString();
-
 gk_string *
  chckendings(char *endstr, char *restricts, char *stemstr, char *prevbstr, Dialect dial, int *nends)
 {

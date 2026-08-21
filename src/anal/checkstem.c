@@ -6,8 +6,6 @@ int comstemtypes(char *, char *, char *);
 static int wantcurstemtype(char *, char *);
 extern int verbose;
 
-char * is_substring();
-
 /*
  * this routine takes a possible verb stem (poss_stem) and tries
  * to figure out whether any such stem exists. 
@@ -193,7 +191,7 @@ comstemtypes(char *stem, char *stemkeys, char *endkeys)
 
 static int wantcurstemtype(char *curst, char *stlist)
 {
-	char * is_substring(), *s;
+	char *s;
 	int rval = 0;
 	
 	s = is_substring(curst,stlist);
@@ -205,7 +203,6 @@ static int wantcurstemtype(char *curst, char *stlist)
 
 void setstemvars(char *s, char *cstem, char *clemma, char *cstemtype, char *cstemkeys)
 {
-	char * parsefield();
 	*cstemkeys = *cstem = *clemma = *cstemtype = 0;
 	
 	s = parsefield(s,cstem,':',MAXWORDSIZE);

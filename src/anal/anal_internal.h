@@ -21,6 +21,7 @@
 #include "prvb.proto.h"
 
 #include "../gkdict/compnoun.proto.h"
+#include "../gener/genwd.proto.h"
 #include "../greeklib/Fclose.proto.h"
 #include "../greeklib/addbreath.proto.h"
 #include "../greeklib/beta_tolower.proto.h"
@@ -28,6 +29,7 @@
 #include "../greeklib/getbreath.proto.h"
 #include "../greeklib/hasaccent.proto.h"
 #include "../greeklib/isblank.proto.h"
+#include "../greeklib/issubstring.proto.h"
 #include "../greeklib/isdiphth.proto.h"
 #include "../greeklib/naccents.proto.h"
 #include "../greeklib/nsylls.proto.h"

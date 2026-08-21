@@ -3,10 +3,6 @@
 
 #include "lcontr.proto.h"
 
-gk_string * CreatGkString();
-
-gk_string * load_euph_tab();
-
 gk_string * 
 load_ccontr(int *gotno)
 {

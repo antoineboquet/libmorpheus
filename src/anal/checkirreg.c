@@ -216,7 +216,6 @@ printf("rval b %d irrform [%s] irkkeys [%s]\n", rval , irrform, IrrKeys[0] );
 int ChckIrrLemms(gk_word *Gkword, char *irrform, char *irrkey)
 {
 	register char * sp;
-	char * parsefield();
 	char stemkeys[LONGSTRING];
 	char curlemma[LONGSTRING];
 	char tmpword[LONGSTRING];
@@ -257,10 +256,8 @@ int ChckIrrLemms(gk_word *Gkword, char *irrform, char *irrkey)
 int CheckIrregForm(gk_word *Gkword, char *stem, char *stemkeys)
 {
 	gk_word * Forms = NULL;
-	gk_word * GenIrregForm();
 	gk_word StemForms;
 	gk_string Gstr;
-	char * is_substring();
 	char * prevb = preverb_of(Gkword);
 	char * pbptr;
 	int rval = 0;
