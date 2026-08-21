@@ -4,7 +4,6 @@
 
 #include "checkirreg.proto.h"
 
-long matchendtag();
 
 static int
 initialize_irregular_buffers(morpheus_runtime_context *context)

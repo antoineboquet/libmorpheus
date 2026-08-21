@@ -1017,7 +1017,6 @@ GetWantDialect(void)
 
 int updateDialect(Dialect dial)
 {
-	Dialect GetWantDialect();
 	Dialect curdial;
 	
 	curdial = GetWantDialect();

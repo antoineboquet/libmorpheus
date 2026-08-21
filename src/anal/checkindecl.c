@@ -4,7 +4,6 @@
 
 #include "checkindecl.proto.h"
 static int IndeclWorks(gk_word *, char *);
-long matchendtag();
 
 
 int checkindecl(gk_word *Gkword)
