@@ -16,6 +16,13 @@ macros in the translation units that use them. The shared build options enforce
 transitively through the historical headers as well as declarations written
 directly in the compiled sources.
 
+SmartA and SMK output bytes above `CHAR_MAX` are converted through an explicit
+8-bit representation before storage in the historical `char *` buffers. GCC's
+overflow diagnostic and Clang's constant-conversion diagnostic are errors, so
+new implementation-defined byte stores cannot enter the runtime unnoticed. A
+stemlib-independent conversion test verifies the exact output bytes and their
+round trip with both `-fsigned-char` and `-funsigned-char` in CI.
+
 The entire `cruncher` runtime closure is now a strict boundary. Its internal
 interfaces are declared in `src/anal/cruncher_internal.h`,
 `src/anal/anal_internal.h`,

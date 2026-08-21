@@ -21,7 +21,7 @@
 #define HISUB			0372
 #define WISUB			0304
 #define IS_CHARSTYLE(S) (*S == '&' && (*(S+1) == '3' || *(S+1) == '1' ))
-#define END_CHARSTYLE(S) if (xlit==SMARTA) 	*S++ = 0253;/* \
+#define END_CHARSTYLE(S) if (xlit==SMARTA) 	*S++ = byte_value(0253);/* \
 else { Xstrcpy(S,"}"), S ++; }*/
 
 #define GKFONT "}{\\f132 "
@@ -33,6 +33,7 @@ else { Xstrcpy(S,"}"), S ++; }*/
 
 #include "beta2smarta.proto.h"
 static void init_gktab(morpheus_runtime_context *);
+static char byte_value(unsigned int);
 static const int acctab[] = {
 	ACUTEFLAG,
 	GRAVEFLAG,
@@ -77,6 +78,11 @@ void init_gktab(morpheus_runtime_context *context)
 	gktab[AISUB] = 0226;
 	gktab[WISUB] = 0320;
 	gktab[HISUB] = 0271;
+}
+
+static char byte_value(unsigned int value)
+{
+	return (char)(unsigned char)value;
 }
 
 #define Is_accflag(X) (accenttab[X] > 0 && accenttab[X] <= ISUBFLAG )
@@ -237,9 +243,9 @@ void beta2mac(char *source, char *res, int xlit)
 				case 40:
 					if( xlit == SMK ) {
 						*rp++ = ' ';
-						*rp++ = SMK_SHORTMARK;
+						*rp++ = byte_value(SMK_SHORTMARK);
 					} else if( xlit == SMARTA ) {
-						*rp++ = SMARTA_SHORTMARK;
+						*rp++ = byte_value(SMARTA_SHORTMARK);
 						break;
 					}
 				case 41:
@@ -417,11 +423,9 @@ printf("got [%o] ", acc );
 						if( *rp == 'a' )
 							*rp = 046;
 						else if( *rp == 'i' ) {
-							*rp = 0372;
-							*rp &= 0377;
+							*rp = byte_value(0372);
 						} else if( *rp == 'u' ) {
-							*rp = 0304;
-							*rp &= 0377;
+							*rp = byte_value(0304);
 						}
 					} else if( xlit == SMK ) {
 						*(rp+1) = *rp;
@@ -436,12 +440,10 @@ printf("got [%o] ", acc );
 						*rp = AISUB;
 						break;
 					case 'h':
-						*rp = HISUB;
-						*rp &= 0377;
+						*rp = byte_value(HISUB);
 						break;
 					case 'v':
-						*rp = WISUB;
-						*rp &= 0377;
+						*rp = byte_value(WISUB);
 						break;
 					default:
 						break;
@@ -455,32 +457,32 @@ printf("got [%o] ", acc );
 					if( xlit == SMK ) 
 						*rp = SMK_ROUGH_RHO;
 					else
-						*rp = SMARTA_ROUGH_RHO;
+						*rp = byte_value(SMARTA_ROUGH_RHO);
 				} else if( acc == DIAERFLAG  &&
 							(*rp == 'i' || *rp == 'u') ) {
 					if( *rp == 'i' ) 
-						*rp = 0363;
+						*rp = byte_value(0363);
 					else 
 						*rp =  043;
 				} else if( acc == (DIAERFLAG|ACUTEFLAG)  &&
 							(*rp == 'i' || *rp == 'u') ) {
 					if( *rp == 'i' ) 
-						*rp = 0375;
+						*rp = byte_value(0375);
 					else 
 						*rp =  0100;
 				}else if( acc == (DIAERFLAG|GRAVEFLAG)  &&
 							(*rp == 'i' || *rp == 'u') ) {
 					if( *rp == 'i' ) 
-						*rp = 0376;
+						*rp = byte_value(0376);
 					else 
-						*rp =  0243;
+						*rp = byte_value(0243);
 				} else if( !gktab[*rp] ) {
 					*(rp+1) = *rp;
 					*rp = '?';
 					rp += 2;
 					*rp = '?';
 				} else
-					*rp = (unsigned char) (gktab[*rp] + accnum(acc));
+					*rp = byte_value((unsigned int)(gktab[(unsigned char)*rp] + accnum(acc)));
 /*
 if(1) {
 int n;

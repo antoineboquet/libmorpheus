@@ -102,6 +102,27 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
 
+  char-signedness:
+    name: Byte conversions (${{ matrix.char_mode }} char)
+    strategy:
+      matrix:
+        char_mode: [signed, unsigned]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v5
+
+      - name: Configure
+        env:
+          CFLAGS: -f${{ matrix.char_mode }}-char
+        run: cmake -S . -B build/char-mode -G Ninja
+
+      - name: Build byte conversion test
+        run: cmake --build build/char-mode --target morpheus_byte_conversion_test
+
+      - name: Test byte conversions
+        run: ./build/char-mode/morpheus_byte_conversion_test
+
   alpine:
     name: Alpine (${{ matrix.architecture }})
     strategy:

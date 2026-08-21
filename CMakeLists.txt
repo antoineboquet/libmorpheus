@@ -60,6 +60,8 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=pedantic>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=strict-prototypes>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=old-style-definition>
+    $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=overflow>
+    $<$<COMPILE_LANG_AND_ID:C,Clang,AppleClang>:-Werror=constant-conversion>
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-overflow>
     $<$<COMPILE_LANG_AND_ID:C,GNU>:-Werror=format-truncation>
 )
@@ -236,6 +238,12 @@ if(BUILD_TESTING)
     PRIVATE morpheus_morphlib morpheus_build_options
   )
   add_test(NAME runtime_context COMMAND morpheus_runtime_context_test)
+  add_executable(morpheus_byte_conversion_test test/byte-conversion.c)
+  target_link_libraries(
+    morpheus_byte_conversion_test
+    PRIVATE morpheus_morphlib morpheus_build_options
+  )
+  add_test(NAME byte_conversion COMMAND morpheus_byte_conversion_test)
   add_executable(
     morpheus_gkstring_helper_context_test
     test/gkstring-helper-context.c
