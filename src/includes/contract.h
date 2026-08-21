@@ -13,8 +13,8 @@ Dialect AndDialect(Dialect, Dialect);
 
 
 gk_string *poss_contracts(gk_string *, Dialect);
-gk_string * load_euph_tab();
-char * is_substring();
+gk_string *load_euph_tab(char *, int *, int);
+char *is_substring(char *, char *);
 
 static gk_string Blnk;
 
