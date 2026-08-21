@@ -137,7 +137,7 @@ void beta2mac(char *source, char *res, int xlit)
 /* grc 6/26/89
 					while(*rp == ' ' && rp > res ) rp--;
 */
-					if( ispunct(*rp) ) {
+					if( ispunct((unsigned char)*rp) ) {
 						*(rp+1) = *rp;
 						END_CHARSTYLE(rp);
 /*						*rp = 0253;
@@ -190,7 +190,7 @@ void beta2mac(char *source, char *res, int xlit)
 					}
 				}
 				sp += 2;
-				while(isspace(*sp)) sp++;
+				while(isspace((unsigned char)*sp)) sp++;
 			}
 			sp = romanfont(sp);
 			if( xlit == SMK && ! context->smarta_character_style && *(rp-1) != '}' ) {
@@ -206,7 +206,7 @@ void beta2mac(char *source, char *res, int xlit)
 			
 			np = numbuf;
 			n = atoi(++sp);
-			while(isdigit(*sp)) *np++ = *sp++;
+			while(isdigit((unsigned char)*sp)) *np++ = *sp++;
 			*np = 0;
 			
 			switch(n) {
@@ -271,20 +271,22 @@ void beta2mac(char *source, char *res, int xlit)
 			} else if (xlit == SMK ) {
 				sp++;
 				Xstrcpy(rp,sp);
-				if( islower(*rp) ) *rp = toupper(*rp);
+				if( islower((unsigned char)*rp) )
+					*rp = (char)toupper((unsigned char)*rp);
 				rp++;
 			}
 			sp++;
 			continue;
 		}
-		if( context->smarta_current_font == ROMAN &&isalpha(*sp) ) {
-			if( isupper(*sp) ) {
+		if( context->smarta_current_font == ROMAN &&
+				isalpha((unsigned char)*sp) ) {
+			if( isupper((unsigned char)*sp) ) {
 				*rp++ = UCASEMARKER;
 				*rp++ = *sp++;
 				continue;
 			} else {
 				if( xlit == SMARTA ) 
-					*rp++ = toupper(*sp++);
+					*rp++ = (char)toupper((unsigned char)*sp++);
 				else
 					*rp++ = *sp++;
 			}
@@ -308,7 +310,7 @@ void beta2mac(char *source, char *res, int xlit)
 				continue;
 		}
 		
-		if(isalpha(*sp) || *sp == '*') {
+		if(isalpha((unsigned char)*sp) || *sp == '*') {
 			acc = 0;
 			
 			
@@ -316,11 +318,14 @@ void beta2mac(char *source, char *res, int xlit)
 				if( Is_accflag(*(sp+1)) ) {
 					 char * t = sp;
 					*sp = ' ';
-					while(*t&&!isalpha(*t)) t++;
-					if(isalpha(*t) && islower(*t) ) *t = toupper(*t);
+					while(*t&&!isalpha((unsigned char)*t)) t++;
+					if(isalpha((unsigned char)*t) &&
+							islower((unsigned char)*t) )
+						*t = (char)toupper((unsigned char)*t);
 				} else {
 					Xstrcpy(sp,sp+1);
-					if(islower(*sp)) *sp = toupper(*sp);
+					if(islower((unsigned char)*sp))
+						*sp = (char)toupper((unsigned char)*sp);
 				}
 			} 
 			
@@ -328,8 +333,8 @@ void beta2mac(char *source, char *res, int xlit)
 			*rp = *sp++;
 			
 			
-			if( isupper(*rp) && xlit == SMARTA ) {
-					*(rp+1) = tolower(*rp);
+			if( isupper((unsigned char)*rp) && xlit == SMARTA ) {
+					*(rp+1) = (char)tolower((unsigned char)*rp);
 					*rp++ = UCASEMARKER;
 			}
 
@@ -339,7 +344,7 @@ void beta2mac(char *source, char *res, int xlit)
 				*sp = smk_char_xlit(*sp,sp+1);
 			} else 
 */
-				*rp = smk_char_xlit(*rp,sp,xlit);
+				*rp = (char)smk_char_xlit(*rp,sp,xlit);
 /*			
 			if( *rp == 's' && !isalpha(*sp) && *sp != '\'' && *sp != '-' )
 				*rp = TERMINAL_SIGMA;
@@ -407,9 +412,9 @@ printf("got [%o] ", acc );
 			 * capital would cover.
 			 */
 			if( acc && *rp == UCASEMARKER && xlit == SMARTA ) {
-				if( isalpha(*sp ) ) {
+				if( isalpha((unsigned char)*sp ) ) {
 					*++rp = *sp++;
-					*rp = smk_char_xlit(*rp,sp,xlit);
+					*rp = (char)smk_char_xlit(*rp,sp,xlit);
 				}
 			} 
 			
@@ -521,7 +526,8 @@ romanfont(char *s)
 {
 	morpheus_runtime_context_current()->smarta_current_font = ROMAN;
 	while(*s && *s=='&') s++;
-	if( isdigit(*s) ) while(isdigit(*s)) s++;
+	if( isdigit((unsigned char)*s) )
+		while(isdigit((unsigned char)*s)) s++;
 	else if( *s == ' '&& *(s+1) == ' ' ) s++;
 	return(s);
 }
@@ -531,14 +537,16 @@ greekfont(char *s)
 {
 	morpheus_runtime_context_current()->smarta_current_font = SMARTA_GREEK_FONT;
 	while(*s && *s=='$') s++;
-	if( isdigit(*s) ) while(isdigit(*s)) s++;
+	if( isdigit((unsigned char)*s) )
+		while(isdigit((unsigned char)*s)) s++;
 	else if( *s == ' ' && *(s+1) == ' '  ) s++;
 	return(s);
 }
 
 int smk_char_xlit(int c, char *s, int xlit)
 {
-			if( c == 's' && !isalpha(*s) && *s != '\'' && *s != '-' )
+			if( c == 's' && !isalpha((unsigned char)*s) &&
+					*s != '\'' && *s != '-' )
 				c = TERMINAL_SIGMA;
 			else if( c == 'w' )
 				c = 'v';

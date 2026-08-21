@@ -22,6 +22,10 @@ overflow diagnostic and Clang's constant-conversion diagnostic are errors, so
 new implementation-defined byte stores cannot enter the runtime unnoticed. A
 stemlib-independent conversion test verifies the exact output bytes and their
 round trip with both `-fsigned-char` and `-funsigned-char` in CI.
+Both conversion directions also pass byte values to the `<ctype.h>` interfaces
+through `unsigned char`, as required by C. The inverse converter interprets the
+legacy octal SmartA/SMK ranges as unsigned bytes, so accented capitals no longer
+disappear on targets where plain `char` is signed.
 
 The entire `cruncher` runtime closure is now a strict boundary. Its internal
 interfaces are declared in `src/anal/cruncher_internal.h`,

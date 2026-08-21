@@ -53,9 +53,9 @@ void conv(char *start, char *result)
 	/*
 	 * make sure that any unaccented upper case char gets properly converted
 	 */
-	if(isupper(*s) && context->inverse_conversion_from_smk) {
+	if(isupper((unsigned char)*s) && context->inverse_conversion_from_smk) {
 		Xstrcpy(tmp,s+1);
-		*(s+1) = tolower(*s);
+		*(s+1) = (char)tolower((unsigned char)*s);
 		*s = '*';
 		Xstrcpy(s+2,tmp);
 	}
@@ -79,11 +79,11 @@ return;
 			continue;
 		}
 		
-		if(isupper(*s) && ! context->inverse_conversion_from_smk ) {
+		if(isupper((unsigned char)*s) && ! context->inverse_conversion_from_smk ) {
 			if( context->inverse_conversion_current_font == SMK_GREEK_FONT ||
 				! context->inverse_conversion_current_font )
 				set_cur_font(ROMAN,result);
-			tmp[0] = tolower(*s);
+			tmp[0] = (char)tolower((unsigned char)*s);
 			tmp[1] = 0;
 			strcat(result,tmp);
 			s++;
@@ -94,7 +94,7 @@ return;
 			s++;
 			continue;
 		}
-		if( *s == '\253' && ! context->inverse_conversion_from_smk ) {
+		if( (unsigned char)*s == 0253 && ! context->inverse_conversion_from_smk ) {
 			set_cur_font(ROMAN,result);
 			s++;
 			continue;
@@ -122,18 +122,18 @@ return;
 			 * something like "\0205A" would be "*)/a" in beta
 			 * transliteration
 			 */
-			if( isupper(*s) ) {
-				tmp[0] = tolower(*s);
+			if( isupper((unsigned char)*s) ) {
+				tmp[0] = (char)tolower((unsigned char)*s);
 			} else
 				tmp[0] = *s;
-			tmp[0] = smk2betachar(tmp[0]);
+			tmp[0] = (char)smk2betachar(tmp[0]);
 			tmp[1] = 0;
 			strcat(result,tmp);
 			s++;	
 		} else {
 			if( ! context->inverse_conversion_from_smk ) {
-				if( (context->inverse_smarta_characters[(int)(*s & (0377))] ||
-					islower(*s)) &&
+				if( (context->inverse_smarta_characters[(unsigned char)*s] ||
+					islower((unsigned char)*s)) &&
 				  (context->inverse_conversion_current_font == ROMAN ||
 				   context->inverse_conversion_current_font == ITALIC ||
 				   ! context->inverse_conversion_current_font ) )
@@ -233,65 +233,66 @@ void trap_upper(char *res, char *s)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	char tmp[BUFSIZ];
+	unsigned int byte = (unsigned char)*s;
 	
-	if( isupper(*s) ) {
+	if( isupper((int)byte) ) {
 		if( !context->inverse_conversion_current_font ||
 				context->inverse_conversion_current_font == SMK_GREEK_FONT ) {
 			set_cur_font(ROMAN,res);
 		}
 
 		tmp[0] = '*';
-		tmp[1] = tolower(*s);
+		tmp[1] = (char)tolower((int)byte);
 		tmp[2] = 0;
 		strcat(res,tmp);
 		return;
 	}
 	
-	if( islower(*s) ) {
+	if( islower((int)byte) ) {
 		if( !context->inverse_conversion_current_font ||
 				context->inverse_conversion_current_font == ROMAN ||
 				context->inverse_conversion_current_font == ITALIC ) {
 			set_cur_font(SMK_GREEK_FONT,res);
 		}
 		tmp[0] = '*';
-		tmp[1] = *s;
+		tmp[1] = (char)byte;
 		tmp[2] = 0;
 		strcat(res,tmp);
 		return;
 	}
 
 	tmp[0] = 0;
-	if( SMK_ALPHA(*s) ) {
-		add_acc(tmp, *s - ALPHA_ACUTE + SPACE_ACUTE);
+	if( SMK_ALPHA(byte) ) {
+		add_acc(tmp, (int)byte - ALPHA_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"a");
-	} else if( SMK_EPSILON(*s) ) {
-		add_acc(tmp, *s - EPSILON_ACUTE + SPACE_ACUTE);
+	} else if( SMK_EPSILON(byte) ) {
+		add_acc(tmp, (int)byte - EPSILON_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"e");
-	} else if( SMK_IOTA(*s) ) {
-		add_acc(tmp, *s - IOTA_ACUTE + SPACE_ACUTE);
+	} else if( SMK_IOTA(byte) ) {
+		add_acc(tmp, (int)byte - IOTA_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"i");
-	} else if( SMK_OMICRON(*s) ) {
-		add_acc(tmp, *s - OMICRON_ACUTE + SPACE_ACUTE);
+	} else if( SMK_OMICRON(byte) ) {
+		add_acc(tmp, (int)byte - OMICRON_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"o");
-	} else if( SMK_UPSILON(*s) ) {
-		add_acc(tmp, *s - UPSILON_ACUTE + SPACE_ACUTE);
+	} else if( SMK_UPSILON(byte) ) {
+		add_acc(tmp, (int)byte - UPSILON_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"u");
-	} else if( SMK_ETA(*s) ) {
-		add_acc(tmp, *s - ETA_ACUTE + SPACE_ACUTE);
+	} else if( SMK_ETA(byte) ) {
+		add_acc(tmp, (int)byte - ETA_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"h");
-	} else if( SMK_WMEGA(*s) ) {
-		add_acc(tmp, *s - WMEGA_ACUTE + SPACE_ACUTE);
+	} else if( SMK_WMEGA(byte) ) {
+		add_acc(tmp, (int)byte - WMEGA_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"w");
-	} else if( SMK_AISUB(*s) ) {
-		add_acc(tmp, *s - AISUB_ACUTE + SPACE_ACUTE);
+	} else if( SMK_AISUB(byte) ) {
+		add_acc(tmp, (int)byte - AISUB_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"_");
 		strcat(tmp,"a");
-	} else if( SMK_EISUB(*s) ) {
-		add_acc(tmp, *s - EISUB_ACUTE + SPACE_ACUTE);
+	} else if( SMK_EISUB(byte) ) {
+		add_acc(tmp, (int)byte - EISUB_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"_");
 		strcat(tmp,"h");
-	} else if( SMK_WISUB(*s) ) {
-		add_acc(tmp, *s - WISUB_ACUTE + SPACE_ACUTE);
+	} else if( SMK_WISUB(byte) ) {
+		add_acc(tmp, (int)byte - WISUB_ACUTE + SPACE_ACUTE);
 		strcat(tmp,"_");
 		strcat(tmp,"w");
 	}
