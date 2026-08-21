@@ -16,9 +16,7 @@ CompareGkForms(const void *left, const void *right)
 #define NextLemma(f,lemma,lemmakeys) NextDictLine(f,lemma,lemmakeys,":le:")
 
 void
-GenDictEntry(Gkword,dentry)
- gk_word *Gkword;
- char * dentry;
+GenDictEntry(gk_word *Gkword, char *dentry)
 {
 	
 	gk_word * gkforms;
@@ -44,7 +42,8 @@ GenDictEntry(Gkword,dentry)
 	gkforms = GenStemForms(&TmpGkword,keys,0);
 	if( ! gkforms ) return;
 
-	for(formcnt=0;workword_of((gkforms+formcnt))[0];formcnt++) ;
+	for(formcnt=0;workword_of((gkforms+formcnt))[0];formcnt++) {
+	}
 
         qsort(gkforms,formcnt,sizeof * gkforms,CompareGkForms);
 
@@ -55,10 +54,7 @@ GenDictEntry(Gkword,dentry)
 }
 
 int
- GenNxtWord(f,mode,fout)
-  FILE * f;
-  int mode;
-  FILE * fout;
+GenNxtWord(FILE *f, int mode, FILE *fout)
 {
 	
 	int rval, i;
@@ -114,10 +110,7 @@ int
 }
 
 gk_word *
- GenStemForms(Gkword,keys,mode)
-  gk_word * Gkword;
-  char * keys;
-  int mode;
+GenStemForms(gk_word *Gkword, char *keys, int mode)
 {
 	gk_string * stem_gstring;
 	gk_string * gstring;
@@ -215,10 +208,7 @@ printf("maxforms %d stem %s\n", maxforms, NameOfStemtype(stemtype_of(gstring)) )
 }
 
 gk_word *
- GenIrregForm(Gkword,keys,mode)
-  gk_word * Gkword;
-  char * keys;
-  int mode;
+GenIrregForm(gk_word *Gkword, char *keys, int mode)
 {
 	gk_string * gstring;
 	gk_word * gkforms;
@@ -321,11 +311,7 @@ gk_word *
 }
 
 int
- NextDictLine(f,word,wordkeys,starts)
-  FILE * f;
-  char * word;
-  char * wordkeys;
-  char * starts;
+NextDictLine(FILE *f, char *word, char *wordkeys, char *starts)
 {
 	char tmp[LONGSTRING];
 	register char * s;
@@ -376,7 +362,7 @@ int
 /*
  * check for blank line 
  */
-		while(isspace(*s)) *s++;
+		while(isspace(*s)) s++;
 		if( ! *s ) return(0);
 		
 	}
@@ -384,11 +370,7 @@ int
 
 #define MAX_FORM_VARIANTS 12
 static void
- AddWdEndings(Gkword,Endings,Forms,maxforms)
-  gk_word * Gkword;
-  gk_string * Endings;
-  gk_word * Forms;
-  int maxforms;
+AddWdEndings(gk_word *Gkword, gk_string *Endings, gk_word *Forms, int maxforms)
 {
 	int i,j,k;
 	gk_word SaveGkWord;
@@ -483,10 +465,7 @@ static void
 }
 
 int
- BuildAWord(Gkword,CurEnding,CurForms)
-  gk_word * Gkword;
-  gk_string * CurEnding;
-  gk_word * CurForms;
+BuildAWord(gk_word *Gkword, gk_string *CurEnding, gk_word *CurForms)
 {
 	Dialect dial;
 
@@ -511,10 +490,7 @@ printf("failing on stem [%s] end [%s] [%o] [%o]\n", stem_of(Gkword) ,gkstring_of
 }
 
 int
- BuildANoun(Gkword,CurEnding,CurForms)
-  gk_word * Gkword;
-  gk_string * CurEnding;
-  gk_word * CurForms;
+BuildANoun(gk_word *Gkword, gk_string *CurEnding, gk_word *CurForms)
 {
 	char tmp[MAXWORDSIZE];
 
@@ -551,10 +527,7 @@ printf("result [%s]\n", workword_of(CurForms) );
 
 
 int
- BuildAVerb(Gkword,CurEnding,CurForms)
-  gk_word * Gkword;
-  gk_string * CurEnding;
-  gk_word * CurForms;
+BuildAVerb(gk_word *Gkword, gk_string *CurEnding, gk_word *CurForms)
 {
 	char tmpstem[MAXWORDSIZE+1];
 	char preverb[MAXWORDSIZE+1];
@@ -747,10 +720,7 @@ int
 
 
 void
-MonoSyllVb(CurForms,winfo,preverb)
-gk_word * CurForms;
-word_form winfo;
-char * preverb;
+MonoSyllVb(gk_word *CurForms, word_form winfo, char *preverb)
 {
 	/*
 	 * Smyth 426 
