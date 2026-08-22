@@ -61,19 +61,28 @@ append_head(morpheus_runtime_context *context, const char *line)
 	int capacity;
 	size_t length = strlen(line);
 
-	if (context->compound_head_count == MAXTAILS) return(0);
+	if (context->compound_head_count >= MAXTAILS) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	if (context->compound_head_count == context->compound_head_capacity) {
 		capacity = context->compound_head_capacity ?
 			context->compound_head_capacity * 2 : INITIAL_HEAD_CAPACITY;
 		if (capacity > MAXTAILS) capacity = MAXTAILS;
 		new_table = realloc(context->compound_head_table,
 			(size_t)capacity * sizeof *new_table);
-		if (!new_table) return(0);
+		if (!new_table) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+			return(0);
+		}
 		context->compound_head_table = new_table;
 		context->compound_head_capacity = capacity;
 	}
 	entry = malloc(length);
-	if (!entry) return(0);
+	if (!entry) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
+	}
 	memcpy(entry,line+1,length);
 	context->compound_head_table[context->compound_head_count++] = entry;
 	return(1);
@@ -96,6 +105,11 @@ setup_headtab_stream(FILE *fheads)
 			clear_headtab(context);
 			return(0);
 		}
+	}
+	if (ferror(fheads)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		clear_headtab(context);
+		return(0);
 	}
 	context->compound_head_table_initialized = 1;
 	return(1);
@@ -129,7 +143,8 @@ is_nomhead(char * heads,char * headkeys)
 	char *s;
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
-	if( ! context->compound_head_table_initialized ) setup_headtab();
+	if( ! context->compound_head_table_initialized && ! setup_headtab() )
+		return(0);
 	Xstrcpy(tmphead,heads);
 	stripacc(tmphead);
 	strcat(tmphead,"\t");

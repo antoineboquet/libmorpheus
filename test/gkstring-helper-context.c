@@ -5,8 +5,10 @@
 
 #include "../src/morphlib/gkstring.proto.h"
 #include "../src/morphlib/adddomain.proto.h"
+#include "../src/morphlib/fixacc.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/new_val.proto.h"
+#include "../src/morphlib/setlang.proto.h"
 
 static int
 compare_text(char *left, char *right)
@@ -58,5 +60,18 @@ main(void)
 	assert(!strcmp(gkstring_of(entries),"alpha"));
 	assert(!strcmp(gkstring_of(entries+1),"beta"));
 	assert(!strcmp(gkstring_of(entries+2),"gamma"));
+
+	{
+		gk_string empty = { 0 };
+		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+		char simple[MAXWORDSIZE] = "logos";
+		char word[MAXWORDSIZE] = { 0 };
+
+		set_lang(GREEK);
+		putsimpleacc(simple);
+		assert(simple[0]);
+		FixPersAcc(&empty,flags,&empty,"",word,(word_form){ 0 },0);
+		assert(!word[0]);
+	}
 	return(0);
 }

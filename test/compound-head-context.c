@@ -59,6 +59,8 @@ main(void)
 	assert(latin);
 	previous = morpheus_runtime_context_activate(greek);
 	load_heads("ignored\n#logos\t:greek:\n#sw^ma\t:quantified:\n");
+	assert(morpheus_runtime_context_error(greek) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
 	assert_head("logos","greek");
 	assert_head("swma","quantified");
 

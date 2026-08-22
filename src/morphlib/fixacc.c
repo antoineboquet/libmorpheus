@@ -8,8 +8,7 @@ static void fixnacc2(char *, gk_string *, word_form, int, bool);
 void putsimpleacc(char *s)
 {
 	gk_word * gkword;
-	MorphFlags * mflags;
-	char tmpw[MAXWORDSIZE];
+	MorphFlags mflags[MORPHFLAG_STORAGE_BYTES] = { 0 };
 	
 	if( cur_lang() == LATIN || cur_lang() == ITALIAN ) return;
 
@@ -19,7 +18,6 @@ void putsimpleacc(char *s)
 		fprintf(stderr,"no memory for gstring in putsimpleacc\n");
 		return;
 	}
-	mflags = (MorphFlags *)calloc(1,sizeof * mflags);
 	
 	set_workword(gkword,s);
 	FixRecAcc(gkword,mflags,workword_of(gkword));
@@ -101,9 +99,12 @@ void FixRecAcc(gk_word *gkform, MorphFlags *mflags, char *word)
  */
 void FixPersAcc(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, char *endstring, char *word, word_form form_info, int is_ending)
 {
+  size_t word_length;
+
   FixPersAcc2(gstring, mflags, stemgstr, endstring, word, form_info, is_ending);
 
-  if(*(word+strlen(word)-1) == '*' ) *(word+strlen(word)-1) = 0;
+  word_length = strlen(word);
+  if(word_length && word[word_length-1] == '*' ) word[word_length-1] = 0;
 }
 
 void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, char *endstring, char *word, word_form form_info, int is_ending)
