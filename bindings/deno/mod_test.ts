@@ -48,4 +48,19 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   ]);
   assert(first.length === 3, "tou= must retain the CLI fixture count");
   assert(second.length > 0, "breathing fallback must be available through FFI");
+
+  const scoped = await context.analyze(
+    "a)/nqrwpos",
+    MorpheusOption.StrictCase |
+      MorpheusOption.NoCrasis |
+      MorpheusOption.Quick |
+      MorpheusOption.HqDictionary |
+      MorpheusOption.DialectAttic,
+  );
+  assert(Array.isArray(scoped), "advanced request options must be accepted");
+  const afterScoped = await context.analyze(
+    "a)/nqrwpos",
+    MorpheusOption.StrictCase,
+  );
+  assert(afterScoped.length > 0, "request options must not leak to later calls");
 });

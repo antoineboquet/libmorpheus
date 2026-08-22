@@ -43,6 +43,19 @@ export const MorpheusOption = {
   StrictCase: 1n << 0n,
   IgnoreAccents: 1n << 1n,
   VerbsOnly: 1n << 2n,
+  NoCrasis: 1n << 3n,
+  Quick: 1n << 4n,
+  HqDictionary: 1n << 5n,
+  DialectAttic: 2n << 16n,
+  DialectIonic: 8n << 16n,
+  DialectAeolic: 16n << 16n,
+  DialectLesbian: 32n << 16n,
+  DialectHomeric: 64n << 16n,
+  DialectDoric: 128n << 16n,
+  DialectParadigm: 256n << 16n,
+  DialectNonHomericEpic: 1024n << 16n,
+  DialectEpic: 1088n << 16n,
+  DialectProse: 2048n << 16n,
 } as const;
 
 export const MorpheusPartOfSpeech = {

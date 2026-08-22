@@ -29,3 +29,22 @@ so the version-1 structure size and layout remain unchanged. The Deno binding
 performs the query while it owns the native result and exposes the mask as
 `MorpheusAnalysis.truncatedFields`; compare it with the
 `MorpheusTruncatedField` constants.
+
+## Per-request options
+
+In addition to strict case, accent fallback, and verb-only analysis, callers may
+disable crasis expansion, stop after the first successful dictionary class,
+select the HQ dictionary backend, or restrict an analysis to one or more named
+dialects. Dialect options are bit masks, may be combined, and are valid only
+for Greek contexts. Passing one to a Latin or Italian context returns
+`MORPHEUS_INVALID_ARGUMENT`.
+
+All of these settings are scoped to one `morpheus_analyze()` call. The library
+restores the context's previous crasis, quick-search, dictionary, and dialect
+state before returning, including on allocation or input failure. Switching the
+HQ backend may invalidate dictionary caches; repeatedly alternating it is valid
+but more expensive than using a dedicated context for each backend.
+
+The Deno binding exposes the same bits through `MorpheusOption`. They can be
+combined with bigint bitwise OR and remain subject to the binding's per-context
+serial queue.
