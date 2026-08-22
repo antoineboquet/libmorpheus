@@ -9,12 +9,15 @@
 #include "../src/morphlib/beta2smarta.proto.h"
 #include "../src/morphlib/nextkey.proto.h"
 #include "../src/morphlib/runtime_context.h"
+#include "../src/morphlib/runtime_context_internal.h"
 #include "../src/morphlib/smk2beta.proto.h"
 
 int main(void)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_create();
 	morpheus_runtime_context *previous;
+	char *smarta_entry;
+	char *smk_entry;
 	char converted[16];
 	char roundtrip[16];
 	char uppercase_accented[] = {'^',(char)(unsigned char)0213,'\0'};
@@ -40,6 +43,11 @@ int main(void)
 	assert(converted[1] == '\0');
 	smarta2beta(converted,roundtrip);
 	assert(!strcmp(roundtrip,"$a/"));
+	smk_entry = context->smk_beta_table[0];
+	smarta_entry = context->smarta_beta_table[0];
+	assert(init_smk());
+	assert(context->smk_beta_table[0] == smk_entry);
+	assert(context->smarta_beta_table[0] == smarta_entry);
 	smk2beta(converted,roundtrip);
 	assert(!strcmp(roundtrip,"a/"));
 	smarta2beta(uppercase_accented,roundtrip);
@@ -64,6 +72,16 @@ int main(void)
 	beta2smarta("r(",converted);
 	assert((unsigned char)converted[0] == 0373);
 	assert(converted[1] == '\0');
+
+	smk2beta(NULL,roundtrip);
+	assert(!roundtrip[0]);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	smk2beta("a",NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
 
 	morpheus_runtime_context_activate(previous);
 	morpheus_runtime_context_destroy(context);

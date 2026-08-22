@@ -13,6 +13,7 @@
 #include "smk2beta.proto.h"
 static void conv(char *, char *);
 static void add_acc(char *, int);
+static void clear_inverse_tables(morpheus_runtime_context *);
 
 void smarta2beta(char *start, char *result)
 {
@@ -42,17 +43,26 @@ void conv(char *start, char *result)
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	char **xlit_table = context->active_inverse_conversion_table;
 	char tmp[BUFSIZ];
-	/*unsigned*/ char * s = start;
+	/*unsigned*/ char *s;
+
+	if (!result) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	*result = 0;
+	if (!start) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	s = start;
 	
 	context->inverse_conversion_current_font = 0;
 	if( !context->inverse_conversion_tables_initialized ) {
 		if(!init_smk()) {
-			*result = 0;
 			return;
 		}
 	}
 	
-	*result = 0;
 	/*
 	 * make sure that any unaccented upper case char gets properly converted
 	 */
@@ -162,34 +172,37 @@ int init_smk(void)
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	int i;
 
+	if (context->inverse_conversion_tables_initialized)
+		return(1);
 	for(i=0;i<MAXCHAR;i++) {
 		context->smk_beta_table[i] = calloc(MAXSUBSTRING,1);
 		context->smarta_beta_table[i] = calloc(MAXSUBSTRING,1);
 		if (!context->smk_beta_table[i] ||
 				!context->smarta_beta_table[i]) {
-			int j;
 			fprintf(stderr,"could not allocate inverse conversion tables\n");
-			for(j=0;j<=i;j++) {
-				free(context->smk_beta_table[j]);
-				free(context->smarta_beta_table[j]);
-				context->smk_beta_table[j] = NULL;
-				context->smarta_beta_table[j] = NULL;
-			}
+			clear_inverse_tables(context);
 			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 			return(0);
 		}
 	}
 		
 	for(i=0;i<sizeof Beta_SMK/sizeof Beta_SMK[0];i++) {
-		strncpy(context->smk_beta_table[Beta_SMK[i].keycode],
-			Beta_SMK[i].keystring,MAXSUBSTRING);
-		strncpy(context->smarta_beta_table[Beta_SMK[i].keycode],
-			Beta_SMK[i].keystring,MAXSUBSTRING);
+		if (Beta_SMK[i].keycode < 0 || Beta_SMK[i].keycode >= MAXCHAR ||
+		    strlen(Beta_SMK[i].keystring) >= MAXSUBSTRING)
+			goto invalid_table;
+		strcpy(context->smk_beta_table[Beta_SMK[i].keycode],
+			Beta_SMK[i].keystring);
+		strcpy(context->smarta_beta_table[Beta_SMK[i].keycode],
+			Beta_SMK[i].keystring);
 		context->inverse_smarta_characters[Beta_SMK[i].keycode] = 1;
 	}
 	for(i=0;i<sizeof Beta_Smarta/sizeof Beta_Smarta[0];i++) {
-		strncpy(context->smarta_beta_table[Beta_Smarta[i].keycode],
-			Beta_Smarta[i].keystring,MAXSUBSTRING);
+		if (Beta_Smarta[i].keycode < 0 ||
+		    Beta_Smarta[i].keycode >= MAXCHAR ||
+		    strlen(Beta_Smarta[i].keystring) >= MAXSUBSTRING)
+			goto invalid_table;
+		strcpy(context->smarta_beta_table[Beta_Smarta[i].keycode],
+			Beta_Smarta[i].keystring);
 	}
 	
 	for(i=0;i<256;i++) {
@@ -202,6 +215,28 @@ int init_smk(void)
 	}
 	context->inverse_conversion_tables_initialized = 1;
 	return(1);
+
+invalid_table:
+	fprintf(stderr,"invalid inverse conversion table entry\n");
+	clear_inverse_tables(context);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
+static void
+clear_inverse_tables(morpheus_runtime_context *context)
+{
+	int i;
+
+	for (i=0;i<MAXCHAR;i++) {
+		free(context->smk_beta_table[i]);
+		free(context->smarta_beta_table[i]);
+		context->smk_beta_table[i] = NULL;
+		context->smarta_beta_table[i] = NULL;
+		context->inverse_smarta_characters[i] = 0;
+	}
+	context->active_inverse_conversion_table = NULL;
+	context->inverse_conversion_tables_initialized = 0;
 }
 
 void set_cur_font(int n, char *s)
