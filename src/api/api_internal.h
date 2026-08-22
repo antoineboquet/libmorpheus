@@ -11,6 +11,7 @@ struct morpheus_result {
   size_t count;
   morpheus_analysis *analyses;
   morpheus_truncated_fields *truncated_fields;
+  uint8_t *all_morph_flags;
 };
 morpheus_result *morpheus_result_create(size_t count);
 #endif

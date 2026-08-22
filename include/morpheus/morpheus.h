@@ -46,6 +46,10 @@ typedef enum {
 #define MORPHEUS_TEXT_CAPACITY 64u
 #define MORPHEUS_DOMAIN_CAPACITY 24u
 #define MORPHEUS_MORPH_FLAG_CAPACITY 12u
+#define MORPHEUS_ALL_MORPH_FLAG_CAPACITY 14u
+
+/** One-based internal morphology flag number for collective/group nouns. */
+#define MORPHEUS_MORPH_FLAG_GROUP_NAME 110u
 
 /** Coarse part-of-speech classification exposed by ABI version 1. */
 typedef enum {
@@ -356,6 +360,17 @@ morpheus_status morpheus_result_get(
 morpheus_status morpheus_result_truncated_fields(
     const morpheus_result *result, size_t index,
     morpheus_truncated_fields *fields);
+
+/**
+ * Copy the complete morphology flag bitset for one analysis.
+ *
+ * This includes flags beyond the 96-bit compatibility field embedded in
+ * morpheus_analysis. buffer_size must be at least
+ * MORPHEUS_ALL_MORPH_FLAG_CAPACITY.
+ */
+morpheus_status morpheus_result_all_morph_flags(
+    const morpheus_result *result, size_t index, uint8_t *buffer,
+    size_t buffer_size);
 
 /** Destroy an owned result. Passing NULL is allowed. */
 void morpheus_result_free(morpheus_result *result);

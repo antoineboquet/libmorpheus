@@ -13,9 +13,11 @@ zero and means that no dialect restriction is recorded. Tense and mood use the
 named historical codes and must be compared for equality.
 
 `stem_type` and `derivation_type` remain opaque stemlib codes in ABI version 1.
-`morph_flags` remains the historical 96-bit array. Applications should preserve
-these values but must not invent mappings for them until named public constants
-are added.
+`morph_flags` remains the historical 96-bit compatibility array so that the
+version-1 structure stays 860 bytes. `morpheus_result_all_morph_flags()` copies
+the complete 112-bit in-memory representation. In particular, flag 110 is
+published as `MORPHEUS_MORPH_FLAG_GROUP_NAME`; the stemlib stores that flag in
+a legacy compatibility marker because its on-disk flag field remains 96 bits.
 
 ## Fixed-capacity text
 

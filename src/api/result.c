@@ -13,7 +13,11 @@ morpheus_result *morpheus_result_create(size_t count)
   if(count) {
     result->analyses=calloc(count,sizeof *result->analyses);
     result->truncated_fields=calloc(count,sizeof *result->truncated_fields);
-    if(!result->analyses || !result->truncated_fields) {
+    result->all_morph_flags=calloc(
+        count,MORPHEUS_ALL_MORPH_FLAG_CAPACITY);
+    if(!result->analyses || !result->truncated_fields ||
+       !result->all_morph_flags) {
+      free(result->all_morph_flags);
       free(result->truncated_fields);
       free(result->analyses);
       free(result);
@@ -47,9 +51,23 @@ morpheus_status morpheus_result_truncated_fields(
   *fields=result->truncated_fields[index];
   return(MORPHEUS_OK);
 }
+morpheus_status morpheus_result_all_morph_flags(
+    const morpheus_result *result, size_t index, uint8_t *buffer,
+    size_t buffer_size)
+{
+  if(!result || !buffer) return(MORPHEUS_INVALID_ARGUMENT);
+  if(index >= result->count) return(MORPHEUS_OUT_OF_RANGE);
+  if(buffer_size < MORPHEUS_ALL_MORPH_FLAG_CAPACITY)
+    return(MORPHEUS_BUFFER_TOO_SMALL);
+  memcpy(buffer,result->all_morph_flags+
+      index*MORPHEUS_ALL_MORPH_FLAG_CAPACITY,
+      MORPHEUS_ALL_MORPH_FLAG_CAPACITY);
+  return(MORPHEUS_OK);
+}
 void morpheus_result_free(morpheus_result *result)
 {
   if(!result) return;
+  free(result->all_morph_flags);
   free(result->truncated_fields);
   free(result->analyses);
   free(result);

@@ -150,9 +150,13 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
     morpheus_runtime_context_activate(previous);
     return(MORPHEUS_NO_MEMORY);
   }
-  for(i=0;i<owned->count;i++)
+  for(i=0;i<owned->count;i++) {
     owned->truncated_fields[i]=copy_analysis(
         &owned->analyses[i],analysis_of(word)+i);
+    memcpy(owned->all_morph_flags+i*MORPHEUS_ALL_MORPH_FLAG_CAPACITY,
+        morphflags_of(analysis_of(word)+i),
+        MORPHEUS_ALL_MORPH_FLAG_CAPACITY);
+  }
   FreeGkword(word);
   restore_request_state(context,&saved);
   morpheus_runtime_context_activate(previous);
