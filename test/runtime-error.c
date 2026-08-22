@@ -35,6 +35,15 @@ int main(void)
   memcpy(context->stemlib_path,missing_stemlib,sizeof missing_stemlib);
   assert(!init_keys());
   assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+  assert(!context->stem_type_arguments);
+  assert(!context->derivation_type_arguments);
+  assert(!context->domain_arguments);
+  assert(!context->morph_key_table);
+  assert(!context->morph_key_stem_count);
+  assert(!context->morph_key_derivation_count);
+  assert(!context->morph_key_domain_count);
+  assert(!context->morph_key_count);
+  assert(!context->morph_keys_initialized);
 
   morpheus_runtime_context_activate(previous);
   morpheus_runtime_context_destroy(context);

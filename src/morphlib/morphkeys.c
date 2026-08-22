@@ -1,4 +1,5 @@
 #include "morphlib_internal.h"
+#include <errno.h>
 #include <limits.h>
 /*
  * copyright Gregory Crane
@@ -31,6 +32,7 @@ static void RearrangeMorphflags(gk_word *, gk_string *);
 static int GetGkFlag(char *, gk_string *, char *, char *, char *);
 static char *p_eq_morph_keys(long, const Morph_args *);
 static void clear_morph_key_state(morpheus_runtime_context *);
+static int next_table_field(const char **, char *, size_t);
 #define KEY_CONTEXT (morpheus_runtime_context_current())
 #define keys_inited (KEY_CONTEXT->morph_keys_initialized && \
 	KEY_CONTEXT->morph_key_language == cur_lang())
@@ -505,45 +507,70 @@ Morph_args *
 InitStemSuffs(char *fname, void (*curfunc)(gk_string *, unsigned long),
               Stemtype (*classfunc)(char *), int *snum)
 {
-	FILE * f;
-	int i, j;
+	FILE *f = NULL;
+	int i;
+	int count = 0;
 	char line[LONGSTRING];
 	Stemtype stemnum = 0;
 	Stemtype declnum = 0;
 	char stemname[MAXWORDSIZE];
+	char stemnumber[MAXWORDSIZE];
 	char decl[MAXWORDSIZE];
+	char extra[MAXWORDSIZE];
 	Morph_args * targs = NULL;
 
-	
+	if (!fname || !curfunc || !classfunc || !snum) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	*snum = 0;
 	if( (f=MorphFopen(fname,"r")) == NULL ) {
 		fprintf(stderr,"could not open [%s]\n", fname );
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(NULL);
 	}
 	
-	while(GetTableLine(line,(int)sizeof line,f)) (*snum)++;
-	fseek(f,0L,0);
+	while(GetTableLine(line,(int)sizeof line,f)) {
+		if (count == INT_MAX) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			goto failed;
+		}
+		count++;
+	}
+	if (ferror(f) || fseek(f,0L,SEEK_SET) != 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		goto failed;
+	}
 	
-	targs = (Morph_args *) calloc((size_t)((*snum)+1),(size_t)sizeof * targs);
+	targs = (Morph_args *) calloc((size_t)count+1,sizeof * targs);
 	if(!targs) {
-		fclose(f);
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
-		return(NULL);
+		goto failed;
 	}
 
 	for(i=0;GetTableLine(line,(int)sizeof line, f);i++) {
-		int n = 0;
-		declnum = stemnum = 0;
+		char *end;
+		const char *cursor = line;
+		long parsed;
+		int base;
 
-		if( has_octal(line)) {
-			unsigned int octal_n = 0;
-			sscanf(line,"%s %o %s", stemname , &octal_n , decl );
-			n = (int)octal_n;
-			stemnum = (Stemtype) n;
-		} else {
-			sscanf(line,"%s %d %s", stemname , &n , decl );
-			stemnum = (Stemtype) n;
+		if (i >= count ||
+		    next_table_field(&cursor,stemname,sizeof stemname) != 1 ||
+		    next_table_field(&cursor,stemnumber,sizeof stemnumber) != 1 ||
+		    next_table_field(&cursor,decl,sizeof decl) != 1 ||
+		    next_table_field(&cursor,extra,sizeof extra) != 0) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			goto failed;
 		}
+		declnum = stemnum = 0;
+		base = stemnumber[0] == '0' ? 8 : 10;
+		errno = 0;
+		parsed = strtol(stemnumber,&end,base);
+		if (errno || *end || parsed < INT_MIN || parsed > INT_MAX) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			goto failed;
+		}
+		stemnum = (Stemtype)parsed;
 		Xstrncpy(targs[i].morph_key , stemname,(size_t)MAXWORDSIZE);
 		declnum = (*classfunc)(decl);
 		
@@ -560,8 +587,43 @@ InitStemSuffs(char *fname, void (*curfunc)(gk_string *, unsigned long),
 		printf("morphflags %lo\n", targs[i].morph_flags );
 */
 	}
-	fclose(f);
+	if (ferror(f) || i != count) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		goto failed;
+	}
+	xFclose(f);
+	*snum = count;
 	return(targs);
+
+failed:
+	if (f) xFclose(f);
+	free(targs);
+	return(NULL);
+}
+
+static int
+next_table_field(const char **cursor, char *field, size_t field_size)
+{
+	const char *s;
+	size_t length = 0;
+
+	if (!cursor || !*cursor || !field || !field_size)
+		return(-1);
+	s = *cursor;
+	while (isspace((unsigned char)*s)) s++;
+	if (!*s) {
+		field[0] = 0;
+		*cursor = s;
+		return(0);
+	}
+	while (*s && !isspace((unsigned char)*s)) {
+		if (length+1 >= field_size)
+			return(-1);
+		field[length++] = *s++;
+	}
+	field[length] = 0;
+	*cursor = s;
+	return(1);
 }
 
 
