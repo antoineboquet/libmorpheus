@@ -10,16 +10,21 @@
 
 int checkaccent(char *word, int *syll, int *acc)
 {
+	if (!word || !syll || !acc) {
+		if (syll) *syll = -1;
+		if (acc) *acc = NOACCENT;
+		return(-1);
+	}
 	*syll = ULTIMA;
-	if( (*acc=getaccent(word,*syll)) != NOACCENT)
+	if( Is_accent((*acc=getaccent(word,*syll))) )
 		return(ULTIMA);
 		
 	*syll = PENULT;
-	if( (*acc=getaccent(word,*syll)) != NOACCENT)
+	if( Is_accent((*acc=getaccent(word,*syll))) )
 		return(PENULT);
 		
 	*syll = ANTEPENULT;
-	if( (*acc=getaccent(word,*syll)) != NOACCENT)
+	if( Is_accent((*acc=getaccent(word,*syll))) )
 		return(ANTEPENULT);
 	*acc = NOACCENT;
 	*syll = -1;		

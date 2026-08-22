@@ -56,6 +56,7 @@ int quantprim(char *word, int syll, bool is_ending, bool is_oblique)
 
 int long_by_isub(char *s)
 {
+	if (!s || !*s) return(0);
 	if(*(s+1) == '|' || (Is_breath(*(s+1)) && *(s+2) == '|') ) return(1);
 	return(0);
 }

@@ -12,11 +12,23 @@
 #include "../src/morphlib/new_val.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
+#include "../src/greeklib/addaccent.proto.h"
+#include "../src/greeklib/addbreath.proto.h"
+#include "../src/greeklib/checkaccent.proto.h"
 #include "../src/greeklib/cinsert.proto.h"
 #include "../src/greeklib/do_dissim.proto.h"
+#include "../src/greeklib/getaccent.proto.h"
+#include "../src/greeklib/getaccp.proto.h"
+#include "../src/greeklib/getbreath.proto.h"
+#include "../src/greeklib/getquantity.proto.h"
 #include "../src/greeklib/getsyll.proto.h"
+#include "../src/greeklib/hasaccent.proto.h"
+#include "../src/greeklib/hasdiaer.proto.h"
+#include "../src/greeklib/hasquant.proto.h"
 #include "../src/greeklib/isdiphth.proto.h"
+#include "../src/greeklib/longbyposition.proto.h"
 #include "../src/greeklib/nsylls.proto.h"
+#include "../src/greeklib/quantprim.proto.h"
 #include "../src/greeklib/stripacc.proto.h"
 #include "../src/greeklib/stripbreath.proto.h"
 #include "../src/greeklib/stripdiaer.proto.h"
@@ -89,6 +101,57 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		char accented[MAXWORDSIZE] = "a";
+		char breathed[MAXWORDSIZE] = "a";
+		char empty[MAXWORDSIZE] = "";
+		char plain[] = "a";
+		char unrelated[] = "a";
+		int accent = ACUTE;
+		int syllable = ULTIMA;
+
+		addaccent(accented,ACUTE,accented);
+		assert(!strcmp(accented,"a/"));
+		addaccent(accented,ACUTE,unrelated);
+		assert(!strcmp(accented,"a/"));
+		addaccent(NULL,ACUTE,accented);
+		addaccent(accented,ACUTE,NULL);
+		addaccent(empty,ACUTE,empty);
+		assert(!empty[0]);
+		addbreath(breathed,SMOOTHBR);
+		assert(!strcmp(breathed,"a)"));
+		addbreath(empty,SMOOTHBR);
+		assert(!empty[0]);
+		addbreath(NULL,SMOOTHBR);
+		assert(getbreath(NULL) == NOBREATH);
+		assert(getaccp(NULL,ULTIMA) == P_ERR);
+		assert(getaccent(NULL,ULTIMA) == C_ERR);
+		assert(getquantity(NULL,ULTIMA,NULL,NO,NO) == I_ERR);
+		assert(!hasaccent(NULL));
+		assert(!has_diaeresis(NULL));
+		assert(!has_quant(NULL));
+		assert(!longbyposition(NULL));
+		assert(!longbyposition(""));
+		assert(!long_by_isub(NULL));
+		assert(!long_by_isub(""));
+		assert(long_by_isub("a|"));
+		assert(checkaccent(NULL,&syllable,&accent) == -1);
+		assert(syllable == -1);
+		assert(accent == NOACCENT);
+		assert(checkaccent(empty,&syllable,&accent) == -1);
+		assert(syllable == -1);
+		assert(accent == NOACCENT);
+		assert(checkaccent(plain,&syllable,&accent) == -1);
+		assert(syllable == -1);
+		assert(accent == NOACCENT);
+		assert(checkaccent(accented,&syllable,&accent) == ULTIMA);
+		assert(syllable == ULTIMA);
+		assert(accent == ACUTE);
+		assert(checkaccent(empty,NULL,&accent) == -1);
+		assert(accent == NOACCENT);
+		assert(checkaccent(empty,&syllable,NULL) == -1);
+		assert(syllable == -1);
+	}
 	{
 		char diphthong[] = "ai";
 		char empty_insert[MAXWORDSIZE] = "";

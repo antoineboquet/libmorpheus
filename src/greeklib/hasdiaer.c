@@ -11,6 +11,7 @@
 
 int has_diaeresis(char *s)
  {
+	if (!s) return(0);
  	while(*s) {
  		if( *s == DIAERESIS )
  			return(1);

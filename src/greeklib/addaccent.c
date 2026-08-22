@@ -16,14 +16,21 @@
 
 void addaccent(char *word, int accent, char *p)
 {
-	register char * t = p-1;
+	char *cursor;
+	size_t position;
+
+	if (!word || !p) return;
+	cursor = word;
+	while (*cursor && cursor != p) cursor++;
+	if (cursor != p || !*p) return;
+	position = (size_t)(p-word);
 
 	if(*word == '*' && Is_breath(*(word+1)) ) {
-		if( p == (word+2)) {
+		if( position == 2) {
 			cinsert(accent,word+2);
 			return;
 		}
-		if( p == (word+3) && is_diphth(p,word) == YES) {
+		if( position == 3 && is_diphth(p,word) == YES) {
 			cinsert(accent,word+2);
 			return;
 		}

@@ -9,6 +9,7 @@
 
 int hasaccent(char *s)
 {
+	if (!s) return(0);
 	while(*s) {
 		if( Is_accent(*s) ) return(1);
 		s++;

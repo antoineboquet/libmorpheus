@@ -9,6 +9,7 @@
 
 int getbreath(char *p)
 {
+	if (!p) return(NOBREATH);
 	while (*p) {
 		if  (Is_breath(*p)) {
 			return (*p);

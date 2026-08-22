@@ -11,6 +11,7 @@
 
 int has_quant(char *s)
  {
+	if (!s) return(0);
  	while(*s) {
  		if( *s == HARDLONG || *s == HARDSHORT)
  			return(1);
