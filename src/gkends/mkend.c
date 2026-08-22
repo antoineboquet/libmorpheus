@@ -1,11 +1,20 @@
 #include <gkstring.h>
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include "endfiles.h"
 
 #include "mkend.proto.h"
 static void mk_compend(gk_string *, gk_string *, char *, char *);
 static void update_end(gk_string *, gk_string *, char *, char *, char *);
 static void join_end(gk_string *, char *);
+
+static int
+ending_runtime_failed(void)
+{
+	return(morpheus_runtime_context_error(
+		morpheus_runtime_context_current()) !=
+		MORPHEUS_RUNTIME_ERROR_NONE);
+}
 
 void
  mk_end(char *havestr, gk_string *Have, gk_string *Avoid)
@@ -31,6 +40,8 @@ void
 	}
 	
 	join_end(Have,gkstring_of(Have));
+	if (ending_runtime_failed())
+		return;
 
 
 
@@ -41,6 +52,8 @@ void
 		}
 		FreeGkString(euph_forms);
 	}
+	if (ending_runtime_failed())
+		return;
 
 
 	if( (euph_forms = do_euph(Have,dialect_of(Avoid)) )) {
@@ -51,11 +64,18 @@ void
 		FreeGkString(euph_forms);
 		return;
 	}
+	if (ending_runtime_failed())
+		return;
 /*
  * allow only one contraction per ending for now
  */
-	if( ! (Is_contracted(morphflags_of(Have))) && 
-		(contr_forms = poss_contracts(Have,dialect_of(Avoid)) )) {
+	contr_forms = NULL;
+	if( ! Is_contracted(morphflags_of(Have)) ) {
+		contr_forms = poss_contracts(Have,dialect_of(Avoid));
+		if (ending_runtime_failed())
+			return;
+	}
+	if( contr_forms ) {
 		int i;
 
 		for(i=0;gkstring_of(contr_forms+i)[0];i++) {

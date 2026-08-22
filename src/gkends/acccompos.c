@@ -2,6 +2,7 @@
 
 #include <gkstring.h> 
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "acccompos.proto.h"
 
@@ -9,14 +10,21 @@ void
 AccComposForm(gk_string *gstr)
 {
 	gk_word * gkform;
-	char * p = gkstring_of(gstr);
+	char *p;
 	char *s;
 	char word[MAXWORDSIZE];
 	char prefword[MAXWORDSIZE];
 	char saveword[MAXWORDSIZE];
 	int had_stem_acc = 0;
 	int had_suff_acc = 0;
+	if (!gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	p = gkstring_of(gstr);
 	gkform = (gk_word *) CreatGkword(1);
+	if (!gkform)
+		return;
 	word[0] = prefword[0] = saveword[0] = 0;
 
 /*

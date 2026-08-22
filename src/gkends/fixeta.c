@@ -1,5 +1,6 @@
 #include <gkstring.h>
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #define MAXEUPHS 5
 
 #include "fixeta.proto.h"
@@ -17,7 +18,13 @@ fix_eta(gk_string *gstr)
 	Dialect d;
 
 
+	if (!gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	euphs =  CreatGkString(MAXEUPHS);
+	if (!euphs)
+		return(NULL);
 	/*
 	 * deal with h --> a_ in Attic after rho, epsilon and iota
 	 */

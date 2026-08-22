@@ -57,17 +57,18 @@ consonant_euphony_table(int *count)
 	return(context->consonant_euphony_table);
 }
 
-static void
+static int
 fix_recessive_accent(gk_string *gstr)
 {
 	gk_word *gkform = CreatGkword(1);
 
 	if( ! gkform )
-		return;
+		return(0);
 	forminfo_of(gkform) = forminfo_of(gstr);
 	*ends_gstr_of(gkform) = *gstr;
 	FixRecAcc(gkform,morphflags_of(gstr),gkstring_of(gstr));
 	FreeGkword(gkform);
+	return(1);
 }
 
 gk_string *
@@ -372,13 +373,19 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
  * put this back in because we were getting
  * -a=s instead of -a/s for forms such as kata-ba/s
  */
-				if( Is_verbform(gstr) && (mood_of(forminfo_of(gstr)) != PARTICIPLE) && !strchr(gkstring_of(gstr),'!'))
-					fix_recessive_accent(gstr);
-				else
+				if( Is_verbform(gstr) && (mood_of(forminfo_of(gstr)) != PARTICIPLE) && !strchr(gkstring_of(gstr),'!')) {
+					if (!fix_recessive_accent(gstr))
+						return(0);
+				} else {
 /*
  * end 3/17/91 mod
  */
 					AccComposForm(gstr);
+				}
+				if (morpheus_runtime_context_error(
+				    morpheus_runtime_context_current()) !=
+				    MORPHEUS_RUNTIME_ERROR_NONE)
+					return(0);
 				zap_morphflag(morphflags_of(gstr),LOST_ACC);
 			}
 /*

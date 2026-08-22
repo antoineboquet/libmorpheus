@@ -3,7 +3,9 @@
 
 #include <gkstring.h>
 
+#include "../src/gkends/acccompos.proto.h"
 #include "../src/gkends/contract.proto.h"
+#include "../src/gkends/fixeta.proto.h"
 #include "../src/morphlib/gkstring.proto.h"
 #include "../src/morphlib/runtime_context.h"
 
@@ -52,10 +54,22 @@ main(void)
 	previous = morpheus_runtime_context_activate(greek);
 	assert_euphony("zs","s");
 	assert_contraction("ea","h");
+	assert(morpheus_runtime_context_error(greek) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
+	assert(!fix_eta(NULL));
+	assert(morpheus_runtime_context_error(greek) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(greek);
+	AccComposForm(NULL);
+	assert(morpheus_runtime_context_error(greek) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(greek);
 
 	morpheus_runtime_context_activate(latin);
 	assert_euphony("ents","e_ns");
 	assert_contraction("ea",NULL);
+	assert(morpheus_runtime_context_error(latin) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
 
 	morpheus_runtime_context_activate(greek);
 	assert_euphony("zs","s");
