@@ -193,6 +193,7 @@ int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 
 	if (context->analysis_storage_error) {
 		fprintf(stderr,"something wrong with the analysis storage!\n");
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(0);
 	}
 
@@ -200,11 +201,13 @@ int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 		if( ! ( analysis_of(Gkword) = (gk_analysis *)CreatGkAnal(MAXANALYSES+1) )) {
 			fprintf(stderr,"not enough memory for greek analysis\n");
 			context->analysis_storage_error++;
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 			return(0);
 		}
 		if( totanal_of(Gkword) != 0 ) {
 			fprintf(stderr,"hey! anal pointer NULL but totanal is %d\n", totanal_of(Gkword) );
 			context->analysis_storage_error++;
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 			return(0);
 		}
 	}

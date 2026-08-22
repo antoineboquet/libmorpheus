@@ -121,6 +121,30 @@ morpheus_runtime_context_language(const morpheus_runtime_context *context)
 	return(context ? context->language : default_context.language);
 }
 
+void
+morpheus_runtime_context_clear_error(morpheus_runtime_context *context)
+{
+	if (context) {
+		context->runtime_error = MORPHEUS_RUNTIME_ERROR_NONE;
+		context->analysis_storage_error = 0;
+	}
+}
+
+morpheus_runtime_error
+morpheus_runtime_context_error(const morpheus_runtime_context *context)
+{
+	return(context ? context->runtime_error : MORPHEUS_RUNTIME_ERROR_NONE);
+}
+
+void
+morpheus_runtime_error_record(morpheus_runtime_error error)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	if (context->runtime_error == MORPHEUS_RUNTIME_ERROR_NONE)
+		context->runtime_error = error;
+}
+
 void set_lang(int n)
 {
 	morpheus_runtime_context_current()->language = n;

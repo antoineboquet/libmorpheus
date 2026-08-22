@@ -46,7 +46,10 @@ void conv(char *start, char *result)
 	
 	context->inverse_conversion_current_font = 0;
 	if( !context->inverse_conversion_tables_initialized ) {
-		init_smk();
+		if(!init_smk()) {
+			*result = 0;
+			return;
+		}
 	}
 	
 	*result = 0;
@@ -154,7 +157,7 @@ int smk2betachar(int c)
 	return(c);
 }
 
-void init_smk(void)
+int init_smk(void)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	int i;
@@ -164,8 +167,16 @@ void init_smk(void)
 		context->smarta_beta_table[i] = calloc(MAXSUBSTRING,1);
 		if (!context->smk_beta_table[i] ||
 				!context->smarta_beta_table[i]) {
+			int j;
 			fprintf(stderr,"could not allocate inverse conversion tables\n");
-			exit(EXIT_FAILURE);
+			for(j=0;j<=i;j++) {
+				free(context->smk_beta_table[j]);
+				free(context->smarta_beta_table[j]);
+				context->smk_beta_table[j] = NULL;
+				context->smarta_beta_table[j] = NULL;
+			}
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+			return(0);
 		}
 	}
 		
@@ -190,7 +201,7 @@ void init_smk(void)
 		}
 	}
 	context->inverse_conversion_tables_initialized = 1;
-
+	return(1);
 }
 
 void set_cur_font(int n, char *s)

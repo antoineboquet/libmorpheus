@@ -115,6 +115,7 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
       MORPHEUS_OPTION_QUICK|MORPHEUS_OPTION_HQ_DICTIONARY|
       MORPHEUS_OPTION_DIALECT_MASK;
   morpheus_runtime_context *previous;
+  morpheus_status runtime_status;
   request_state saved;
   morpheus_result *owned;
   gk_word *word;
@@ -135,8 +136,16 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
   if(options & MORPHEUS_OPTION_IGNORE_ACCENTS) flags|=IGNORE_ACCENTS;
   if(options & MORPHEUS_OPTION_VERBS_ONLY) flags|=VERBS_ONLY;
   previous=morpheus_runtime_context_activate(context);
+  morpheus_runtime_context_clear_error(context);
   apply_request_options(context,options,&saved);
   word=morpheus_check_word(input,flags);
+  runtime_status=morpheus_runtime_status(context);
+  if(runtime_status != MORPHEUS_OK) {
+    if(word) FreeGkword(word);
+    restore_request_state(context,&saved);
+    morpheus_runtime_context_activate(previous);
+    return(runtime_status);
+  }
   if(!word) {
     restore_request_state(context,&saved);
     morpheus_runtime_context_activate(previous);

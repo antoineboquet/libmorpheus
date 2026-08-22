@@ -62,3 +62,33 @@ if(NOT actual_symbols STREQUAL expected_symbols)
     "actual: ${actual_symbols}"
   )
 endif()
+
+if(MORPHEUS_APPLE)
+  execute_process(
+    COMMAND "${MORPHEUS_NM}" -guj "${MORPHEUS_LIBRARY}"
+    RESULT_VARIABLE undefined_status
+    OUTPUT_VARIABLE undefined_output
+    ERROR_VARIABLE undefined_error
+  )
+else()
+  execute_process(
+    COMMAND "${MORPHEUS_NM}" -D --undefined-only "${MORPHEUS_LIBRARY}"
+    RESULT_VARIABLE undefined_status
+    OUTPUT_VARIABLE undefined_output
+    ERROR_VARIABLE undefined_error
+  )
+endif()
+
+if(NOT undefined_status EQUAL 0)
+  message(FATAL_ERROR "nm failed while reading imports: ${undefined_error}")
+endif()
+
+string(REPLACE "\n" ";" undefined_lines "${undefined_output}")
+foreach(undefined_line IN LISTS undefined_lines)
+  string(STRIP "${undefined_line}" undefined_line)
+  if(undefined_line MATCHES "(^|[ _])(exit|abort)(@.*)?$")
+    message(FATAL_ERROR
+      "libmorpheus must not terminate its host process: ${undefined_line}"
+    )
+  endif()
+endforeach()

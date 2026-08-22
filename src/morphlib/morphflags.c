@@ -174,20 +174,21 @@ int is_pretty_morphflag(long mnum)
 
 	if(mnum <= 0 || mnum > TABSIZE) return(0);
 	if( ! context->hidden_morphflag_table )
-		init_ugly_tab();
+		if(!init_ugly_tab()) return(0);
 	return( ! context->hidden_morphflag_table[(int)mnum] );
 }
 
-void init_ugly_tab(void)
+int init_ugly_tab(void)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	char *ugly_tab;
 
-	if( context->hidden_morphflag_table ) return;
+	if( context->hidden_morphflag_table ) return(1);
 	ugly_tab = (char *)calloc((size_t)TABSIZE+1,(size_t)sizeof * ugly_tab );
 	if( ! ugly_tab ) {
 		fprintf(stderr,"could not allocate morphflag display table\n");
-		exit(EXIT_FAILURE);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
 	}
 	context->hidden_morphflag_table = ugly_tab;
 	
@@ -206,6 +207,7 @@ void init_ugly_tab(void)
 	ugly_tab[NOT_IN_COMPOSITION] = 1;
 	ugly_tab[HAS_PREVERB] = 1;
 	ugly_tab[HAS_AUGMENT] = 1;
+	return(1);
 }
 
 
@@ -215,24 +217,25 @@ int is_prvb_morphflag(long mnum)
 
 	if(mnum <= 0 || mnum > TABSIZE) return(0);
 	if( ! context->preverb_morphflag_table )
-		init_prvb_tab();
+		if(!init_prvb_tab()) return(0);
 	return( context->preverb_morphflag_table[(int)mnum] );
 }
  
 
 void * zogalloc(size_t, size_t);
 
-void init_prvb_tab(void)
+int init_prvb_tab(void)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	char *prvb_tab;
 	
-	if( context->preverb_morphflag_table ) return;
+	if( context->preverb_morphflag_table ) return(1);
 	prvb_tab = (char *)calloc((size_t)(TABSIZE+1),(size_t)(sizeof * prvb_tab) );
 		
 	if (! prvb_tab) {
 		fprintf(stderr,"could not allocate preverb morphflag table\n");
-		exit(EXIT_FAILURE);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
 	}
 	context->preverb_morphflag_table = prvb_tab;
 	
@@ -245,6 +248,7 @@ void init_prvb_tab(void)
 	prvb_tab[UNASP_PREVERB] = 1;
 	prvb_tab[APOCOPE] = 1;
 	prvb_tab[DOUBLED_CONS] = 1;
+	return(1);
 
 }
 

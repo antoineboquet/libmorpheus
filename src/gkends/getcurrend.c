@@ -85,7 +85,7 @@ morpheus_runtime_context_current()->ending_cache_current, lno,
 		fprintf(stderr,"Out of memory loading in %d new endings!\n", lno+2);
 		xFclose(f);
 		f = NULL;
-		exit(-21);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		return(NULL);
 	}
 

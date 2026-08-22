@@ -30,6 +30,7 @@ Stemtype GetIsProse(char *);
 static void RearrangeMorphflags(gk_word *, gk_string *);
 static int GetGkFlag(char *, gk_string *, char *, char *, char *);
 static char *p_eq_morph_keys(long, const Morph_args *);
+static void clear_morph_key_state(morpheus_runtime_context *);
 #define KEY_CONTEXT (morpheus_runtime_context_current())
 #define keys_inited (KEY_CONTEXT->morph_keys_initialized && \
 	KEY_CONTEXT->morph_key_language == cur_lang())
@@ -54,11 +55,8 @@ int keycomp1(const void *, const void *);
 	
 	if( ! Gkword ) {
 		fprintf(stderr,"Hey! null Gkword in scanasciikeys!\n");
-		exit(-1);
-/*
-		preverb = NULL;
-		lemma = NULL;
-*/
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
 	} else {
 		preverb = preverb_of(Gkword);
 		lemma = lemma_of(Gkword);
@@ -163,8 +161,8 @@ static
  int GetGkFlag(char *field, gk_string *gstr, char *endstring, char *preverb, char *lemma)
 {
 	
- 	if( ! keys_inited )
- 		init_keys();	
+ 	if( ! keys_inited && !init_keys() )
+ 		return(0);
 
 	if( AddMorphKey(gstr,field) ) 
 		return(1);
@@ -225,8 +223,8 @@ char *
 	
 	mask &= (PPARTMASK|ADJSTEM|NOUNSTEM);
  
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return(NULL);
 	morph_args = arg_stemtype + *index;
  		
  	while( morph_args->morph_key[0] ) {
@@ -255,8 +253,8 @@ printf("stype [%o] fails on [%s]\n", mask , morph_args->morph_key );
 char *
  NameOfDerivtype(Derivtype st)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)st,arg_derivtype) );
 }
@@ -265,8 +263,8 @@ char *
 char *
  NameOfStemtype(Stemtype st)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)st,arg_stemtype) );
 }
@@ -287,8 +285,8 @@ char *
 char *
  NameOfDomain(Stemtype st)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)st,arg_domain) );
 }
@@ -296,8 +294,8 @@ char *
 char *
  NameOfPerson(word_form vf)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)person_of(vf),arg_person) );
 }
@@ -305,8 +303,8 @@ char *
 char *
  NameOfNumber(word_form vf)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)number_of(vf),arg_number) );
 }
@@ -314,8 +312,8 @@ char *
 char *
  NameOfTense(word_form vf)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)tense_of(vf),arg_tense) );
 }
@@ -323,8 +321,8 @@ char *
 char *
  NameOfMood(word_form vf)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)mood_of(vf),arg_mood) );
 }
@@ -332,8 +330,8 @@ char *
 char *
  NameOfVoice(word_form vf)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)voice_of(vf),arg_voice) );
 }
@@ -342,8 +340,8 @@ char *
 char *
  NameOfDialect(Dialect di)
 {
-	 if( ! keys_inited )
- 		init_keys();
+	 if( ! keys_inited && !init_keys() )
+		return("");
  		
 	return( p_eq_morph_keys((long)di,arg_dialect) );
 }
@@ -420,8 +418,8 @@ void DomainNames(char *domp, char *res, char *dels)
 char *
  NameOfGender(word_form af)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)gender_of(af),arg_gender) );
 }
@@ -429,8 +427,8 @@ char *
 char *
  NameOfCase(word_form af)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)case_of(af),arg_case) );
 }
@@ -438,8 +436,8 @@ char *
 char *
  NameOfDegree(word_form wf)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys((long)degree_of(wf),arg_degree) );
 }
@@ -448,8 +446,8 @@ char *
 char * 
  NameOfMorphFlags(long mf)
 {
- 	if( ! keys_inited )
- 		init_keys();
+ 	if( ! keys_inited && !init_keys() )
+ 		return("");
  		
 	return( p_eq_morph_keys(mf,arg_morphflags) );
 	
@@ -461,8 +459,8 @@ MatchMorphKey(char *field)
 {		
 	int rval;
 	
-	if( ! keys_inited )
-		init_keys();
+	if( ! keys_inited && !init_keys() )
+		return(NULL);
 
 	rval=binlook( (char *)key_table , field , nkeys , (int)sizeof * key_table , 1 ,  keycomp2);
 	if( rval < 0 ) {
@@ -512,6 +510,7 @@ InitStemSuffs(char *fname, void (*curfunc)(gk_string *, unsigned long),
 	
 	if( (f=MorphFopen(fname,"r")) == NULL ) {
 		fprintf(stderr,"could not open [%s]\n", fname );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(NULL);
 	}
 	
@@ -519,6 +518,11 @@ InitStemSuffs(char *fname, void (*curfunc)(gk_string *, unsigned long),
 	fseek(f,0L,0);
 	
 	targs = (Morph_args *) calloc((size_t)((*snum)+1),(size_t)sizeof * targs);
+	if(!targs) {
+		fclose(f);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(NULL);
+	}
 
 	for(i=0;GetTableLine(line,(int)sizeof line, f);i++) {
 		int n = 0;
@@ -554,13 +558,14 @@ InitStemSuffs(char *fname, void (*curfunc)(gk_string *, unsigned long),
 }
 
 
-void init_stems(void)
+int init_stems(void)
 {
-	
 	arg_stemtype = InitStemSuffs(STEMTYPES,new_stemtype,GetStemClass,&nstems);
+	if(!arg_stemtype) return(0);
 	arg_derivtype = InitStemSuffs(DERIVTYPES,new_derivtype,GetStemClass,&nderivs);
+	if(!arg_derivtype) return(0);
 	arg_domain = InitStemSuffs(DOMAINLIST,new_domain,GetIsProse,&ndomains);
-
+	return(arg_domain != NULL);
 }
 	
 	
@@ -572,32 +577,40 @@ int has_octal(char *s)
 	return(0);
 }
 
-void init_keys(void)
+static void
+clear_morph_key_state(morpheus_runtime_context *context)
+{
+	free(context->morph_key_table);
+	free(context->stem_type_arguments);
+	free(context->derivation_type_arguments);
+	free(context->domain_arguments);
+	context->morph_key_table = NULL;
+	context->stem_type_arguments = NULL;
+	context->derivation_type_arguments = NULL;
+	context->domain_arguments = NULL;
+	context->morph_key_stem_count = 0;
+	context->morph_key_derivation_count = 0;
+	context->morph_key_domain_count = 0;
+	context->morph_key_count = 0;
+	context->morph_keys_initialized = 0;
+}
+
+int init_keys(void)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	size_t key_count;
 	size_t sofar = 0;
-	int i;
-	
-	if (context->morph_keys_initialized) {
-		free(context->morph_key_table);
-		free(context->stem_type_arguments);
-		free(context->derivation_type_arguments);
-		free(context->domain_arguments);
-		context->morph_key_table = NULL;
-		context->stem_type_arguments = NULL;
-		context->derivation_type_arguments = NULL;
-		context->domain_arguments = NULL;
-		context->morph_key_stem_count = 0;
-		context->morph_key_derivation_count = 0;
-		context->morph_key_domain_count = 0;
-		context->morph_key_count = 0;
-		context->morph_keys_initialized = 0;
+
+	clear_morph_key_state(context);
+	if(!init_stems()) {
+		clear_morph_key_state(context);
+		return(0);
 	}
-	init_stems();
 	if (nstems < 0 || nderivs < 0 || ndomains < 0) {
 		fprintf(stderr,"invalid negative morphology key count\n");
-		exit(EXIT_FAILURE);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		clear_morph_key_state(context);
+		return(0);
 	}
 	key_count = (size_t)nstems + (size_t)nderivs + (size_t)ndomains
 		 + LENGTH_OF(arg_degree)
@@ -613,13 +626,17 @@ void init_keys(void)
 		 + LENGTH_OF(arg_geogregion);
 	if (key_count > (size_t)INT_MAX) {
 		fprintf(stderr,"morphology key count exceeds the runtime index width\n");
-		exit(EXIT_FAILURE);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		clear_morph_key_state(context);
+		return(0);
 	}
 	nkeys = (int)key_count;
 	key_table = (const Morph_args **) calloc(key_count+1,sizeof * key_table );
 	if (!key_table) {
 		fprintf(stderr,"could not allocate morphology key index\n");
-		exit(EXIT_FAILURE);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		clear_morph_key_state(context);
+		return(0);
 	}
 	
 	sofar += add_keyarr(key_table+sofar,arg_stemtype);
@@ -641,11 +658,14 @@ void init_keys(void)
 
 	if (sofar > (size_t)INT_MAX) {
 		fprintf(stderr,"morphology key index exceeds the runtime index width\n");
-		exit(EXIT_FAILURE);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		clear_morph_key_state(context);
+		return(0);
 	}
 	nkeys = (int)sofar;
 	context->morph_key_language = cur_lang();
 	context->morph_keys_initialized = 1;
+	return(1);
 /*
 if(1) {
 Morph_args * mf;

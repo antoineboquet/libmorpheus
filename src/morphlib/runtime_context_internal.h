@@ -122,6 +122,7 @@ struct morpheus_runtime_context {
 	int morph_keys_initialized;
 	int morph_key_language;
 	int files_opened;
+	morpheus_runtime_error runtime_error;
 	char volume_name[128];
 };
 

@@ -16,6 +16,7 @@ printf("creat gstr %d\n", num * (sizeof * tmpgstring) );
 	if( tmpgstring == NULL ) {
 		fprintf(stderr,"Out of memory for %zu bytes to create %d gstrings\n",
 		count * sizeof * tmpgstring, num );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 	}
 	return( tmpgstring );
 }
@@ -38,6 +39,8 @@ CreatGkAnal(int num)
 	gk_analysis * tmpanal = NULL;
 
 	tmpanal= (gk_analysis *)calloc((size_t)num, (size_t)sizeof * tmpanal);
+	if( num > 0 && tmpanal == NULL )
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 /*
 printf("creat ganal %d\n", num * (sizeof * tmpanal) );
 */
@@ -64,6 +67,8 @@ printf("creat gword %d\n", num * (sizeof * tmpgword) );
 */
 	if( ! tmpgword ) {
 		fprintf(stderr,"Could not allocate %d gwords\n", num );
+		if( num > 0 )
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		return((gk_word *)NULL);
 	}
 	return( tmpgword );

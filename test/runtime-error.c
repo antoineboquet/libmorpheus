@@ -1,0 +1,42 @@
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "../src/api/api_internal.h"
+#include "../src/morphlib/runtime_context.h"
+#include "../src/morphlib/runtime_context_internal.h"
+#include "../src/morphlib/morphkeys.proto.h"
+
+int main(void)
+{
+  morpheus_runtime_context *context=morpheus_runtime_context_create();
+  morpheus_runtime_context *previous;
+  static const char missing_stemlib[]="/morpheus-test-missing-stemlib";
+
+  assert(context);
+  previous=morpheus_runtime_context_activate(context);
+  assert(morpheus_runtime_context_error(context)==
+         MORPHEUS_RUNTIME_ERROR_NONE);
+  assert(morpheus_runtime_status(context)==MORPHEUS_OK);
+
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  context->analysis_storage_error=1;
+  morpheus_runtime_context_clear_error(context);
+  assert(context->analysis_storage_error==0);
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+  assert(morpheus_runtime_status(context)==MORPHEUS_NO_MEMORY);
+
+  morpheus_runtime_context_clear_error(context);
+  context->stemlib_path=malloc(sizeof missing_stemlib);
+  assert(context->stemlib_path);
+  memcpy(context->stemlib_path,missing_stemlib,sizeof missing_stemlib);
+  assert(!init_keys());
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_activate(previous);
+  morpheus_runtime_context_destroy(context);
+  return(0);
+}

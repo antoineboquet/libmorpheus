@@ -297,3 +297,10 @@ Nested block-comment markers and ambiguous assignment or logical conditions
 are rejected with `-Werror=comment` and `-Werror=parentheses`. Historical code
 kept only for reference remains commented as one well-formed block, while
 active conditions now state their intended grouping explicitly.
+
+The shared library no longer imports `exit()` or `abort()`. Allocation and
+internal consistency failures formerly handled by terminating the process are
+recorded on the active context and returned by the public ABI as
+`MORPHEUS_NO_MEMORY` or `MORPHEUS_INTERNAL_ERROR`. The public-symbol test checks
+both exported symbols and forbidden process-termination imports on ELF and
+Mach-O builds.

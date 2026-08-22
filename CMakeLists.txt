@@ -943,6 +943,18 @@ if(BUILD_TESTING)
     morpheus_public_result_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_result COMMAND morpheus_public_result_test)
+  add_executable(morpheus_runtime_error_test test/runtime-error.c)
+  target_include_directories(
+    morpheus_runtime_error_test
+    PRIVATE
+      "${PROJECT_SOURCE_DIR}/include"
+      "${PROJECT_SOURCE_DIR}/src/includes"
+  )
+  target_link_libraries(
+    morpheus_runtime_error_test
+    PRIVATE morpheus_morphlib morpheus_build_options
+  )
+  add_test(NAME runtime_error COMMAND morpheus_runtime_error_test)
   if(CMAKE_NM AND UNIX)
     add_test(
       NAME public_symbols

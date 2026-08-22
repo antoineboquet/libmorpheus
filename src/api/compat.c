@@ -17,6 +17,7 @@ morpheus_compat_analyze(
     morpheus_compat_flags flags, morpheus_compat_output **output)
 {
   morpheus_runtime_context *previous;
+  morpheus_status runtime_status;
   morpheus_compat_output *owned;
   gk_word *word;
   FILE *stream;
@@ -38,7 +39,16 @@ morpheus_compat_analyze(
   }
 
   previous=morpheus_runtime_context_activate(context);
+  morpheus_runtime_context_clear_error(context);
   word=morpheus_check_word(input,(PrntFlags)flags);
+  runtime_status=morpheus_runtime_status(context);
+  if(runtime_status != MORPHEUS_OK) {
+    if(word) FreeGkword(word);
+    morpheus_runtime_context_activate(previous);
+    fclose(stream);
+    morpheus_compat_output_free(owned);
+    return(runtime_status);
+  }
   if(!word) {
     morpheus_runtime_context_activate(previous);
     fclose(stream);
@@ -51,8 +61,14 @@ morpheus_compat_analyze(
     PrntAnalyses(word,(PrntFlags)flags,stream);
     if(anal_buf() && anal_buf()[0]) fputs(anal_buf(),stream);
   }
+  runtime_status=morpheus_runtime_status(context);
   FreeGkword(word);
   morpheus_runtime_context_activate(previous);
+  if(runtime_status != MORPHEUS_OK) {
+    fclose(stream);
+    morpheus_compat_output_free(owned);
+    return(runtime_status);
+  }
   if(fclose(stream) != 0) {
     morpheus_compat_output_free(owned);
     return(MORPHEUS_INTERNAL_ERROR);

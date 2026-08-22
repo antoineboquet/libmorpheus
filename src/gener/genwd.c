@@ -3,8 +3,9 @@
 #include <string.h>
 #include <modes.h>
 #include "gener_internal.h"
+#include "../morphlib/runtime_context.h"
 #define SKIPLINE  100
-static void AddWdEndings(gk_word *, gk_string *, gk_word *, int);
+static int AddWdEndings(gk_word *, gk_string *, gk_word *, int);
 
 static int
 CompareGkForms(const void *left, const void *right)
@@ -200,7 +201,11 @@ printf("maxforms %d stem %s\n", maxforms, NameOfStemtype(stemtype_of(gstring)) )
 	}
 	set_stemtype(&tmpGkword,stemtype_of(gstring));
 
-	AddWdEndings(&tmpGkword,gstring,gkforms,maxforms);
+	if(!AddWdEndings(&tmpGkword,gstring,gkforms,maxforms)) {
+		FreeGkString(gstring);
+		FreeGkword(gkforms);
+		return(NULL);
+	}
 	
 	FreeGkString(gstring);
 	gstring = NULL;
@@ -369,7 +374,7 @@ NextDictLine(FILE *f, char *word, char *wordkeys, char *starts)
 }
 
 #define MAX_FORM_VARIANTS 12
-static void
+static int
 AddWdEndings(gk_word *Gkword, gk_string *Endings, gk_word *Forms, int maxforms)
 {
 	int i,j,k;
@@ -382,7 +387,8 @@ AddWdEndings(gk_word *Gkword, gk_string *Endings, gk_word *Forms, int maxforms)
 	CurBuf = CreatGkword(MAX_FORM_VARIANTS+1);
 	if( ! CurBuf) {
 		fprintf(stderr,"no memory for CurBuf in AddWdEndings: raww [%s]\n", rawword_of(Gkword) );
-		return;
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
 	}
 
 	SaveGkWord = * Gkword;
@@ -438,6 +444,16 @@ AddWdEndings(gk_word *Gkword, gk_string *Endings, gk_word *Forms, int maxforms)
 */
 
 		if((formvars=BuildAWord(Gkword,&CurEnd,CurBuf )) ) {
+			if(formvars < 0 || formvars > maxforms-j-1) {
+				fprintf(stderr,"too many generated forms for %s\n",
+					lemma_of(Gkword));
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				*Gkword = SaveGkWord;
+				analysis_of(CurBuf) = NULL;
+				FreeGkword(CurBuf);
+				return(0);
+			}
 			for(k=0;k<formvars;k++) {
 				*(Forms+j) = *(CurBuf+k);
 				j++;
@@ -448,10 +464,6 @@ AddWdEndings(gk_word *Gkword, gk_string *Endings, gk_word *Forms, int maxforms)
 		*Gkword = SaveGkWord;
 	}
 	workword_of(Forms+j)[0] = 0;
-	if( j > maxforms ) {
-		fprintf(stderr,"%d > %d for %s\n", j, maxforms,lemma_of(Gkword));
-		exit(1);
-	}
 	
 /*
 	for(k=0;workword_of(Forms+k)[0];k++) {
@@ -462,6 +474,7 @@ AddWdEndings(gk_word *Gkword, gk_string *Endings, gk_word *Forms, int maxforms)
 	analysis_of(CurBuf) = NULL;
 	FreeGkword(CurBuf);
 	CurBuf = NULL;
+	return(1);
 }
 
 int
