@@ -6,43 +6,47 @@
 void
 new_person(gk_string *gstr, unsigned long val)
 {
-		set_person(forminfo_of(gstr),val);
+		set_person(forminfo_of(gstr),(unsigned int)(val & 07UL));
 }
 void
 new_number(gk_string *gstr, unsigned long val)
 {
-		set_number(forminfo_of(gstr),val);
+		set_number(forminfo_of(gstr),(unsigned int)(val & 07UL));
 }
 
 void
 new_case(gk_string *gstr, unsigned long val)
 {
-		add_case(forminfo_of(gstr),val);
+		set_case(forminfo_of(gstr),
+			case_of(forminfo_of(gstr)) | (unsigned int)(val & 077UL));
 }
 
 
 void
 new_tense(gk_string *gstr, unsigned long val)
 {
-		set_tense(forminfo_of(gstr),val);
+		set_tense(forminfo_of(gstr),(unsigned int)(val & 017UL));
 }
 
 
 void
 new_voice(gk_string *gstr, unsigned long val)
 {
-		if( val == ACTIVE && (voice_of(forminfo_of(gstr)) & (MEDIO_PASS) ) ) 
-			set_voice(forminfo_of(gstr),val);
-		else if( ( val & (MEDIO_PASS) ) && (voice_of(forminfo_of(gstr)) ==ACTIVE) )
-			set_voice(forminfo_of(gstr),val);
-		else add_voice(forminfo_of(gstr),val);
+		unsigned int voice = (unsigned int)(val & 07UL);
+
+		if( voice == ACTIVE && (voice_of(forminfo_of(gstr)) & (MEDIO_PASS) ) ) 
+			set_voice(forminfo_of(gstr),voice & 07U);
+		else if( ( voice & (MEDIO_PASS) ) && (voice_of(forminfo_of(gstr)) ==ACTIVE) )
+			set_voice(forminfo_of(gstr),voice & 07U);
+		else set_voice(forminfo_of(gstr),
+			(voice_of(forminfo_of(gstr)) | voice) & 07U);
 }
 
 
 void
 new_mood(gk_string *gstr, unsigned long val)
 {
-		set_mood(forminfo_of(gstr),val);
+		set_mood(forminfo_of(gstr),(unsigned int)(val & 017UL));
 }
 
 
@@ -50,14 +54,15 @@ new_mood(gk_string *gstr, unsigned long val)
 void
 new_degree(gk_string *gstr, unsigned long val)
 {
-		set_degree(forminfo_of(gstr),val);
+		set_degree(forminfo_of(gstr),(unsigned int)(val & 03UL));
 }
 
 
 void
 new_gender(gk_string *gstr, unsigned long val)
 {
-		add_gender(forminfo_of(gstr),val);
+		set_gender(forminfo_of(gstr),
+			gender_of(forminfo_of(gstr)) | (unsigned int)(val & 017UL));
 }
 
 

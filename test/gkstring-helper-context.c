@@ -6,6 +6,7 @@
 #include "../src/morphlib/gkstring.proto.h"
 #include "../src/morphlib/adddomain.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
+#include "../src/morphlib/new_val.proto.h"
 
 static int
 compare_text(char *left, char *right)
@@ -31,6 +32,14 @@ main(void)
 	assert(morphflags_of(&item)[1] == (MorphFlags)1);
 	zap_morphflag(morphflags_of(&item),8);
 	assert(morphflags_of(&item)[0] == (MorphFlags)0);
+	new_person(&item,PERS3);
+	new_case(&item,NOMINATIVE);
+	new_case(&item,ACCUSATIVE);
+	new_gender(&item,MASCULINE);
+	new_gender(&item,FEMININE);
+	assert(person_of(forminfo_of(&item)) == PERS3);
+	assert(case_of(forminfo_of(&item)) == (NOMINATIVE | ACCUSATIVE));
+	assert(gender_of(forminfo_of(&item)) == (MASCULINE | FEMININE));
 
 	set_gkstring(&item,"beta");
 	add_morphflag(morphflags_of(&item),POETIC);
