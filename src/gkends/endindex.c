@@ -1,4 +1,6 @@
 #include <gkstring.h>
+#include <limits.h>
+#include <stdint.h>
 #include "gkends_internal.h"
 #include "../morphlib/runtime_context_internal.h"
 
@@ -16,19 +18,21 @@ static endind *load_end_index(endind **, char *, const char *);
 static endind *
 load_end_index(endind **slot, char *filename, const char *description)
 {
+	endind *index;
+
 	if (*slot) return(*slot);
-	*slot = calloc(1,sizeof **slot);
-	if (!*slot) {
+	index = calloc(1,sizeof *index);
+	if (!index) {
 		fprintf(stderr,"could not allocate %s\n",description);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		return(NULL);
 	}
-	if (!init_endind(filename,*slot)) {
-		free(endbuffer_of(*slot));
-		free(endeptr_of(*slot));
-		free(*slot);
-		*slot = NULL;
+	if (!init_endind(filename,index)) {
+		free(index);
+		return(NULL);
 	}
-	return(*slot);
+	*slot = index;
+	return(index);
 }
 
 int
@@ -157,16 +161,15 @@ chckdvend(char *endstr, char *keys)
 endind *
 init_endind(char *fname, endind *etags)
 {
-	FILE * f;
-	register char * s;
-	register char * t;
-	char ** pp;
-	long flen;
+	FILE *f = NULL;
+	char *buffer = NULL;
+	char **pointers = NULL;
+	long file_size;
+	size_t file_length;
+	size_t sofar = 0;
+	size_t nlines = 0;
+	size_t i;
 	int nread;
-	long i;
-	int j;
-	int nlines = 0;
-	long sofar = 0;
 
 /*
  * grc 3/12/91
@@ -175,64 +178,94 @@ init_endind(char *fname, endind *etags)
  */
  	if( (f=MorphFopen(fname,"r"))==NULL) {
 		fprintf(stderr,"init_endind: could not open %s\n", fname );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return( NULL );
 	}
-	fseek(f,0L,2);
-	flen = ftell(f);
-	fseek(f,0L,0);
+	if (fseek(f,0L,SEEK_END) != 0 || (file_size = ftell(f)) < 0 ||
+	    fseek(f,0L,SEEK_SET) != 0) {
+		fprintf(stderr,"could not measure %s\n",fname);
+		goto invalid_index;
+	}
+	if ((uintmax_t)file_size > (uintmax_t)(SIZE_MAX-1)) {
+		fprintf(stderr,"ending index is too large: %s\n",fname);
+		goto invalid_index;
+	}
+	file_length = (size_t)file_size;
 
 /*
  * The ANSI port replaced the historical clalloc allocation of flen + 1
  * elements with calloc.
  */
-	if( !(endbuffer_of(etags) = (char *)calloc((size_t)flen + 1, (size_t)sizeof * endbuffer_of(etags)  ))) {
-
+	buffer = (char *)calloc(file_length + 1,sizeof *buffer);
+	if (!buffer) {
 		fprintf(stderr,"could not build buffer for endtags\n");
-		xFclose(f);
-		return(NULL);
+		goto no_memory;
 	}
-	s = endbuffer_of(etags);
-	for(;;) {		
-/*
-	nread = vax_fread(s,(int)sizeof  * s, (int)flen, f);
-*/
-		nread = vax_fread((char *)s+sofar,sizeof  * s, BUFSIZ, f);
-		if( nread <= 0 ) break;
-		sofar += (long)nread;
+	while (sofar < file_length) {
+		size_t remaining = file_length-sofar;
+		int requested = remaining > (size_t)BUFSIZ ? BUFSIZ : (int)remaining;
+
+		nread = vax_fread(buffer+sofar,sizeof *buffer,requested,f);
+		if (nread != requested) {
+			fprintf(stderr,"short read while loading %s\n",fname);
+			goto invalid_index;
+		}
+		sofar += (size_t)nread;
 	}
 	xFclose(f);
-	for(i=0;i<sofar;i++) {
-		if(*(s+i) == '\n' )
-			nlines++;
+	f = NULL;
+	if (file_length) {
+		nlines = 1;
+		for (i = 0; i + 1 < file_length; i++) {
+			if (buffer[i] == '\n') nlines++;
+		}
 	}
-	nlines++;
-
-  	endeptr_of(etags) = (char **) calloc((size_t)nlines,(size_t)sizeof * endeptr_of(etags));
-	if( ! endeptr_of(etags) ) {
+	if (nlines > (size_t)INT_MAX) {
+		fprintf(stderr,"ending index has too many entries: %s\n",fname);
+		goto invalid_index;
+	}
+	if (nlines) pointers = (char **)calloc(nlines,sizeof *pointers);
+	if (nlines && !pointers) {
 		fprintf(stderr,"ran out of memory in init_endind\n");
-		return(NULL);
+		goto no_memory;
 	}
-	pp = endeptr_of(etags);
-	for(i=0;i<nlines;i++) {
-		*(pp+i) = s;
-		while(*s && *s != '\n')
-			s++;
-		if( ! *s ) 
-			break;
-		else if( *s == '\n' ) {
-			*s = 0;
-			s++;
+	if (nlines) {
+		size_t current = 1;
+
+		pointers[0] = buffer;
+		for (i = 0; i < file_length; i++) {
+			if (buffer[i] == '\n') {
+				buffer[i] = 0;
+				if (i + 1 < file_length)
+					pointers[current++] = buffer+i+1;
+			}
 		}
 	}
 
-	endlen_of(etags) = nlines;
+	endbuffer_of(etags) = buffer;
+	endeptr_of(etags) = pointers;
+	endlen_of(etags) = (int)nlines;
 /*
 	printf("nread %d flen %ld nlines %d\n", nread ,flen , nlines);
 	for(i=0;i<10;i++)
 		printf("%d) [%s]\n", i , *(pp+i) );
 	getchar();
-*/
+	*/
 	return(etags);
+
+no_memory:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	if (f) xFclose(f);
+	free(buffer);
+	free(pointers);
+	return(NULL);
+
+invalid_index:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	if (f) xFclose(f);
+	free(buffer);
+	free(pointers);
+	return(NULL);
 }
 
 int

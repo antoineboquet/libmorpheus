@@ -1,4 +1,6 @@
 #include "morphlib_internal.h"
+#include <limits.h>
+#include <stdint.h>
 #include <gkstring.h>
 #include <endtags.h>
 #define LINDEXSUFFIX "lindex"
@@ -8,36 +10,62 @@
 endtags *
 init_preind(char *fname, int *maxkeys)
 {
-	FILE * f;
-	endtags * etags;
-	register char * s;
-	register char * t;
-	int flen;
-	long divisor = 0;
-	int i, j;
+	FILE *f;
+	endtags *etags;
+	long file_size;
+	size_t divisor;
+	size_t record_count;
+	size_t i;
+	int written;
 	char tmp[LONGSTRING];
 
 	*maxkeys = 0;
-	sprintf(tmp,"%s.%s", fname , LINDEXSUFFIX );
+	written = snprintf(tmp,sizeof tmp,"%s.%s",fname,LINDEXSUFFIX);
+	if (written < 0 || written >= (int)sizeof tmp) {
+		fprintf(stderr,"preindex path is too long: %s\n",fname);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	
 	if( (f=MorphFopen(tmp,"rb"))==NULL) {
 		fprintf(stderr,"init_preind: could not open %s\n", tmp );
 		return( NULL );
 	}
 	
-	fseek(f,0L,2);
-	divisor = (long) KEYLEN + (sizeof tagoffset_of(etags));
-	flen = (int)(ftell(f)/divisor);
+	divisor = (size_t)KEYLEN + sizeof tagoffset_of(etags);
+	if (fseek(f,0L,SEEK_END) != 0 || (file_size = ftell(f)) < 0 ||
+	    (uintmax_t)file_size > (uintmax_t)SIZE_MAX ||
+	    fseek(f,0L,SEEK_SET) != 0 || (size_t)file_size % divisor != 0) {
+		fprintf(stderr,"invalid preindex size for %s\n",tmp);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		fclose(f);
+		return(NULL);
+	}
+	record_count = (size_t)file_size/divisor;
+	if (record_count > (size_t)INT_MAX ||
+	    record_count > SIZE_MAX/sizeof *etags-1) {
+		fprintf(stderr,"preindex is too large: %s\n",tmp);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		fclose(f);
+		return(NULL);
+	}
+	etags = (endtags *)calloc(record_count+1,sizeof *etags);
+	if (!etags) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		fclose(f);
+		return(NULL);
+	}
 
-	fseek(f,0L,0);
-	*maxkeys = flen;
-	etags = (endtags *) calloc((size_t)flen + 1,(size_t) sizeof * etags );
-
-	for(i=0;  i < flen/*+1*/; i++) {
+	for(i=0; i < record_count; i++) {
 		morpheus_stemlib_offset tagoffset;
 
-		if( ! ReadKey(tagstring_of(etags+i),&tagoffset,f))
-			break;
+		if( ReadKey(tagstring_of(etags+i),&tagoffset,f) != 1) {
+			fprintf(stderr,"short read while loading %s\n",tmp);
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			free(etags);
+			fclose(f);
+			return(NULL);
+		}
 		tagoffset_of(etags+i) = tagoffset;
 /*
 if( ! (i % 25) )
@@ -48,6 +76,7 @@ printf(" i %d last tags [%s]\n",  i , tagstring_of(etags+i) );
 printf("flen %d i %d last tags [%s]\n", flen, i , tagstring_of(etags+i) );
 */
 	fclose(f);
+	*maxkeys = (int)record_count;
 	return(etags);
 }
 
@@ -93,9 +122,14 @@ int firstline = 1;
 
 	if( (f=MorphFopen(fname,"r"))==NULL) {
 		fprintf(stderr,"ChckFullIndex(): could not open:%s\n", fname );
-		return( -1 );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
 	}
-	fseek(f,offset,0);
+	if (offset < 0 || fseek(f,offset,SEEK_SET) != 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		fclose(f);
+		return(0);
+	}
 /*
 printf("starting off at %ld\n", offset);
 */
@@ -133,11 +167,14 @@ firstline = 0;
 			break;
 		}
 	}
+	if (ferror(f)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		rval = 0;
+	}
 /*
 fprintf(stderr,"ends comp [%d] s [%s] buf [%s]\n", comp , s , buf );
 getchar();
 */
-	finish:
-		fclose(f);
-		return(rval);
+	fclose(f);
+	return(rval);
 }
