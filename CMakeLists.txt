@@ -966,6 +966,9 @@ if(BUILD_TESTING)
   target_compile_definitions(
     morpheus_result_truncation_test PRIVATE MORPHEUS_BUILDING_LIBRARY
   )
+  target_include_directories(
+    morpheus_result_truncation_test PRIVATE "${PROJECT_SOURCE_DIR}/include"
+  )
   target_link_libraries(
     morpheus_result_truncation_test PRIVATE morpheus_build_options
   )
