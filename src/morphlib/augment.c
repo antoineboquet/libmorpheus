@@ -166,7 +166,7 @@ int do_syllaug(gk_word *gkform, int maxaugs)
 	int naugs = 0;
 	Dialect d;
 	int compval;
-	int wstart;
+	size_t wstart;
 	char tmpstem[MAXWORDSIZE];
 	gk_word TmpGkword;
 	
@@ -215,7 +215,8 @@ fprintf(stderr,"temp: got naugs %d with max %d\n", naugs , maxaugs );
 
 int do_tempaug(gk_word *gkform, int maxaugs)
 {
-	int i, wstart;
+	int i;
+	size_t wstart;
 	int naugs = 0;
 	char tmpstem[MAXWORDSIZE];
 	Dialect d;

@@ -64,12 +64,12 @@ int no_morphflags(gk_string *gstr)
 void add_morphflag(MorphFlags *Mf, int n)
 {
 	int index;
-	int setbit;
+	MorphFlags setbit;
 
 	n = n & MORPHFLAG_MASK;
 	mflag_num_to_bits(n,&index,&setbit);
 
-	Mf[index] |= (setbit & 0377);
+	Mf[index] = (MorphFlags)(Mf[index] | setbit);
 /*
 fprintf(stderr,"n [%d] index [%d] setbit [%o] Mf[index] [%o]\n", n , index, setbit, Mf[index]) ;
 */
@@ -87,7 +87,7 @@ int overlap_morphflags(MorphFlags *Mf1, MorphFlags *Mf2)
 int has_morphflag(MorphFlags *Mf, int n)
 {
 	int index;
-	int setbit;
+	MorphFlags setbit;
 
 	n = n & MORPHFLAG_MASK;
 	mflag_num_to_bits(n,&index,&setbit);
@@ -95,33 +95,33 @@ int has_morphflag(MorphFlags *Mf, int n)
 fprintf(stderr,"n %d , index %d setbit [%o] Mf[Index] %o anded [%o]\n", n,index, setbit,Mf[index],
 Mf[index] & (setbit & 0377));
 */	
-	return(Mf[index] & (setbit & 0377));
+	return(Mf[index] & setbit);
 }
 
 
 void zap_morphflag(MorphFlags *Mf, int n)
 {
 	int index;
-	int setbit;
+	MorphFlags setbit;
 
 	n = n & MORPHFLAG_MASK;
 	mflag_num_to_bits(n,&index,&setbit);
 
-	Mf[index] &= ~(setbit & 0377);
+	Mf[index] = (MorphFlags)(Mf[index] & (MorphFlags)~setbit);
 }
 
 void set_morphflag(MorphFlags *Mf, int n)
 {
 	int i;
 	int index;
-	int setbit;
+	MorphFlags setbit;
 
 	n = n & MORPHFLAG_MASK;
 	mflag_num_to_bits(n,&index,&setbit);
 
 	for(i=0;i<MORPHFLAG_BYTES;i++) Mf[i] = 0;
 	if( n > 0 ) 
-		Mf[index] = setbit& 0377;
+		Mf[index] = setbit;
 }
 
 int no_morphflag(MorphFlags *mf)
@@ -134,14 +134,14 @@ int no_morphflag(MorphFlags *mf)
 	return(1);
 }
 
-void mflag_num_to_bits(int n, int *ind, int *bitnum)
+void mflag_num_to_bits(int n, int *ind, MorphFlags *bitnum)
 {
 	if( (n % 8) == 0 ) {
 		*ind = (n/8) - 1;
-		*bitnum = 0200;
+		*bitnum = (MorphFlags)0200;
 	} else {
 		*ind = n/8;
-		*bitnum = 1 << ((n % 8) - 1);
+		*bitnum = (MorphFlags)(1U << (((unsigned int)n % 8U) - 1U));
 	}
 /*
 fprintf(stderr,"num to bits [%d] ind %o bit %o\n", n , *ind, *bitnum );

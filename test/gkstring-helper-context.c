@@ -25,6 +25,12 @@ main(void)
 	assert(add_domain(&item,1) == 0);
 	assert(add_domain(&item,0) == -1);
 	assert(add_domain(&item,256) == -1);
+	set_morphflag(morphflags_of(&item),8);
+	assert(morphflags_of(&item)[0] == (MorphFlags)0200);
+	add_morphflag(morphflags_of(&item),9);
+	assert(morphflags_of(&item)[1] == (MorphFlags)1);
+	zap_morphflag(morphflags_of(&item),8);
+	assert(morphflags_of(&item)[0] == (MorphFlags)0);
 
 	set_gkstring(&item,"beta");
 	add_morphflag(morphflags_of(&item),POETIC);

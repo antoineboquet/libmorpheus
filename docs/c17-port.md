@@ -40,6 +40,11 @@ domain insertion rejects values that cannot be represented by its historical
 single-byte storage. The cleaned translation units compile with
 `-Werror=conversion -Werror=sign-conversion`, while morphology bitfields remain
 a separate audited migration rather than being silenced with broad casts.
+The next conversion pass keeps promoted shift expressions in unsigned working
+types before storing dialect masks, carries augment offsets as `size_t`, and
+represents individual morphology-flag bits as `MorphFlags` throughout their
+helper boundary. This prevents compiler-dependent narrowing while preserving
+the historical on-disk and in-memory field widths.
 
 The entire `cruncher` runtime closure is now a strict boundary. Its internal
 interfaces are declared in `src/anal/cruncher_internal.h`,

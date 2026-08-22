@@ -535,15 +535,15 @@ void AddDialect(Dialect di, char *dialb, char *dels)
 {
 	char * s;
 	int i;
-	Dialect mask = 1;
+	unsigned int mask = 1;
 
 	for(i=0;i<(((int)sizeof di) * 8);i++) {
-		if( (s=NameOfDialect(di&mask)) )
+		if( (s=NameOfDialect((Dialect)(di & (Dialect)mask))) )
 			if( *s ) {
 				if( *dialb ) strcat(dialb,dels);
 				strcat(dialb, s );
 			}
-		mask = mask << 1;
+		mask <<= 1;
 	}
 
 }

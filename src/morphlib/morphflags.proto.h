@@ -12,7 +12,7 @@ int has_morphflag(MorphFlags *, int);
 void zap_morphflag(MorphFlags *, int);
 void set_morphflag(MorphFlags *, int);
 int no_morphflag(MorphFlags *);
-void mflag_num_to_bits(int, int *, int *);
+void mflag_num_to_bits(int, int *, MorphFlags *);
 int mflag_bit_to_num(int, int);
 void Dump_morphflag(MorphFlags *);
 int is_pretty_morphflag(long);

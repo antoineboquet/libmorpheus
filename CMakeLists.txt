@@ -87,12 +87,14 @@ set_source_files_properties(
   src/greeklib/vaxwords.c
   src/greeklib/xstrings.c
   src/morphlib/adddomain.c
+  src/morphlib/augment.c
   src/morphlib/beta2rtf.c
   src/morphlib/conjstem.c
   src/morphlib/endio.c
   src/morphlib/gkstring.c
   src/morphlib/gktoasc.c
   src/morphlib/indkeys.c
+  src/morphlib/morphflags.c
   src/morphlib/preverb.c
   PROPERTIES
     COMPILE_OPTIONS
