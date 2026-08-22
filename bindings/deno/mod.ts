@@ -2,6 +2,7 @@ const ABI_VERSION = 1;
 const TEXT_CAPACITY = 64;
 const DOMAIN_CAPACITY = 24;
 const MORPH_FLAG_CAPACITY = 12;
+const ALL_MORPH_FLAG_CAPACITY = 14;
 
 const SYMBOLS = {
   morpheus_abi_version: { parameters: [], result: "u32" },
@@ -24,6 +25,10 @@ const SYMBOLS = {
   },
   morpheus_result_truncated_fields: {
     parameters: ["pointer", "usize", "buffer"],
+    result: "u32",
+  },
+  morpheus_result_all_morph_flags: {
+    parameters: ["pointer", "usize", "buffer", "usize"],
     result: "u32",
   },
   morpheus_result_free: { parameters: ["pointer"], result: "void" },
@@ -56,6 +61,10 @@ export const MorpheusOption = {
   DialectNonHomericEpic: 1024n << 16n,
   DialectEpic: 1088n << 16n,
   DialectProse: 2048n << 16n,
+} as const;
+
+export const MorpheusMorphFlag = {
+  GroupName: 110,
 } as const;
 
 export const MorpheusPartOfSpeech = {
@@ -216,6 +225,7 @@ export interface MorpheusAnalysis {
   readonly rawPreverb: string;
   readonly domains: string;
   readonly morphFlags: Uint8Array;
+  readonly allMorphFlags: Uint8Array;
   readonly truncatedFields: number;
 }
 
@@ -245,6 +255,7 @@ function cString(bytes: Uint8Array, offset: number, capacity: number): string {
 function decodeAnalysis(
   bytes: Uint8Array,
   truncatedFields: number,
+  allMorphFlags: Uint8Array,
 ): MorpheusAnalysis {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const numbers: number[] = [];
@@ -302,6 +313,7 @@ function decodeAnalysis(
     rawPreverb,
     domains,
     morphFlags,
+    allMorphFlags,
     truncatedFields,
   };
 }
@@ -438,7 +450,18 @@ export class MorpheusContext {
           BigInt(index),
           truncatedFields,
         ));
-        analyses.push(decodeAnalysis(bytes, truncatedFields[0]));
+        const allMorphFlags = new Uint8Array(ALL_MORPH_FLAG_CAPACITY);
+        this.#throwOnError(this.native.symbols.morpheus_result_all_morph_flags(
+          result,
+          BigInt(index),
+          allMorphFlags,
+          BigInt(allMorphFlags.byteLength),
+        ));
+        analyses.push(decodeAnalysis(
+          bytes,
+          truncatedFields[0],
+          allMorphFlags,
+        ));
       }
       return analyses;
     } finally {

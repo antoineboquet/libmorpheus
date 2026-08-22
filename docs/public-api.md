@@ -50,3 +50,7 @@ but more expensive than using a dedicated context for each backend.
 The Deno binding exposes the same bits through `MorpheusOption`. They can be
 combined with bigint bitwise OR and remain subject to the binding's per-context
 serial queue.
+
+For compatibility, `MorpheusAnalysis.morphFlags` remains 12 bytes. The binding
+also exposes the complete 14-byte value as `allMorphFlags` and publishes flag
+110 as `MorpheusMorphFlag.GroupName`.

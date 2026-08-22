@@ -31,6 +31,10 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   assert(analyses[0].lemma.length > 0, "lemma must be populated");
   assert(analyses[0].morphFlags.length === 12, "morph flags must be copied");
   assert(
+    analyses[0].allMorphFlags.length === 14,
+    "complete morph flags must be copied",
+  );
+  assert(
     analyses[0].partOfSpeech !== MorpheusPartOfSpeech.Unknown,
     "part of speech must use a documented code",
   );
