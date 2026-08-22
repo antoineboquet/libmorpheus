@@ -963,6 +963,25 @@ if(BUILD_TESTING)
   )
   add_test(NAME public_analysis COMMAND morpheus_public_analysis_test)
   add_executable(
+    morpheus_public_request_options_test
+    test/public-request-options.c
+  )
+  target_compile_definitions(
+    morpheus_public_request_options_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  target_include_directories(
+    morpheus_public_request_options_test
+    PRIVATE "${PROJECT_SOURCE_DIR}/src/includes"
+  )
+  target_link_libraries(
+    morpheus_public_request_options_test PRIVATE morpheus morpheus_build_options
+  )
+  add_test(
+    NAME public_request_options
+    COMMAND morpheus_public_request_options_test
+  )
+  add_executable(
     morpheus_public_context_isolation_test
     test/public-context-isolation.c
   )

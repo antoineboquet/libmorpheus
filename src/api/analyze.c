@@ -1,7 +1,44 @@
 #include "api_internal.h"
 #include <string.h>
 #include "../anal/anal_internal.h"
-#include "../morphlib/runtime_context.h"
+#include "../morphlib/runtime_context_internal.h"
+
+typedef struct {
+  int crasis_disabled;
+  int quick_enabled;
+  int hq_dictionary;
+  Dialect wanted_dialects;
+  int wanted_dialects_initialized;
+} request_state;
+
+static void apply_request_options(
+    morpheus_context *context, morpheus_options options, request_state *saved)
+{
+  saved->crasis_disabled=context->analysis_crasis_disabled;
+  saved->quick_enabled=context->analysis_quick_enabled;
+  saved->hq_dictionary=context->dictionary_hq_mode;
+  saved->wanted_dialects=context->analysis_wanted_dialects;
+  saved->wanted_dialects_initialized=
+      context->analysis_wanted_dialects_initialized;
+  context->analysis_crasis_disabled=!!(options & MORPHEUS_OPTION_NO_CRASIS);
+  context->analysis_quick_enabled=!!(options & MORPHEUS_OPTION_QUICK);
+  context->dictionary_hq_mode=!!(options & MORPHEUS_OPTION_HQ_DICTIONARY);
+  context->analysis_wanted_dialects=(Dialect)(
+      (options & MORPHEUS_OPTION_DIALECT_MASK) >>
+      MORPHEUS_OPTION_DIALECT_SHIFT);
+  context->analysis_wanted_dialects_initialized=1;
+}
+
+static void restore_request_state(
+    morpheus_context *context, const request_state *saved)
+{
+  context->analysis_crasis_disabled=saved->crasis_disabled;
+  context->analysis_quick_enabled=saved->quick_enabled;
+  context->dictionary_hq_mode=saved->hq_dictionary;
+  context->analysis_wanted_dialects=saved->wanted_dialects;
+  context->analysis_wanted_dialects_initialized=
+      saved->wanted_dialects_initialized;
+}
 
 static int copy_text(char *destination, size_t capacity, const char *source)
 {
@@ -72,8 +109,13 @@ static morpheus_truncated_fields copy_analysis(
 
 morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_code, size_t length, morpheus_options options, morpheus_result **result)
 {
-  const morpheus_options known=MORPHEUS_OPTION_STRICT_CASE|MORPHEUS_OPTION_IGNORE_ACCENTS|MORPHEUS_OPTION_VERBS_ONLY;
+  const morpheus_options known=
+      MORPHEUS_OPTION_STRICT_CASE|MORPHEUS_OPTION_IGNORE_ACCENTS|
+      MORPHEUS_OPTION_VERBS_ONLY|MORPHEUS_OPTION_NO_CRASIS|
+      MORPHEUS_OPTION_QUICK|MORPHEUS_OPTION_HQ_DICTIONARY|
+      MORPHEUS_OPTION_DIALECT_MASK;
   morpheus_runtime_context *previous;
+  request_state saved;
   morpheus_result *owned;
   gk_word *word;
   PrntFlags flags=0;
@@ -82,6 +124,9 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
   if(!context || !beta_code || !result) return(MORPHEUS_INVALID_ARGUMENT);
   *result=NULL;
   if(options & ~known) return(MORPHEUS_INVALID_ARGUMENT);
+  if((options & MORPHEUS_OPTION_DIALECT_MASK) &&
+     context->language != GREEK)
+    return(MORPHEUS_INVALID_ARGUMENT);
   if(length >= sizeof input) return(MORPHEUS_INPUT_TOO_LONG);
   if(memchr(beta_code,0,length)) return(MORPHEUS_INVALID_ARGUMENT);
   memcpy(input,beta_code,length);
@@ -90,8 +135,10 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
   if(options & MORPHEUS_OPTION_IGNORE_ACCENTS) flags|=IGNORE_ACCENTS;
   if(options & MORPHEUS_OPTION_VERBS_ONLY) flags|=VERBS_ONLY;
   previous=morpheus_runtime_context_activate(context);
+  apply_request_options(context,options,&saved);
   word=morpheus_check_word(input,flags);
   if(!word) {
+    restore_request_state(context,&saved);
     morpheus_runtime_context_activate(previous);
     return(MORPHEUS_INVALID_ARGUMENT);
   }
@@ -99,6 +146,7 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
   owned=morpheus_result_create((size_t)totanal_of(word));
   if(!owned) {
     FreeGkword(word);
+    restore_request_state(context,&saved);
     morpheus_runtime_context_activate(previous);
     return(MORPHEUS_NO_MEMORY);
   }
@@ -106,6 +154,7 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
     owned->truncated_fields[i]=copy_analysis(
         &owned->analyses[i],analysis_of(word)+i);
   FreeGkword(word);
+  restore_request_state(context,&saved);
   morpheus_runtime_context_activate(previous);
   *result=owned;
   return(MORPHEUS_OK);
