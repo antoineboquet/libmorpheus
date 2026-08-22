@@ -24,6 +24,22 @@ clear_derivation_cache(morpheus_runtime_context *context)
 	context->derivation_cache_index = 0;
 }
 
+static void
+clear_derivation_buffers(morpheus_runtime_context *context)
+{
+	int i;
+
+	for (i = 0; i < MORPHEUS_DERIVATION_BUFFER_COUNT; i++) {
+		if (context->derivation_stem_buffers[i])
+			FreeGkString(context->derivation_stem_buffers[i]);
+		if (context->derivation_quantity_buffers[i])
+			FreeGkString(context->derivation_quantity_buffers[i]);
+		context->derivation_stem_buffers[i] = NULL;
+		context->derivation_quantity_buffers[i] = NULL;
+	}
+	context->derivation_buffers_initialized = 0;
+}
+
 static morpheus_runtime_context *
 derivation_context(void)
 {
@@ -121,8 +137,12 @@ checkaugredup(char *stemstr, char *stemkeys)
 			if (!context->derivation_quantity_buffers[i])
 				context->derivation_quantity_buffers[i] = CreatGkString(1);
 			if (!context->derivation_stem_buffers[i] ||
-			    !context->derivation_quantity_buffers[i])
+			    !context->derivation_quantity_buffers[i]) {
+				clear_derivation_buffers(context);
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 				return(0);
+			}
 		}
 		context->derivation_buffers_initialized = 1;
 	}
@@ -255,6 +275,12 @@ checkcomderivs(char *derivs, char *defstem, char *suffix, char *lemmkeys, char *
 
 	lkeybuf = (char *)malloc((size_t)LONGSTRING);
 	curlemmkeys = (char *)malloc((size_t)LONGSTRING);
+	if (!lkeybuf || !curlemmkeys) {
+		free(lkeybuf);
+		free(curlemmkeys);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
+	}
 	
 	Xstrncpy(curlemmkeys,lemmkeys,LONGSTRING);
 
@@ -289,6 +315,14 @@ checkcomderiv(char *derivstr, char *defstem, char *suffix, char *lkeys, char *rk
 	dstemkeys = (char *)malloc((size_t)LONGSTRING*2);
 	lemma = (char *)malloc((size_t)LONGSTRING+1);
 	tmpdstem = (char *)malloc((size_t)LONGSTRING+1);
+	if (!asuffkeys || !dstemkeys || !lemma || !tmpdstem) {
+		free(asuffkeys);
+		free(dstemkeys);
+		free(lemma);
+		free(tmpdstem);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
+	}
 	
 	Xstrncpy(asuffkeys,derivstr,LONGSTRING*2);
 	Xstrncpy(tmpdstem,lkeys,LONGSTRING);
@@ -368,8 +402,11 @@ checkmultredups(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, cha
 
 	gkform = CreatGkword(6);
 	gstr = CreatGkString(1);
-	if( ! gkform ) {
+	if( ! gkform || ! gstr ) {
 		fprintf(stderr,"no memory for gkform in checkmultredups of [%s]\n",asuffkeys);
+		if (gkform) FreeGkword(gkform);
+		if (gstr) FreeGkString(gstr);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		return(0);
 	}
 		
@@ -406,12 +443,15 @@ checkcomderiv2(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, char
 	register char * s;
 	gk_string * gstr;
 	int rval = 0;
+	size_t initial_key_length = strlen(rkeys);
 	
 	derivsuff = (char *)malloc((size_t)LONGSTRING);
 	tmpdsuff = (char *)malloc((size_t)LONGSTRING);
 	dbuf = (char *)malloc((size_t)LONGSTRING);
 	stembuf = (char *)malloc((size_t)MAXWORDSIZE);
 	gstr = CreatGkString(1);
+	if (!derivsuff || !tmpdsuff || !dbuf || !stembuf || !gstr)
+		goto no_memory;
 
 	Xstrncpy(dbuf,asuffkeys,LONGSTRING);
 	
@@ -494,6 +534,8 @@ checkcomderiv2(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, char
 				gk_word * gkword;
 				add_morphflag(morphflags_of(gstr),REDUPL);
 				gkword = CreatGkword(1);
+				if (!gkword)
+					goto no_memory;
 				/*
 				 * grc 3/21/91
 				 *
@@ -544,6 +586,16 @@ printf("about to add [%s]\n", tmp2 );
 	free(dbuf);
 	FreeGkString(gstr);
 	return(rval);
+
+no_memory:
+	rkeys[initial_key_length] = 0;
+	free(derivsuff);
+	free(tmpdsuff);
+	free(stembuf);
+	free(dbuf);
+	if (gstr) FreeGkString(gstr);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	return(0);
 }
 
 int
@@ -586,6 +638,12 @@ need_rei_alpha(char *dsuffkeys)
 	
 	gstr = CreatGkString(1);
 	Gkword = CreatGkword(1);
+	if (!gstr || !Gkword) {
+		if (gstr) FreeGkString(gstr);
+		if (Gkword) FreeGkword(Gkword);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
+	}
 	
 	ScanAsciiKeys(dsuffkeys,Gkword,gstr,(gk_string *)NULL);
 
@@ -622,20 +680,20 @@ add_deriv_cache(char *s, char *keys)
 {
 	morpheus_runtime_context *context = derivation_context();
 	int index = context->derivation_cache_index;
+	char *new_keys = NULL;
 
 	if( index >= MORPHEUS_DERIVATION_CACHE_SIZE ) index = 0;
+	if( *keys ) {
+		new_keys = (char *)malloc((size_t)Xstrlen(keys)+1);
+		if (!new_keys) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+			return;
+		}
+		Xstrcpy(new_keys,keys);
+	}
 	Xstrncpy(context->derivation_cache_stems[index],s,MAXWORDSIZE);
-	if( context->derivation_cache_keys[index] ) {
-		free(context->derivation_cache_keys[index]);
-	}
-	if( ! *keys ) {
-		context->derivation_cache_keys[index] = NULL;
-	} else {
-		context->derivation_cache_keys[index] =
-			(char *)malloc((size_t)Xstrlen(keys)+1);
-		if (context->derivation_cache_keys[index])
-			Xstrcpy(context->derivation_cache_keys[index],keys);
-	}
+	free(context->derivation_cache_keys[index]);
+	context->derivation_cache_keys[index] = new_keys;
 	context->derivation_cache_index = index + 1;
 }
 
