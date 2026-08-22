@@ -4,6 +4,7 @@ import {
   MorpheusLibrary,
   MorpheusOption,
   MorpheusMorphFlag,
+  MorpheusNumber,
   MorpheusPartOfSpeech,
   MorpheusTruncatedField,
 } from "./mod.ts";
@@ -94,4 +95,17 @@ Deno.test("analyzes Greek through the native ABI", async () => {
     MorpheusOption.StrictCase,
   );
   assert(afterScoped.length > 0, "request options must not leak to later calls");
+
+  const groupAnalyses = await context.analyze(
+    "*dio/skoroi",
+    MorpheusOption.StrictCase,
+  );
+  const group = groupAnalyses.find((analysis) =>
+    hasMorpheusMorphFlag(analysis, MorpheusMorphFlag.GroupName)
+  );
+  assert(group, "Dioscuri must preserve the group-name stem flag");
+  assert(
+    (group.number & MorpheusNumber.Plural) !== 0,
+    "group-name analysis must retain the inferred plural number",
+  );
 });

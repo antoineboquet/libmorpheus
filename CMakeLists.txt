@@ -991,6 +991,15 @@ if(BUILD_TESTING)
     morpheus_public_analysis_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_analysis COMMAND morpheus_public_analysis_test)
+  add_executable(morpheus_public_morph_flags_test test/public-morph-flags.c)
+  target_compile_definitions(
+    morpheus_public_morph_flags_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
+  )
+  target_link_libraries(
+    morpheus_public_morph_flags_test PRIVATE morpheus morpheus_build_options
+  )
+  add_test(NAME public_morph_flags COMMAND morpheus_public_morph_flags_test)
   add_executable(
     morpheus_public_request_options_test
     test/public-request-options.c
