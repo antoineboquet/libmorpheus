@@ -6,7 +6,7 @@ void add_morphflags(gk_string *gstr, MorphFlags * Flags)
 	unsigned char * Mf = morphflags_of(gstr);
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		morphflags_of(gstr)[i] |= Flags[i];
 }
 
@@ -15,7 +15,7 @@ void set_morphflags(gk_string *gstr, MorphFlags *Flags)
 	unsigned char * Mf = morphflags_of(gstr);
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		morphflags_of(gstr)[i] = Flags[i];
 }
 
@@ -25,7 +25,7 @@ void set_gwmorphflags(gk_word *gkword, MorphFlags *Flags)
 	unsigned char * Mf = morphflags_of(gkword);
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		morphflags_of(gkword)[i] = Flags[i];
 }
 
@@ -35,7 +35,7 @@ void zap_morphflags(gk_string *gstr, MorphFlags *Flags)
 	unsigned char * Mf = morphflags_of(gstr);
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		morphflags_of(gstr)[i] &= ~(Flags[i]);
 }
 
@@ -44,7 +44,7 @@ int has_morphflags(gk_string *gstr, MorphFlags *Flags)
 	unsigned char * Mf = morphflags_of(gstr);
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		if( morphflags_of(gstr)[i] & Flags[i])
 			return(1);
 	return(0);
@@ -55,7 +55,7 @@ int no_morphflags(gk_string *gstr)
 	MorphFlags * Mf = morphflags_of(gstr);
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		if( morphflags_of(gstr)[i] )
 			return(0);
 	return(1);
@@ -66,7 +66,7 @@ void add_morphflag(MorphFlags *Mf, int n)
 	int index;
 	MorphFlags setbit;
 
-	n = n & MORPHFLAG_MASK;
+	if(n <= 0 || n > MORPHFLAG_MAX) return;
 	mflag_num_to_bits(n,&index,&setbit);
 
 	Mf[index] = (MorphFlags)(Mf[index] | setbit);
@@ -79,7 +79,7 @@ int overlap_morphflags(MorphFlags *Mf1, MorphFlags *Mf2)
 {
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		if( Mf1[i] & Mf2[i] ) return(1);
 	return(0);
 }
@@ -89,7 +89,7 @@ int has_morphflag(MorphFlags *Mf, int n)
 	int index;
 	MorphFlags setbit;
 
-	n = n & MORPHFLAG_MASK;
+	if(n <= 0 || n > MORPHFLAG_MAX) return(0);
 	mflag_num_to_bits(n,&index,&setbit);
 /*	
 fprintf(stderr,"n %d , index %d setbit [%o] Mf[Index] %o anded [%o]\n", n,index, setbit,Mf[index],
@@ -104,7 +104,7 @@ void zap_morphflag(MorphFlags *Mf, int n)
 	int index;
 	MorphFlags setbit;
 
-	n = n & MORPHFLAG_MASK;
+	if(n <= 0 || n > MORPHFLAG_MAX) return;
 	mflag_num_to_bits(n,&index,&setbit);
 
 	Mf[index] = (MorphFlags)(Mf[index] & (MorphFlags)~setbit);
@@ -116,10 +116,9 @@ void set_morphflag(MorphFlags *Mf, int n)
 	int index;
 	MorphFlags setbit;
 
-	n = n & MORPHFLAG_MASK;
-	mflag_num_to_bits(n,&index,&setbit);
-
-	for(i=0;i<MORPHFLAG_BYTES;i++) Mf[i] = 0;
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++) Mf[i] = 0;
+	if(n < 0 || n > MORPHFLAG_MAX) return;
+	if(n > 0) mflag_num_to_bits(n,&index,&setbit);
 	if( n > 0 ) 
 		Mf[index] = setbit;
 }
@@ -128,7 +127,7 @@ int no_morphflag(MorphFlags *mf)
 {
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) 
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ ) 
 		if( mf[i] )
 			return(0);
 	return(1);
@@ -136,6 +135,11 @@ int no_morphflag(MorphFlags *mf)
 
 void mflag_num_to_bits(int n, int *ind, MorphFlags *bitnum)
 {
+	if(n <= 0 || n > MORPHFLAG_MAX) {
+		*ind = -1;
+		*bitnum = 0;
+		return;
+	}
 	if( (n % 8) == 0 ) {
 		*ind = (n/8) - 1;
 		*bitnum = (MorphFlags)0200;
@@ -158,15 +162,17 @@ void Dump_morphflag(MorphFlags *mf)
 {
 	int i;
 	
-	for(i=0;i<MORPHFLAG_BYTES;i++ ) printf("byte %d [%o]\n", i , mf[i] );
+	for(i=0;i<MORPHFLAG_STORAGE_BYTES;i++ )
+		printf("byte %d [%o]\n", i , mf[i] );
 }
 
-#define TABSIZE MORPHFLAG_BYTES*8 
+#define TABSIZE MORPHFLAG_STORAGE_BYTES*8 
 
 int is_pretty_morphflag(long mnum)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
+	if(mnum <= 0 || mnum > TABSIZE) return(0);
 	if( ! context->hidden_morphflag_table )
 		init_ugly_tab();
 	return( ! context->hidden_morphflag_table[(int)mnum] );
@@ -207,6 +213,7 @@ int is_prvb_morphflag(long mnum)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
+	if(mnum <= 0 || mnum > TABSIZE) return(0);
 	if( ! context->preverb_morphflag_table )
 		init_prvb_tab();
 	return( context->preverb_morphflag_table[(int)mnum] );
@@ -245,7 +252,7 @@ void xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
 {
 	int i;
 	
-	for(i=0;i<TABSIZE;i++) {
+	for(i=1;i<=TABSIZE;i++) {
 		if( is_prvb_morphflag(i) && has_morphflag(word_mf,i) ) {
 				zap_morphflag(word_mf,i);
 				add_morphflag(prvb_mf,i);

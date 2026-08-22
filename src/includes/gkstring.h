@@ -21,7 +21,7 @@ typedef struct {
 	Derivtype   gs_derivtype;
 	Dialect		gs_dialect;
 	GeogRegion  gs_geogregion;
-	MorphFlags	gs_morphflags[MORPHFLAG_BYTES];
+	MorphFlags	gs_morphflags[MORPHFLAG_STORAGE_BYTES];
 	char  		st_domains[MAXDOMAINS+1];
 	char 		gs_gkstring[MAXWORDSIZE];
 } gk_string;
@@ -35,7 +35,7 @@ typedef struct {
 	Derivtype   gs_derivtype;
 	Dialect		gs_dialect;
 	GeogRegion  gs_geogregion;
-	MorphFlags	gs_morphflags[MORPHFLAG_BYTES];
+	MorphFlags	gs_morphflags[MORPHFLAG_STORAGE_BYTES];
 	char  		st_domains[MAXDOMAINS+1];
 	char 		st_lemma[MAXWORDSIZE]; /* LSJ dict entry to lookup */
 /* grc 8/26/94
@@ -66,7 +66,7 @@ typedef struct {
 	Derivtype   gs_derivtype;
 	Dialect		gs_dialect;
 	GeogRegion  gs_geogregion;
-	MorphFlags	gs_morphflags[MORPHFLAG_BYTES];
+	MorphFlags	gs_morphflags[MORPHFLAG_STORAGE_BYTES];
 	char  		st_domains[MAXDOMAINS+1];
 	PrntFlags	gs_prntflags;
 	int			gw_totanal;

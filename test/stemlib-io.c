@@ -6,12 +6,15 @@
 
 #include "../src/greeklib/vaxwords.proto.h"
 #include "../src/morphlib/endio.proto.h"
+#include "../src/morphlib/morphflags.proto.h"
 
 int main(int argc, char **argv)
 {
 	FILE *stream;
 	gk_string source = {0};
 	gk_string result = {0};
+	gk_string group_source = {0};
+	gk_string group_result = {0};
 	word_form form = {0};
 	int maxend = 8;
 	int stored_maxend = 0;
@@ -38,18 +41,29 @@ int main(int argc, char **argv)
 	morphflags_of(&source)[MORPHFLAG_BYTES-1] = 0252;
 	strcpy(domains_of(&source),"poetry");
 	strcpy(gkstring_of(&source),"luw");
+	strcpy(gkstring_of(&group_source),"o(milo");
+	add_morphflag(morphflags_of(&group_source),GROUP_NAME);
+	assert(Is_group_name(morphflags_of(&group_source)));
+	assert(domains_of(&group_source)[0] == 0);
+	assert(domains_of(&group_source)[1] == 0);
 
 	assert(set_endheader(stream,maxend) == 1);
 	assert(WriteEnding(stream,&source,maxend) == 1);
+	assert(WriteEnding(stream,&group_source,maxend) == 1);
 	assert(fflush(stream) == 0);
 	assert(fseek(stream,0L,SEEK_SET) == 0);
 	assert(fread(header,1,sizeof header,stream) == sizeof header);
 	assert(!memcmp(header,expected_header,sizeof header));
 	assert(fseek(stream,0L,SEEK_SET) == 0);
-	assert(get_endheader(stream,&stored_maxend) == 1);
+	assert(get_endheader(stream,&stored_maxend) == 2);
 	assert(stored_maxend == maxend);
 	assert(ReadEnding(stream,&result,stored_maxend) == 1);
 	assert(!memcmp(&source,&result,sizeof source));
+	assert(ReadEnding(stream,&group_result,stored_maxend) == 1);
+	assert(!memcmp(&group_source,&group_result,sizeof group_source));
+	assert(Is_group_name(morphflags_of(&group_result)));
+	assert(domains_of(&group_result)[0] == 0);
+	assert(domains_of(&group_result)[1] == 0);
 	assert(ReadEnding(stream,&result,stored_maxend) == 0);
 	fclose(stream);
 

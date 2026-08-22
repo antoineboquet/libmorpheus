@@ -255,6 +255,12 @@ if(BUILD_TESTING)
     PRIVATE morpheus_morphlib morpheus_build_options
   )
   add_test(NAME byte_collation COMMAND morpheus_byte_collation_test)
+  add_executable(morpheus_morphflag_bounds_test test/morphflag-bounds.c)
+  target_link_libraries(
+    morpheus_morphflag_bounds_test
+    PRIVATE morpheus_morphlib morpheus_build_options
+  )
+  add_test(NAME morphflag_bounds COMMAND morpheus_morphflag_bounds_test)
   add_executable(morpheus_stemlib_io_test test/stemlib-io.c)
   target_link_libraries(
     morpheus_stemlib_io_test

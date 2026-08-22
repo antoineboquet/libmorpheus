@@ -1,14 +1,29 @@
 #include "morphlib_internal.h"
 #include <limits.h>
 #include <stdint.h>
+#include <string.h>
 #include <gkstring.h>
 
 #include "endio.proto.h"
 
+#define LEGACY_GROUP_DOMAIN_INDEX 1
+#define LEGACY_GROUP_DOMAIN_MASK ((unsigned char)040)
+
 int WriteEnding(FILE *f, gk_string *gstr, int maxend)
 {
+	char stored_domains[MAXDOMAINS+1];
 	if(maxend < 0)
 		return(-1);
+	memcpy(stored_domains,domains_of(gstr),sizeof stored_domains);
+	if(Is_group_name(morphflags_of(gstr))) {
+		if(stored_domains[0]) {
+			fprintf(stderr,"cannot encode group name with domains\n");
+			return(-1);
+		}
+		stored_domains[LEGACY_GROUP_DOMAIN_INDEX]=(char)(
+		    (unsigned char)stored_domains[LEGACY_GROUP_DOMAIN_INDEX]|
+		    LEGACY_GROUP_DOMAIN_MASK);
+	}
 
 	localtrimwhite(gkstring_of(gstr),maxend);
 	if(vax_fwrite(gkstring_of(gstr),sizeof *gkstring_of(gstr),maxend,f)
@@ -29,7 +44,8 @@ int WriteEnding(FILE *f, gk_string *gstr, int maxend)
 		!= MORPHFLAG_BYTES)
 		goto outputerr;
 
-	if(vax_fwrite(domains_of(gstr),1,MAXDOMAINS+1,f) != MAXDOMAINS+1)
+	if(vax_fwrite(stored_domains,1,sizeof stored_domains,f) !=
+	   (int)sizeof stored_domains)
 		goto outputerr;
 
 	return(1);
@@ -68,6 +84,16 @@ int ReadEnding(FILE *f, gk_string *gstr, int maxend)
 
 	if((nread=vax_fread(domains_of(gstr),1,MAXDOMAINS+1,f)) != MAXDOMAINS+1)
 			goto inputerr;
+	memset(morphflags_of(gstr)+MORPHFLAG_BYTES,0,
+	       MORPHFLAG_STORAGE_BYTES-MORPHFLAG_BYTES);
+	if(!domains_of(gstr)[0] &&
+	   ((unsigned char)domains_of(gstr)[LEGACY_GROUP_DOMAIN_INDEX] &
+	    LEGACY_GROUP_DOMAIN_MASK)) {
+		add_morphflag(morphflags_of(gstr),GROUP_NAME);
+		domains_of(gstr)[LEGACY_GROUP_DOMAIN_INDEX]=(char)(
+		    (unsigned char)domains_of(gstr)[LEGACY_GROUP_DOMAIN_INDEX] &
+		    (unsigned char)~LEGACY_GROUP_DOMAIN_MASK);
+	}
 
 
 	return(1);
@@ -145,7 +171,7 @@ int get_endheader(FILE *f, int *maxp)
 		+ sizeof(((gk_string *)0)->gs_dialect)
 		+ sizeof(((gk_string *)0)->gs_derivtype)
 		+ sizeof(((gk_string *)0)->gs_geogregion)
-		+ sizeof(((gk_string *)0)->gs_morphflags)
+		+ MORPHFLAG_BYTES
 		+ sizeof(((gk_string *)0)->st_domains);
 	if((size_t)*maxp > SIZE_MAX - fixed_size)
 		return(-1);
