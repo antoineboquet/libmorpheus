@@ -5,6 +5,7 @@
 
 #include "../src/morphlib/gkstring.proto.h"
 #include "../src/morphlib/adddomain.proto.h"
+#include "../src/morphlib/conjstem.proto.h"
 #include "../src/morphlib/fixacc.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
@@ -84,6 +85,102 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		char empty[MAXWORDSIZE] = "";
+		char dental[MAXWORDSIZE] = "t";
+		char full[MAXWORDSIZE];
+		char nasal_labial[MAXWORDSIZE] = "mp";
+		char one[MAXWORDSIZE] = "p";
+		char short_verb[MAXWORDSIZE] = "a";
+		char stem[MAXWORDSIZE] = "stem";
+
+		fixcontr(stem,short_verb);
+		assert(!strcmp(stem,"stem"));
+		fixcontr(stem,"a/w");
+		assert(!strcmp(stem,"stemh"));
+		makeperf(empty);
+		assert(!empty[0]);
+		fixperf(empty);
+		fixperf(one);
+		assert(!strcmp(one,"p"));
+		assert(do_sigma(empty,"s") == NO);
+		assert(do_theta(empty) == NO);
+		assert(do_mu(empty) == NO);
+		assert(do_tau(empty) == NO);
+		assert(do_mu(one) == YES);
+		assert(!strcmp(one,"m"));
+		assert(do_mu(nasal_labial) == YES);
+		assert(!strcmp(nasal_labial,"m"));
+		conjstem(empty,"a");
+		assert(!strcmp(empty,"a"));
+		empty[0] = 0;
+		conjoin(empty,"a");
+		assert(!strcmp(empty,"a"));
+		conjoin(dental,"s");
+		assert(!strcmp(dental,"s"));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_NONE);
+		memset(full,'a',sizeof full - 1);
+		full[sizeof full - 1] = 0;
+		conjoin(full,"a");
+		assert(strlen(full) == sizeof full - 1);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+
+		fixcontr(NULL,"a/w");
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		fixcontr(stem,NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		makeperf(NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		fixperf(NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		conjstem(NULL,"a");
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		conjstem(stem,NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		conjoin(NULL,"a");
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		conjoin(stem,NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(do_sigma(NULL,"s") == NO);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(do_sigma(stem,NULL) == NO);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(do_theta(NULL) == NO);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(do_mu(NULL) == NO);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(do_tau(NULL) == NO);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
 	{
 		struct {
 			char value[5];
