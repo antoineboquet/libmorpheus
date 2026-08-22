@@ -265,6 +265,14 @@ PrntAGstr(&Cur_gkend,stdout); putchar('\n');
 
 	    	set_stemtype(&Cur_gkend,stemtype_of(wantgkend) );
 
+		/*
+		 * GROUP_NAME classifies the stem rather than its ending.  It is
+		 * consumed while selecting plural endings, so retain it explicitly
+		 * in the completed analysis returned by the structured API.
+		 */
+		if( Is_group_name(morphflags_of(wantgkend)) )
+			add_morphflag(morphflags_of(&Cur_gkend),GROUP_NAME);
+
 		    AddNewEnd(ListOfEnds,&Cur_gkend,*nends);
 	            (*nends)++;
 		}
