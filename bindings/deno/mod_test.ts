@@ -1,7 +1,9 @@
 import {
+  hasMorpheusMorphFlag,
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
+  MorpheusMorphFlag,
   MorpheusPartOfSpeech,
   MorpheusTruncatedField,
 } from "./mod.ts";
@@ -9,6 +11,24 @@ import {
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
+
+Deno.test("tests one-based morphology flag bits", () => {
+  const allMorphFlags = new Uint8Array(14);
+  allMorphFlags[0] = 1;
+  allMorphFlags[13] = 32;
+  assert(
+    hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.SyllAugment),
+    "flag 1 must use the low bit of byte 0",
+  );
+  assert(
+    hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.GroupName),
+    "flag 110 must use bit 5 of byte 13",
+  );
+  assert(
+    !hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.Poetic),
+    "unset flags must remain false",
+  );
+});
 
 Deno.test("analyzes Greek through the native ABI", async () => {
   const libraryPath = Deno.env.get("MORPHEUS_LIBRARY");
@@ -33,6 +53,13 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   assert(
     analyses[0].allMorphFlags.length === 14,
     "complete morph flags must be copied",
+  );
+  assert(
+    typeof hasMorpheusMorphFlag(
+      analyses[0],
+      MorpheusMorphFlag.GroupName,
+    ) === "boolean",
+    "named morph flags must be testable",
   );
   assert(
     analyses[0].partOfSpeech !== MorpheusPartOfSpeech.Unknown,

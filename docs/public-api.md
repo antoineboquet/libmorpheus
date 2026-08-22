@@ -62,4 +62,5 @@ serial queue.
 
 For compatibility, `MorpheusAnalysis.morphFlags` remains 12 bytes. The binding
 also exposes the complete 14-byte value as `allMorphFlags` and publishes flag
-110 as `MorpheusMorphFlag.GroupName`.
+numbers through `MorpheusMorphFlag`. `hasMorpheusMorphFlag()` performs the
+one-based byte-and-bit lookup safely.
