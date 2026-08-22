@@ -93,14 +93,26 @@ jobs:
       - name: Build library
         run: cmake --build --preset dev
 
-      - name: Check binding
-        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+      - name: Check binding and benchmark runner
+        run: >-
+          deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+          bench/compare.ts
 
       - name: Test binding
         env:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
+      - name: Smoke-test benchmark runner
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+          MORPHEUS_CRUNCHER: ${{ github.workspace }}/build/dev/cruncher
+        run: >-
+          deno run --allow-env --allow-ffi --allow-read --allow-run
+          bench/compare.ts --iterations 1 --warmup 0 --contexts 1
+          --cold-samples 1 --json > /dev/null
 
   char-signedness:
     name: Byte conversions (${{ matrix.char_mode }} char)
