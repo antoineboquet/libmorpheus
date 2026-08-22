@@ -16,8 +16,8 @@
 int normucase(char *word)
 {
 	register char * s;
-	register char * t;
 
+	if (!word) return(0);
 	if( *word != BETA_UCASE_MARKER ) return(0);
 
 	s = word;
@@ -32,8 +32,7 @@ int normucase(char *word)
 	/*
  	 * word now "E(/ellhn"
 	 */
-	t = s+1;
-	Xstrcpy(s,t);
+	strsqz(s,1);
 	/*
 	 * word now "E(/llhn"
 	 */

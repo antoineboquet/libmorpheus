@@ -16,13 +16,14 @@
 int beta_tolower(char *word)
 {
 	register char * s;
-	register char * t;
 
+	if (!word) return(0);
 	if( *word != BETA_UCASE_MARKER ) return(0);
 
 	s = word;
 	while(!isalpha((unsigned char)*s)&&*s) s++;
+	if (!*s) return(0);
 	*word = *s;
-	Xstrcpy(s,s+1);
+	strsqz(s,1);
 	return(1);
 }

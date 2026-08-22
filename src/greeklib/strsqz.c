@@ -4,15 +4,19 @@
 /*	David Neel Smith		*/
 
 #include <greek.h>
+#include <string.h>
 
 #include "strsqz.proto.h"
 
 void strsqz(char *p, int n)
 /* squeeze out n chars beginning with *p  */
 {
-	register char *enid;
+	size_t length;
+	size_t amount;
 
-	for (enid = p+n;*enid && *p; enid++, p++)
-		*p = *enid;
-	*p = *enid;	/* move the null too */
+	if (!p || n <= 0) return;
+	length = strlen(p);
+	amount = (size_t)n;
+	if (amount > length) amount = length;
+	memmove(p,p+amount,length-amount+1);
 }

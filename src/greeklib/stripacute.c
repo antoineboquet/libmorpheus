@@ -11,9 +11,5 @@
  
 void stripacute(char *s)
 {
-	while(*s) {
-		if( *s == ACUTE ) 
-				strsqz(s,1);
-		s++;
-	}
+	stripchar(s,ACUTE);
 }

@@ -2,7 +2,11 @@
 #include <string.h>
 
 #include "../src/greeklib/beta_tolower.proto.h"
+#include "../src/greeklib/normucase.proto.h"
+#include "../src/greeklib/stripacute.proto.h"
+#include "../src/greeklib/stripchar.proto.h"
 #include "../src/greeklib/stripzeroend.proto.h"
+#include "../src/greeklib/strsqz.proto.h"
 #include "../src/greeklib/subchar.proto.h"
 #include "../src/greeklib/xstrings.proto.h"
 #include "../src/greeklib/isblank.proto.h"
@@ -25,13 +29,33 @@ int main(void)
 	char high_byte_key[] = {(char)(unsigned char)0377,' ','a','\0'};
 	char key[4];
 	char empty[] = "";
+	char marker_only[] = "*";
+	char multiple_accents[] = "a//b/";
+	char normalized[] = "*(/ellhn";
+	char remove_chars[] = "a---b-";
 	char replace_high_byte[] = {(char)(unsigned char)0377,'a','\0'};
+	char squeezed[] = "abcdef";
 
 	_Static_assert(_Generic(Xstrlen(""), size_t: 1, default: 0),
 		"Xstrlen must preserve the size_t result of strlen");
 	assert(Xstrlen("beta") == strlen("beta"));
 	stripzeroend(empty);
 	assert(empty[0] == '\0');
+	strsqz(NULL,1);
+	strsqz(squeezed,0);
+	strsqz(squeezed,-1);
+	assert(!strcmp(squeezed,"abcdef"));
+	strsqz(squeezed,2);
+	assert(!strcmp(squeezed,"cdef"));
+	strsqz(squeezed,20);
+	assert(!squeezed[0]);
+	stripchar(remove_chars,'-');
+	assert(!strcmp(remove_chars,"ab"));
+	stripchar(NULL,'-');
+	stripacute(multiple_accents);
+	assert(!strcmp(multiple_accents,"ab"));
+	stripacute(NULL);
+	subchar(NULL,'a','b');
 	subchar(replace_high_byte,0377,0200);
 	assert((unsigned char)replace_high_byte[0] == 0200);
 
@@ -64,6 +88,14 @@ int main(void)
 	assert(high_byte_word[0] == 'a');
 	assert((unsigned char)high_byte_word[1] == 0377);
 	assert(high_byte_word[2] == '\0');
+	assert(!beta_tolower(NULL));
+	assert(!beta_tolower(marker_only));
+	assert(!strcmp(marker_only,"*"));
+	assert(normucase(normalized));
+	assert(!strcmp(normalized,"E(/llhn"));
+	assert(!normucase(NULL));
+	assert(!normucase(marker_only));
+	assert(!strcmp(marker_only,"*"));
 
 	beta2smarta("i+",converted);
 	assert((unsigned char)converted[0] == 0363);
