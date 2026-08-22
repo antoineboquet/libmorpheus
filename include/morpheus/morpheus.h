@@ -45,7 +45,8 @@ typedef enum {
   MORPHEUS_INPUT_TOO_LONG=4,
   MORPHEUS_OUT_OF_RANGE=5,
   MORPHEUS_INTERNAL_ERROR=6,
-  MORPHEUS_BUFFER_TOO_SMALL=7
+  MORPHEUS_BUFFER_TOO_SMALL=7,
+  MORPHEUS_STEMLIB_ERROR=8
 } morpheus_status;
 
 /** Runtime language selected when a context is created. */
@@ -400,7 +401,8 @@ MORPHEUS_API const char *morpheus_status_message(morpheus_status status);
  *
  * This entry point avoids embedding a native pointer in a configuration
  * structure and is therefore preferred by FFI bindings. The path must not
- * contain an embedded NUL. On success, the caller owns *context.
+ * contain an embedded NUL. Required files for the selected language are
+ * checked before the context is created. On success, the caller owns *context.
  */
 MORPHEUS_API morpheus_status morpheus_open_path(
     uint32_t abi_version, const uint8_t *stemlib_path,
@@ -412,7 +414,8 @@ MORPHEUS_API morpheus_status morpheus_open_path(
  *
  * config->abi_version must equal MORPHEUS_ABI_VERSION and
  * config->struct_size must cover the complete version-1 structure.
- * On success, the caller owns *context.
+ * Required files for the selected language are checked before the context is
+ * created. On success, the caller owns *context.
  */
 MORPHEUS_API morpheus_status morpheus_open(
     const morpheus_config *config, morpheus_context **context);

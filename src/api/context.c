@@ -1,6 +1,10 @@
 #include <morpheus/morpheus.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <endfiles.h>
+#include <gkdict.h>
+#include <libfiles.h>
 #include "../morphlib/runtime_context_internal.h"
 uint32_t morpheus_abi_version(void)
 {
@@ -18,6 +22,7 @@ const char *morpheus_status_message(morpheus_status status)
   case MORPHEUS_OUT_OF_RANGE: return("result index is out of range");
   case MORPHEUS_INTERNAL_ERROR: return("internal error");
   case MORPHEUS_BUFFER_TOO_SMALL: return("output buffer is too small");
+  case MORPHEUS_STEMLIB_ERROR: return("stemlib is unavailable or incomplete");
   default: return("unknown status");
   }
 }
@@ -31,9 +36,61 @@ static int runtime_language(uint32_t language)
   default: return(-1);
   }
 }
+
+static const char *runtime_language_directory(int language)
+{
+  switch(language) {
+  case GREEK: return("Greek");
+  case LATIN: return("Latin");
+  case ITALIAN: return("Italian");
+  default: return(NULL);
+  }
+}
+
+static morpheus_status validate_stemlib(const char *root, int language)
+{
+  static const char * const required_files[]={
+    VOWCONTRACTS,
+    CONSEUPH,
+    STEMTYPES,
+    DERIVTYPES,
+    DOMAINLIST,
+    PPASSLIST,
+    RAWPBLIST,
+    NOMINDEX,
+    NOMINDEX ".lindex",
+    VBINDEX,
+    VBINDEX ".lindex",
+    NENDLIST,
+    VENDLIST,
+    DERENDLIST
+  };
+  const char *directory=runtime_language_directory(language);
+  char path[MAXPATHNAME];
+  size_t i;
+
+  if(!directory) return(MORPHEUS_INVALID_ARGUMENT);
+  for(i=0;i<sizeof required_files/sizeof required_files[0];i++) {
+    FILE *file;
+    int written=snprintf(path,sizeof path,"%s/%s/%s",root,directory,
+                         required_files[i]);
+    if(written < 0 || (size_t)written >= sizeof path)
+      return(MORPHEUS_INPUT_TOO_LONG);
+    file=fopen(path,"rb");
+    if(!file) return(MORPHEUS_STEMLIB_ERROR);
+    if(fgetc(file)==EOF) {
+      fclose(file);
+      return(MORPHEUS_STEMLIB_ERROR);
+    }
+    fclose(file);
+  }
+  return(MORPHEUS_OK);
+}
+
 morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **context)
 {
   morpheus_runtime_context *runtime;
+  morpheus_status stemlib_status;
   size_t path_length;
   int language;
   if(!config || !context) return(MORPHEUS_INVALID_ARGUMENT);
@@ -42,13 +99,12 @@ morpheus_status morpheus_open(const morpheus_config *config, morpheus_context **
   if(!config->stemlib_path || !config->stemlib_path[0]) return(MORPHEUS_INVALID_ARGUMENT);
   language=runtime_language(config->language);
   if(language < 0) return(MORPHEUS_INVALID_ARGUMENT);
+  path_length=strlen(config->stemlib_path);
+  if(path_length >= MAXPATHNAME) return(MORPHEUS_INPUT_TOO_LONG);
+  stemlib_status=validate_stemlib(config->stemlib_path,language);
+  if(stemlib_status != MORPHEUS_OK) return(stemlib_status);
   runtime=morpheus_runtime_context_create();
   if(!runtime) return(MORPHEUS_NO_MEMORY);
-  path_length=strlen(config->stemlib_path);
-  if(path_length >= MAXPATHNAME) {
-    morpheus_runtime_context_destroy(runtime);
-    return(MORPHEUS_INPUT_TOO_LONG);
-  }
   runtime->stemlib_path=malloc(path_length+1);
   if(!runtime->stemlib_path) { morpheus_runtime_context_destroy(runtime); return(MORPHEUS_NO_MEMORY); }
   memcpy(runtime->stemlib_path,config->stemlib_path,path_length+1);

@@ -1,10 +1,12 @@
 import {
   hasMorpheusMorphFlag,
+  MorpheusError,
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
   MorpheusMorphFlag,
   MorpheusPartOfSpeech,
+  MorpheusStatus,
   MorpheusTruncatedField,
 } from "./mod.ts";
 
@@ -37,6 +39,18 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   assert(stemlibPath, "MORPHEUS_STEMLIB is required");
 
   using library = new MorpheusLibrary(libraryPath);
+  let rejectedMissingStemlib = false;
+  try {
+    library.createContext(`${stemlibPath}/missing`, MorpheusLanguage.Greek);
+  } catch (error) {
+    assert(error instanceof MorpheusError, "stemlib failure must be typed");
+    assert(
+      error.status === MorpheusStatus.StemlibError,
+      "missing stemlib must have a stable status",
+    );
+    rejectedMissingStemlib = true;
+  }
+  assert(rejectedMissingStemlib, "missing stemlib must be rejected at open");
   await using context = library.createContext(
     stemlibPath,
     MorpheusLanguage.Greek,

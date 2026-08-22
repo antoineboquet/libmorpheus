@@ -44,6 +44,20 @@ export const MorpheusLanguage = {
 export type MorpheusLanguage =
   typeof MorpheusLanguage[keyof typeof MorpheusLanguage];
 
+export const MorpheusStatus = {
+  Ok: 0,
+  InvalidArgument: 1,
+  AbiMismatch: 2,
+  NoMemory: 3,
+  InputTooLong: 4,
+  OutOfRange: 5,
+  InternalError: 6,
+  BufferTooSmall: 7,
+  StemlibError: 8,
+} as const;
+export type MorpheusStatus =
+  typeof MorpheusStatus[keyof typeof MorpheusStatus];
+
 export const MorpheusOption = {
   StrictCase: 1n << 0n,
   IgnoreAccents: 1n << 1n,

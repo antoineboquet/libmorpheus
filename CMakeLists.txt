@@ -933,6 +933,10 @@ if(BUILD_TESTING)
   target_link_libraries(
     morpheus_public_context_test PRIVATE morpheus morpheus_build_options
   )
+  target_compile_definitions(
+    morpheus_public_context_test
+    PRIVATE MORPHEUS_TEST_STEMLIB="${MORPHEUS_STEMLIB_DIR}"
+  )
   add_test(NAME public_context COMMAND morpheus_public_context_test)
   add_executable(morpheus_public_result_test test/public-result.c)
   target_link_libraries(

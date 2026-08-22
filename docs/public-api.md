@@ -32,6 +32,21 @@ Flags 1–83 and 110 have named `MORPHEUS_MORPH_FLAG_*` constants. Flag numbers
 are one-based: for flag `n`, inspect byte `(n - 1) / 8` and bit
 `1 << ((n - 1) % 8)`. Values 84–109 and 111–112 are reserved.
 
+## Stemlib validation
+
+Context creation checks that the selected language contains the required rule,
+dictionary, ending, and derivation index files and that each is readable and
+nonempty. A missing or incomplete layout returns `MORPHEUS_STEMLIB_ERROR`
+without creating a context. Excessively long constructed paths return
+`MORPHEUS_INPUT_TOO_LONG`.
+
+The Deno binding exports the same numeric values through `MorpheusStatus` and
+reports them in `MorpheusError.status`.
+
+This check detects deployment and language-selection mistakes; it does not
+fully validate the historical binary formats. The differential fixtures remain
+the integrity check for the contents of a distributed stemlib.
+
 ## Fixed-capacity text
 
 Each analysis text field is always NUL-terminated. The library copies at most
