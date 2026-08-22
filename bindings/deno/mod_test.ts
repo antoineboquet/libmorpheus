@@ -2,6 +2,8 @@ import {
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
+  MorpheusPartOfSpeech,
+  MorpheusTruncatedField,
 } from "./mod.ts";
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -28,6 +30,14 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   assert(analyses[0].raw.length > 0, "raw form must be populated");
   assert(analyses[0].lemma.length > 0, "lemma must be populated");
   assert(analyses[0].morphFlags.length === 12, "morph flags must be copied");
+  assert(
+    analyses[0].partOfSpeech !== MorpheusPartOfSpeech.Unknown,
+    "part of speech must use a documented code",
+  );
+  assert(
+    analyses[0].truncatedFields === MorpheusTruncatedField.None,
+    "fixture fields must not be truncated",
+  );
 
   const [first, second] = await Promise.all([
     context.analyze("tou=", MorpheusOption.StrictCase),
