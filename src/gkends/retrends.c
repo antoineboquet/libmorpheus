@@ -162,14 +162,14 @@ LPrntGstr(&Cur_gkend,stdout);
 		voice1 = voice_of(forminfo_of(&Cur_gkend));
 		voice2 = voice_of(forminfo_of(gstr));
 		
-		if( voice1 ) set_voice(forminfo_of(gstr),voice1);
+		if( voice1 ) set_voice(forminfo_of(gstr),(unsigned int)voice1 & 07U);
 		
 		case1 = case_of(forminfo_of(&Cur_gkend));
 		case2 = case_of(forminfo_of(gstr));
 		if( case1 & case2 )
-			set_case(forminfo_of(gstr), (case1 & case2) );
+			set_case(forminfo_of(gstr), (unsigned int)(case1 & case2) & 077U);
 		else if( case1 && ! case2 )
-			set_case(forminfo_of(gstr), case1 );
+			set_case(forminfo_of(gstr), (unsigned int)case1 & 077U);
 	
 		num2 = number_of(forminfo_of(&Cur_gkend));
 		if( num2 )
@@ -182,9 +182,9 @@ LPrntGstr(&Cur_gkend,stdout);
 		gend1 = gender_of(forminfo_of(&Cur_gkend));
 		gend2 = gender_of(forminfo_of(gstr));
 		if( gend1 & gend2 )
-			set_gender(forminfo_of(gstr), (gend1 & gend2) );
+			set_gender(forminfo_of(gstr), (unsigned int)(gend1 & gend2) & 017U);
 		else if( gend1 && ! gend2 )
-			set_gender(forminfo_of(gstr), gend1 );
+			set_gender(forminfo_of(gstr), (unsigned int)gend1 & 017U);
 
 		dial1 = dialect_of(&Cur_gkend);
 		dial2 = dialect_of(gstr);
@@ -429,7 +429,7 @@ printf("failing on wmood %o hmood %o\n", wmood, hmood );
 
    	if( (stemtype_of(wantend) & PPARTMASK ) == PP_SU && 
 	     cur_lang() == LATIN && wvoice == DEPONENT ) {
-			set_voice(forminfo_of(haveend), wvoice);
+			set_voice(forminfo_of(haveend), (unsigned int)wvoice & 07U);
    	}
 
 	if( cur_lang() == LATIN && wvoice == DEPONENT ) {
@@ -450,7 +450,7 @@ printf("have [%s] failing on wvoice %o hvoice %o\n",hendstr, wvoice, hvoice );
  */
 
 			if( writeflag == YES )
-			   set_voice(forminfo_of(haveend), wvoice);
+			   set_voice(forminfo_of(haveend), (unsigned int)wvoice & 07U);
 		}
 	}
 
@@ -492,9 +492,9 @@ printf("failing with hgender %o and wgender %o\n", hgender , wgender );
 		}
 		if( writeflag ) {
 			if( Want_Gender(wform,hform) )
-				set_gender(forminfo_of(haveend), Want_Gender(wform, hform));
+				set_gender(forminfo_of(haveend), Want_Gender(wform, hform) & 017U);
 			else
-			   	set_gender(forminfo_of(haveend), wgender );
+			   	set_gender(forminfo_of(haveend), (unsigned int)wgender & 017U);
 		}
 	}
 
@@ -510,7 +510,7 @@ if( writeflag ) {
 #ifdef SHOWFAIL
 printf("[%s] hcase %o wcase %o anded %o\n", gkstring_of(haveend), hcase, wcase, hcase & wcase );
 #endif
-		set_case(forminfo_of(haveend) , wcase&hcase );
+		set_case(forminfo_of(haveend) , (unsigned int)(wcase & hcase) & 077U);
 }
 	}
 
@@ -630,7 +630,8 @@ printf("[%s] failing on euph end\n", gkstring_of(haveend) );
 			if( hdegree || (!hdegree && strict) )
 				return(0);
 		}
-		if( wdegree && writeflag ) set_degree(forminfo_of(haveend),wdegree);
+		if( wdegree && writeflag )
+			set_degree(forminfo_of(haveend),(unsigned int)wdegree & 03U);
 	}
 
 	if( ! RightMorphflags(wantend,haveend)) {

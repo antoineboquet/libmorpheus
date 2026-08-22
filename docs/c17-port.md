@@ -45,6 +45,12 @@ types before storing dialect masks, carries augment offsets as `size_t`, and
 represents individual morphology-flag bits as `MorphFlags` throughout their
 helper boundary. This prevents compiler-dependent narrowing while preserving
 the historical on-disk and in-memory field widths.
+The final staged pass gives morphology-key counts an explicit checked boundary
+between `size_t` and the historical integer lookup API. Morphology callbacks
+mask values to their declared bitfield widths, and ending selection applies the
+same bounded writes when it propagates voice, case, gender, and degree. The
+runtime closure is consequently clean under both conversion diagnostics without
+changing the public ABI or the stemlib record layout.
 
 The entire `cruncher` runtime closure is now a strict boundary. Its internal
 interfaces are declared in `src/anal/cruncher_internal.h`,
