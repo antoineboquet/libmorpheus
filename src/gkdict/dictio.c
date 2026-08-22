@@ -269,7 +269,12 @@ int
 	char lemmfile[LONGSTRING] = {0};
 	char line[LONGSTRING] = {0};
 	FILE * fword = NULL;
+	int result = 1;
 
+	if (!lemma || !f) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	if( (fword=getlemmstart(lemma,lemmfile,&startoff)) == NULL ) {
 		snprintf(line,sizeof line,"No Lemma found under [%s]\n", lemma );
 		ErrorMess(line);
@@ -277,23 +282,34 @@ int
 	}
 	while(fgets(line,(int)sizeof line, fword) ) {
 		if( is_blank(line) ) {
-			fprintf(f,"\n\n");
+			if (fprintf(f,"\n\n") < 0) result = -1;
 			break;
 		}
 		trimwhite(line);
 		if( preverb && *preverb &&
 			!Xstrncmp(line,LEMMTAG,Xstrlen(LEMMTAG)) ) {
 			rstprevb(line+Xstrlen(LEMMTAG),preverb,0);
-			fprintf(f,"%s\n", line );
+			if (fprintf(f,"%s\n", line) < 0) {
+				result = -1;
+				break;
+			}
 			continue;
 		}
-		if( preverb && *preverb )
-			fprintf(f,"%s\tpb:%s\n", line , preverb);
-		else
-			fprintf(f,"%s\n", line );
+		if( preverb && *preverb ) {
+			if (fprintf(f,"%s\tpb:%s\n",line,preverb) < 0) {
+				result = -1;
+				break;
+			}
+		} else if (fprintf(f,"%s\n",line) < 0) {
+			result = -1;
+			break;
+		}
 	}
+	if (ferror(fword)) result = -1;
+	if (result < 0)
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	xFclose(fword);
-	return(1);
+	return(result);
 }
 
 /*
@@ -316,20 +332,25 @@ FILE *
 {
 	char curtarget[LONGSTRING];
 	char line[LONGSTRING];
-	char tmp[LONGSTRING];
 	long curoff;
 	FILE * f = NULL;
 	long startoff;
 	int comp = 0;
+	int written;
 	char shorttag[MAXWORDSIZE];
 
+	if (lemmoff) *lemmoff = -1;
+	if (lemmfile) *lemmfile = 0;
+	if (!lemma || !lemmfile || !lemmoff) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	dictionary_context();
-	*lemmoff = -1;
-	*lemmfile = 0;
 	
  
- 	if( ! LemmTags ) {
+	if( ! LemmTags ) {
 		LemmTags = init_preind(WORDLIST,&num_of_ltags);
+		if (!LemmTags) return(NULL);
 	}
 
 	Xstrncpy(shorttag,lemma,MAXWORDSIZE);
@@ -342,15 +363,21 @@ FILE *
 
 	if( (f=MorphFopen(WORDLIST,"r")) == NULL ) {
 		fprintf(stderr,"getlemmstart: could not open %s\n", WORDLIST);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(NULL);
 	}
-	fseek(f,startoff,0);
+	if (fseek(f,startoff,SEEK_SET) != 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		xFclose(f);
+		return(NULL);
+	}
 
 	Xstrncpy(shorttag,lemma,MAXWORDSIZE);
 	stripquant(shorttag);
 
-	if (snprintf(curtarget,sizeof curtarget,":le:%s",shorttag) >=
-	    (int)sizeof curtarget) {
+	written = snprintf(curtarget,sizeof curtarget,":le:%s",shorttag);
+	if (written < 0 || written >= (int)sizeof curtarget) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		xFclose(f);
 		return(NULL);
 	}
@@ -359,7 +386,15 @@ FILE *
 		char curlemm[MAXWORDSIZE];
 
 		curoff = ftell(f);
+		if (curoff < 0) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			xFclose(f);
+			return(NULL);
+		}
 		if( ! fgets(line,(int)sizeof  line , f)) {
+			if (ferror(f))
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
 			*lemmoff = -1;
 			break;
 		}
@@ -399,7 +434,13 @@ ErrorMess(errbuf);
 	}
 	
 	Xstrncpy(lemmfile,WORDLIST,LONGSTRING); 
-	fseek(f,*lemmoff,0);
+	if (fseek(f,*lemmoff,SEEK_SET) != 0) {
+		*lemmoff = -1;
+		*lemmfile = 0;
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		xFclose(f);
+		return(NULL);
+	}
 	return(f);
 
 }
