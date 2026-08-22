@@ -49,8 +49,6 @@
 #include "xstrings.proto.h"
 #include "zap2ndbreath.proto.h"
 
-void zap_rr_breath(char *word);
-
 /* Formatting helpers are implemented by morphlib. */
 void DialectNames(Dialect dialect, char *buffer, char *delimiter);
 void MorphNames(MorphFlags *flags, char *buffer, char *delimiter, int pretty);

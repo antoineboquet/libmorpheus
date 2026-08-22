@@ -36,6 +36,7 @@
 #include "../src/greeklib/stripstemsep.proto.h"
 #include "../src/greeklib/stripzeroend.proto.h"
 #include "../src/greeklib/xstrings.proto.h"
+#include "../src/greeklib/zap2ndbreath.proto.h"
 
 static int
 compare_text(char *left, char *right)
@@ -101,6 +102,35 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		char consecutive[] = "e)n((a";
+		char extra[] = "e)nh(/bwsa";
+		char initial_rho[] = "r(a)";
+		char repeated_rho[] = "a)nanti/r)r(hton";
+		char short_word[] = "";
+
+		assert(has_extra_breath(extra));
+		zap_extra_breath(extra);
+		assert(!strcmp(extra,"e)nh/bwsa"));
+		assert(!has_extra_breath(extra));
+		assert(has_extra_breath(consecutive));
+		zap_extra_breath(consecutive);
+		assert(!strcmp(consecutive,"e)na"));
+		assert(!has_extra_breath(consecutive));
+		assert(!has_extra_breath(initial_rho));
+		zap_extra_breath(initial_rho);
+		assert(!strcmp(initial_rho,"r(a)"));
+		assert(!has_extra_breath(short_word));
+		zap_extra_breath(short_word);
+		assert(!short_word[0]);
+		zap_rr_breath(repeated_rho);
+		assert(!strcmp(repeated_rho,"a)nanti/rrhton"));
+		zap_rr_breath(short_word);
+		assert(!short_word[0]);
+		zap_extra_breath(NULL);
+		assert(!has_extra_breath(NULL));
+		zap_rr_breath(NULL);
+	}
 	{
 		char accented[MAXWORDSIZE] = "a";
 		char breathed[MAXWORDSIZE] = "a";
