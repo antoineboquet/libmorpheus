@@ -9,9 +9,37 @@
 #define LEGACY_GROUP_DOMAIN_INDEX 1
 #define LEGACY_GROUP_DOMAIN_MASK ((unsigned char)040)
 
+static int32 pack_word_form(word_form form)
+{
+	return((int32)(
+	    ((int32)voice_of(form)&UINT32_C(0x07))|
+	    (((int32)mood_of(form)&UINT32_C(0x0f))<<3U)|
+	    (((int32)tense_of(form)&UINT32_C(0x0f))<<7U)|
+	    (((int32)person_of(form)&UINT32_C(0x07))<<11U)|
+	    (((int32)number_of(form)&UINT32_C(0x07))<<14U)|
+	    (((int32)case_of(form)&UINT32_C(0x3f))<<17U)|
+	    (((int32)degree_of(form)&UINT32_C(0x03))<<23U)|
+	    (((int32)gender_of(form)&UINT32_C(0x0f))<<25U)));
+}
+
+static void unpack_word_form(int32 packed, word_form *form)
+{
+	word_form decoded = {0};
+	set_voice(decoded,(unsigned int)(packed&UINT32_C(0x07)));
+	set_mood(decoded,(unsigned int)((packed>>3U)&UINT32_C(0x0f)));
+	set_tense(decoded,(unsigned int)((packed>>7U)&UINT32_C(0x0f)));
+	set_person(decoded,(unsigned int)((packed>>11U)&UINT32_C(0x07)));
+	set_number(decoded,(unsigned int)((packed>>14U)&UINT32_C(0x07)));
+	set_case(decoded,(unsigned int)((packed>>17U)&UINT32_C(0x3f)));
+	set_degree(decoded,(unsigned int)((packed>>23U)&UINT32_C(0x03)));
+	set_gender(decoded,(unsigned int)((packed>>25U)&UINT32_C(0x0f)));
+	*form = decoded;
+}
+
 int WriteEnding(FILE *f, gk_string *gstr, int maxend)
 {
 	char stored_domains[MAXDOMAINS+1];
+	const int32 stored_form = pack_word_form(forminfo_of(gstr));
 	if(maxend < 0)
 		return(-1);
 	memcpy(stored_domains,domains_of(gstr),sizeof stored_domains);
@@ -29,7 +57,7 @@ int WriteEnding(FILE *f, gk_string *gstr, int maxend)
 	if(vax_fwrite(gkstring_of(gstr),sizeof *gkstring_of(gstr),maxend,f)
 		!= maxend)
 		goto outputerr;
-	if(vax_fwrite(&forminfo_of(gstr),sizeof forminfo_of(gstr),1,f) != 1)
+	if(vax_fwrite(&stored_form,sizeof stored_form,1,f) != 1)
 		goto outputerr;
 	if(vax_fwrite(&dialect_of(gstr),sizeof dialect_of(gstr),1,f) != 1)
 		goto outputerr;
@@ -58,6 +86,7 @@ int WriteEnding(FILE *f, gk_string *gstr, int maxend)
 int ReadEnding(FILE *f, gk_string *gstr, int maxend)
 {
 	int nread = 0;
+	int32 stored_form;
 	if(maxend < 0)
 		return(-1);
 	if((nread=vax_fread(gkstring_of(gstr),sizeof *gkstring_of(gstr),maxend,f))
@@ -65,9 +94,10 @@ int ReadEnding(FILE *f, gk_string *gstr, int maxend)
 		goto inputerr;
 	if(nread != maxend)
 		return(-1);
-	if((nread=vax_fread(&forminfo_of(gstr),sizeof forminfo_of(gstr),1,f))
+	if((nread=vax_fread(&stored_form,sizeof stored_form,1,f))
 		!= 1)
 			goto inputerr;
+	unpack_word_form(stored_form,&forminfo_of(gstr));
 	if((nread=vax_fread(&dialect_of(gstr),sizeof dialect_of(gstr),1,f)) != 1)
 			goto inputerr;
 	if((nread=vax_fread(&geogregion_of(gstr),sizeof geogregion_of(gstr),1,f))
@@ -166,7 +196,7 @@ int get_endheader(FILE *f, int *maxp)
 		return(-1);
 	endlen = filelen - header_size;
 	payload_size = (size_t)endlen;
-	fixed_size = sizeof(((gk_string *)0)->gs_forminfo)
+	fixed_size = sizeof(int32)
 		+ sizeof(((gk_string *)0)->gs_steminfo)
 		+ sizeof(((gk_string *)0)->gs_dialect)
 		+ sizeof(((gk_string *)0)->gs_derivtype)
