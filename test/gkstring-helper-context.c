@@ -18,6 +18,7 @@
 #include "../src/greeklib/stripdiaer.proto.h"
 #include "../src/greeklib/stripquant.proto.h"
 #include "../src/greeklib/stripstemsep.proto.h"
+#include "../src/greeklib/xstrings.proto.h"
 
 static int
 compare_text(char *left, char *right)
@@ -83,6 +84,57 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		struct {
+			char value[5];
+			char guard[4];
+		} bounded = { "", "end" };
+		char overlap_left[8] = "abcdef";
+		char overlap_right[8] = "abc";
+		char one[1] = { 'x' };
+		char unchanged[5] = "keep";
+
+		assert(!Xstrncpy(bounded.value,"abcdef",sizeof bounded.value));
+		assert(!strcmp(bounded.value,"abcd"));
+		assert(!strcmp(bounded.guard,"end"));
+		assert(Xstrncpy(bounded.value,"abc",sizeof bounded.value));
+		assert(!strcmp(bounded.value,"abc"));
+		assert(Xstrncpy(overlap_left,overlap_left+2,sizeof overlap_left));
+		assert(!strcmp(overlap_left,"cdef"));
+		assert(Xstrncpy(overlap_right+1,overlap_right,
+		                sizeof overlap_right - 1));
+		assert(!strcmp(overlap_right,"aabc"));
+		assert(!Xstrncpy(unchanged,"drop",0));
+		assert(!strcmp(unchanged,"keep"));
+		assert(!Xstrncpy(one,"value",sizeof one));
+		assert(!one[0]);
+		assert(!Xstrncpy(NULL,"value",5));
+		assert(!Xstrncpy(unchanged,NULL,sizeof unchanged));
+	}
+	{
+		struct {
+			char value[6];
+			char guard[4];
+		} bounded = { "abc", "end" };
+		char overlap[8] = "abc";
+		char one[1] = { 'x' };
+		char unterminated[4] = { 'a', 'b', 'c', 'd' };
+		char unchanged[5] = "keep";
+
+		Xstrncat(bounded.value,"def",sizeof bounded.value);
+		assert(!strcmp(bounded.value,"abcde"));
+		assert(!strcmp(bounded.guard,"end"));
+		Xstrncat(overlap,overlap,sizeof overlap);
+		assert(!strcmp(overlap,"abcabc"));
+		Xstrncat(unterminated,"x",sizeof unterminated);
+		assert(!strcmp(unterminated,"abc"));
+		Xstrncat(unchanged,"drop",0);
+		assert(!strcmp(unchanged,"keep"));
+		Xstrncat(one,"value",sizeof one);
+		assert(!one[0]);
+		Xstrncat(NULL,"value",5);
+		Xstrncat(unchanged,NULL,sizeof unchanged);
+	}
 	assert(add_domain(&item,1) == 1);
 	assert(add_domain(&item,1) == 0);
 	assert(add_domain(&item,0) == -1);
