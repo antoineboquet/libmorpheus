@@ -44,5 +44,10 @@ int main(void)
                             MORPHEUS_LANGUAGE_GREEK,
                             &context)==MORPHEUS_STEMLIB_ERROR);
   assert(context==NULL);
+  config.stemlib_path=MORPHEUS_TEST_STEMLIB;
+  config.language=MORPHEUS_LANGUAGE_LATIN;
+  assert(morpheus_open(&config,&context)==MORPHEUS_OK);
+  assert(context);
+  morpheus_close(context);
   return(0);
 }

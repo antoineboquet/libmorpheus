@@ -935,7 +935,7 @@ if(BUILD_TESTING)
   )
   target_compile_definitions(
     morpheus_public_context_test
-    PRIVATE MORPHEUS_TEST_STEMLIB="${MORPHEUS_STEMLIB_DIR}"
+    PRIVATE MORPHEUS_TEST_STEMLIB="${PROJECT_SOURCE_DIR}/stemlib"
   )
   add_test(NAME public_context COMMAND morpheus_public_context_test)
   add_executable(morpheus_public_result_test test/public-result.c)

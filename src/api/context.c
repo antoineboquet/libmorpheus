@@ -47,6 +47,26 @@ static const char *runtime_language_directory(int language)
   }
 }
 
+static morpheus_status validate_stemlib_file(
+    const char *root, const char *directory, const char *relative_path)
+{
+  char path[MAXPATHNAME];
+  FILE *file;
+  int written=snprintf(path,sizeof path,"%s/%s/%s",root,directory,
+                       relative_path);
+
+  if(written < 0 || (size_t)written >= sizeof path)
+    return(MORPHEUS_INPUT_TOO_LONG);
+  file=fopen(path,"rb");
+  if(!file) return(MORPHEUS_STEMLIB_ERROR);
+  if(fgetc(file)==EOF) {
+    fclose(file);
+    return(MORPHEUS_STEMLIB_ERROR);
+  }
+  fclose(file);
+  return(MORPHEUS_OK);
+}
+
 static morpheus_status validate_stemlib(const char *root, int language)
 {
   static const char * const required_files[]={
@@ -55,7 +75,6 @@ static morpheus_status validate_stemlib(const char *root, int language)
     STEMTYPES,
     DERIVTYPES,
     DOMAINLIST,
-    PPASSLIST,
     RAWPBLIST,
     NOMINDEX,
     NOMINDEX ".lindex",
@@ -66,24 +85,16 @@ static morpheus_status validate_stemlib(const char *root, int language)
     DERENDLIST
   };
   const char *directory=runtime_language_directory(language);
-  char path[MAXPATHNAME];
   size_t i;
 
   if(!directory) return(MORPHEUS_INVALID_ARGUMENT);
   for(i=0;i<sizeof required_files/sizeof required_files[0];i++) {
-    FILE *file;
-    int written=snprintf(path,sizeof path,"%s/%s/%s",root,directory,
-                         required_files[i]);
-    if(written < 0 || (size_t)written >= sizeof path)
-      return(MORPHEUS_INPUT_TOO_LONG);
-    file=fopen(path,"rb");
-    if(!file) return(MORPHEUS_STEMLIB_ERROR);
-    if(fgetc(file)==EOF) {
-      fclose(file);
-      return(MORPHEUS_STEMLIB_ERROR);
-    }
-    fclose(file);
+    morpheus_status status=validate_stemlib_file(
+        root,directory,required_files[i]);
+    if(status != MORPHEUS_OK) return(status);
   }
+  if(language == GREEK)
+    return(validate_stemlib_file(root,directory,PPASSLIST));
   return(MORPHEUS_OK);
 }
 

@@ -40,6 +40,10 @@ nonempty. A missing or incomplete layout returns `MORPHEUS_STEMLIB_ERROR`
 without creating a context. Excessively long constructed paths return
 `MORPHEUS_INPUT_TOO_LONG`.
 
+The manifest is language-specific. In particular, the Greek principal-part
+table is not required for the historical Latin stemlib, which does not contain
+that file.
+
 The Deno binding exports the same numeric values through `MorpheusStatus` and
 reports them in `MorpheusError.status`.
 
