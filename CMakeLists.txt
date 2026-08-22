@@ -958,9 +958,16 @@ if(BUILD_TESTING)
     morpheus_public_values_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_values COMMAND morpheus_public_values_test)
-  add_executable(morpheus_result_truncation_test test/result-truncation.c)
+  add_executable(
+    morpheus_result_truncation_test
+    test/result-truncation.c
+    src/api/result.c
+  )
+  target_compile_definitions(
+    morpheus_result_truncation_test PRIVATE MORPHEUS_BUILDING_LIBRARY
+  )
   target_link_libraries(
-    morpheus_result_truncation_test PRIVATE morpheus morpheus_build_options
+    morpheus_result_truncation_test PRIVATE morpheus_build_options
   )
   add_test(NAME result_truncation COMMAND morpheus_result_truncation_test)
   add_executable(morpheus_public_compat_test test/public-compat.c)
