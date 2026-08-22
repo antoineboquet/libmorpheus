@@ -20,10 +20,20 @@ initialize_irregular_buffers(morpheus_runtime_context *context)
 				malloc((size_t)LONGSTRING);
 		if (!context->analysis_irregular_forms[i] ||
 		    !context->analysis_irregular_keys[i])
-			return(0);
+			goto no_memory;
 	}
 	context->analysis_irregular_buffers_initialized = 1;
 	return(1);
+
+no_memory:
+	for (i = 0; i < MORPHEUS_IRREGULAR_FORM_COUNT; i++) {
+		free(context->analysis_irregular_forms[i]);
+		free(context->analysis_irregular_keys[i]);
+		context->analysis_irregular_forms[i] = NULL;
+		context->analysis_irregular_keys[i] = NULL;
+	}
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	return(0);
 }
 
 int try_irregvb(gk_word *Gkword)
@@ -43,6 +53,7 @@ int try_irregvb(gk_word *Gkword)
 	
 	saveirrform = (char *)malloc((size_t)MAXWORDSIZE);
 	if (!saveirrform || !initialize_irregular_buffers(context)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		free(saveirrform);
 		return(0);
 	}

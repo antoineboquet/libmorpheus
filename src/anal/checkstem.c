@@ -36,10 +36,22 @@ initialize_augmented_stems(morpheus_runtime_context *context)
 			context->analysis_augmented_quantities[i] = CreatGkString(1);
 		if (!context->analysis_augmented_stems[i] ||
 		    !context->analysis_augmented_quantities[i])
-			return(0);
+			goto no_memory;
 	}
 	context->analysis_augmented_stems_initialized = 1;
 	return(1);
+
+no_memory:
+	for (i = 0; i < MORPHEUS_AUGMENT_STEM_COUNT; i++) {
+		if (context->analysis_augmented_stems[i])
+			FreeGkString(context->analysis_augmented_stems[i]);
+		if (context->analysis_augmented_quantities[i])
+			FreeGkString(context->analysis_augmented_quantities[i]);
+		context->analysis_augmented_stems[i] = NULL;
+		context->analysis_augmented_quantities[i] = NULL;
+	}
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	return(0);
 }
 
 int checkstem(char *poss_stem, char *endkeys, gk_string *stemtab[], char *keytab[], int maxstems)
@@ -58,6 +70,7 @@ int checkstem(char *poss_stem, char *endkeys, gk_string *stemtab[], char *keytab
 
 	curstemkeys = (char *)malloc((size_t)LONGSTRING+1);
 	if (!curstemkeys || !initialize_augmented_stems(context)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		free(curstemkeys);
 		return(0);
 	}

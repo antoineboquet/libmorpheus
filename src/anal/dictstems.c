@@ -4,6 +4,7 @@
 #include "dictstems.proto.h"
 #include "../gkdict/dictio.proto.h"
 #include "../greeklib/issubstring.proto.h"
+#include "../morphlib/runtime_context.h"
 
 int dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemtype, char *pparttab[], int maxpparts)
 {
@@ -24,6 +25,7 @@ int dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemt
 	lemmfile = malloc((size_t)LONGSTRING + 1);
 	tmp = malloc((size_t)(BUFSIZ * 4) + 1);
 	if (!line || !lemmfile || !tmp) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		gotpparts = -1;
 		goto finish;
 	}
@@ -116,9 +118,9 @@ morphstrcmp(cstem,wantstem) );
 			xFclose(f);
 			f = NULL;
 		}
-		xFree(line,"dicts line");
-		xFree(lemmfile,"dicts lemmfile");
-		xFree(tmp,"dicts tmp");
+		if (line) xFree(line,"dicts line");
+		if (lemmfile) xFree(lemmfile,"dicts lemmfile");
+		if (tmp) xFree(tmp,"dicts tmp");
 		line = lemmfile = tmp = NULL;
 		
 		return(gotpparts);

@@ -19,6 +19,10 @@ int PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 	
   if( ! pbuf ) {
     pbuf = (char *)calloc((size_t) MAXANALYSES * 128 , (size_t)sizeof * pbuf );
+	if (!pbuf) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	  return(0);
+	}
   }
   *pbuf = 0;
   nanals = totanal_of(Gkword);

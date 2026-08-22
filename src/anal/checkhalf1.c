@@ -157,10 +157,21 @@ initialize_possible_stems(morpheus_runtime_context *context)
 			context->analysis_possible_keys[i] = malloc((size_t)LONGSTRING);
 		if (!context->analysis_possible_stems[i] ||
 		    !context->analysis_possible_keys[i])
-			return(0);
+			goto no_memory;
 	}
 	context->analysis_possible_stems_initialized = 1;
 	return(1);
+
+no_memory:
+	for (i = 0; i < MORPHEUS_POSSIBLE_STEM_COUNT; i++) {
+		if (context->analysis_possible_stems[i])
+			FreeGkString(context->analysis_possible_stems[i]);
+		free(context->analysis_possible_keys[i]);
+		context->analysis_possible_stems[i] = NULL;
+		context->analysis_possible_keys[i] = NULL;
+	}
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	return(0);
 }
 
 int checkhalf2(gk_word *Gkword, char *endkeys)
@@ -221,14 +232,15 @@ int StemWorks(gk_word *Gkword, char *posskey, gk_string *possstem)
 	int rval = 0;
 	int curval = 0;
 	char *workkey = NULL;
-	char *stemkeys = NULL;
 	char *curkey = NULL;
-	gk_string savestemstr;
 	
 
 	workkey = (char *)malloc((size_t)BUFSIZ*2);
-	stemkeys = (char *)malloc((size_t)BUFSIZ*2);
 	curkey = (char *)malloc((size_t)BUFSIZ*2);
+	if (!workkey || !curkey) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		goto finish;
+	}
 	Xstrncpy(workkey,posskey, BUFSIZ*2);
 
 	while(nextkey(workkey,curkey) ) {
@@ -240,9 +252,9 @@ int StemWorks(gk_word *Gkword, char *posskey, gk_string *possstem)
 		rval += curval;
 
 	}
-	xFree(workkey,"workkey");
-	xFree(stemkeys,"stemkeys");
-	xFree(curkey,"curkey");
-	curkey = workkey = stemkeys = NULL;
+	finish:
+		if (workkey) xFree(workkey,"workkey");
+		if (curkey) xFree(curkey,"curkey");
+		curkey = workkey = NULL;
 	return(rval);
 }
