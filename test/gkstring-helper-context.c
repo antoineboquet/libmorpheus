@@ -7,6 +7,7 @@
 #include "../src/morphlib/adddomain.proto.h"
 #include "../src/morphlib/fixacc.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
+#include "../src/morphlib/morphkeys.proto.h"
 #include "../src/morphlib/new_val.proto.h"
 #include "../src/morphlib/setlang.proto.h"
 
@@ -63,7 +64,10 @@ main(void)
 
 	{
 		gk_string empty = { 0 };
+		gk_string parsed = { 0 };
+		gk_word parsed_word = { 0 };
 		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+		char *oddkeys;
 		char simple[MAXWORDSIZE] = "logos";
 		char word[MAXWORDSIZE] = { 0 };
 
@@ -72,6 +76,15 @@ main(void)
 		assert(simple[0]);
 		FixPersAcc(&empty,flags,&empty,"",word,(word_form){ 0 },0);
 		assert(!word[0]);
+
+		assert(!ScanAsciiKeys("codex_unknown_a",&parsed_word,&parsed,NULL));
+		assert(oddkeys_of(&parsed_word));
+		assert(!strcmp(oddkeys_of(&parsed_word),"codex_unknown_a"));
+		oddkeys = oddkeys_of(&parsed_word);
+		assert(!ScanAsciiKeys("codex_unknown_b",&parsed_word,&parsed,NULL));
+		assert(oddkeys_of(&parsed_word) == oddkeys);
+		assert(!strcmp(oddkeys_of(&parsed_word),"codex_unknown_b"));
+		free(oddkeys_of(&parsed_word));
 	}
 	return(0);
 }

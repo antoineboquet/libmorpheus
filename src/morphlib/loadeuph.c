@@ -1,4 +1,5 @@
 #include "morphlib_internal.h"
+#include <limits.h>
 #include <contract.h>
 
 #include "loadeuph.proto.h"
@@ -8,42 +9,48 @@ static const gk_string Blnk;
 gk_string *
 load_euph_tab(char *filename, int *gotno, int is_contr)
 {
-	gk_string *euph_table;
+	gk_string *euph_table = NULL;
 	int nunits;
-	FILE * f;
+	FILE *f = NULL;
 	int i;
 	char * s;
 	char * raw;
 	char * cooked;
 	char line[BUFSIZ];
-	char tmpa[MAXWORDSIZE];
 	char tmp[MAXWORDSIZE];
 	gk_string CurStr;
-	gk_word * TmpGkword;
+	gk_word *TmpGkword = NULL;
 
+	if (!gotno) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	*gotno = 0;
 
 	if( (f=MorphFopen(filename,"r")) == NULL ) {
 		fprintf(stderr,"Could not open [%s]\n", filename );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(NULL);
 	}
 	TmpGkword = CreatGkword(1);
+	if (!TmpGkword)
+		goto no_memory;
 	
 	nunits = count_rlines(f);
+	if (nunits < 0)
+		goto failed;
 	
 	euph_table = CreatGkString(nunits+1);
 	if( ! euph_table ) {
 		fprintf(stderr,"no memory for %d-entry euphony table\n", nunits+1 );
-		xFclose(f);
-		FreeGkword(TmpGkword);
-		return(NULL);
+		goto no_memory;
 	}
 
 	for(i=0;GetTableLine(line,sizeof line,f);i++) {
 		if( i >= nunits) {
 			printf("hey! more than %d contracts!\n", nunits);
-			xFclose(f);
-			FreeGkword(TmpGkword);
-			return(NULL);
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			goto failed;
 		}
 		CurStr = Blnk;
 		s = gkstring_of(&CurStr);
@@ -71,11 +78,19 @@ printf("line:%s\n", line );
 		 }
 		set_morphflag(morphflags_of(prvb_gstr_of(TmpGkword)),0);
 		ScanAsciiKeys(line,TmpGkword,&CurStr,NULL);
+		if (morpheus_runtime_context_error(
+		    morpheus_runtime_context_current()) !=
+		    MORPHEUS_RUNTIME_ERROR_NONE)
+			goto failed;
 /*
 		InsertGstr(euph_table,&CurStr,i,strcmp,YES);
 */
 		add_morphflags(&CurStr,morphflags_of(prvb_gstr_of(TmpGkword)));
 		*(euph_table+i) = CurStr;
+	}
+	if (ferror(f) || i != nunits) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		goto failed;
 	}
 	* gotno = i;
 
@@ -98,6 +113,15 @@ gkstring_of(euph_table+i)+MAXSUBSTRING );
 	xFclose(f);
 	FreeGkword(TmpGkword);
 	return(euph_table);
+
+no_memory:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+
+failed:
+	if (f) xFclose(f);
+	if (TmpGkword) FreeGkword(TmpGkword);
+	if (euph_table) FreeGkString(euph_table);
+	return(NULL);
 }
 
 int count_rlines(FILE *f)
@@ -106,8 +130,15 @@ int count_rlines(FILE *f)
 	int nlines = 0;
 
 	while(GetTableLine(line,sizeof line,f)) {
+		if (nlines >= INT_MAX-1) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return(-1);
+		}
 		nlines++;
 	}
-	fseek(f,0L,0);
+	if (ferror(f) || fseek(f,0L,SEEK_SET) != 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	return(nlines);
 }

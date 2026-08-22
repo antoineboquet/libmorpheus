@@ -53,16 +53,16 @@ int keycomp1(const void *, const void *);
 	char * preverb;
 	char * lemma;
 	
-	if( ! Gkword ) {
-		fprintf(stderr,"Hey! null Gkword in scanasciikeys!\n");
+	if( ! s || ! Gkword || ! want ) {
+		fprintf(stderr,"Hey! null workspace in scanasciikeys!\n");
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(0);
 	} else {
 		preverb = preverb_of(Gkword);
 		lemma = lemma_of(Gkword);
 	}
-	if( Gkword && oddkeys_of(Gkword) )
-		oddkeys_of(Gkword) = NULL;
+	if( oddkeys_of(Gkword) )
+		oddkeys_of(Gkword)[0] = 0;
 	Xstrncpy((char *)savekeys,(const char *)s,(size_t)LONGSTRING);
 
 	while(nextkey(savekeys,curkey)) {
@@ -116,8 +116,15 @@ printf("crasis now set to [%s]\n", crasis_of(Gkword) );
 		*/
 			if( Gkword ) {
 				if( ! oddkeys_of(Gkword) ) {
-					oddkeys_of(Gkword) = (char *)malloc(LONGSTRING+1);
-					*(oddkeys_of(Gkword)) = 0;
+					char *oddkeys = (char *)malloc(LONGSTRING+1);
+
+					if (!oddkeys) {
+						morpheus_runtime_error_record(
+							MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+						return(0);
+					}
+					oddkeys[0] = 0;
+					oddkeys_of(Gkword) = oddkeys;
 				}
 				if(*oddkeys_of(Gkword))
 					Xstrncat(oddkeys_of(Gkword)," ",LONGSTRING);
