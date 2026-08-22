@@ -1,9 +1,11 @@
 #include <gkstring.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <modes.h>
 #include "gener_internal.h"
 #include "../morphlib/runtime_context.h"
+#include "../morphlib/runtime_context_internal.h"
 #define SKIPLINE  100
 static int AddWdEndings(gk_word *, gk_string *, gk_word *, int);
 
@@ -121,6 +123,15 @@ GenStemForms(gk_word *Gkword, char *keys, int mode)
 	Dialect dial;
 	int nends = 0;
 	int maxforms = 0;
+
+	if (!Gkword || !keys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	if (strlen(keys) >= sizeof stemkeys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	
 	stemkeys[0] = 0;
 /*
@@ -184,6 +195,11 @@ printf("gstring null with stem [%s] stemkeys [%s]  ending [%s] &tmpGkword dial %
 		return(NULL);
 	}
 
+	if (nends < 0 || nends > (INT_MAX-2)/2) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		FreeGkString(gstring);
+		return(NULL);
+	}
 	maxforms = (nends * 2) + 2;
 	gkforms = CreatGkword(maxforms);
 /*
@@ -221,6 +237,15 @@ GenIrregForm(gk_word *Gkword, char *keys, int mode)
 	char * preverb;
 	Dialect dial;
 
+	if (!Gkword || !keys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	if (strlen(keys) >= sizeof stemkeys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+
 	Xstrncpy(stemkeys,keys,LONGSTRING);
 /*
  * note that we allocate an array of at least two members long 
@@ -242,6 +267,7 @@ GenIrregForm(gk_word *Gkword, char *keys, int mode)
 	if( ! ScanAsciiKeys(stemkeys,Gkword,gstring,NULL) ) {
 		char errmess[LONGSTRING*2];
 		FreeGkString(gstring);
+		FreeGkword(gkforms);
 		snprintf(errmess,sizeof errmess,"GenIrregForm Error: no stemtype seen in [%s:%s]",workword_of(Gkword),
 		 stemkeys );
 		ErrorMess(errmess);	
@@ -306,7 +332,14 @@ GenIrregForm(gk_word *Gkword, char *keys, int mode)
 		return(NULL);
 	}
 
-	BuildAWord(Gkword,gstring,gkforms);
+	if (!BuildAWord(Gkword,gstring,gkforms) ||
+	    morpheus_runtime_context_error(morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE) {
+		analysis_of(gkforms) = NULL;
+		FreeGkword(gkforms);
+		FreeGkString(gstring);
+		return(NULL);
+	}
 	set_morphflag(morphflags_of(stem_gstr_of(Gkword)),0);
 	zap_morphflag(morphflags_of(Gkword),INDECLFORM);
 	FreeGkString(gstring);
