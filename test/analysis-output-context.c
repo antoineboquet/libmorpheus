@@ -21,6 +21,23 @@ render_empty_analysis(const char *word)
 }
 
 static void
+render_one_analysis(const char *word)
+{
+	gk_analysis analysis = { 0 };
+	gk_word candidate = { 0 };
+
+	set_analysis(&candidate,&analysis);
+	set_totanal(&candidate,1);
+	set_rawword(&candidate,word);
+	set_stem(&candidate,word);
+	set_lemma(&analysis,word);
+	set_rawword(&analysis,word);
+	set_workword(&analysis,word);
+	set_stem(&analysis,word);
+	assert(PrntAnalyses(&candidate,KEEP_BETA,stdout) == 1);
+}
+
+static void
 assert_analysis_sort_is_stable(void)
 {
 	gk_analysis analyses[4] = { 0 };
@@ -54,8 +71,16 @@ main(void)
 	assert_analysis_sort_is_stable();
 	previous = morpheus_runtime_context_activate(greek);
 	assert(!anal_buf());
+	assert(!PrntAnalyses(NULL,KEEP_BETA,stdout));
+	assert(morpheus_runtime_context_error(greek) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(greek);
 	render_empty_analysis("alpha");
 	assert(strstr(anal_buf(),"alpha"));
+	render_one_analysis("logos");
+	assert(strstr(anal_buf(),"logos"));
+	assert(morpheus_runtime_context_error(greek) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
 
 	morpheus_runtime_context_activate(latin);
 	assert(!anal_buf());
@@ -64,7 +89,7 @@ main(void)
 	assert(!strstr(anal_buf(),"alpha"));
 
 	morpheus_runtime_context_activate(greek);
-	assert(strstr(anal_buf(),"alpha"));
+	assert(strstr(anal_buf(),"logos"));
 	assert(!strstr(anal_buf(),"beta"));
 
 	morpheus_runtime_context_activate(previous);

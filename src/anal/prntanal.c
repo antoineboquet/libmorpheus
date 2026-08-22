@@ -16,6 +16,16 @@ int PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
   int i, nanals;
   gk_analysis * Anal;
   char tmp[LONGSTRING];
+
+	if (!Gkword) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	  return(0);
+	}
+	nanals = totanal_of(Gkword);
+	if (nanals < 0 || (nanals && !analysis_of(Gkword))) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	  return(0);
+	}
 	
   if( ! pbuf ) {
     pbuf = (char *)calloc((size_t) MAXANALYSES * 128 , (size_t)sizeof * pbuf );
@@ -25,7 +35,6 @@ int PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 	}
   }
   *pbuf = 0;
-  nanals = totanal_of(Gkword);
   SortAnals(analysis_of(Gkword),nanals);
 
   if(  prntflags & SHOW_LEMMA ) {
@@ -140,7 +149,7 @@ void DumpLemmaInfo(gk_word *Gkword, PrntFlags prntflags, FILE *f)
 void PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
 {
   PrntFlags showlemma;
-  gk_string * TmpGstr;
+  gk_string TmpGstr = { 0 };
   char tmp[LONGSTRING];
   char wtmp[LONGSTRING];
   char prntlem[MAXWORDSIZE];
@@ -148,7 +157,10 @@ void PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
   int funnyacc = 0;
 		
 
-  TmpGstr = (gk_string *)CreatGkString(1);
+	if (!Gkanal || !pbuf) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	  return;
+	}
   tmp[0] = 0;
   curan++;
 
@@ -168,7 +180,7 @@ void PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
       curan = 0;
       Xstrcpy(wtmp,"\n");
     }
-    goto finish;
+    return;
   }
 	
   if( strcmp(lemma_of(Gkanal),prevlemma)) {
@@ -212,19 +224,17 @@ void PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
   odd_morpheme(Gkanal,ends_gstr_of(Gkanal),"end",tmp,0);
 
   Xstrncat(tmp,"         &",LONGSTRING);
-  forminfo_of(TmpGstr) = forminfo_of(Gkanal);
-  dialect_of(TmpGstr) = dialect_of(Gkanal);
-  set_morphflags(TmpGstr, morphflags_of(Gkanal));
-  stemtype_of(TmpGstr) = stemtype_of(Gkanal);
-  set_geogregion(TmpGstr,geogregion_of(Gkanal));
+  forminfo_of(&TmpGstr) = forminfo_of(Gkanal);
+  dialect_of(&TmpGstr) = dialect_of(Gkanal);
+  set_morphflags(&TmpGstr, morphflags_of(Gkanal));
+  stemtype_of(&TmpGstr) = stemtype_of(Gkanal);
+  set_geogregion(&TmpGstr,geogregion_of(Gkanal));
 
-  SprintGkFlags(TmpGstr,tmp," ",1);
+  SprintGkFlags(&TmpGstr,tmp," ",1);
 
   Xstrncat(tmp,NEWLINE,LONGSTRING);
   strcat(pbuf,tmp);
 
-finish:
-  FreeGkString(TmpGstr);
 }
 
 void near_miss(gk_string *gstr, char *checks, int code)
