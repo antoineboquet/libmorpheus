@@ -22,8 +22,12 @@ named historical codes and must be compared for equality.
 `morph_flags` remains the historical 96-bit compatibility array so that the
 version-1 structure stays 860 bytes. `morpheus_result_all_morph_flags()` copies
 the complete 112-bit in-memory representation. In particular, flag 110 is
-published as `MORPHEUS_MORPH_FLAG_GROUP_NAME`; the stemlib stores that flag in
-a legacy compatibility marker because its on-disk flag field remains 96 bits.
+published as `MORPHEUS_MORPH_FLAG_GROUP_NAME`; ending-table records store that
+flag in a legacy compatibility marker because their on-disk flag field remains
+96 bits. The precompiled Alpheios stem index predates this conversion and omits
+the `is_group` annotations present in its source files. Analyses made from that
+index therefore cannot report `GROUP_NAME` until the stem index is rebuilt from
+those sources with a format that preserves the annotation.
 Flags 1–83 and 110 have named `MORPHEUS_MORPH_FLAG_*` constants. Flag numbers
 are one-based: for flag `n`, inspect byte `(n - 1) / 8` and bit
 `1 << ((n - 1) % 8)`. Values 84–109 and 111–112 are reserved.

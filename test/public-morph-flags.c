@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <morpheus/morpheus.h>
 
@@ -20,7 +21,7 @@ static int flag_is_set(
 
 int main(void)
 {
-  static const uint8_t word[]="*dio/skoroi";
+  static const uint8_t word[]="*)arta/chs";
   morpheus_config config={
     MORPHEUS_ABI_VERSION,
     sizeof config,
@@ -41,8 +42,10 @@ int main(void)
     assert(morpheus_result_get(result,index,&analysis)==MORPHEUS_OK);
     assert(morpheus_result_all_morph_flags(
         result,index,flags,sizeof flags)==MORPHEUS_OK);
-    if(flag_is_set(flags,MORPHEUS_MORPH_FLAG_GROUP_NAME)) {
-      assert((analysis.number&MORPHEUS_NUMBER_PLURAL) != 0);
+    assert(!memcmp(flags,analysis.morph_flags,
+                   MORPHEUS_MORPH_FLAG_CAPACITY));
+    if(flag_is_set(flags,MORPHEUS_MORPH_FLAG_PERSON_NAME)) {
+      assert(!strcmp(analysis.lemma,"*)arta/chs"));
       found=1;
     }
   }

@@ -29,12 +29,19 @@ number 14–16, case 17–22, degree 23–24, and gender 25–28. Packing and
 unpacking are explicit; the file no longer depends on the compiler's native C
 bit-field order.
 
-Internal morphology flags occupy 14 bytes, but the disk field remains 12 bytes
-to preserve existing stemlibs. Historical `is_group` records encode flag 110
-as bit `040` in domain byte 1 while domain byte 0 is NUL. The reader converts
-that marker to the in-memory flag and clears it from the domain field. The
-writer performs the inverse conversion and rejects a group record that also
-contains domains because that combination has no unambiguous legacy encoding.
+Internal morphology flags occupy 14 bytes, but the ending-table disk field
+remains 12 bytes to preserve existing stemlibs. An `is_group` ending record
+encodes flag 110 as bit `040` in domain byte 1 while domain byte 0 is NUL. The
+reader converts that marker to the in-memory flag and clears it from the domain
+field. The writer performs the inverse conversion and rejects a group record
+that also contains domains because that combination has no unambiguous legacy
+encoding.
+
+The Alpheios `stemsrc` files also contain `is_group` stem annotations. Its
+distributed precompiled text indexes omit those annotations, so the runtime
+cannot recover them from `steminds/nomind`. Preserving that classification in
+public analyses requires rebuilding the stem indexes with an extended format;
+it must not be inferred from lemma spelling or plurality.
 
 ## Portability guards
 
