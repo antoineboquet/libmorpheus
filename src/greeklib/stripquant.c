@@ -21,15 +21,27 @@ void stripquant(char *word)
 void stripshortmark(char *word)
 {
 	register char *p;
-	for (p=lastn(word,1);p>=word;p--)
+	size_t length;
+
+	if (!word) return;
+	length = Xstrlen(word);
+	while (length) {
+		p = word + --length;
 		if( *p == HARDSHORT )
 			strsqz(p,1);
+	}
 }
 
 void striplongmark(char *word)
 {
 	register char *p;
-	for (p=lastn(word,1);p>=word;p--)
+	size_t length;
+
+	if (!word) return;
+	length = Xstrlen(word);
+	while (length) {
+		p = word + --length;
 		if( *p == HARDLONG )
 			strsqz(p,1);
+	}
 }

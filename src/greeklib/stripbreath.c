@@ -11,7 +11,13 @@
 void stripbreath(char *word)
 {
 	register char *p;
-	for (p=lastn(word,1);p>=word;p--)
+	size_t length;
+
+	if (!word) return;
+	length = Xstrlen(word);
+	while (length) {
+		p = word + --length;
 		if (Is_breath(*p))
 			strsqz(p,1);
+	}
 }

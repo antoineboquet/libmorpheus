@@ -11,6 +11,13 @@
 #include "../src/morphlib/new_val.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
+#include "../src/greeklib/getsyll.proto.h"
+#include "../src/greeklib/nsylls.proto.h"
+#include "../src/greeklib/stripacc.proto.h"
+#include "../src/greeklib/stripbreath.proto.h"
+#include "../src/greeklib/stripdiaer.proto.h"
+#include "../src/greeklib/stripquant.proto.h"
+#include "../src/greeklib/stripstemsep.proto.h"
 
 static int
 compare_text(char *left, char *right)
@@ -24,6 +31,7 @@ main(void)
 	gk_string entries[3] = { 0 };
 	gk_string item = { 0 };
 	gk_word word_item = { 0 };
+	char empty[] = "";
 	morpheus_runtime_context *context = morpheus_runtime_context_create();
 	morpheus_runtime_context *previous;
 	int length = 0;
@@ -59,6 +67,22 @@ main(void)
 	assert(morpheus_runtime_context_error(context) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(context);
+	assert(!stripacc(empty));
+	stripbreath(empty);
+	stripdiaer(empty);
+	stripquant(empty);
+	stripstemsep(empty);
+	assert(!nsylls(empty));
+	assert(getsyll(empty,ULTIMA) == P_ERR);
+	assert(getsyll2(empty,ULTIMA) == empty);
+	assert(!stripacc(NULL));
+	stripbreath(NULL);
+	stripdiaer(NULL);
+	stripquant(NULL);
+	stripstemsep(NULL);
+	assert(!nsylls(NULL));
+	assert(getsyll(NULL,ULTIMA) == P_ERR);
+	assert(getsyll2(NULL,ULTIMA) == P_ERR);
 	assert(add_domain(&item,1) == 1);
 	assert(add_domain(&item,1) == 0);
 	assert(add_domain(&item,0) == -1);
