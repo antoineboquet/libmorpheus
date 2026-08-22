@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.25)
+
 set(expected_symbols
   morpheus_abi_version
   morpheus_analysis_size
@@ -50,6 +52,8 @@ endif()
 
 string(REPLACE "\n" ";" actual_symbols "${nm_output}")
 list(FILTER actual_symbols EXCLUDE REGEX "^$")
+# musl's ELF startup objects publish these toolchain-owned entry points.
+list(FILTER actual_symbols EXCLUDE REGEX "^_(init|fini)$")
 list(SORT actual_symbols)
 list(SORT expected_symbols)
 if(NOT actual_symbols STREQUAL expected_symbols)
