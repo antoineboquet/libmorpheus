@@ -332,4 +332,4 @@ const Morph_args *MatchMorphKey(char *);
 Morph_args *InitStemSuffs(char *, void (*)(gk_string *, unsigned long),
                            Stemtype (*)(char *), int *);
 int keycomp2(char *, char *);
-int add_keyarr(const Morph_args **, const Morph_args *);
+size_t add_keyarr(const Morph_args **, const Morph_args *);

@@ -1,4 +1,5 @@
 #include "morphlib_internal.h"
+#include <limits.h>
 /*
  * copyright Gregory Crane
  *
@@ -221,7 +222,6 @@ char *
  NextEndTable(int *index, Stemtype mask)
 {
 	Morph_args *morph_args;
-	Dialect oldmask = mask;
 	
 	mask &= (PPARTMASK|ADJSTEM|NOUNSTEM);
  
@@ -575,7 +575,8 @@ int has_octal(char *s)
 void init_keys(void)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
-	int sofar = 0;
+	size_t key_count;
+	size_t sofar = 0;
 	int i;
 	
 	if (context->morph_keys_initialized) {
@@ -594,7 +595,11 @@ void init_keys(void)
 		context->morph_keys_initialized = 0;
 	}
 	init_stems();
-	nkeys = nstems  + nderivs + ndomains
+	if (nstems < 0 || nderivs < 0 || ndomains < 0) {
+		fprintf(stderr,"invalid negative morphology key count\n");
+		exit(EXIT_FAILURE);
+	}
+	key_count = (size_t)nstems + (size_t)nderivs + (size_t)ndomains
 		 + LENGTH_OF(arg_degree)
 		 + LENGTH_OF(arg_person)
 		 + LENGTH_OF(arg_morphflags)
@@ -606,7 +611,12 @@ void init_keys(void)
 		 + LENGTH_OF(arg_mood)
 		 + LENGTH_OF(arg_dialect)
 		 + LENGTH_OF(arg_geogregion);
-	key_table = (const Morph_args **) calloc((size_t)nkeys+1,(size_t)sizeof * key_table );
+	if (key_count > (size_t)INT_MAX) {
+		fprintf(stderr,"morphology key count exceeds the runtime index width\n");
+		exit(EXIT_FAILURE);
+	}
+	nkeys = (int)key_count;
+	key_table = (const Morph_args **) calloc(key_count+1,sizeof * key_table );
 	if (!key_table) {
 		fprintf(stderr,"could not allocate morphology key index\n");
 		exit(EXIT_FAILURE);
@@ -627,9 +637,13 @@ void init_keys(void)
 	sofar += add_keyarr(key_table+sofar,arg_geogregion);
 	sofar += add_keyarr(key_table+sofar,arg_morphflags);
 
-	qsort((void*)key_table,(size_t)sofar,(size_t)sizeof * key_table,keycomp1);
+	qsort((void*)key_table,sofar,sizeof * key_table,keycomp1);
 
-	nkeys = sofar;
+	if (sofar > (size_t)INT_MAX) {
+		fprintf(stderr,"morphology key index exceeds the runtime index width\n");
+		exit(EXIT_FAILURE);
+	}
+	nkeys = (int)sofar;
 	context->morph_key_language = cur_lang();
 	context->morph_keys_initialized = 1;
 /*
@@ -681,14 +695,14 @@ keycomp2(char *s, char *entry)
 	return(rval);
 }
 
- int add_keyarr(const Morph_args **ktab, const Morph_args *morph_args)
+size_t add_keyarr(const Morph_args **ktab, const Morph_args *morph_args)
 {
 	const Morph_args *ms = morph_args;
 	
 	while( morph_args->morph_key[0] ) {
 		*ktab++ = morph_args++;
 	}
-	return( morph_args - ms );
+	return((size_t)(morph_args - ms));
 }
 
 Stemtype		
@@ -723,6 +737,8 @@ GetIsProse(char *classp)
 		return(0);
 	func = mp->add_val;
 
-	(*func)(gstr,mp->morph_flags);
+	if (mp->morph_flags < 0)
+		return(0);
+	(*func)(gstr,(unsigned long)mp->morph_flags);
 	return(1);
 }
