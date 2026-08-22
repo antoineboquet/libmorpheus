@@ -41,6 +41,7 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_C_VISIBILITY_PRESET hidden)
 
 add_library(morpheus_build_options INTERFACE)
 target_include_directories(
@@ -860,6 +861,7 @@ endif()
 
 add_library(morpheus SHARED src/api/context.c src/api/result.c src/api/analyze.c src/api/compat.c)
 add_library(Morpheus::morpheus ALIAS morpheus)
+target_compile_definitions(morpheus PRIVATE MORPHEUS_BUILDING_LIBRARY)
 target_include_directories(
   morpheus
   PUBLIC
@@ -937,6 +939,17 @@ if(BUILD_TESTING)
     morpheus_public_result_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_result COMMAND morpheus_public_result_test)
+  if(CMAKE_NM AND UNIX)
+    add_test(
+      NAME public_symbols
+      COMMAND
+        "${CMAKE_COMMAND}"
+        "-DMORPHEUS_LIBRARY=$<TARGET_FILE:morpheus>"
+        "-DMORPHEUS_NM=${CMAKE_NM}"
+        "-DMORPHEUS_APPLE=${APPLE}"
+        -P "${PROJECT_SOURCE_DIR}/test/public-symbols.cmake"
+    )
+  endif()
   add_executable(morpheus_public_values_test test/public-values.c)
   target_include_directories(
     morpheus_public_values_test PRIVATE "${PROJECT_SOURCE_DIR}/src/includes"

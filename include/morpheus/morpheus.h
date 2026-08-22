@@ -4,6 +4,18 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#if defined(_WIN32) || defined(__CYGWIN__)
+#  if defined(MORPHEUS_BUILDING_LIBRARY)
+#    define MORPHEUS_API __declspec(dllexport)
+#  else
+#    define MORPHEUS_API __declspec(dllimport)
+#  endif
+#elif defined(__GNUC__) || defined(__clang__)
+#  define MORPHEUS_API __attribute__((visibility("default")))
+#else
+#  define MORPHEUS_API
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -291,13 +303,13 @@ typedef struct {
 } morpheus_config;
 
 /** Return the ABI version implemented by the loaded library. */
-uint32_t morpheus_abi_version(void);
+MORPHEUS_API uint32_t morpheus_abi_version(void);
 
 /** Return the native size of morpheus_analysis for FFI callers. */
-size_t morpheus_analysis_size(void);
+MORPHEUS_API size_t morpheus_analysis_size(void);
 
 /** Return a static, NUL-terminated description of @p status. */
-const char *morpheus_status_message(morpheus_status status);
+MORPHEUS_API const char *morpheus_status_message(morpheus_status status);
 
 /**
  * Create a context from an explicit-length path.
@@ -306,7 +318,7 @@ const char *morpheus_status_message(morpheus_status status);
  * structure and is therefore preferred by FFI bindings. The path must not
  * contain an embedded NUL. On success, the caller owns *context.
  */
-morpheus_status morpheus_open_path(
+MORPHEUS_API morpheus_status morpheus_open_path(
     uint32_t abi_version, const uint8_t *stemlib_path,
     size_t stemlib_path_length, uint32_t language,
     morpheus_context **context);
@@ -318,11 +330,11 @@ morpheus_status morpheus_open_path(
  * config->struct_size must cover the complete version-1 structure.
  * On success, the caller owns *context.
  */
-morpheus_status morpheus_open(
+MORPHEUS_API morpheus_status morpheus_open(
     const morpheus_config *config, morpheus_context **context);
 
 /** Destroy a context. Passing NULL is allowed. */
-void morpheus_close(morpheus_context *context);
+MORPHEUS_API void morpheus_close(morpheus_context *context);
 
 /**
  * Analyze one Beta Code form.
@@ -331,12 +343,12 @@ void morpheus_close(morpheus_context *context);
  * The result preserves the analyzer's order and duplicates. On success, the
  * caller owns *result, including when it contains zero analyses.
  */
-morpheus_status morpheus_analyze(
+MORPHEUS_API morpheus_status morpheus_analyze(
     morpheus_context *context, const uint8_t *beta_code, size_t length,
     morpheus_options options, morpheus_result **result);
 
 /** Return the number of analyses in a result, or zero for NULL. */
-size_t morpheus_result_count(const morpheus_result *result);
+MORPHEUS_API size_t morpheus_result_count(const morpheus_result *result);
 
 /**
  * Copy one analysis into caller-owned storage.
@@ -344,12 +356,12 @@ size_t morpheus_result_count(const morpheus_result *result);
  * buffer_size must be at least morpheus_analysis_size(). This is the preferred
  * accessor for FFI callers because it does not expose an internal pointer.
  */
-morpheus_status morpheus_result_copy(
+MORPHEUS_API morpheus_status morpheus_result_copy(
     const morpheus_result *result, size_t index, void *buffer,
     size_t buffer_size);
 
 /** Copy one analysis into a native morpheus_analysis structure. */
-morpheus_status morpheus_result_get(
+MORPHEUS_API morpheus_status morpheus_result_get(
     const morpheus_result *result, size_t index,
     morpheus_analysis *analysis);
 
@@ -357,7 +369,7 @@ morpheus_status morpheus_result_get(
  * Report which fixed-capacity text fields were truncated while copying one
  * analysis. Zero means every field was copied in full.
  */
-morpheus_status morpheus_result_truncated_fields(
+MORPHEUS_API morpheus_status morpheus_result_truncated_fields(
     const morpheus_result *result, size_t index,
     morpheus_truncated_fields *fields);
 
@@ -368,12 +380,12 @@ morpheus_status morpheus_result_truncated_fields(
  * morpheus_analysis. buffer_size must be at least
  * MORPHEUS_ALL_MORPH_FLAG_CAPACITY.
  */
-morpheus_status morpheus_result_all_morph_flags(
+MORPHEUS_API morpheus_status morpheus_result_all_morph_flags(
     const morpheus_result *result, size_t index, uint8_t *buffer,
     size_t buffer_size);
 
 /** Destroy an owned result. Passing NULL is allowed. */
-void morpheus_result_free(morpheus_result *result);
+MORPHEUS_API void morpheus_result_free(morpheus_result *result);
 
 /**
  * Analyze and format one form using the historical cruncher representation.
@@ -382,28 +394,28 @@ void morpheus_result_free(morpheus_result *result);
  * NUL-terminated for convenience; its logical byte length is reported
  * separately and does not include that terminator.
  */
-morpheus_status morpheus_compat_analyze(
+MORPHEUS_API morpheus_status morpheus_compat_analyze(
     morpheus_context *context, const uint8_t *beta_code, size_t length,
     morpheus_compat_flags flags, morpheus_compat_output **output);
 
 /** Borrow the NUL-terminated bytes owned by @p output. */
-const char *morpheus_compat_output_data(
+MORPHEUS_API const char *morpheus_compat_output_data(
     const morpheus_compat_output *output);
 
 /** Return the number of formatted bytes, excluding the NUL terminator. */
-size_t morpheus_compat_output_length(
+MORPHEUS_API size_t morpheus_compat_output_length(
     const morpheus_compat_output *output);
 
 /** Return the number of analyses found before formatting. */
-size_t morpheus_compat_output_analysis_count(
+MORPHEUS_API size_t morpheus_compat_output_analysis_count(
     const morpheus_compat_output *output);
 
 /** Return the number of distinct lemmas found before formatting. */
-size_t morpheus_compat_output_lemma_count(
+MORPHEUS_API size_t morpheus_compat_output_lemma_count(
     const morpheus_compat_output *output);
 
 /** Destroy an owned compatibility output. Passing NULL is allowed. */
-void morpheus_compat_output_free(morpheus_compat_output *output);
+MORPHEUS_API void morpheus_compat_output_free(morpheus_compat_output *output);
 
 #ifdef __cplusplus
 }

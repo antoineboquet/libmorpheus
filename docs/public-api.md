@@ -1,5 +1,11 @@
 # Public analysis values
 
+The shared library uses hidden visibility by default and exports only the
+functions declared with `MORPHEUS_API` in `<morpheus/morpheus.h>`. Its current
+project version is 0.1.0 and its pre-1.0 ABI SONAME is 0. Adding an exported
+function is compatible within that SONAME; changing or removing one, or
+changing the layout of `morpheus_analysis`, requires an ABI review.
+
 ABI version 1 returns morphology values as fixed-width `uint32_t` fields. The
 public constants in `<morpheus/morpheus.h>` are the contract for interpreting
 person, number, gender, case, tense, mood, voice, degree, dialect, and
