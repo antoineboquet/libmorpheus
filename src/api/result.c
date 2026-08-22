@@ -12,7 +12,13 @@ morpheus_result *morpheus_result_create(size_t count)
   if(!result) return(NULL);
   if(count) {
     result->analyses=calloc(count,sizeof *result->analyses);
-    if(!result->analyses) { free(result); return(NULL); }
+    result->truncated_fields=calloc(count,sizeof *result->truncated_fields);
+    if(!result->analyses || !result->truncated_fields) {
+      free(result->truncated_fields);
+      free(result->analyses);
+      free(result);
+      return(NULL);
+    }
   }
   result->count=count;
   return(result);
@@ -32,9 +38,19 @@ morpheus_status morpheus_result_get(const morpheus_result *result, size_t index,
 {
   return(morpheus_result_copy(result,index,analysis,sizeof *analysis));
 }
+morpheus_status morpheus_result_truncated_fields(
+    const morpheus_result *result, size_t index,
+    morpheus_truncated_fields *fields)
+{
+  if(!result || !fields) return(MORPHEUS_INVALID_ARGUMENT);
+  if(index >= result->count) return(MORPHEUS_OUT_OF_RANGE);
+  *fields=result->truncated_fields[index];
+  return(MORPHEUS_OK);
+}
 void morpheus_result_free(morpheus_result *result)
 {
   if(!result) return;
+  free(result->truncated_fields);
   free(result->analyses);
   free(result);
 }

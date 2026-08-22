@@ -12,12 +12,15 @@ int main(void)
   morpheus_context *context=NULL;
   morpheus_result *result=NULL;
   morpheus_analysis analysis;
+  morpheus_truncated_fields truncated=UINT32_MAX;
   assert(morpheus_open(&config,&context)==MORPHEUS_OK);
   assert(morpheus_analyze(context,word,sizeof word-1,0,&result)==MORPHEUS_OK);
   assert(morpheus_result_count(result)>0);
   assert(morpheus_result_copy(result,0,&analysis,sizeof analysis-1)==
          MORPHEUS_BUFFER_TOO_SMALL);
   assert(morpheus_result_copy(result,0,&analysis,sizeof analysis)==MORPHEUS_OK);
+  assert(morpheus_result_truncated_fields(result,0,&truncated)==MORPHEUS_OK);
+  assert(truncated==0);
   assert(analysis.struct_size==sizeof analysis);
   assert(analysis.raw[0] && analysis.lemma[0]);
   assert(analysis.dictionary_form[MORPHEUS_TEXT_CAPACITY-1]==0);

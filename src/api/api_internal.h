@@ -10,6 +10,7 @@ struct morpheus_compat_output {
 struct morpheus_result {
   size_t count;
   morpheus_analysis *analyses;
+  morpheus_truncated_fields *truncated_fields;
 };
 morpheus_result *morpheus_result_create(size_t count);
 #endif

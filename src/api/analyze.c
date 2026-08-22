@@ -1,16 +1,21 @@
 #include "api_internal.h"
-#include <stdio.h>
 #include <string.h>
 #include "../anal/anal_internal.h"
 #include "../morphlib/runtime_context.h"
 
-static void copy_text(char *destination, size_t capacity, const char *source)
+static int copy_text(char *destination, size_t capacity, const char *source)
 {
-  snprintf(destination,capacity,"%s",source);
+  const size_t length=strlen(source);
+  const size_t copied=length < capacity ? length : capacity-1;
+  memcpy(destination,source,copied);
+  destination[copied]=0;
+  return(length >= capacity);
 }
 
-static void copy_analysis(morpheus_analysis *destination, const gk_analysis *source)
+static morpheus_truncated_fields copy_analysis(
+    morpheus_analysis *destination, const gk_analysis *source)
 {
+  morpheus_truncated_fields truncated=0;
   memset(destination,0,sizeof *destination);
   destination->struct_size=sizeof *destination;
   if(Is_verbform(source)) destination->part_of_speech=MORPHEUS_PART_OF_SPEECH_VERB;
@@ -28,20 +33,41 @@ static void copy_analysis(morpheus_analysis *destination, const gk_analysis *sou
   destination->mood=(uint32_t)mood_of(forminfo_of(source));
   destination->voice=(uint32_t)voice_of(forminfo_of(source));
   destination->degree=(uint32_t)degree_of(forminfo_of(source));
-  copy_text(destination->raw,sizeof destination->raw,rawword_of(source));
-  copy_text(destination->workword,sizeof destination->workword,workword_of(source));
-  copy_text(destination->lemma,sizeof destination->lemma,lemma_of(source));
-  copy_text(destination->preverb,sizeof destination->preverb,preverb_of(source));
-  copy_text(destination->augment,sizeof destination->augment,aug1_of(source));
-  copy_text(destination->stem,sizeof destination->stem,stem_of(source));
-  copy_text(destination->suffix,sizeof destination->suffix,suffix_of(source));
-  copy_text(destination->ending,sizeof destination->ending,endstring_of(source));
-  copy_text(destination->crasis,sizeof destination->crasis,crasis_of(source));
-  copy_text(destination->dictionary_form,sizeof destination->dictionary_form,dictform_of(source));
-  copy_text(destination->english_form,sizeof destination->english_form,source->st_engform);
-  copy_text(destination->raw_preverb,sizeof destination->raw_preverb,rawprvb_of(source));
-  copy_text(destination->domains,sizeof destination->domains,domains_of(source));
+  if(copy_text(destination->raw,sizeof destination->raw,rawword_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_RAW;
+  if(copy_text(destination->workword,sizeof destination->workword,
+               workword_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_WORKWORD;
+  if(copy_text(destination->lemma,sizeof destination->lemma,lemma_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_LEMMA;
+  if(copy_text(destination->preverb,sizeof destination->preverb,
+               preverb_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_PREVERB;
+  if(copy_text(destination->augment,sizeof destination->augment,aug1_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_AUGMENT;
+  if(copy_text(destination->stem,sizeof destination->stem,stem_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_STEM;
+  if(copy_text(destination->suffix,sizeof destination->suffix,suffix_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_SUFFIX;
+  if(copy_text(destination->ending,sizeof destination->ending,
+               endstring_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_ENDING;
+  if(copy_text(destination->crasis,sizeof destination->crasis,crasis_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_CRASIS;
+  if(copy_text(destination->dictionary_form,sizeof destination->dictionary_form,
+               dictform_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_DICTIONARY_FORM;
+  if(copy_text(destination->english_form,sizeof destination->english_form,
+               source->st_engform))
+    truncated|=MORPHEUS_TRUNCATED_ENGLISH_FORM;
+  if(copy_text(destination->raw_preverb,sizeof destination->raw_preverb,
+               rawprvb_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_RAW_PREVERB;
+  if(copy_text(destination->domains,sizeof destination->domains,
+               domains_of(source)))
+    truncated|=MORPHEUS_TRUNCATED_DOMAINS;
   memcpy(destination->morph_flags,morphflags_of(source),sizeof destination->morph_flags);
+  return(truncated);
 }
 
 morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_code, size_t length, morpheus_options options, morpheus_result **result)
@@ -76,7 +102,9 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
     morpheus_runtime_context_activate(previous);
     return(MORPHEUS_NO_MEMORY);
   }
-  for(i=0;i<owned->count;i++) copy_analysis(&owned->analyses[i],analysis_of(word)+i);
+  for(i=0;i<owned->count;i++)
+    owned->truncated_fields[i]=copy_analysis(
+        &owned->analyses[i],analysis_of(word)+i);
   FreeGkword(word);
   morpheus_runtime_context_activate(previous);
   *result=owned;

@@ -8,6 +8,8 @@ int main(void)
   assert(morpheus_result_copy(NULL,0,&analysis,sizeof analysis)==
          MORPHEUS_INVALID_ARGUMENT);
   assert(morpheus_result_get(NULL,0,&analysis)==MORPHEUS_INVALID_ARGUMENT);
+  assert(morpheus_result_truncated_fields(NULL,0,NULL)==
+         MORPHEUS_INVALID_ARGUMENT);
   morpheus_result_free(NULL);
   return(0);
 }

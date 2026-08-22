@@ -55,28 +55,129 @@ typedef enum {
   MORPHEUS_PART_OF_SPEECH_ADJECTIVE=3
 } morpheus_part_of_speech;
 
+/* Morphology codes. Values that are powers of two may be combined. */
+typedef uint32_t morpheus_person;
+#define MORPHEUS_PERSON_NONE UINT32_C(0)
+#define MORPHEUS_PERSON_FIRST UINT32_C(1)
+#define MORPHEUS_PERSON_SECOND UINT32_C(2)
+#define MORPHEUS_PERSON_THIRD UINT32_C(4)
+
+typedef uint32_t morpheus_number;
+#define MORPHEUS_NUMBER_NONE UINT32_C(0)
+#define MORPHEUS_NUMBER_SINGULAR UINT32_C(1)
+#define MORPHEUS_NUMBER_DUAL UINT32_C(2)
+#define MORPHEUS_NUMBER_PLURAL UINT32_C(4)
+
+typedef uint32_t morpheus_gender;
+#define MORPHEUS_GENDER_NONE UINT32_C(0)
+#define MORPHEUS_GENDER_MASCULINE UINT32_C(1)
+#define MORPHEUS_GENDER_FEMININE UINT32_C(2)
+#define MORPHEUS_GENDER_NEUTER UINT32_C(4)
+#define MORPHEUS_GENDER_ADVERBIAL UINT32_C(8)
+
+typedef uint32_t morpheus_case;
+#define MORPHEUS_CASE_NONE UINT32_C(0)
+#define MORPHEUS_CASE_NOMINATIVE UINT32_C(1)
+#define MORPHEUS_CASE_GENITIVE UINT32_C(2)
+#define MORPHEUS_CASE_DATIVE UINT32_C(4)
+#define MORPHEUS_CASE_ACCUSATIVE UINT32_C(8)
+#define MORPHEUS_CASE_VOCATIVE UINT32_C(16)
+#define MORPHEUS_CASE_ABLATIVE UINT32_C(32)
+
+typedef uint32_t morpheus_tense;
+#define MORPHEUS_TENSE_NONE UINT32_C(0)
+#define MORPHEUS_TENSE_PRESENT UINT32_C(1)
+#define MORPHEUS_TENSE_IMPERFECT UINT32_C(10)
+#define MORPHEUS_TENSE_FUTURE UINT32_C(3)
+#define MORPHEUS_TENSE_AORIST UINT32_C(12)
+#define MORPHEUS_TENSE_PERFECT UINT32_C(5)
+#define MORPHEUS_TENSE_PLUPERFECT UINT32_C(6)
+#define MORPHEUS_TENSE_FUTURE_PERFECT UINT32_C(15)
+#define MORPHEUS_TENSE_PAST_ABSOLUTE UINT32_C(8)
+
+typedef uint32_t morpheus_mood;
+#define MORPHEUS_MOOD_NONE UINT32_C(0)
+#define MORPHEUS_MOOD_INDICATIVE UINT32_C(1)
+#define MORPHEUS_MOOD_SUBJUNCTIVE UINT32_C(2)
+#define MORPHEUS_MOOD_OPTATIVE UINT32_C(3)
+#define MORPHEUS_MOOD_IMPERATIVE UINT32_C(4)
+#define MORPHEUS_MOOD_INFINITIVE UINT32_C(5)
+#define MORPHEUS_MOOD_PARTICIPLE UINT32_C(6)
+#define MORPHEUS_MOOD_GERUNDIVE UINT32_C(7)
+#define MORPHEUS_MOOD_SUPINE UINT32_C(8)
+#define MORPHEUS_MOOD_CONDITIONAL UINT32_C(9)
+
+typedef uint32_t morpheus_voice;
+#define MORPHEUS_VOICE_NONE UINT32_C(0)
+#define MORPHEUS_VOICE_ACTIVE UINT32_C(1)
+#define MORPHEUS_VOICE_MIDDLE UINT32_C(2)
+#define MORPHEUS_VOICE_PASSIVE UINT32_C(4)
+#define MORPHEUS_VOICE_MEDIO_PASSIVE \
+  (MORPHEUS_VOICE_MIDDLE|MORPHEUS_VOICE_PASSIVE)
+#define MORPHEUS_VOICE_DEPONENT \
+  (MORPHEUS_VOICE_MIDDLE|MORPHEUS_VOICE_ACTIVE)
+
+typedef uint32_t morpheus_degree;
+#define MORPHEUS_DEGREE_POSITIVE UINT32_C(0)
+#define MORPHEUS_DEGREE_COMPARATIVE UINT32_C(1)
+#define MORPHEUS_DEGREE_SUPERLATIVE UINT32_C(2)
+
+typedef uint32_t morpheus_dialect;
+#define MORPHEUS_DIALECT_ALL UINT32_C(0)
+#define MORPHEUS_DIALECT_ATTIC UINT32_C(2)
+#define MORPHEUS_DIALECT_IONIC UINT32_C(8)
+#define MORPHEUS_DIALECT_AEOLIC UINT32_C(16)
+#define MORPHEUS_DIALECT_LESBIAN UINT32_C(32)
+#define MORPHEUS_DIALECT_HOMERIC UINT32_C(64)
+#define MORPHEUS_DIALECT_DORIC UINT32_C(128)
+#define MORPHEUS_DIALECT_PARADIGM UINT32_C(256)
+#define MORPHEUS_DIALECT_NON_HOMERIC_EPIC UINT32_C(1024)
+#define MORPHEUS_DIALECT_EPIC \
+  (MORPHEUS_DIALECT_NON_HOMERIC_EPIC|MORPHEUS_DIALECT_HOMERIC)
+#define MORPHEUS_DIALECT_PROSE UINT32_C(2048)
+
+typedef uint32_t morpheus_geographic_region;
+#define MORPHEUS_REGION_NONE UINT32_C(0)
+#define MORPHEUS_REGION_PHOCIS UINT32_C(1)
+#define MORPHEUS_REGION_LOCRIS UINT32_C(2)
+#define MORPHEUS_REGION_ELIS UINT32_C(4)
+#define MORPHEUS_REGION_LACONIA UINT32_C(16)
+#define MORPHEUS_REGION_HERACLEA UINT32_C(32)
+#define MORPHEUS_REGION_MEGARID UINT32_C(64)
+#define MORPHEUS_REGION_ARGOLID UINT32_C(128)
+#define MORPHEUS_REGION_RHODES UINT32_C(256)
+#define MORPHEUS_REGION_COS UINT32_C(512)
+#define MORPHEUS_REGION_THERA UINT32_C(1024)
+#define MORPHEUS_REGION_CYRENE UINT32_C(2048)
+#define MORPHEUS_REGION_CRETE UINT32_C(4096)
+#define MORPHEUS_REGION_ARCADIA UINT32_C(8192)
+#define MORPHEUS_REGION_CYPRUS UINT32_C(16384)
+#define MORPHEUS_REGION_BOEOTIA UINT32_C(32768)
+
 /**
  * One structured analysis.
  *
- * Numeric morphology fields preserve the runtime's stable integer codes.
- * Text fields are NUL-terminated, fixed-capacity Beta Code strings. The
- * struct_size member reports the size written by the producing library.
+ * Numeric morphology fields use the public constants above; stem_type and
+ * derivation_type remain opaque legacy codes. Text fields are NUL-terminated,
+ * fixed-capacity Beta Code strings. Use morpheus_result_truncated_fields() to
+ * detect any value that exceeded its destination. The struct_size member
+ * reports the size written by the producing library.
  */
 typedef struct {
   uint32_t struct_size;
   uint32_t part_of_speech;
   uint32_t stem_type;
   uint32_t derivation_type;
-  uint32_t dialect;
-  uint32_t geographic_region;
-  uint32_t person;
-  uint32_t number;
-  uint32_t gender;
-  uint32_t grammatical_case;
-  uint32_t tense;
-  uint32_t mood;
-  uint32_t voice;
-  uint32_t degree;
+  morpheus_dialect dialect;
+  morpheus_geographic_region geographic_region;
+  morpheus_person person;
+  morpheus_number number;
+  morpheus_gender gender;
+  morpheus_case grammatical_case;
+  morpheus_tense tense;
+  morpheus_mood mood;
+  morpheus_voice voice;
+  morpheus_degree degree;
   char raw[MORPHEUS_TEXT_CAPACITY];
   char workword[MORPHEUS_TEXT_CAPACITY];
   char lemma[MORPHEUS_TEXT_CAPACITY];
@@ -92,6 +193,22 @@ typedef struct {
   char domains[MORPHEUS_DOMAIN_CAPACITY];
   uint8_t morph_flags[MORPHEUS_MORPH_FLAG_CAPACITY];
 } morpheus_analysis;
+
+/** Bit mask returned by morpheus_result_truncated_fields(). */
+typedef uint32_t morpheus_truncated_fields;
+#define MORPHEUS_TRUNCATED_RAW (UINT32_C(1) << 0)
+#define MORPHEUS_TRUNCATED_WORKWORD (UINT32_C(1) << 1)
+#define MORPHEUS_TRUNCATED_LEMMA (UINT32_C(1) << 2)
+#define MORPHEUS_TRUNCATED_PREVERB (UINT32_C(1) << 3)
+#define MORPHEUS_TRUNCATED_AUGMENT (UINT32_C(1) << 4)
+#define MORPHEUS_TRUNCATED_STEM (UINT32_C(1) << 5)
+#define MORPHEUS_TRUNCATED_SUFFIX (UINT32_C(1) << 6)
+#define MORPHEUS_TRUNCATED_ENDING (UINT32_C(1) << 7)
+#define MORPHEUS_TRUNCATED_CRASIS (UINT32_C(1) << 8)
+#define MORPHEUS_TRUNCATED_DICTIONARY_FORM (UINT32_C(1) << 9)
+#define MORPHEUS_TRUNCATED_ENGLISH_FORM (UINT32_C(1) << 10)
+#define MORPHEUS_TRUNCATED_RAW_PREVERB (UINT32_C(1) << 11)
+#define MORPHEUS_TRUNCATED_DOMAINS (UINT32_C(1) << 12)
 
 /** Per-request structured-analysis options. */
 typedef uint64_t morpheus_options;
@@ -195,6 +312,14 @@ morpheus_status morpheus_result_copy(
 morpheus_status morpheus_result_get(
     const morpheus_result *result, size_t index,
     morpheus_analysis *analysis);
+
+/**
+ * Report which fixed-capacity text fields were truncated while copying one
+ * analysis. Zero means every field was copied in full.
+ */
+morpheus_status morpheus_result_truncated_fields(
+    const morpheus_result *result, size_t index,
+    morpheus_truncated_fields *fields);
 
 /** Destroy an owned result. Passing NULL is allowed. */
 void morpheus_result_free(morpheus_result *result);
