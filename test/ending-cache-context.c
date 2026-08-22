@@ -41,10 +41,14 @@ main(void)
 
 	previous = morpheus_runtime_context_activate(greek);
 	greek_endings = load_endings("os_ou",1);
+	assert(morpheus_runtime_context_error(greek) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
 	assert(load_endings("os_ou",0) == greek_endings);
 
 	morpheus_runtime_context_activate(latin);
 	latin_endings = load_endings("us_us",1);
+	assert(morpheus_runtime_context_error(latin) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
 	assert(load_endings("us_us",0) == latin_endings);
 
 	morpheus_runtime_context_activate(greek);

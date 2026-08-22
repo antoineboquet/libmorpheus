@@ -1,4 +1,5 @@
 #include <gkstring.h>
+#include <limits.h>
 #include "gkends_internal.h"
 #include "../morphlib/runtime_context_internal.h"
 #include "endfiles.h" 
@@ -46,6 +47,14 @@ GetCurrentEndList(gk_string *gstr, int *lnump)
 	int rval;
 	int i = 0;
 	int lno = 0;
+	int written;
+	char *stemtype_name;
+
+	if (!gstr || !lnump) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	*lnump = 0;
 	
 	CurEndList = CheckEndCache(gstr);
 
@@ -57,16 +66,28 @@ GetCurrentEndList(gk_string *gstr, int *lnump)
 		return(CurEndList);
 	}
 
-	sprintf(fname,"%s/out/%s.out", ENDTABLEDIR , NameOfStemtype(stemtype_of(gstr)) );
+	stemtype_name = NameOfStemtype(stemtype_of(gstr));
+	if (!stemtype_name || !stemtype_name[0]) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	written = snprintf(fname,sizeof fname,"%s/out/%s.out",ENDTABLEDIR,
+		stemtype_name);
+	if (written < 0 || written >= (int)sizeof fname) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 
 	if( (f=MorphFopen(fname,"rb")) == NULL ) {
 		fprintf(stderr,"stemtype %o, could not open %s\n", stemtype_of(gstr), fname );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(NULL);
 	}
 
 	lno = get_endheader(f,&maxend);
-	if( lno < 0 ) {
+	if( lno <= 0 ) {
 		fprintf(stderr,"problem with endfile [%s]\n", NameOfStemtype(stemtype_of(gstr)) );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		xFclose(f);
 		f = NULL;
 		return(NULL);
@@ -78,7 +99,11 @@ morpheus_runtime_context_current()->ending_cache_current, lno,
 (long) (lno * (sizeof *gstr - (sizeof gkstring_of(gstr) + maxend ) )) );
 */
 	
-	*lnump = lno;
+	if (lno > INT_MAX-2) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		xFclose(f);
+		return(NULL);
+	}
 	CurEndList = (gk_string *) CreatGkString( lno + 2 );
 
 	if( ! CurEndList ) {
@@ -91,14 +116,15 @@ morpheus_runtime_context_current()->ending_cache_current, lno,
 
 	for(i=0;i<lno;i++ ) {
 		rval=ReadEnding(f,CurEndList+i,maxend);
-		set_stemtype(CurEndList+i,stemtype_of(gstr));
 
 		if (rval <= 0 ) {
 			fprintf(stderr,"hey! fname [%s] wanted [%d] endings got [%d]!\n", fname, lno , i );
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 			xFclose(f);
-			f = NULL;
+			FreeGkString(CurEndList);
 			return(NULL);
 		}
+		set_stemtype(CurEndList+i,stemtype_of(gstr));
 	}
 /*
 fprintf(stderr,"about to close %s\n", NameOfStemtype(stemtype_of(gstr)) );
@@ -106,6 +132,7 @@ fprintf(stderr,"about to close %s\n", NameOfStemtype(stemtype_of(gstr)) );
 	xFclose(f);
 	f = NULL;
 
+	*lnump = lno;
 	InsertEndCache(CurEndList);
 	return(CurEndList);
 }

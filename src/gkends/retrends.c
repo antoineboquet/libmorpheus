@@ -6,8 +6,6 @@
 
 #include "retrends.proto.h"
 static gk_string *RetrCompEnds(gk_string *, gk_string *, int *, Dialect);
-static void ProcEndRecord(char *, gk_string *);
-static char *GetEndString(char *, gk_string *);
 static int NoWantGkEnd(gk_string *, gk_string *, int);
 static void AddNewEnd(gk_string *, gk_string *, int);
 
@@ -22,6 +20,11 @@ gk_string *
 	gk_string WantEnd = { 0 };
 	gk_string AvoidEnd = { 0 };
 
+	if (!restricts || !nends) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	*nends = 0;
 
 	Xstrncpy(stemkeys,restricts,(int)sizeof stemkeys);
 
@@ -34,9 +37,15 @@ gk_string *
 	tmpgstr = &WantEnd;
 
 	BlnkGkword = CreatGkword(1);
+	if (!BlnkGkword)
+		return(NULL);
 	
 	ScanAsciiKeys(stemkeys,BlnkGkword,&WantEnd,&AvoidEnd);
 	FreeGkword(BlnkGkword);
+	if (morpheus_runtime_context_error(
+	    morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE)
+		return(NULL);
 	
 /*
 printf("\nstemkeys [%s]\n", stemkeys );
@@ -92,10 +101,19 @@ int
 	gk_string  Gstr = { 0 };
 	gk_string  Gstr2 = { 0 };
 	gk_word * BlnkGkword;
+	gk_string original;
 	int rval = 0;
 	int is_deriv = 0;
+
+	if (!keys1 || !keys2 || !gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	original = *gstr;
 	
 	BlnkGkword = CreatGkword(1);
+	if (!BlnkGkword)
+		return(0);
 	
 	is_deriv = has_morphflag(morphflags_of(gstr),IS_DERIV);
 	*gstr = (gk_string){ 0 };
@@ -103,6 +121,12 @@ int
 	ScanAsciiKeys(keys1,BlnkGkword,gstr,NULL);
 	ScanAsciiKeys(keys2,BlnkGkword,&Gstr2,NULL);
 	FreeGkword(BlnkGkword);
+	if (morpheus_runtime_context_error(
+	    morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE) {
+		*gstr = original;
+		return(0);
+	}
 
 	rval = EndingOk(keys2,gstr,&Gstr,1);
 	/*
@@ -129,10 +153,28 @@ int
 	int good = 0;
 	gk_word * BlnkGkword;
 	gk_string Cur_gkend = { 0 };
+	gk_string original_gstr;
+	gk_string original_avoid;
+
+	if (!keys || !gstr || !avoidgstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	original_gstr = *gstr;
+	original_avoid = *avoidgstr;
 	
 	BlnkGkword = CreatGkword(1);
+	if (!BlnkGkword)
+		return(0);
 	ScanAsciiKeys(keys,BlnkGkword,&Cur_gkend,avoidgstr);
 	FreeGkword(BlnkGkword);
+	if (morpheus_runtime_context_error(
+	    morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE) {
+		*gstr = original_gstr;
+		*avoidgstr = original_avoid;
+		return(0);
+	}
 	
 	if( wantderiv ) {
 		if( ! derivtype_of(gstr) || derivtype_of(gstr) < 0 ) return(0);
@@ -213,6 +255,8 @@ static gk_string *
 	*nends = 0;
 	
 	CurrentList = GetCurrentEndList(wantgkend,&lno);
+	if (!CurrentList)
+		return(NULL);
 
 /*
 	sprintf(fname,"%s/out/%s.out", ENDTABLEDIR , NameOfStemtype(stemtype_of(wantgkend)) );
@@ -295,34 +339,6 @@ printf("Cur_gkend:"); PrntGkFlags(&Cur_gkend,stdout); printf("\n\n");
 	}
 	
 	return(ListOfEnds);
-}
-
-static void
- ProcEndRecord(char *s, gk_string *gkend)
-{
-	gk_word * BlnkGkword;
-	
-	BlnkGkword = CreatGkword(1);
-	s=GetEndString(s,gkend);
-	ScanAsciiKeys(s,BlnkGkword,gkend,NULL);
-	FreeGkword(BlnkGkword);
-}
-
-static char * 
- GetEndString(char *s, gk_string *gkend)
-{
-	char tmp[128];
-	char *a;
-
-	a = tmp; 
-	while( isspace((unsigned char)*s) ) s++;
-	if( ! *s ) return(NULL);
-	while( ! isspace((unsigned char)*s) && *s ) *a++ = *s++;
-	*a = 0;
-	while( isspace((unsigned char)*s) ) s++;
-	if( !*s ) return(NULL);
-	set_gkstring(gkend,tmp);
-	return(s);
 }
 
 static int

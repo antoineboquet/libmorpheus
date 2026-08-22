@@ -40,6 +40,8 @@ main(void)
 	                            &group_ending_count);
 	assert(group_endings);
 	assert(group_ending_count > 0);
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
 	for(i=0;i<group_ending_count;i++)
 		assert(Is_group_name(morphflags_of(group_endings+i)));
 	FreeGkString(group_endings);
