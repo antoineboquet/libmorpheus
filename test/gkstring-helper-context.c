@@ -12,13 +12,17 @@
 #include "../src/morphlib/new_val.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
+#include "../src/greeklib/cinsert.proto.h"
+#include "../src/greeklib/do_dissim.proto.h"
 #include "../src/greeklib/getsyll.proto.h"
+#include "../src/greeklib/isdiphth.proto.h"
 #include "../src/greeklib/nsylls.proto.h"
 #include "../src/greeklib/stripacc.proto.h"
 #include "../src/greeklib/stripbreath.proto.h"
 #include "../src/greeklib/stripdiaer.proto.h"
 #include "../src/greeklib/stripquant.proto.h"
 #include "../src/greeklib/stripstemsep.proto.h"
+#include "../src/greeklib/stripzeroend.proto.h"
 #include "../src/greeklib/xstrings.proto.h"
 
 static int
@@ -85,6 +89,33 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		char diphthong[] = "ai";
+		char empty_insert[MAXWORDSIZE] = "";
+		char insert[MAXWORDSIZE] = "abc";
+		char unrelated[] = "ai";
+
+		assert(!is_diphth(diphthong,diphthong));
+		assert(is_diphth(diphthong+1,diphthong));
+		assert(!is_diphth(diphthong+2,diphthong));
+		assert(!is_diphth(diphthong+1,unrelated));
+		assert(!is_diphth(NULL,diphthong));
+		assert(!is_diphth(diphthong,NULL));
+		assert(!starts_w_diphth(NULL));
+		assert(!starts_w_diphth(""));
+		assert(!starts_w_diphth("a"));
+		assert(starts_w_diphth(diphthong));
+		cinsert('x',insert+1);
+		assert(!strcmp(insert,"axbc"));
+		cinsert('x',empty_insert);
+		assert(!strcmp(empty_insert,"x"));
+		cinsert('x',NULL);
+		assert(!do_dissim(NULL,0));
+		assert(!do_dissim("",0));
+		assert(next_cons(NULL) == NULL);
+		assert(!next_cons_rough(NULL));
+		stripzeroend(NULL);
+	}
 	{
 		char empty[MAXWORDSIZE] = "";
 		char dental[MAXWORDSIZE] = "t";

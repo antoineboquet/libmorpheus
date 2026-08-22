@@ -5,6 +5,7 @@ void stripzeroend(char *word)
 {
 	size_t n;
 
+	if (!word) return;
 	n = Xstrlen(word);
 	if (n == 0) return;
 

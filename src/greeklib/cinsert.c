@@ -5,14 +5,16 @@
 /*	David Neel Smith		*/
 
 #include <greek.h>
+#include <string.h>
 
 
 void cinsert (int c, char *p)
 /* insert char c before point p */
 {
-	register char *enid;
+	size_t length;
 
-	for (enid = lastn(p,1) + 2; enid > p; enid--)
-		*enid = *(enid-1);
-	*enid = (char)(unsigned char)c;
+	if (!p) return;
+	length = strlen(p);
+	memmove(p+1,p,length+1);
+	*p = (char)(unsigned char)c;
 }

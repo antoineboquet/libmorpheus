@@ -12,17 +12,22 @@ bool is_diphth(char *p, char *word)
 /* acceptable diphthongs taken from Smyth 5. Subscripts are NOT diphthongs
 	for this purpose */
 {
+	char *cursor;
 	int c1, c2;
 
-	if (p - 1 < word)
+	if (!p || !word)
 		return(NO);
-	if( Is_diaeresis(*(p+1)) )
+	cursor = word;
+	while (*cursor && cursor != p) cursor++;
+	if (cursor != p || cursor == word)
 		return(NO);
 
 	c2 = (unsigned char)*p; 
 	if( isupper(c2) ) c2 = tolower(c2);
 	if (c2 != 'i' && c2 != 'u')
 		return (NO);
+	if( Is_diaeresis(*(p+1)) )
+		return(NO);
 
 	c1 = (unsigned char)*(p-1);
 	if( isupper(c1) ) c1 = tolower(c1);
@@ -42,5 +47,6 @@ bool is_diphth(char *p, char *word)
 
 int starts_w_diphth(char *stem)
 {
+	if (!stem || !stem[0] || !stem[1]) return(NO);
 	return(is_diphth(stem+1,stem));
 }
