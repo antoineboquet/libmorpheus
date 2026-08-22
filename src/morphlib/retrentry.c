@@ -19,7 +19,15 @@ init_preind(char *fname, int *maxkeys)
 	int written;
 	char tmp[LONGSTRING];
 
+	if (!maxkeys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	*maxkeys = 0;
+	if (!fname) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	written = snprintf(tmp,sizeof tmp,"%s.%s",fname,LINDEXSUFFIX);
 	if (written < 0 || written >= (int)sizeof tmp) {
 		fprintf(stderr,"preindex path is too long: %s\n",fname);
@@ -88,7 +96,11 @@ ChckPreIndex(endtags *etags, char *tag, int ntags, int exact_match,
 	long roff;
 	char curtag[KEYLEN+1];
 
-	if (!etags || ntags <= 0)
+	if (!tag || !scmp || ntags < 0 || (!etags && ntags > 0)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return((long)-1);
+	}
+	if (!etags || !ntags)
 		return((long)-1);
 	if( Xstrlen(tag) > KEYLEN ) exact_match = NO;
 	strncpy(curtag,tag,KEYLEN);
@@ -118,7 +130,11 @@ int ChckFullIndex(char *s, char *keys, char *fname, long offset,
 	int i;
 int firstline = 1;
 
-	*keys = 0;
+	if (keys) *keys = 0;
+	if (!s || !keys || !fname || !scmp) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 
 	if( (f=MorphFopen(fname,"r"))==NULL) {
 		fprintf(stderr,"ChckFullIndex(): could not open:%s\n", fname );

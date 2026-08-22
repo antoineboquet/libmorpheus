@@ -5,13 +5,18 @@
 #include "../src/api/api_internal.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/runtime_context_internal.h"
+#include "../src/morphlib/morphstrcmp.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
+#include "../src/morphlib/retrentry.proto.h"
 
 int main(void)
 {
   morpheus_runtime_context *context=morpheus_runtime_context_create();
   morpheus_runtime_context *previous;
   static const char missing_stemlib[]="/morpheus-test-missing-stemlib";
+  endtags tag={0};
+  char keys[LONGSTRING]="not empty";
+  int maxkeys=1;
 
   assert(context);
   previous=morpheus_runtime_context_activate(context);
@@ -44,6 +49,50 @@ int main(void)
   assert(!context->morph_key_domain_count);
   assert(!context->morph_key_count);
   assert(!context->morph_keys_initialized);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(!init_preind(NULL,&maxkeys));
+  assert(maxkeys==0);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(!init_preind("missing",NULL));
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(ChckPreIndex(NULL,"a",0,1,morphstrcmp)==-1);
+  assert(morpheus_runtime_status(context)==MORPHEUS_OK);
+  assert(ChckPreIndex(NULL,"a",1,1,morphstrcmp)==-1);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(ChckPreIndex(&tag,NULL,1,1,morphstrcmp)==-1);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(ChckPreIndex(&tag,"a",1,1,NULL)==-1);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(!ChckFullIndex(NULL,keys,"missing",0,morphstrncmp));
+  assert(!keys[0]);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(!ChckFullIndex("a",NULL,"missing",0,morphstrncmp));
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  strcpy(keys,"not empty");
+  assert(!ChckFullIndex("a",keys,NULL,0,morphstrncmp));
+  assert(!keys[0]);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  strcpy(keys,"not empty");
+  assert(!ChckFullIndex("a",keys,"missing",0,NULL));
+  assert(!keys[0]);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
 
   morpheus_runtime_context_activate(previous);
   morpheus_runtime_context_destroy(context);
