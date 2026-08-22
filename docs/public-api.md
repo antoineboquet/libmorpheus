@@ -24,6 +24,9 @@ version-1 structure stays 860 bytes. `morpheus_result_all_morph_flags()` copies
 the complete 112-bit in-memory representation. In particular, flag 110 is
 published as `MORPHEUS_MORPH_FLAG_GROUP_NAME`; the stemlib stores that flag in
 a legacy compatibility marker because its on-disk flag field remains 96 bits.
+Flags 1–83 and 110 have named `MORPHEUS_MORPH_FLAG_*` constants. Flag numbers
+are one-based: for flag `n`, inspect byte `(n - 1) / 8` and bit
+`1 << ((n - 1) % 8)`. Values 84–109 and 111–112 are reserved.
 
 ## Fixed-capacity text
 

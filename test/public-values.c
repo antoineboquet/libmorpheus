@@ -2,6 +2,7 @@
 
 #include <greek.h>
 #include <dialect.h>
+#include <morphflags.h>
 
 _Static_assert(sizeof(morpheus_analysis) == 860,"ABI version 1 analysis size");
 _Static_assert(MORPHEUS_PERSON_FIRST == PERS1,"first person code");
@@ -50,6 +51,22 @@ _Static_assert(MORPHEUS_DIALECT_EPIC == EPIC,"epic code");
 _Static_assert(MORPHEUS_DIALECT_PROSE == PROSE,"prose code");
 _Static_assert(MORPHEUS_REGION_PHOCIS == PHOCIS,"Phocis code");
 _Static_assert(MORPHEUS_REGION_BOEOTIA == BOEOTIA,"Boeotia code");
+_Static_assert(sizeof(morpheus_morph_flag) == sizeof(uint32_t),
+               "morph flag type width");
+_Static_assert(MORPHEUS_MORPH_FLAG_SYLL_AUGMENT == SYLL_AUGMENT,
+               "syllabic augment flag");
+_Static_assert(MORPHEUS_MORPH_FLAG_SUFFIX_ACCENT == SUFF_ACC,
+               "suffix accent flag");
+_Static_assert(MORPHEUS_MORPH_FLAG_RHO_ETA_IOTA_ALPHA == R_E_I_ALPHA,
+               "rho eta iota alpha flag");
+_Static_assert(MORPHEUS_MORPH_FLAG_INTERVOCALIC_S_TO_H == INTERV_S_TO_H,
+               "intervocalic sigma flag");
+_Static_assert(MORPHEUS_MORPH_FLAG_PRESENT_REDUPLICATION == PRES_REDUPL,
+               "present reduplication flag");
+_Static_assert(MORPHEUS_MORPH_FLAG_TAU_PREVERB == T_PREVB,
+               "tau preverb flag");
+_Static_assert(MORPHEUS_MORPH_FLAG_GROUP_NAME == GROUP_NAME,
+               "group name flag");
 
 int main(void)
 {
