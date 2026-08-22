@@ -9,6 +9,7 @@
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
 #include "../src/morphlib/new_val.proto.h"
+#include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
 
 static int
@@ -22,9 +23,42 @@ main(void)
 {
 	gk_string entries[3] = { 0 };
 	gk_string item = { 0 };
+	gk_word word_item = { 0 };
+	morpheus_runtime_context *context = morpheus_runtime_context_create();
+	morpheus_runtime_context *previous;
 	int length = 0;
 
+	assert(context);
+	previous = morpheus_runtime_context_activate(context);
 	assert(CreatGkString(0) == NULL);
+	assert(CreatGkAnal(0) == NULL);
+	assert(CreatGkword(0) == NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_NONE);
+	assert(CreatGkString(-1) == NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	assert(CreatGkAnal(-1) == NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	assert(CreatGkword(-1) == NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	ClearGkstring(NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	CpGkAnal(NULL,&word_item);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	CpGkAnal(&word_item,NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
 	assert(add_domain(&item,1) == 1);
 	assert(add_domain(&item,1) == 0);
 	assert(add_domain(&item,0) == -1);
@@ -86,5 +120,7 @@ main(void)
 		assert(!strcmp(oddkeys_of(&parsed_word),"codex_unknown_b"));
 		free(oddkeys_of(&parsed_word));
 	}
+	morpheus_runtime_context_activate(previous);
+	morpheus_runtime_context_destroy(context);
 	return(0);
 }

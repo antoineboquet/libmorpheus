@@ -10,7 +10,11 @@ CreatGkString(int num)
 /*
 printf("creat gstr %d\n", num * (sizeof * tmpgstring) );
 */
-	if (num <= 0) return(NULL);
+	if (num <= 0) {
+		if (num < 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	count = (size_t)num;
 	tmpgstring = (gk_string *)calloc(count, sizeof * tmpgstring);
 	if( tmpgstring == NULL ) {
@@ -38,8 +42,13 @@ CreatGkAnal(int num)
 {
 	gk_analysis * tmpanal = NULL;
 
+	if (num <= 0) {
+		if (num < 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	tmpanal= (gk_analysis *)calloc((size_t)num, (size_t)sizeof * tmpanal);
-	if( num > 0 && tmpanal == NULL )
+	if( tmpanal == NULL )
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 /*
 printf("creat ganal %d\n", num * (sizeof * tmpanal) );
@@ -61,14 +70,18 @@ CreatGkword(int num)
 {
 	gk_word * tmpgword = NULL;
 	
+	if (num <= 0) {
+		if (num < 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	tmpgword = (gk_word *)calloc((size_t)num,(size_t)(sizeof * tmpgword) );
 /*
 printf("creat gword %d\n", num * (sizeof * tmpgword) );
 */
 	if( ! tmpgword ) {
 		fprintf(stderr,"Could not allocate %d gwords\n", num );
-		if( num > 0 )
-			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		return((gk_word *)NULL);
 	}
 	return( tmpgword );
@@ -76,6 +89,10 @@ printf("creat gword %d\n", num * (sizeof * tmpgword) );
 
 void ClearGkstring(gk_string *gstr)
 {
+	if (!gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	*gstr = (gk_string){ 0 };
 	return;
 /*
@@ -103,6 +120,10 @@ printf("free gkword \n");
 
 void CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
 {
+	if (!Gkword1 || !Gkword2) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	totanal_of(Gkword1) = totanal_of(Gkword2);
 	analysis_of(Gkword1) = analysis_of(Gkword2);
 }
