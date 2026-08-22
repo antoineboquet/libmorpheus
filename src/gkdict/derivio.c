@@ -659,8 +659,15 @@ need_rei_alpha(char *dsuffkeys)
 int
 stemstr_in_cache(char *s, char *stemkeys)
 {
-	morpheus_runtime_context *context = derivation_context();
+	morpheus_runtime_context *context;
 	int i;
+
+	if (stemkeys) *stemkeys = 0;
+	if (!s || !stemkeys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	context = derivation_context();
 	
 	for(i=0;i<MORPHEUS_DERIVATION_CACHE_SIZE;i++) {
 		if( context->derivation_cache_stems[i][0] &&
@@ -678,11 +685,18 @@ stemstr_in_cache(char *s, char *stemkeys)
 void
 add_deriv_cache(char *s, char *keys)
 {
-	morpheus_runtime_context *context = derivation_context();
-	int index = context->derivation_cache_index;
+	morpheus_runtime_context *context;
+	int index;
 	char *new_keys = NULL;
 
-	if( index >= MORPHEUS_DERIVATION_CACHE_SIZE ) index = 0;
+	if (!s || !keys || strlen(s) >= MAXWORDSIZE ||
+	    strlen(keys) >= LONGSTRING) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	context = derivation_context();
+	index = context->derivation_cache_index;
+	if( index < 0 || index >= MORPHEUS_DERIVATION_CACHE_SIZE ) index = 0;
 	if( *keys ) {
 		new_keys = (char *)malloc((size_t)Xstrlen(keys)+1);
 		if (!new_keys) {
@@ -700,9 +714,17 @@ add_deriv_cache(char *s, char *keys)
 int
 ends_in_vowel(char *s)
 {
-	char * p;
-	
-	p = lastn(s,1);
-	while(p>=s&&!isalpha((unsigned char)*p)) p--;
-	return(Is_vowel(*p));
+	size_t length;
+
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	length = strlen(s);
+	while (length) {
+		unsigned char c = (unsigned char)s[--length];
+
+		if (isalpha(c)) return(Is_vowel(c));
+	}
+	return(0);
 }
