@@ -22,7 +22,7 @@ GenDictEntry(gk_word *Gkword, char *dentry)
 	gk_word * gkforms;
 	gk_word TmpGkword;
 	gk_string BlankGstr = { 0 };
-	int formcnt;
+	size_t formcnt;
 	Stemtype stype;
 	char keys[LONGSTRING*4];
 

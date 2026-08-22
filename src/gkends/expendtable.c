@@ -25,7 +25,6 @@ int
 	char inpfname[MAXPATHNAME];
 	char outfname[MAXPATHNAME];
 	char curendstr[MAXWORDSIZE];
-	int maxstring = 0;
 	char basename[MAXWORDSIZE];
 	char * typep;
 	char *s;
@@ -135,8 +134,6 @@ int
 		if( Is_comment(line) )
 			continue;
 		nextkey(line,curendstr);
-		if( strlen(curendstr) >= maxstring && strlen(curendstr) <= MAXENDSTRING )
-			maxstring = strlen(curendstr)+1;
 	}
 	
 
@@ -151,7 +148,7 @@ int
 
 /*
 		if( maintable ) {
-			if( AddEndLine(foutput,*line,basename,maxstring) < 0 )
+			if( AddEndLine(foutput,*line,basename) < 0 )
 
 				break;
 		} else {
@@ -159,7 +156,7 @@ int
 /*
 fprintf(stderr,"basenam [%s] line [%s]\n", basename , line );
 */
-			if( AddEndLine(/*foutput,*/line,basename,maxstring) < 0 )
+			if( AddEndLine(/*foutput,*/line,basename) < 0 )
 				break;
 /*
 		}
@@ -196,7 +193,7 @@ printf("%s\n", shortname );
 }
 
 int
-AddEndLine(/*FILE *f,*/ char *el, char *basename, int maxstring)
+AddEndLine(/*FILE *f,*/ char *el, char *basename)
 {
 	char havestr[MAXWORDSIZE];
 	gk_string * Have;

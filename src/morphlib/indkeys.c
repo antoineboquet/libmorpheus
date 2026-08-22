@@ -31,7 +31,7 @@ int index_list(char *listname, char *tagstring, int modulus)
 	char field[LONGSTRING];
 	morpheus_stemlib_offset curoff;
 	int i;
-	int taglen;
+	size_t taglen = 0;
 	
 	if( modulus > MODULUS ) modulus = MODULUS;
 	finput = MorphFopen(listname,"r");
@@ -63,10 +63,10 @@ int index_list(char *listname, char *tagstring, int modulus)
 			FILE * f;
 			
 			if( (f=fopen("inderr","a")) ) {
-				fprintf(f,"fat line %d bytes:%s\n", Xstrlen(line) , line );
+				fprintf(f,"fat line %zu bytes:%s\n", Xstrlen(line) , line );
 				fclose(f);
 			}
-			printf("fat line %d bytes:%s\n", Xstrlen(line) , line );
+			printf("fat line %zu bytes:%s\n", Xstrlen(line) , line );
 		}
 		if( is_blank(line) ) continue;
 		if( line[0] == '#' ) continue;

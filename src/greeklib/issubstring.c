@@ -16,7 +16,7 @@
 char * 
 is_substring(char *s1, char *s2)
 {
-	int slen;
+	size_t slen;
 	register char * p;
 
 

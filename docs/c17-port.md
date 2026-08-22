@@ -32,6 +32,15 @@ case conversion, while integer temporaries are initialized from unsigned bytes.
 This removes the remaining locale-sensitive undefined behavior for input bytes
 above `0x7f` without changing ASCII Beta Code processing.
 
+The first staged conversion-warning pass aligns the `Xstrlen` wrapper with the
+standard `size_t` contract and carries that type through string offsets,
+collection counts, allocation sizes, and comparison lengths. Character-table
+and in-place byte helpers now make their unsigned-byte interpretation explicit;
+domain insertion rejects values that cannot be represented by its historical
+single-byte storage. The cleaned translation units compile with
+`-Werror=conversion -Werror=sign-conversion`, while morphology bitfields remain
+a separate audited migration rather than being silenced with broad casts.
+
 The entire `cruncher` runtime closure is now a strict boundary. Its internal
 interfaces are declared in `src/anal/cruncher_internal.h`,
 `src/anal/anal_internal.h`,

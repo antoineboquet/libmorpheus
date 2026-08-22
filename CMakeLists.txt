@@ -70,8 +70,30 @@ target_compile_options(
 )
 
 set_source_files_properties(
+  src/anal/checkirreg.c
+  src/anal/checkstem.c
+  src/anal/dictstems.c
+  src/gener/genwd.c
+  src/gkdict/derivio.c
+  src/gkends/expendtable.c
+  src/gkends/indexendtables.c
+  src/gkends/mkend.c
+  src/greeklib/cinsert.c
+  src/greeklib/endsinstr.c
+  src/greeklib/gkstrlen.c
+  src/greeklib/issubstring.c
+  src/greeklib/stripzeroend.c
+  src/greeklib/subchar.c
   src/greeklib/vaxwords.c
+  src/greeklib/xstrings.c
+  src/morphlib/adddomain.c
+  src/morphlib/beta2rtf.c
+  src/morphlib/conjstem.c
   src/morphlib/endio.c
+  src/morphlib/gkstring.c
+  src/morphlib/gktoasc.c
+  src/morphlib/indkeys.c
+  src/morphlib/preverb.c
   PROPERTIES
     COMPILE_OPTIONS
       "$<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=conversion>;$<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=sign-conversion>"

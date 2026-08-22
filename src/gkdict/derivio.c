@@ -197,12 +197,14 @@ checkforderiv2(char *stemstr, char *stemkeys, char *had_redupl, char *redupstem)
 	char derivstr[LONGSTRING];
 	int rval = 0;
 	int sofar = 0;
-	int slen;
+	size_t slen;
 	char derivkeys2[LONGSTRING*2];
 	char resbuf[LONGSTRING*2];
 	
-	ep = lastn(stemstr,1);
-	slen = Xstrlen(stemstr)-1;
+	slen = Xstrlen(stemstr);
+	if (slen == 0) return(0);
+	ep = stemstr + slen - 1;
+	slen--;
 	derivkeys2[0] = resbuf[0] = 0;
 	Xstrncpy(derivstr,stemstr,LONGSTRING);
 

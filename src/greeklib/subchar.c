@@ -11,7 +11,8 @@
 void subchar(char *s, int c1, int c2)
 {
 	while(*s) {
-		if(*s == c1) *s = c2;
+		if((unsigned char)*s == (unsigned char)c1)
+			*s = (char)(unsigned char)c2;
 		s++;
 	}
 }

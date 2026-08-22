@@ -310,7 +310,7 @@ int chckirrvform(char *form, char *keys)
 
 int mfi_prvb(char *rawprvb)
 {
-	int slen = Xstrlen(rawprvb);
+	size_t slen = Xstrlen(rawprvb);
 	
 	if (slen < 2) return(0);
 	if( rawprvb[slen-1] == 'f' && rawprvb[slen-2] == 'm' ) return(1);

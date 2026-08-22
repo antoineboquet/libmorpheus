@@ -736,8 +736,8 @@ endstrcmp(char *wendstr, char *haveendstr)
 {
 	char tmp[MAXWORDSIZE];
 	char *hp, *sp;
-	int i = 0;
-	int wlen, j;
+	size_t i = 0;
+	size_t wlen;
 	
 	
 	if( morpheus_runtime_context_current()->ending_start_match ) {

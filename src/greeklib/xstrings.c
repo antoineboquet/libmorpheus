@@ -40,7 +40,7 @@ static void Ystrncpy(char *s1, const char *s2, size_t len)
 		*(p+len-1) = 0;
 		Xstrcpy(s1,p);
 		xFree(p,"Xstrncpy buffer");
-		fprintf(stderr,"%d bytes into %zu:%s\n", Xstrlen(s2), len ,s2);
+		fprintf(stderr,"%zu bytes into %zu:%s\n", Xstrlen(s2), len ,s2);
 	} else
 		Xstrcpy(s1,s2);
 }
@@ -69,9 +69,9 @@ int Xstrncmp(const char *s1, const char *s2, size_t len)
 	return(strncmp(s1,s2,(size_t)len));
 }
 
-int Xstrlen(const char *s)
+size_t Xstrlen(const char *s)
 {
-	return((int)strlen(s));
+	return(strlen(s));
 }
 
 /*

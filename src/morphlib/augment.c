@@ -378,7 +378,8 @@ int unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems
 int unaugfromlemma(char *stem, char *lemma)
 {
 	char tmp[MAXWORDSIZE];
-	int i, withlen, noauglen;
+	int i;
+	size_t withlen, noauglen;
 	int compval;
 /*
  * normal augment on consonantal stem, e.g. "e)ball" and "ba/llw"

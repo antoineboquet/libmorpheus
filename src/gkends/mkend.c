@@ -189,7 +189,7 @@ static void
 void
  CompStemEnd(gk_string *gstr, char *stem, char *endstr)
 {
-	int lastc;
+	char lastc;
 	char * ep = endstr;
 
 	lastc = *(stem+strlen(stem)-1);

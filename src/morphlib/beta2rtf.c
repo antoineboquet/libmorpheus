@@ -144,7 +144,7 @@ void conv_defline(char *s, FILE *fout)
 	fprintf(fout,"%s\\par\n", s );
 }
 
-int check_deflev(char *p, char *res, int len)
+int check_deflev(char *p, char *res, size_t len)
 {
 	char * s;
 	

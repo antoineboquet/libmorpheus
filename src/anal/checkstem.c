@@ -223,7 +223,7 @@ parsefield(char *s, char *buf, int c, int len)
 	for(i=0;*s&&*s!=c&&!isspace((unsigned char)*s);i++) {
 		*buf++ = *s++;
 		if( i >= len ) {
-			fprintf(stderr,"Hey %d chars; %d s [%s] left!\n", len , Xstrlen(s) ,s );
+			fprintf(stderr,"Hey %d chars; %zu s [%s] left!\n", len , Xstrlen(s) ,s );
 			*buf = 0;
 			while(*s&&!isspace((unsigned char)*s)) s++;
 			break;

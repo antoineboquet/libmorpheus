@@ -2,6 +2,9 @@
 #include <string.h>
 
 #include "../src/greeklib/beta_tolower.proto.h"
+#include "../src/greeklib/stripzeroend.proto.h"
+#include "../src/greeklib/subchar.proto.h"
+#include "../src/greeklib/xstrings.proto.h"
 #include "../src/greeklib/isblank.proto.h"
 #include "../src/morphlib/beta2smarta.proto.h"
 #include "../src/morphlib/nextkey.proto.h"
@@ -18,6 +21,16 @@ int main(void)
 	char high_byte_word[] = {'*',(char)(unsigned char)0377,'a','\0'};
 	char high_byte_key[] = {(char)(unsigned char)0377,' ','a','\0'};
 	char key[4];
+	char empty[] = "";
+	char replace_high_byte[] = {(char)(unsigned char)0377,'a','\0'};
+
+	_Static_assert(_Generic(Xstrlen(""), size_t: 1, default: 0),
+		"Xstrlen must preserve the size_t result of strlen");
+	assert(Xstrlen("beta") == strlen("beta"));
+	stripzeroend(empty);
+	assert(empty[0] == '\0');
+	subchar(replace_high_byte,0377,0200);
+	assert((unsigned char)replace_high_byte[0] == 0200);
 
 	assert(context);
 	previous = morpheus_runtime_context_activate(context);

@@ -182,7 +182,8 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
 /* word <- prevb+word */
 /* prevb should be fully accented (i.e.,from the array) */
 {
-	int max, i;
+	size_t max;
+	int i;
 	char work[MAXWORDSIZE];
 	char fullpb[MAXWORDSIZE];
 	char tmpword[MAXWORDSIZE];
@@ -428,8 +429,9 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
 */
 	getprvbform(tmpword,work,oddpb);
 
-	max = MAXWORDSIZE - Xstrlen(work);
+	max = Xstrlen(work) < MAXWORDSIZE ? MAXWORDSIZE - Xstrlen(work) : 0;
 	if(Xstrlen(tmpword) >= max) {
+		if (max < 2) return;
 		tmpword[max-1] = 0;
 		tmpword[max-2] = CONTCHAR;
 	}

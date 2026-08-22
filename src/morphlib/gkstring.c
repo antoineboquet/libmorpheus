@@ -6,13 +6,16 @@ gk_string *
 CreatGkString(int num)
 {
 	gk_string * tmpgstring = NULL;
+	size_t count;
 /*
 printf("creat gstr %d\n", num * (sizeof * tmpgstring) );
 */
-	tmpgstring = (gk_string *)calloc((size_t)num, (size_t)sizeof * tmpgstring);
+	if (num <= 0) return(NULL);
+	count = (size_t)num;
+	tmpgstring = (gk_string *)calloc(count, sizeof * tmpgstring);
 	if( tmpgstring == NULL ) {
-		fprintf(stderr,"Out of memory for %ld bytes to create %d gstrings\n",
-		(size_t)(num * sizeof * tmpgstring), num );
+		fprintf(stderr,"Out of memory for %zu bytes to create %d gstrings\n",
+		count * sizeof * tmpgstring, num );
 	}
 	return( tmpgstring );
 }
@@ -135,7 +138,7 @@ void CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
 	s2 = stemtype_of((gk_string *)gstr2) & STEMTYPE;
 		
 	if( s1 != s2 ) {
-		rval = s1 - s2;
+		rval = (s1 > s2) - (s1 < s2);
 		goto finish;
 	}
 	
@@ -381,7 +384,7 @@ void PrntDomains(char *doms, FILE *f)
 	char * p=doms;
 	
 	while(*p) {
-		fprintf(f,"%s ", NameOfDomain(*p) );
+		fprintf(f,"%s ", NameOfDomain((Stemtype)(unsigned char)*p) );
 		p++;
 	}
 }

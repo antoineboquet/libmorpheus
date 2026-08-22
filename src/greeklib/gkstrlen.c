@@ -10,7 +10,7 @@
 
 int gkstrlen(char *s)
 {
-	register int n;
+	size_t n;
 
 	n = Xstrlen(s);
 	if (*s == GKPRT_OFF) {
@@ -22,5 +22,5 @@ int gkstrlen(char *s)
 		for (;*s;s++)
 			if (Is_diacrit(*s) && !Is_quant(*s))
 				n--;
-	return (n);
+	return ((int)n);
 }

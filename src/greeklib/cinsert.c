@@ -14,5 +14,5 @@ void cinsert (int c, char *p)
 
 	for (enid = lastn(p,1) + 2; enid > p; enid--)
 		*enid = *(enid-1);
-	*enid = c;
+	*enid = (char)(unsigned char)c;
 }

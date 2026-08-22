@@ -13,7 +13,8 @@ indexendtables(Stemtype stype, int is_deriv)
 
 	int index = 0;
 	int i;
-	int endcount = 0;
+	size_t endcount = 0;
+	size_t output_index;
 	char **endlines;
 	gk_string Gstr;
 	const gk_string Blnk = { 0 };
@@ -40,7 +41,7 @@ indexendtables(Stemtype stype, int is_deriv)
 		if( is_deriv ) {
 			gk_string * gstring;
 			gk_word * tmpGkword;
-			int derivtype;
+			Derivtype derivtype;
 			int rconj;
 		
 			curtable = NextSuffTable(tmp);
@@ -118,7 +119,7 @@ if(  ! *sp ) {
 			}
 			*(endlines+endcount) = (char *)calloc(strlen(tmp)+1,sizeof ** endlines );
 			if( ! *(endlines+endcount) ) {
-				fprintf(stderr,"ran out of memory at %d endings!\n", endcount );
+				fprintf(stderr,"ran out of memory at %zu endings!\n", endcount );
 				return(-1);
 			}
 			Xstrcpy(*(endlines+endcount),tmp);
@@ -152,30 +153,30 @@ printf("output file:%s\n", shortname );
 	}
 	
 	prevtag[0] = 0;
-	for(i=0;i<endcount;i++) {
+	for(output_index=0;output_index<endcount;output_index++) {
 
-		nextkey(*(endlines+i),curtag);
+		nextkey(*(endlines+output_index),curtag);
 		/*
 		 * if a new keys
 		 */
 
 		if( morphstrcmp(curtag,prevtag) ) {
 			if( prevtag[0] ) fprintf(foutput,"\n");
-			fprintf(foutput,"%s%s%s", curtag, DELIMITER, *(endlines+i) );
-		} else if ( strcmp(prevkey,*(endlines+i) ) )
+			fprintf(foutput,"%s%s%s", curtag, DELIMITER, *(endlines+output_index) );
+		} else if ( strcmp(prevkey,*(endlines+output_index) ) )
 			/*
 			 * don't include lines such as "uiais perf_act perf_act"
 			 * where the same key is repeated
 			 */
-			fprintf(foutput,"%s%s", DELIMITER, *(endlines+i) );
+			fprintf(foutput,"%s%s", DELIMITER, *(endlines+output_index) );
 		Xstrcpy(prevtag,curtag);
-		Xstrcpy(prevkey,*(endlines+i));
+		Xstrcpy(prevkey,*(endlines+output_index));
 	}
 
 	fprintf(foutput,"\n");
 	fclose(foutput);
 /*	index_list(shortname,NULL);*/
-	for(i=0;i<endcount;i++) free(*(endlines+i));
+	for(output_index=0;output_index<endcount;output_index++) free(*(endlines+output_index));
 	free((char *)endlines);
 	return(0);
 

@@ -114,7 +114,7 @@ void conjoin(char *stem, char *e)
   * i can get the epic form pla/ssa.  unbelievable! ugh.
   */
  	if( (Is_dental(*p) || *p == 'z' || *p == 'n' ) && !Xstrncmp(e,"ss",2) ) {
- 		Xstrncpy(p,e,MAXWORDSIZE-(int)(p-stem));
+	 	Xstrncpy(p,e,(size_t)MAXWORDSIZE-(size_t)(p-stem));
  		return;
  	}
  	

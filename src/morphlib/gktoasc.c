@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 static const char gktoasc[] = {
 /*	alpha */	'a',	'a' + 01,
 /*	beta */		'b',	'a' + 02,
@@ -27,14 +29,12 @@ static const char gktoasc[] = {
 /*	psi */		'y',	'a' + 032,
 /*	omega */	'w',	'a' + 033,
 };
-
-
 void set_gkorder(unsigned char *s)
 {
-	int i;
+	size_t i;
 
 	for(i=0;i< sizeof gktoasc;) {
-		s[(unsigned char)gktoasc[i]] = gktoasc[i+1];
+		s[(unsigned char)gktoasc[i]] = (unsigned char)gktoasc[i+1];
 		i += 2;
 	}
 }

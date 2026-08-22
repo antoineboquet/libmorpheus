@@ -4,6 +4,7 @@
 #include <gkstring.h>
 
 #include "../src/morphlib/gkstring.proto.h"
+#include "../src/morphlib/adddomain.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
 
 static int
@@ -18,6 +19,12 @@ main(void)
 	gk_string entries[3] = { 0 };
 	gk_string item = { 0 };
 	int length = 0;
+
+	assert(CreatGkString(0) == NULL);
+	assert(add_domain(&item,1) == 1);
+	assert(add_domain(&item,1) == 0);
+	assert(add_domain(&item,0) == -1);
+	assert(add_domain(&item,256) == -1);
 
 	set_gkstring(&item,"beta");
 	add_morphflag(morphflags_of(&item),POETIC);

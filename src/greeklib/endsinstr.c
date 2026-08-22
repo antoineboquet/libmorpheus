@@ -11,12 +11,12 @@ int ends_in(char *s1, char *s2)
  {
  	register char *p1;
  	register char * p2;
- 	int n;
+	size_t n;
  	char tmp1[LOCBUF];
  	char tmp2[LOCBUF];
  	char b1[LOCBUF];
  	char b2[LOCBUF];
- 	int i;
+	size_t i;
  	
  	Xstrcpy(tmp1,s1);  s1 = tmp1;
  	Xstrcpy(tmp2,s2);  s2 = tmp2;
