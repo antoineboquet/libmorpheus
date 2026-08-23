@@ -96,6 +96,12 @@ A `pkg-config` consumer can use:
 cc analyzer.c $(pkg-config --cflags --libs libmorpheus)
 ```
 
+Both installed discovery mechanisms are relocatable when the installation
+prefix is changed with `cmake --install --prefix`. The test suite compiles,
+links, and runs independent consumers through both CMake package discovery and
+`pkg-config`, including installations whose library directory has multiple
+path components.
+
 Minimal native use:
 
 ```c
