@@ -27,13 +27,25 @@ static int ensure_preverb_table(void)
   return(1);
 }
 
+static int valid_preverb_argument(const void *argument)
+{
+  if (argument) return(1);
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  return(0);
+}
+
 int nextpreverb(char *word, char *oldprevb, char *pblemma, gk_string *gstr)
 {
   morpheus_runtime_context *context = morpheus_runtime_context_current();
   gk_string *prevb_table;
   int numprevb;
   int i = 0;
-  
+
+  if (!valid_preverb_argument(word) ||
+      !valid_preverb_argument(oldprevb) ||
+      !valid_preverb_argument(pblemma) ||
+      !valid_preverb_argument(gstr))
+    return(0);
   if (!ensure_preverb_table()) return(0);
   prevb_table = context->raw_preverb_table;
   numprevb = context->raw_preverb_count;
@@ -100,6 +112,9 @@ int nextpreverb(char *word, char *oldprevb, char *pblemma, gk_string *gstr)
 
 int has_rawpreverb(char *curpb, gk_string *pbentry)
 {
+  if (!valid_preverb_argument(curpb) ||
+      !valid_preverb_argument(pbentry))
+    return(0);
   return(!Xstrncmp(curpb,gkstring_of(pbentry),Xstrlen(gkstring_of(pbentry))));
 }
 
@@ -108,6 +123,7 @@ int is_rawpreverb(char *s)
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	int i;
 
+	if (!valid_preverb_argument(s)) return(0);
 	if (!ensure_preverb_table()) return(0);
 	for ( i = 0; i < context->raw_preverb_count; i++) {
 		if(!strcmp(s,gkstring_of(context->raw_preverb_table+i)))

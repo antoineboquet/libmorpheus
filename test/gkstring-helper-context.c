@@ -15,6 +15,7 @@
 #include "../src/morphlib/new_val.proto.h"
 #include "../src/morphlib/numovable.proto.h"
 #include "../src/morphlib/penultform.proto.h"
+#include "../src/morphlib/preverb3.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
 #include "../src/morphlib/standphon.proto.h"
@@ -171,6 +172,41 @@ main(void)
 		markstem(empty,&item);
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_NONE);
+	}
+	{
+		gk_string preverb = { 0 };
+		char word[MAXWORDSIZE] = "beta";
+		char oldpreverb[MAXWORDSIZE] = "";
+		char lemma[MAXWORDSIZE] = "";
+
+		assert(!nextpreverb(NULL,oldpreverb,lemma,&preverb));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!nextpreverb(word,NULL,lemma,&preverb));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!nextpreverb(word,oldpreverb,NULL,&preverb));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!nextpreverb(word,oldpreverb,lemma,NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!has_rawpreverb(NULL,&preverb));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!has_rawpreverb(word,NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!is_rawpreverb(NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
 	}
 	{
 		FILE *temporary = tmpfile();
