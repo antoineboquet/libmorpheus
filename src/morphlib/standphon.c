@@ -19,8 +19,14 @@
  */
 void stand_phonetics(gk_word *Gkword)
 {
-	register char * s = workword_of(Gkword);
+	char *s;
 	int lastc = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	s = workword_of(Gkword);
 	
 	while(*s) {
 		

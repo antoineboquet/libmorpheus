@@ -11,8 +11,10 @@
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
 #include "../src/morphlib/new_val.proto.h"
+#include "../src/morphlib/numovable.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
+#include "../src/morphlib/standphon.proto.h"
 #include "../src/greeklib/addaccent.proto.h"
 #include "../src/greeklib/addbreath.proto.h"
 #include "../src/greeklib/aspirate.proto.h"
@@ -113,6 +115,27 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		gk_string movable = { 0 };
+
+		strcpy(gkstring_of(&movable),"lu/si");
+		assert(takes_nu_movable(&movable));
+		add_numovable(&movable);
+		assert(!strcmp(gkstring_of(&movable),"lu/sin"));
+		assert(has_morphflag(morphflags_of(&movable),NU_MOVABLE));
+		assert(!takes_nu_movable(NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		add_numovable(NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		stand_phonetics(NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
 	{
 		FILE *temporary = tmpfile();
 		void *allocation = malloc(1);
