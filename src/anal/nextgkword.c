@@ -57,7 +57,7 @@ startover:
 	if( wp == tmpword )
 		goto startover;
 		
-	smk2beta(tmpword,word);
+	smk2beta(tmpword,word,MAXWORDSIZE);
 	return(bufp);
 }
 

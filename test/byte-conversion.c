@@ -44,6 +44,7 @@ int main(void)
 	char trailing_space[] = "beta  \t";
 	char only_space[] = " \t";
 	char stem[16] = "unchanged";
+	char tiny[2] = "x";
 
 	_Static_assert(_Generic(Xstrlen(""), size_t: 1, default: 0),
 		"Xstrlen must preserve the size_t result of strlen");
@@ -93,20 +94,25 @@ int main(void)
 	beta2smarta("a/",converted);
 	assert((unsigned char)converted[0] == 0213);
 	assert(converted[1] == '\0');
-	smarta2beta(converted,roundtrip);
+	assert(smarta2beta(converted,roundtrip,sizeof roundtrip));
 	assert(!strcmp(roundtrip,"$a/"));
 	smk_entry = context->smk_beta_table[0];
 	smarta_entry = context->smarta_beta_table[0];
 	assert(init_smk());
 	assert(context->smk_beta_table[0] == smk_entry);
 	assert(context->smarta_beta_table[0] == smarta_entry);
-	smk2beta(converted,roundtrip);
+	assert(smk2beta(converted,roundtrip,sizeof roundtrip));
 	assert(!strcmp(roundtrip,"a/"));
-	smarta2beta(uppercase_accented,roundtrip);
+	assert(smarta2beta(uppercase_accented,roundtrip,sizeof roundtrip));
 	assert((unsigned char)roundtrip[0] == '$');
 	assert((unsigned char)roundtrip[1] == 0200);
 	assert((unsigned char)roundtrip[2] == 'a');
 	assert(roundtrip[3] == '\0');
+	assert(!smarta2beta(uppercase_accented,tiny,sizeof tiny));
+	assert(!tiny[0]);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
 	assert(!is_blank(high_byte_key));
 	assert(nextkey(high_byte_key,key));
 	assert((unsigned char)key[0] == 0377);
@@ -137,12 +143,12 @@ int main(void)
 	assert((unsigned char)converted[0] == 0373);
 	assert(converted[1] == '\0');
 
-	smk2beta(NULL,roundtrip);
+	assert(!smk2beta(NULL,roundtrip,sizeof roundtrip));
 	assert(!roundtrip[0]);
 	assert(morpheus_runtime_context_error(context) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(context);
-	smk2beta("a",NULL);
+	assert(!smk2beta("a",NULL,0));
 	assert(morpheus_runtime_context_error(context) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(context);

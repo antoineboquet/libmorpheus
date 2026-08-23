@@ -1,8 +1,8 @@
 
 /* smk2beta.c */
-void smarta2beta(char *, char *);
-void smk2beta(char *, char *);
+int smarta2beta(char *, char *, size_t);
+int smk2beta(char *, char *, size_t);
 int smk2betachar(int);
 int init_smk(void);
-void set_cur_font(int, char *);
-void trap_upper(char *, char *);
+int set_cur_font(int, char *, size_t);
+int trap_upper(char *, size_t, char *);

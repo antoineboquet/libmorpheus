@@ -49,7 +49,7 @@ int main(void)
 	set_roman();
 	beta2smarta("a",converted);
 	assert(!strcmp(converted,"A"));
-	smarta2beta("a",converted);
+	assert(smarta2beta("a",converted,sizeof converted));
 	assert(!strcmp(converted,"$a"));
 	set_lang(GREEK);
 	assert(is_rawpreverb("upo"));
@@ -66,7 +66,7 @@ int main(void)
 	assert(GetStemNum("os_ou"));
 	beta2smarta("a",converted);
 	assert(!strcmp(converted,"a"));
-	smk2beta("a",converted);
+	assert(smk2beta("a",converted,sizeof converted));
 	assert(!strcmp(converted,"a"));
 	morpheus_runtime_context_destroy(greek);
 	assert(cur_lang() == GREEK);
