@@ -3,6 +3,8 @@
 #include <gkstring.h>
 
 #include "../src/anal/checkirreg.proto.h"
+#include "../src/anal/checkdict.proto.h"
+#include "../src/anal/dictstems.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/runtime_context_internal.h"
 
@@ -29,6 +31,22 @@ main(void)
 	assert(first);
 	assert(second);
 	previous = morpheus_runtime_context_activate(first);
+	assert(!try_irregvb(NULL));
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
+	assert(!CheckIrregForm(NULL,NULL,NULL));
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
+	assert(!checkdict(NULL,NULL,NULL));
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
+	assert(dictstems(NULL,NULL,NO,NULL,NULL,NULL,0) == -1);
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
 	initialize_irregular_buffers();
 	assert(first->analysis_irregular_buffers_initialized);
 	first_form = first->analysis_irregular_forms[0];

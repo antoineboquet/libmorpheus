@@ -1,9 +1,18 @@
 #include "anal_internal.h"
 #include <modes.h>
+#include "../morphlib/runtime_context.h"
 #define MAXPPARTS 12
 
 #include "checkdict.proto.h"
 extern int verbose;
+
+static int
+valid_dictionary_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
 
 int checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
 {
@@ -12,10 +21,16 @@ int checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
 	gk_word * gkforms = NULL;
 	char tmp[MAXWORDSIZE];
 	gk_word SaveGkword;
-	char * prevb = preverb_of(Gkword);
+	char * prevb;
 	char * pbptr;
 	char curkeys[LONGSTRING+1];
 	char keyp[LONGSTRING+1];
+
+	if (!valid_dictionary_argument(Gkword) ||
+	    !valid_dictionary_argument(stem) ||
+	    !valid_dictionary_argument(stemkeys))
+		return(0);
+	prevb = preverb_of(Gkword);
 
 	hits = 0;
 	
@@ -152,6 +167,11 @@ char *
 GetLemmStem(char *keys, char *lemma, char *stem)
 {
 	register char * a;
+
+	if (!valid_dictionary_argument(keys) ||
+	    !valid_dictionary_argument(lemma) ||
+	    !valid_dictionary_argument(stem))
+		return(NULL);
 	
 	if( *keys == ':' ) keys++;
 	

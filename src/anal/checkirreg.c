@@ -4,6 +4,14 @@
 
 #include "checkirreg.proto.h"
 
+static int
+valid_irregular_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 
 static int
 initialize_irregular_buffers(morpheus_runtime_context *context)
@@ -50,6 +58,8 @@ int try_irregvb(gk_word *Gkword)
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	char **IrrForms = context->analysis_irregular_forms;
 	char **IrrKeys = context->analysis_irregular_keys;
+
+	if (!valid_irregular_argument(Gkword)) return(0);
 	
 	saveirrform = (char *)malloc((size_t)MAXWORDSIZE);
 	if (!saveirrform || !initialize_irregular_buffers(context)) {
@@ -234,6 +244,11 @@ int ChckIrrLemms(gk_word *Gkword, char *irrform, char *irrkey)
 	int rval = 0;
 	int curval = 0;
 
+	if (!valid_irregular_argument(Gkword) ||
+	    !valid_irregular_argument(irrform) ||
+	    !valid_irregular_argument(irrkey))
+		return(0);
+
 
 	while( nextkey(irrkey,curlemma) ) {
 		sp = curlemma;
@@ -268,9 +283,15 @@ int CheckIrregForm(gk_word *Gkword, char *stem, char *stemkeys)
 	gk_word * Forms = NULL;
 	gk_word StemForms;
 	gk_string Gstr;
-	char * prevb = preverb_of(Gkword);
+	char * prevb;
 	char * pbptr;
 	int rval = 0;
+
+	if (!valid_irregular_argument(Gkword) ||
+	    !valid_irregular_argument(stem) ||
+	    !valid_irregular_argument(stemkeys))
+		return(0);
+	prevb = preverb_of(Gkword);
 
 	StemForms = (*Gkword);
 	set_stem(&StemForms,stem);
@@ -307,6 +328,10 @@ int chckirrvform(char *form, char *keys)
 	char tmpform[MAXWORDSIZE];
 	int rval;
 	int curacc, cursyll;
+
+	if (!valid_irregular_argument(form) ||
+	    !valid_irregular_argument(keys))
+		return(0);
 	
 /*
 	if( (rval=chckirrverb(form,keys)) )
@@ -321,6 +346,7 @@ int chckirrvform(char *form, char *keys)
 
 int mfi_prvb(char *rawprvb)
 {
+	if (!valid_irregular_argument(rawprvb)) return(0);
 	size_t slen = Xstrlen(rawprvb);
 	
 	if (slen < 2) return(0);

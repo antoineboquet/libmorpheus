@@ -20,6 +20,18 @@ int dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemt
 	int gotpparts = 0;
 
 	int anystem = 0;
+	int slot;
+
+	if (!lemma || !nstems || !orgstem || !pparttab || maxpparts < 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
+	for (slot = 0; slot < maxpparts; slot++) {
+		if (!pparttab[slot]) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return(-1);
+		}
+	}
 	
 	line = malloc((size_t)(BUFSIZ * 4) + 1);
 	lemmfile = malloc((size_t)LONGSTRING + 1);
