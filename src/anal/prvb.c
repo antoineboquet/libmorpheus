@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "anal_internal.h"
+#include "../morphlib/runtime_context.h"
 
 #include "prvb.proto.h"
 
@@ -11,6 +12,11 @@ int strippreverb(gk_word *Gkword, char *endkeys, int rval)
 	int foo;
 	
 	gk_word WorkGkword;
+
+	if (!Gkword || !endkeys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 /*
  * let's see if the stem by itself flies without a preverb
  */
@@ -93,6 +99,10 @@ stem_of(&WorkGkword), endstring_of(&WorkGkword) );
  */
 int doubled_cons(char *s)
 {
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	if( *s == 'r' ) 
 		return(0);
 	if( ! Is_cons(*s) ) return(0);

@@ -38,6 +38,10 @@ check_word_once(char *string, PrntFlags prntflags)
 gk_word *
 morpheus_check_word(char *string, PrntFlags prntflags)
 {
+  if(!string) {
+    morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+    return(NULL);
+  }
   gk_word *word=check_word_once(string,prntflags);
   char retry[MAXWORDSIZE];
 
@@ -60,6 +64,10 @@ morpheus_check_word(char *string, PrntFlags prntflags)
 
 int checkstring(char *string, PrntFlags prntflags, FILE *fout)
 {
+  if(!string) {
+    morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+    return(0);
+  }
   gk_word *Gkword=morpheus_check_word(string,prntflags);
   int nanals;
   if(!Gkword) return(0);
@@ -81,6 +89,11 @@ int cntlems(gk_word *Gkword )
 	gk_analysis * Anal;
 	char prevlem[BUFSIZ];
 
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+
 	prevlem[0] = 0;
 	
 	for(i=0;i<totanal_of(Gkword);i++) {
@@ -97,7 +110,13 @@ int cntlems(gk_word *Gkword )
 int is_article(gk_word * Gkword)
 {
 	int i;
-	gk_analysis * curanal = analysis_of(Gkword);
+	gk_analysis * curanal;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	curanal = analysis_of(Gkword);
 
 	for(i=0;i<totanal_of(Gkword);i++) {
 		if( !strcmp("article", NameOfStemtype(stemtype_of(curanal+i))))

@@ -3,6 +3,9 @@
 #include <gkstring.h>
 
 #include "../src/anal/checkword.proto.h"
+#include "../src/anal/checkstring.proto.h"
+#include "../src/anal/checkpreverb.proto.h"
+#include "../src/anal/prvb.proto.h"
 #include "../src/anal/checkcrasis.proto.h"
 #include "../src/anal/checkindecl.proto.h"
 #include "../src/anal/checknom.proto.h"
@@ -44,6 +47,22 @@ main(void)
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(first);
 	assert(!checkcrasis(NULL));
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
+	assert(!morpheus_check_word(NULL,(PrntFlags)0));
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
+	assert(!checkstring(NULL,(PrntFlags)0,stdout));
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
+	assert(!Check_preverb(NULL,NULL));
+	assert(morpheus_runtime_context_error(first) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(first);
+	assert(!strippreverb(NULL,NULL,0));
 	assert(morpheus_runtime_context_error(first) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(first);

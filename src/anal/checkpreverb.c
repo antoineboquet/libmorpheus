@@ -1,4 +1,5 @@
 #include "anal_internal.h"
+#include "../morphlib/runtime_context.h"
 
 #include "checkpreverb.proto.h"
 /*
@@ -14,6 +15,11 @@ int Check_preverb(gk_word *Gkword, gk_string *gstr)
 	int rval = 0;
 	int sawstems = 0;
 	int voice;
+
+	if (!Gkword || !gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 	voice = voice_of(forminfo_of(gstr));
 return(1);
