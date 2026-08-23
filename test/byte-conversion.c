@@ -32,6 +32,8 @@ int main(void)
 	char marker_only[] = "*";
 	char multiple_accents[] = "a//b/";
 	char normalized[] = "*(/ellhn";
+	char blank_key[] = "   ";
+	char stale_key[8] = "stale";
 	char overlap_left[16] = "abcdef";
 	char overlap_right[16] = "abcdef";
 	char remove_chars[] = "a---b-";
@@ -92,6 +94,10 @@ int main(void)
 	assert((unsigned char)key[0] == 0377);
 	assert(key[1] == '\0');
 	assert(!strcmp(high_byte_key,"a"));
+	assert(!nextkey(blank_key,stale_key));
+	assert(!stale_key[0]);
+	assert(!nextkey(NULL,key));
+	assert(!nextkey(blank_key,NULL));
 	assert(beta_tolower(high_byte_word));
 	assert(high_byte_word[0] == 'a');
 	assert((unsigned char)high_byte_word[1] == 0377);
