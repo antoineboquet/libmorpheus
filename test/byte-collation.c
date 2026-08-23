@@ -18,6 +18,16 @@ int main(void)
 	assert(morphstrcmp(higher_byte,lower_byte) > 0);
 	assert(morphstrncmp(lower_byte,higher_byte,1) < 0);
 	assert(betastrcmp(lower_byte,higher_byte) < 0);
+	assert(dictstrncmp("a-/b","ab",2) == 0);
+	assert(dictstrncmp("ab","ac",2) < 0);
+	assert(dictstrncmp("ac","ab",2) > 0);
+	assert(morphstrncmp(NULL,NULL,0) == 0);
+	assert(morphstrcmp(NULL,NULL) == 0);
+	assert(morphstrcmp(NULL,"a") < 0);
+	assert(morphstrcmp("a",NULL) > 0);
+	assert(betastrcmp(NULL,NULL) == 0);
+	assert(dictstrcmp(NULL,NULL) == 0);
+	assert(dictstrncmp(NULL,NULL,1) == 0);
 
 	morpheus_runtime_context_activate(previous);
 	morpheus_runtime_context_destroy(context);

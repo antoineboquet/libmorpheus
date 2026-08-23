@@ -3,6 +3,14 @@
 
 #include "morphstrcmp.proto.h"
 
+static int compare_nulls(const char *s1, const char *s2, int *result)
+{
+	if (s1 && s2) return(0);
+	if (s1 == s2) *result = 0;
+	else *result = s1 ? 1 : -1;
+	return(1);
+}
+
 /*
  * Compare strings:  s1>s2: >0  s1==s2: 0  s1<s2: <0
  */
@@ -10,7 +18,9 @@ int morphstrcmp(char *s1, char *s2)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	unsigned char *comptab = context->comparison_table;
+	int result;
 
+	if (compare_nulls(s1,s2,&result)) return(result);
 	if( ! context->comparison_table_initialized ) {
 		init_comptab();
 	}
@@ -32,7 +42,9 @@ int betastrcmp(char *s1, char *s2)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	unsigned char *betatab = context->beta_table;
+	int result;
 
+	if (compare_nulls(s1,s2,&result)) return(result);
 	if( ! context->beta_table_initialized ) {
 		init_betatab();
 	}
@@ -60,11 +72,13 @@ int morphstrncmp(const char *s1, const char *s2, size_t n)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	unsigned char *comptab = context->comparison_table;
+	int result;
 
+	if (!n) return(0);
+	if (compare_nulls(s1,s2,&result)) return(result);
 	if( ! context->comparison_table_initialized ) {
 		init_comptab();
 	}
-	if (n <= 0) return ( 0 );
 	for (; --n && (comptab[(unsigned char)*s1] ==
 		comptab[(unsigned char)*s2]); s1++, s2++) {
 		if (!*s1) break;
@@ -78,8 +92,9 @@ int dictstrcmp(char *s1, char *s2)
 {
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	unsigned char *comptab = context->comparison_table;
-	register char * t1, * t2;
-	t1 = s1; t2 = s2;
+	int result;
+
+	if (compare_nulls(s1,s2,&result)) return(result);
 	if( ! context->comparison_table_initialized ) {
 		init_comptab();
 	}
@@ -106,31 +121,23 @@ int dictstrcmp(char *s1, char *s2)
 
 int dictstrncmp(const char *s1, const char *s2, size_t n)
 {
-	char b1[BUFSIZ/2];
-	char b2[BUFSIZ/2];
-	register char * s;
-	
-	s = b1;
-	while(*s1) {
-		if( ! isalpha((unsigned char)*s1) ) {
-			s1++;
-			continue;
-		}
-		*s++ = *s1++;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	unsigned char *comptab = context->comparison_table;
+	int result;
+
+	if (!n) return(0);
+	if (compare_nulls(s1,s2,&result)) return(result);
+	if (!context->comparison_table_initialized) init_comptab();
+	while (n--) {
+		while (*s1 && !isalpha((unsigned char)*s1)) s1++;
+		while (*s2 && !isalpha((unsigned char)*s2)) s2++;
+		result = (int)comptab[(unsigned char)*s1] -
+		         (int)comptab[(unsigned char)*s2];
+		if (result || !*s1) return(result);
+		s1++;
+		s2++;
 	}
-	*s = 0;
-	
-	s = b2;
-	while(*s1) {
-		if( ! isalpha((unsigned char)*s2) ) {
-			s2++;
-			continue;
-		}
-		*s++ = *s2++;
-	}
-	*s = 0;
-	
-	return(morphstrncmp(b1,b2,n));
+	return(0);
 }
 
 void init_comptab(void)
