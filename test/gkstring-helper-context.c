@@ -6,15 +6,20 @@
 
 #include "../src/morphlib/gkstring.proto.h"
 #include "../src/morphlib/adddomain.proto.h"
+#include "../src/morphlib/antepenform.proto.h"
 #include "../src/morphlib/conjstem.proto.h"
 #include "../src/morphlib/fixacc.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
+#include "../src/morphlib/markstem.proto.h"
 #include "../src/morphlib/new_val.proto.h"
 #include "../src/morphlib/numovable.proto.h"
+#include "../src/morphlib/penultform.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
 #include "../src/morphlib/standphon.proto.h"
+#include "../src/morphlib/ultform.proto.h"
+#include "../src/morphlib/ulttakescirc.proto.h"
 #include "../src/greeklib/addaccent.proto.h"
 #include "../src/greeklib/addbreath.proto.h"
 #include "../src/greeklib/aspirate.proto.h"
@@ -135,6 +140,37 @@ main(void)
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
+	}
+	{
+		word_form form = { 0 };
+
+		assert(!antepen_form(NULL,form));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!penult_form(NULL,form));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!ultima_form(NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!ulttakescirc(NULL,form));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		markstem(NULL,&item);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		markstem(empty,NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		markstem(empty,&item);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_NONE);
 	}
 	{
 		FILE *temporary = tmpfile();

@@ -19,6 +19,10 @@
 {
 	register char * lastp;
 
+	if (!stemstr || !gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	lastp = stemstr;
 	while(*lastp) lastp++;
 	
