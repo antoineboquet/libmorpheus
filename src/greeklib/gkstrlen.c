@@ -12,6 +12,7 @@ int gkstrlen(char *s)
 {
 	size_t n;
 
+	if (!s) return(0);
 	n = Xstrlen(s);
 	if (*s == GKPRT_OFF) {
 		s++;

@@ -14,6 +14,7 @@
 #include "../src/morphlib/setlang.proto.h"
 #include "../src/greeklib/addaccent.proto.h"
 #include "../src/greeklib/addbreath.proto.h"
+#include "../src/greeklib/aspirate.proto.h"
 #include "../src/greeklib/checkaccent.proto.h"
 #include "../src/greeklib/cinsert.proto.h"
 #include "../src/greeklib/do_dissim.proto.h"
@@ -23,13 +24,17 @@
 #include "../src/greeklib/getbreath.proto.h"
 #include "../src/greeklib/getquantity.proto.h"
 #include "../src/greeklib/getsyll.proto.h"
+#include "../src/greeklib/gkstrlen.proto.h"
 #include "../src/greeklib/hasaccent.proto.h"
 #include "../src/greeklib/hasdiaer.proto.h"
 #include "../src/greeklib/hasquant.proto.h"
 #include "../src/greeklib/isdiphth.proto.h"
+#include "../src/greeklib/isblank.proto.h"
 #include "../src/greeklib/longbyposition.proto.h"
+#include "../src/greeklib/naccents.proto.h"
 #include "../src/greeklib/nsylls.proto.h"
 #include "../src/greeklib/quantprim.proto.h"
+#include "../src/greeklib/shortanalog.proto.h"
 #include "../src/greeklib/standalpha.proto.h"
 #include "../src/greeklib/standword.proto.h"
 #include "../src/greeklib/stripacc.proto.h"
@@ -105,6 +110,23 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		char accents[] = "a/=\\";
+		char aspirated = 'p';
+		char long_vowel = 'h';
+
+		aspirate(&aspirated);
+		assert(aspirated == 'f');
+		shortanalog(&long_vowel);
+		assert(long_vowel == 'e');
+		assert(naccents(accents) == 3);
+		assert(gkstrlen("a)/") == 1);
+		assert(is_blank(NULL));
+		assert(!naccents(NULL));
+		assert(!gkstrlen(NULL));
+		aspirate(NULL);
+		shortanalog(NULL);
+	}
 	{
 		char adjacent[] = "a_a_";
 		char unchanged[] = "alpha";

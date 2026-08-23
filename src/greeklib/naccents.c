@@ -11,6 +11,7 @@ int naccents(char *p)
 {
 	register int r;
 
+	if (!p) return(0);
 	r = 0;
 	while (*p) {
 		if (Is_accent(*p))
