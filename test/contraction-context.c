@@ -7,6 +7,7 @@
 #include "../src/gkends/contract.proto.h"
 #include "../src/gkends/fixeta.proto.h"
 #include "../src/morphlib/gkstring.proto.h"
+#include "../src/morphlib/loadeuph.proto.h"
 #include "../src/morphlib/runtime_context.h"
 
 static void
@@ -52,6 +53,23 @@ main(void)
 	morpheus_runtime_context_set_language(latin,LATIN);
 
 	previous = morpheus_runtime_context_activate(greek);
+	{
+		int count = 1;
+
+		assert(!load_euph_tab(NULL,&count,NO));
+		assert(count == 0);
+		assert(morpheus_runtime_context_error(greek) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(greek);
+		assert(!load_euph_tab("table",NULL,NO));
+		assert(morpheus_runtime_context_error(greek) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(greek);
+		assert(count_rlines(NULL) == -1);
+		assert(morpheus_runtime_context_error(greek) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(greek);
+	}
 	assert_euphony("zs","s");
 	assert_contraction("ea","h");
 	assert(morpheus_runtime_context_error(greek) ==

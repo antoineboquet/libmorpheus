@@ -6,6 +6,27 @@
 
 static const gk_string Blnk;
 
+static int next_bounded_key(char *keylist, char *key, size_t capacity)
+{
+	char *start;
+	size_t length;
+
+	if (!keylist || !key || !capacity) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	start = keylist;
+	while (isspace((unsigned char)*start)) start++;
+	length = 0;
+	while (start[length] && !isspace((unsigned char)start[length])) length++;
+	if (!length || length >= capacity) {
+		*key = 0;
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	return(nextkey(keylist,key));
+}
+
 gk_string *
 load_euph_tab(char *filename, int *gotno, int is_contr)
 {
@@ -26,6 +47,10 @@ load_euph_tab(char *filename, int *gotno, int is_contr)
 		return(NULL);
 	}
 	*gotno = 0;
+	if (!filename || !*filename) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 
 	if( (f=MorphFopen(filename,"r")) == NULL ) {
 		fprintf(stderr,"Could not open [%s]\n", filename );
@@ -57,8 +82,10 @@ load_euph_tab(char *filename, int *gotno, int is_contr)
 /*
 printf("line:%s\n", line );
 */
-		nextkey(line,s);
-		nextkey(line,s+MAXSUBSTRING);
+		if (!next_bounded_key(line,s,MAXSUBSTRING) ||
+		    !next_bounded_key(line,s+MAXSUBSTRING,
+		                      MAXWORDSIZE-MAXSUBSTRING))
+			goto failed;
 		/*
 		 * if raw and cooked are the same then we hit an infinitely
 		 * recursive loop. mark cooked with a diaeresis if it is the same as raw so
@@ -129,6 +156,10 @@ int count_rlines(FILE *f)
 	char line[BUFSIZ];
 	int nlines = 0;
 
+	if (!f) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	while(GetTableLine(line,sizeof line,f)) {
 		if (nlines >= INT_MAX-1) {
 			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
