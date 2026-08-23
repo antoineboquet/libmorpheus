@@ -16,9 +16,14 @@ interface Configuration {
   readonly contextCounts: readonly number[];
   readonly coldSamples: number;
   readonly json: boolean;
+  readonly baselinePath: string | null;
+  readonly label: string | null;
+  readonly sourceRevision: string | null;
+  readonly stemlibRevision: string | null;
+  readonly compiler: string | null;
 }
 
-interface Measurement {
+export interface Measurement {
   readonly engine: string;
   readonly contexts: number;
   readonly operations: number;
@@ -29,6 +34,33 @@ interface Measurement {
   readonly analyses: number | null;
   readonly peakRssBytes: number | null;
   readonly rssGrowthBytes: number | null;
+}
+
+export interface BenchmarkReport {
+  readonly schemaVersion: 1;
+  readonly generatedAt: string;
+  readonly label: string | null;
+  readonly platform: typeof Deno.build;
+  readonly runtime: typeof Deno.version;
+  readonly hardwareConcurrency: number;
+  readonly sourceRevision: string | null;
+  readonly stemlibRevision: string | null;
+  readonly compiler: string | null;
+  readonly corpus: string;
+  readonly corpusSha256: string;
+  readonly uniqueWords: number;
+  readonly iterations: number;
+  readonly warmupIterations: number;
+  readonly measurements: readonly Measurement[];
+}
+
+export interface BenchmarkComparison {
+  readonly engine: string;
+  readonly contexts: number;
+  readonly throughputChangePercent: number;
+  readonly meanLatencyChangePercent: number;
+  readonly peakRssChangePercent: number | null;
+  readonly rssGrowthChangePercent: number | null;
 }
 
 const encoder = new TextEncoder();
@@ -48,6 +80,11 @@ function parseArguments(arguments_: readonly string[]): Configuration {
   let contextCounts: readonly number[] = [1, 2, 4];
   let coldSamples = 10;
   let json = false;
+  let baselinePath: string | null = null;
+  let label: string | null = null;
+  let sourceRevision: string | null = null;
+  let stemlibRevision: string | null = null;
+  let compiler: string | null = null;
 
   for (let index = 0; index < arguments_.length; index++) {
     const argument = arguments_[index];
@@ -72,6 +109,11 @@ function parseArguments(arguments_: readonly string[]): Configuration {
       case "--cold-samples":
         coldSamples = positiveInteger(next(), argument, true);
         break;
+      case "--baseline": baselinePath = next(); break;
+      case "--label": label = next(); break;
+      case "--revision": sourceRevision = next(); break;
+      case "--stemlib-revision": stemlibRevision = next(); break;
+      case "--compiler": compiler = next(); break;
       case "--json": json = true; break;
       default: throw new Error(`unknown argument: ${argument}`);
     }
@@ -83,6 +125,11 @@ function parseArguments(arguments_: readonly string[]): Configuration {
     contextCounts,
     coldSamples,
     json,
+    baselinePath,
+    label,
+    sourceRevision,
+    stemlibRevision,
+    compiler,
   };
 }
 
@@ -100,6 +147,76 @@ async function loadWords(path: string): Promise<readonly string[]> {
     .filter(Boolean))];
   if (!words.length) throw new Error(`no benchmark words found in ${path}`);
   return words;
+}
+
+async function corpusSha256(words: readonly string[]): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(JSON.stringify(words)),
+  ));
+  return [...digest].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+function percentageChange(current: number, baseline: number): number {
+  if (!Number.isFinite(current) || !Number.isFinite(baseline) || baseline === 0) {
+    throw new Error("benchmark values must be finite and baseline values nonzero");
+  }
+  return (current / baseline - 1) * 100;
+}
+
+export function compareReports(
+  baseline: BenchmarkReport,
+  current: BenchmarkReport,
+): readonly BenchmarkComparison[] {
+  if (baseline.schemaVersion !== 1 || current.schemaVersion !== 1) {
+    throw new Error("unsupported benchmark report schema");
+  }
+  if (baseline.corpusSha256 !== current.corpusSha256) {
+    throw new Error("benchmark corpus differs from baseline");
+  }
+  const baselineMeasurements = new Map(
+    baseline.measurements.map((measurement) =>
+      [`${measurement.engine}:${measurement.contexts}`, measurement] as const
+    ),
+  );
+  return current.measurements.map((measurement) => {
+    const previous = baselineMeasurements.get(
+      `${measurement.engine}:${measurement.contexts}`,
+    );
+    if (!previous) {
+      throw new Error(
+        `baseline lacks ${measurement.engine} with ${measurement.contexts} contexts`,
+      );
+    }
+    const optionalChange = (
+      value: number | null,
+      baselineValue: number | null,
+    ) => value === null || baselineValue === null
+      ? null
+      : baselineValue === 0
+      ? (value === 0 ? 0 : null)
+      : percentageChange(value, baselineValue);
+    return {
+      engine: measurement.engine,
+      contexts: measurement.contexts,
+      throughputChangePercent: percentageChange(
+        measurement.operationsPerSecond,
+        previous.operationsPerSecond,
+      ),
+      meanLatencyChangePercent: percentageChange(
+        measurement.meanMicroseconds,
+        previous.meanMicroseconds,
+      ),
+      peakRssChangePercent: optionalChange(
+        measurement.peakRssBytes,
+        previous.peakRssBytes,
+      ),
+      rssGrowthChangePercent: optionalChange(
+        measurement.rssGrowthBytes,
+        previous.rssGrowthBytes,
+      ),
+    };
+  });
 }
 
 function summarize(
@@ -284,6 +401,20 @@ function printable(measurement: Measurement) {
   };
 }
 
+function printableComparison(comparison: BenchmarkComparison) {
+  const percent = (value: number | null) => value === null
+    ? "n/a"
+    : `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
+  return {
+    engine: comparison.engine,
+    contexts: comparison.contexts,
+    throughput: percent(comparison.throughputChangePercent),
+    mean_latency: percent(comparison.meanLatencyChangePercent),
+    peak_rss: percent(comparison.peakRssChangePercent),
+    rss_growth: percent(comparison.rssGrowthChangePercent),
+  };
+}
+
 if (import.meta.main) {
   const configuration = parseArguments(Deno.args);
   const libraryPath = requireEnvironment("MORPHEUS_LIBRARY");
@@ -315,18 +446,40 @@ if (import.meta.main) {
   );
   if (cold) measurements.push(cold);
 
-  const report = {
+  const report: BenchmarkReport = {
+    schemaVersion: 1,
     generatedAt: new Date().toISOString(),
+    label: configuration.label,
     platform: Deno.build,
+    runtime: Deno.version,
+    hardwareConcurrency: navigator.hardwareConcurrency,
+    sourceRevision: configuration.sourceRevision ??
+      Deno.env.get("MORPHEUS_BENCHMARK_REVISION") ?? null,
+    stemlibRevision: configuration.stemlibRevision ??
+      Deno.env.get("MORPHEUS_STEMLIB_REVISION") ?? null,
+    compiler: configuration.compiler ??
+      Deno.env.get("MORPHEUS_BENCHMARK_COMPILER") ?? null,
     corpus: configuration.fixturePath,
+    corpusSha256: await corpusSha256(words),
     uniqueWords: words.length,
     iterations: configuration.iterations,
     warmupIterations: configuration.warmupIterations,
     measurements,
   };
+  const comparison = configuration.baselinePath
+    ? compareReports(
+      JSON.parse(await Deno.readTextFile(configuration.baselinePath)) as BenchmarkReport,
+      report,
+    )
+    : null;
   if (configuration.json) {
-    console.log(JSON.stringify(report, null, 2));
+    console.log(JSON.stringify(
+      comparison === null ? report : { ...report, comparison },
+      null,
+      2,
+    ));
   } else {
     console.table(measurements.map(printable));
+    if (comparison) console.table(comparison.map(printableComparison));
   }
 }
