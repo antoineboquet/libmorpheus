@@ -295,6 +295,13 @@ The public ABI, installed CMake consumer, Deno FFI boundary, and compatibility
 client are now established. The next work concentrates on API documentation,
 packaging, benchmarks, and removal of transitional internal build surfaces.
 
+The installed `pkg-config` metadata computes its prefix relative to the actual
+metadata destination instead of assuming a two-component `lib/pkgconfig`
+layout. This keeps prefix overrides relocatable with multi-component GNU-style
+library directories. Its installation test now compiles, links, and executes
+the same independent ABI consumer used by the CMake package test; checking only
+the reported project version is no longer considered sufficient.
+
 Every lot must keep both fixture suites passing: the inherited Perseids
 fixtures and the Greek Alpheios stemlib fixtures used by Bailly.
 
