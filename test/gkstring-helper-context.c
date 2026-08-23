@@ -321,6 +321,36 @@ main(void)
 		morpheus_runtime_context_clear_error(context);
 	}
 	{
+		gk_word accent_word = { 0 };
+		gk_string form = { 0 };
+		gk_string stem = { 0 };
+		word_form form_info = { 0 };
+		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+		char output[MAXWORDSIZE] = "not empty";
+
+		putsimpleacc(NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		FixRecAcc(NULL,flags,output);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		FixRecAcc(&accent_word,NULL,output);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		FixPersAcc(&form,flags,&stem,empty,NULL,form_info,NO);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		FixPersAcc(NULL,flags,&stem,empty,output,form_info,NO);
+		assert(!output[0]);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
+	{
 		gk_string stem = { 0 };
 		gk_string ending = { 0 };
 		word_form form = { 0 };

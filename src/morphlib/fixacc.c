@@ -4,12 +4,19 @@
 #include "fixacc.proto.h"
 static void fixnacc2(char *, gk_string *, word_form, int, bool);
 
+static int valid_accent_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
 
 void putsimpleacc(char *s)
 {
 	gk_word * gkword;
 	MorphFlags mflags[MORPHFLAG_STORAGE_BYTES] = { 0 };
-	
+
+	if (!valid_accent_argument(s)) return;
 	if( cur_lang() == LATIN || cur_lang() == ITALIAN ) return;
 
 	gkword = (gk_word *) CreatGkword(1);
@@ -31,7 +38,10 @@ void FixRecAcc(gk_word *gkform, MorphFlags *mflags, char *word)
 	register char *p;
 	word_form form_info;
 
-
+	if (!valid_accent_argument(gkform) ||
+	    !valid_accent_argument(mflags) ||
+	    !valid_accent_argument(word))
+		return;
 	if( cur_lang() == LATIN || cur_lang() == ITALIAN ) return;
 	form_info = forminfo_of(gkform);
 
@@ -101,6 +111,7 @@ void FixPersAcc(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, cha
 {
   size_t word_length;
 
+  if (!valid_accent_argument(word)) return;
   FixPersAcc2(gstring, mflags, stemgstr, endstring, word, form_info, is_ending);
 
   word_length = strlen(word);
@@ -112,10 +123,17 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 	register char *p;
 	char tmp[MAXWORDSIZE];
 	char workstem[MAXWORDSIZE];
-	char * stem = gkstring_of(stemgstr);
+	char *stem;
 	bool is_oblique;
 
+	if (!valid_accent_argument(word)) return;
 	*word = 0;
+	if (!valid_accent_argument(gstring) ||
+	    !valid_accent_argument(mflags) ||
+	    !valid_accent_argument(stemgstr) ||
+	    !valid_accent_argument(endstring))
+		return;
+	stem = gkstring_of(stemgstr);
 
 	if( cur_lang() == LATIN || cur_lang() == ITALIAN ) {
 		Xstrncpy(word,stem,MAXWORDSIZE);
@@ -331,9 +349,13 @@ static
 void fixnacc2(char *targstring, gk_string *gstring, word_form form_info, int is_ending, bool is_oblique)
 {
 	register char *p;
-	MorphFlags * mflags = morphflags_of(gstring);
+	MorphFlags *mflags;
 	bool is_contr;
-	
+
+	if (!valid_accent_argument(targstring) ||
+	    !valid_accent_argument(gstring))
+		return;
+	mflags = morphflags_of(gstring);
 	is_contr = has_morphflag(mflags,CONTRACTED);
 
 
