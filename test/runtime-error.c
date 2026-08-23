@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -109,18 +110,37 @@ int main(void)
   assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
 
   {
-    char temporary[]="/tmp/morpheus-index-XXXXXX";
-    char greek[sizeof temporary+8];
-    char input[sizeof temporary+16];
-    char output[sizeof temporary+24];
+    char temporary[BUFSIZ];
+    char greek[BUFSIZ];
+    char input[BUFSIZ];
+    char output[BUFSIZ];
+    const char *temporary_base=getenv("TMPDIR");
     FILE *stream;
-    char *root=mkdtemp(temporary);
+    char *root=temporary;
     size_t path_length;
+    unsigned int attempt;
+    int created=0;
+    int written;
 
-    assert(root);
-    assert(snprintf(greek,sizeof greek,"%s/Greek",root)>0);
-    assert(snprintf(input,sizeof input,"%s/input",greek)>0);
-    assert(snprintf(output,sizeof output,"%s.lindex",input)>0);
+    if(!temporary_base || !*temporary_base) temporary_base="/tmp";
+    for(attempt=0;attempt<100;attempt++) {
+      written=snprintf(temporary,sizeof temporary,
+                       "%s/morpheus-index-%ld-%u",temporary_base,
+                       (long)getpid(),attempt);
+      assert(written>0 && (size_t)written<sizeof temporary);
+      if(mkdir(temporary,0700)==0) {
+        created=1;
+        break;
+      }
+      assert(errno==EEXIST);
+    }
+    assert(created);
+    written=snprintf(greek,sizeof greek,"%s/Greek",root);
+    assert(written>0 && (size_t)written<sizeof greek);
+    written=snprintf(input,sizeof input,"%s/input",greek);
+    assert(written>0 && (size_t)written<sizeof input);
+    written=snprintf(output,sizeof output,"%s.lindex",input);
+    assert(written>0 && (size_t)written<sizeof output);
     assert(mkdir(greek,0700)==0);
     stream=fopen(input,"w");
     assert(stream);
