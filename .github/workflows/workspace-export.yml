@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - agent/workspace-export
+  pull_request:
 jobs:
   export:
     runs-on: ubuntu-latest
