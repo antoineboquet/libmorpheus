@@ -30,6 +30,7 @@
 #include "../src/greeklib/nsylls.proto.h"
 #include "../src/greeklib/quantprim.proto.h"
 #include "../src/greeklib/standalpha.proto.h"
+#include "../src/greeklib/standword.proto.h"
 #include "../src/greeklib/stripacc.proto.h"
 #include "../src/greeklib/stripbreath.proto.h"
 #include "../src/greeklib/stripdiaer.proto.h"
@@ -112,6 +113,26 @@ main(void)
 		standalpha(unchanged);
 		assert(!strcmp(unchanged,"alpha"));
 		standalpha(NULL);
+	}
+	{
+		char accents[] = "a/b=c\\d";
+		char hyphens[] = "--a--b--";
+		char normalized[] = "-a\\*-b+";
+		char oversized[MAXWORDSIZE+32];
+
+		standword(normalized);
+		assert(!strcmp(normalized,"a/b"));
+		memset(oversized,'a',sizeof oversized-1);
+		oversized[sizeof oversized-1] = 0;
+		standword(oversized);
+		assert(strlen(oversized) == sizeof oversized-1);
+		zap2acc(accents);
+		assert(!strcmp(accents,"a/bcd"));
+		striphyph(hyphens);
+		assert(!strcmp(hyphens,"ab"));
+		standword(NULL);
+		zap2acc(NULL);
+		striphyph(NULL);
 	}
 	{
 		char consecutive[] = "e)n((a";

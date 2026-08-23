@@ -29,9 +29,10 @@
  
 void standword(char *word)
 {
-	register char * a;
-	register char * b;
-	char tmp[MAXWORDSIZE];
+	char *a;
+	char *b;
+
+	if (!word) return;
 
 /*
  * ignore diaeresis as editors are simply too inconsistent
@@ -40,9 +41,10 @@ void standword(char *word)
 	stripdiaer(word);
 	zap_rr_breath(word);
 
-	a = word; b = tmp;
+	a = word;
+	b = word;
 
-	while(Is_junk(*a) && *a) a++;
+	while(*a && Is_junk(*a)) a++;
 
 /* deleted 2/14/88 to match up with the standard beta of middle liddel 
 	if( *a == '*' ) 
@@ -90,32 +92,31 @@ void standword(char *word)
 			a++;
 	}
 	*b = 0;
-	Xstrcpy(word,tmp);
 }
 
 void zap2acc(char *s)
 {
+	char *read;
+	char *write;
 	int haveacc = 0;
-	
-	while(*s) {
-		if(*s == ACUTE || *s == GRAVE || *s == CIRCUMFLEX ) {
+
+	if (!s) return;
+	read = s;
+	write = s;
+	while(*read) {
+		if(*read == ACUTE || *read == GRAVE || *read == CIRCUMFLEX ) {
 			if( haveacc ) {
-				Xstrcpy(s,s+1);
+				read++;
 				continue;
 			}
-			haveacc = 1;				
+			haveacc = 1;
 		}
-		s++;
+		*write++ = *read++;
 	}
+	*write = 0;
 }
 
 void striphyph(char *s)
 {
-	while(*s) {
-		if(*s=='-' ) {
-			Xstrcpy(s,s+1);
-			if( !*s ) break;
-		}
-		s++;
-	}
+	stripchar(s,'-');
 }
