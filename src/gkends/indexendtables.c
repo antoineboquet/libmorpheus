@@ -103,7 +103,7 @@ if(  ! *sp ) {
 				if( strcmp(gkstring_of(&Gstr),savestr) ) {
 					strcat(tmp,savestr);
 				}
-				SprintGkFlags(&Gstr,tmp,":",0);
+				SprintGkFlags(&Gstr,tmp,sizeof tmp,":",0);
 			} else
 				sprintf(tmp,"%s\t%s", gkstring_of(&Gstr) , NameOfStemtype(stemtype_of(&Gstr) ) );
 

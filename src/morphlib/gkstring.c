@@ -720,156 +720,81 @@ int eq_forminfo(word_form f1, word_form f2)
 	return(1);
 }
 		
-void SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
+static int
+append_flag_field(char *buf, size_t capacity, const char *delimiter,
+                  const char *value)
 {
-		char dialbuf[LONGSTRING*2];
-		char * s;
-		word_form wf;
-
-		if (!gstr || !buf || !dels) {
-			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
-			return;
-		}
-		
-		wf = forminfo_of(gstr);
-		s=NameOfStemtype(stemtype_of(gstr));
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfStemtype(stemtype_of(gstr) ) );
-		}
-		
-		s=NameOfDerivtype(derivtype_of(gstr));
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfDerivtype(derivtype_of(gstr) ) );
-		}
-		
-		s=NameOfTense(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf,s );
-		}
-		
-		s=NameOfMood(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		
-		s=NameOfVoice(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-	
-		s=NameOfGender(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		
-		s=NameOfCase(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-
-		s=NameOfDegree(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-
-		s=NameOfPerson(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		s=NameOfNumber(wf);		
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfNumber(wf ) );
-		}
-		
-		dialbuf[0] = 0;
-		DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf,dels);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
-		
-		dialbuf[0] = 0;
-		GeogRegionNames(geogregion_of(gstr),dialbuf,sizeof dialbuf,dels);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
-		
-		
-		dialbuf[0] = 0;
-		DomainNames(domains_of(gstr),dialbuf,sizeof dialbuf,dels);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
-	
-		
-		dialbuf[0] = 0;
-		MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf,dels,pretty);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
+	if ((*value || *delimiter == '\t') &&
+	    !Xstrncat(buf,delimiter,capacity)) return(0);
+	return(!*value || Xstrncat(buf,value,capacity));
 }
 
+int SprintGkFlags(gk_string *gstr, char *buf, size_t capacity,
+                  const char *dels, int pretty)
+{
+	char dialbuf[LONGSTRING*2];
+	word_form wf;
+	size_t initial;
 
-void DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
+	if (!gstr || !buf || !capacity || !dels) goto failed;
+	initial = bounded_string_length(buf,capacity);
+	if (initial == capacity) goto failed;
+	wf = forminfo_of(gstr);
+	if (!append_flag_field(buf,capacity,dels,NameOfStemtype(stemtype_of(gstr))) ||
+	    !append_flag_field(buf,capacity,dels,NameOfDerivtype(derivtype_of(gstr))) ||
+	    !append_flag_field(buf,capacity,dels,NameOfTense(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfMood(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfVoice(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfGender(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfCase(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfDegree(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfPerson(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfNumber(wf)))
+		goto rollback;
+	if (!DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf,dels) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf) ||
+	    !GeogRegionNames(geogregion_of(gstr),dialbuf,sizeof dialbuf,dels) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf) ||
+	    !DomainNames(domains_of(gstr),dialbuf,sizeof dialbuf,dels) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf) ||
+	    !MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf,dels,pretty) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf))
+		goto rollback;
+	return(1);
+rollback:
+	buf[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
+int DbaseFormat(gk_string *gstr, char *buf, size_t capacity,
+                const char *tabstr, int pretty)
 {
 		char dialbuf[LONGSTRING];
-		char * s;
 		word_form wf;
+		size_t initial;
 		
+		if (!gstr || !buf || !capacity || !tabstr) goto failed;
+		initial = bounded_string_length(buf,capacity);
+		if (initial == capacity) goto failed;
 		wf = forminfo_of(gstr);
-		s=NameOfStemtype(stemtype_of(gstr));
-		if( * s ) {
-			strcat(buf, NameOfStemtype(stemtype_of(gstr) ) );
-		}
-		
-		strcat(buf,tabstr);
-		s=NameOfDerivtype(derivtype_of(gstr));
-		if( * s ) {
-			strcat(buf, NameOfDerivtype(derivtype_of(gstr) ) );
-		}
-		
-
-		strcat(buf,tabstr);
-		AddParadigmInfo(buf,LONGSTRING,wf," ");
-		
-		strcat(buf,tabstr);
-		AddPersNumInfo(buf,LONGSTRING,wf," ");
-
-		strcat(buf,tabstr);
-		AddAdjInfo(buf,LONGSTRING,wf," ");
+		if (!Xstrncat(buf,NameOfStemtype(stemtype_of(gstr)),capacity) ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !Xstrncat(buf,NameOfDerivtype(derivtype_of(gstr)),capacity) ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !AddParadigmInfo(buf,capacity,wf," ") ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !AddPersNumInfo(buf,capacity,wf," ") ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !AddAdjInfo(buf,capacity,wf," "))
+			goto rollback;
 		
 		dialbuf[0] = 0;
 		DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf," ");
 		if( dialbuf[0] ) {
-			strcat(buf,tabstr); 
-			strcat(buf,dialbuf );
+			if (!Xstrncat(buf,tabstr,capacity) ||
+			    !Xstrncat(buf,dialbuf,capacity)) goto rollback;
 		}
 		
 		
@@ -877,7 +802,13 @@ void DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
 		dialbuf[0] = 0;
 		MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf," ",pretty);
 		if( dialbuf[0] ) {
-			strcat(buf,tabstr); 
-			strcat(buf,dialbuf );
+			if (!Xstrncat(buf,tabstr,capacity) ||
+			    !Xstrncat(buf,dialbuf,capacity)) goto rollback;
 		}
+		return(1);
+rollback:
+		buf[initial] = 0;
+failed:
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
 }

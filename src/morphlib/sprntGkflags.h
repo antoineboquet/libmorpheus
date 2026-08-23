@@ -1,4 +1,6 @@
 
 /* xsprintGKflags.c */
-void JakeSprintGkFlags(gk_string *, char *, char *, char *, int);
-void GregSprintGkFlags(gk_string *, char *, char *, char *, int);
+int JakeSprintGkFlags(gk_string *, char *, size_t, const char *,
+                      const char *, int);
+int GregSprintGkFlags(gk_string *, char *, size_t, const char *,
+                      const char *, int);

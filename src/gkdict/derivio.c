@@ -174,7 +174,8 @@ printf("checking [%s] [%s] [%s]\n", stemstr,
 gkstring_of(context->derivation_stem_buffers[i]), tmpkeys);
 */
 		tempstem[0] = 0;
-		SprintGkFlags(context->derivation_stem_buffers[i],tmpkeys,"	",1);
+		SprintGkFlags(context->derivation_stem_buffers[i],tmpkeys,
+		              sizeof tmpkeys,"	",1);
 		Xstrncpy(tempstem,gkstring_of(context->derivation_stem_buffers[i]),
 			(int)sizeof tempstem );
 
@@ -421,7 +422,7 @@ checkmultredups(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, cha
 		
 		curstemkeys[0] = 0;
 		set_dialect(gstr,dialect_of(gkform+i) );
-		SprintGkFlags(gstr,curstemkeys," ",1);
+		SprintGkFlags(gstr,curstemkeys,sizeof curstemkeys," ",1);
 		p = workword_of(gkform+i);
 		rval += checkcomderiv2(asuffkeys,p,curstemkeys,suffix,lemma,lkeys,rkeys,had_redupl,markedstem);
 	}
@@ -550,7 +551,7 @@ checkcomderiv2(char *asuffkeys, char *dstem, char *dstemkeys, char *suffix, char
 				FreeGkword(gkword);
 			}
 			
-			SprintGkFlags(gstr,tmp1,":",1);
+			SprintGkFlags(gstr,tmp1,sizeof tmp1,":",1);
 /*
 printf("curstemkyes [%s] %o\n", tmp1 , has_morphflag(morphflags_of(gstr),R_E_I_ALPHA));
 */

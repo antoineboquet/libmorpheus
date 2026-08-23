@@ -490,7 +490,7 @@ printf("formcnt=%d\n", formcnt);
 			tmp[0] = 0;
 			/*stripquant( workword_of(gkform+i) );*/
 			fprintf(fout,"<G>%s</G> ", workword_of(gkform+i) );
-			SprintGkFlags(ends_gstr_of(gkform+i),tmp," ",1);
+			SprintGkFlags(ends_gstr_of(gkform+i),tmp,sizeof tmp," ",1);
 			fprintf(fout,"%s\n", tmp );
 		}
 		return;

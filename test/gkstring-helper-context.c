@@ -86,15 +86,15 @@ main(void)
 	assert(morpheus_runtime_context_error(context) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(context);
-	SprintGkFlags(NULL,empty,empty,NO);
+	SprintGkFlags(NULL,empty,sizeof empty,empty,NO);
 	assert(morpheus_runtime_context_error(context) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(context);
-	JakeSprintGkFlags(&item,NULL,empty,empty,NO);
+	JakeSprintGkFlags(&item,NULL,0,empty,empty,NO);
 	assert(morpheus_runtime_context_error(context) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(context);
-	GregSprintGkFlags(&item,empty,empty,NULL,NO);
+	GregSprintGkFlags(&item,empty,sizeof empty,empty,NULL,NO);
 	assert(morpheus_runtime_context_error(context) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(context);
@@ -835,6 +835,12 @@ main(void)
 		set_tense(form,PRESENT);
 		assert(!AddParadigmInfo(transactional,sizeof transactional,
 		                        form," "));
+		assert(!strcmp(transactional,"base"));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!SprintGkFlags(&item,transactional,sizeof transactional,
+		                      " ",NO));
 		assert(!strcmp(transactional,"base"));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);

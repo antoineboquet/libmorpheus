@@ -34,5 +34,5 @@ int xInsertGstr(gk_string *, gk_string *, int,
                  int (*compare)(char *, char *), int);
 int GetTableLine(char *, int, FILE *);
 int eq_forminfo(word_form, word_form);
-void SprintGkFlags(gk_string *, char *, char *, int);
-void DbaseFormat(gk_string *, char *, char *, int);
+int SprintGkFlags(gk_string *, char *, size_t, const char *, int);
+int DbaseFormat(gk_string *, char *, size_t, const char *, int);

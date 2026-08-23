@@ -126,7 +126,7 @@ LPrntGstr(gk_string *gstr, FILE *f)
 	if( has_morphflag(morphflags_of(gstr),IS_DERIV) || indecl ) {
 		zap_morphflag(morphflags_of(gstr),IS_DERIV);
 		zap_morphflag(morphflags_of(gstr),INDECLFORM);
-		SprintGkFlags(gstr,tmp," ",0);
+		SprintGkFlags(gstr,tmp,sizeof tmp," ",0);
 		snprintf(line,sizeof line,"%s  %s\n", gkstring_of(gstr), tmp );
 	
 		if( indecl ) {
@@ -135,7 +135,7 @@ LPrntGstr(gk_string *gstr, FILE *f)
 		}
 		fprintf(f,"%s", line );
 	} else {
-		SprintGkFlags(gstr,tmp," ",0);
+		SprintGkFlags(gstr,tmp,sizeof tmp," ",0);
 		if( cur_lang() == LATIN  || cur_lang() == ITALIAN )
 			snprintf(line,sizeof line,"%s%s\n", gkstring_of(gstr), tmp );
 		else

@@ -38,7 +38,7 @@ GenDictEntry(gk_word *Gkword, char *dentry)
 	set_morphflag(morphflags_of(stem_gstr_of(&TmpGkword)),0);
 	set_morphflag(morphflags_of(&TmpGkword),0);
 
-	SprintGkFlags(stem_gstr_of(&TmpGkword),keys,"\t",1);
+	SprintGkFlags(stem_gstr_of(&TmpGkword),keys,sizeof keys,"\t",1);
 	*(ends_gstr_of(&TmpGkword)) = BlankGstr;
 /*printf("endstring: [%s] keys:%s\n", endstring_of(&TmpGkword), keys );*/
 
