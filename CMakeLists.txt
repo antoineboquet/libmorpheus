@@ -929,6 +929,29 @@ install(
     "${CMAKE_CURRENT_BINARY_DIR}/MorpheusConfigVersion.cmake"
   DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Morpheus"
 )
+set(MORPHEUS_PKGCONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+if(IS_ABSOLUTE "${MORPHEUS_PKGCONFIG_INSTALL_DIR}")
+  set(MORPHEUS_PC_PREFIX "${CMAKE_INSTALL_PREFIX}")
+else()
+  file(
+    RELATIVE_PATH MORPHEUS_PC_PREFIX_FROM_PCFILEDIR
+    "/${MORPHEUS_PKGCONFIG_INSTALL_DIR}" "/"
+  )
+  set(
+    MORPHEUS_PC_PREFIX
+    "\${pcfiledir}/${MORPHEUS_PC_PREFIX_FROM_PCFILEDIR}"
+  )
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_LIBDIR}")
+  set(MORPHEUS_PC_LIBDIR "${CMAKE_INSTALL_LIBDIR}")
+else()
+  set(MORPHEUS_PC_LIBDIR "\${prefix}/${CMAKE_INSTALL_LIBDIR}")
+endif()
+if(IS_ABSOLUTE "${CMAKE_INSTALL_INCLUDEDIR}")
+  set(MORPHEUS_PC_INCLUDEDIR "${CMAKE_INSTALL_INCLUDEDIR}")
+else()
+  set(MORPHEUS_PC_INCLUDEDIR "\${prefix}/${CMAKE_INSTALL_INCLUDEDIR}")
+endif()
 configure_file(
   cmake/libmorpheus.pc.in
   "${CMAKE_CURRENT_BINARY_DIR}/libmorpheus.pc"
@@ -936,7 +959,7 @@ configure_file(
 )
 install(
   FILES "${CMAKE_CURRENT_BINARY_DIR}/libmorpheus.pc"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig"
+  DESTINATION "${MORPHEUS_PKGCONFIG_INSTALL_DIR}"
 )
 if(BUILD_TESTING)
   add_executable(morpheus_public_context_test test/public-context.c)
@@ -1104,10 +1127,23 @@ if(BUILD_TESTING)
         COMMAND
           "${CMAKE_COMMAND}"
           "-DMORPHEUS_BUILD_DIR=${PROJECT_BINARY_DIR}"
+          "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
           "-DMORPHEUS_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
           "-DMORPHEUS_PKG_CONFIG=${MORPHEUS_PKG_CONFIG_EXECUTABLE}"
           "-DMORPHEUS_VERSION=${PROJECT_VERSION}"
+          "-DMORPHEUS_C_COMPILER=${CMAKE_C_COMPILER}"
+          "-DMORPHEUS_EXECUTABLE_SUFFIX=${CMAKE_EXECUTABLE_SUFFIX}"
           -P "${PROJECT_SOURCE_DIR}/test/test-installed-pkgconfig.cmake"
+      )
+      add_test(
+        NAME pkg_config_nested_libdir
+        COMMAND
+          "${CMAKE_COMMAND}"
+          "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+          "-DMORPHEUS_BUILD_DIR=${PROJECT_BINARY_DIR}"
+          "-DMORPHEUS_GENERATOR=${CMAKE_GENERATOR}"
+          "-DMORPHEUS_PKG_CONFIG=${MORPHEUS_PKG_CONFIG_EXECUTABLE}"
+          -P "${PROJECT_SOURCE_DIR}/test/test-pkgconfig-layout.cmake"
       )
     endif()
   endif()
