@@ -17,6 +17,7 @@
 #include "../src/morphlib/penultform.proto.h"
 #include "../src/morphlib/preverb3.proto.h"
 #include "../src/morphlib/preverb2.proto.h"
+#include "../src/morphlib/preverb.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
 #include "../src/morphlib/standphon.proto.h"
@@ -205,6 +206,43 @@ main(void)
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
 		assert(!is_rawpreverb(NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
+	{
+		gk_string preverb = { 0 };
+		char word[MAXWORDSIZE] = "beta";
+		char previous[MAXWORDSIZE] = "";
+		char empty_preverb[MAXWORDSIZE] = "";
+		char rest[MAXWORDSIZE] = "";
+		bool breathing = NO;
+
+		assert(!checkprevb(NULL,previous,&breathing));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!checkprevb(word,NULL,&breathing));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!prvbcmp(empty_preverb,word,&breathing));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		getrest(NULL,word,word,"pro");
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		getrest(rest,word,word,empty_preverb);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		rstprevb(word,empty_preverb,&preverb);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		rstprevb(word,"pro",NULL);
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);

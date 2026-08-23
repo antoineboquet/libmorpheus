@@ -17,12 +17,32 @@
 static void comp_preverb(char *, int, MorphFlags *);
 static void getprvbform(char *, char *, MorphFlags *);
 
+static bool valid_preverb_pointer(const void *argument)
+{
+	if (argument) return(YES);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(NO);
+}
+
+static bool valid_preverb_text(const char *text)
+{
+	if (!valid_preverb_pointer(text)) return(NO);
+	if (*text) return(YES);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(NO);
+}
+
 bool checkprevb(char *word, char *prevb, bool *brflg)
 /* remove preverb from word and reply whether preverb was found */
 /* found preverb returned in prevb */
 /* brflg = YES -> questionable breathing on word. Must try both types */
 {
 	int i;
+
+	if (!valid_preverb_pointer(word) ||
+	    !valid_preverb_pointer(prevb) ||
+	    !valid_preverb_pointer(brflg))
+		return(NO);
 
 /*
  * this loop allows you to come back to the list of preverbs
@@ -55,6 +75,11 @@ bool prvbcmp(const char *prevb, char *word, bool *brflg)
 	char workp[MAXPRVBSIZE],workw[MAXWORDSIZE];
 	char workrest[MAXWORDSIZE];
 	int lastc;
+
+	if (!valid_preverb_text(prevb) ||
+	    !valid_preverb_pointer(word) ||
+	    !valid_preverb_pointer(brflg))
+		return(NO);
 
 	Xstrncpy(workp,prevb,MAXWORDSIZE);
 	Xstrncpy(workw,word,MAXWORDSIZE);
@@ -169,6 +194,11 @@ void getrest(char *workrest, char *word, char *workw, char *workp)
 {
 	register char *p1,*p2;
 
+	if (!valid_preverb_pointer(workrest) ||
+	    !valid_preverb_pointer(word) ||
+	    !valid_preverb_pointer(workw) ||
+	    !valid_preverb_text(workp))
+		return;
 	p1 = workw+Xstrlen(workp);
 	p2 = lastn(word,Xstrlen(p1));
 	if (0==strcmp(p1,p2))
@@ -188,8 +218,13 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
 	char fullpb[MAXWORDSIZE];
 	char tmpword[MAXWORDSIZE];
 	gk_string TmpGstr;
-	MorphFlags * oddpb = morphflags_of(gstr);
+	MorphFlags * oddpb;
 
+	if (!valid_preverb_pointer(word) ||
+	    !valid_preverb_text(prevb) ||
+	    !valid_preverb_pointer(gstr))
+		return;
+	oddpb = morphflags_of(gstr);
 	fullpb[0] = 0;
 	if( Is_indeclform(oddpb) ) return;
 
