@@ -20,6 +20,13 @@ if(BUILD_TESTING)
       "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
       -P "${PROJECT_SOURCE_DIR}/test/historical-utility-scope.cmake"
   )
+  add_test(
+    NAME public_api_documentation
+    COMMAND
+      "${CMAKE_COMMAND}"
+      "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+      -P "${PROJECT_SOURCE_DIR}/test/public-api-documentation.cmake"
+  )
 endif()
 
 option(MORPHEUS_BUILD_CRUNCHER "Build the legacy-compatible cruncher CLI" ON)
@@ -996,6 +1003,7 @@ if(BUILD_TESTING)
         "-DMORPHEUS_LIBRARY=$<TARGET_FILE:morpheus>"
         "-DMORPHEUS_NM=${CMAKE_NM}"
         "-DMORPHEUS_APPLE=${APPLE}"
+        "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
         -P "${PROJECT_SOURCE_DIR}/test/public-symbols.cmake"
     )
   endif()
