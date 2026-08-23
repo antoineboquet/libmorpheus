@@ -14,6 +14,7 @@
 #include "../src/morphlib/morphstrcmp.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
 #include "../src/morphlib/indkeys.proto.h"
+#include "../src/morphlib/morphpath.proto.h"
 #include "../src/morphlib/retrentry.proto.h"
 
 int main(void)
@@ -61,6 +62,33 @@ int main(void)
   assert(!init_preind(NULL,&maxkeys));
   assert(maxkeys==0);
   assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  {
+    char path[BUFSIZ]="not empty";
+    int opened=context->files_opened;
+
+    morpheus_runtime_context_clear_error(context);
+    assert(!MorphFopen(NULL,"r"));
+    assert(context->files_opened==opened);
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+    morpheus_runtime_context_clear_error(context);
+    assert(!MorphFopen("input",NULL));
+    assert(context->files_opened==opened);
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+    morpheus_runtime_context_clear_error(context);
+    MorphPathName(NULL,path);
+    assert(!path[0]);
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+    morpheus_runtime_context_clear_error(context);
+    MorphPathName("input",NULL);
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+    morpheus_runtime_context_clear_error(context);
+    SysFolderFile(NULL,"input");
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+    morpheus_runtime_context_clear_error(context);
+    SysFolderFile(path,NULL);
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+  }
 
   morpheus_runtime_context_clear_error(context);
   assert(!init_preind("missing",NULL));

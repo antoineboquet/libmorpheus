@@ -9,11 +9,16 @@ FILE *
  	FILE * f;
  	char tmpname[BUFSIZ];
 
+	if (!fname || !*fname || !mode || !*mode) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	morpheus_runtime_context_current()->files_opened++;
  	MorphPathName(fname,tmpname);
+	if (!tmpname[0]) return(NULL);
 
- 	if( !(f=fopen(tmpname,mode)) ) {
- 		fprintf(stderr,"MorphFopen: could not open [%s]\n", tmpname );
+	if( !(f=fopen(tmpname,mode)) ) {
+		fprintf(stderr,"MorphFopen: could not open [%s]\n", tmpname );
 /* just die here -- should go up higher but will live with this for now. */
 
 /*
@@ -57,12 +62,22 @@ void MorphPathName(char *shorts, char *full)
 	const char *language_directory;
 	int written;
 
+	if (!full) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	full[0] = 0;
+	if (!shorts || !*shorts) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	s = morpheus_runtime_context_current()->stemlib_path;
 	if (!s) s = getenv("MORPHLIB");
 
 	if( ! s ) {
 		full[0] = 0;
 		fprintf(stderr,"MORPHLIB not set in your environment!\n");
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return;
 	}
 
@@ -77,6 +92,7 @@ void MorphPathName(char *shorts, char *full)
 	if (written < 0 || written >= BUFSIZ) {
 		full[0] = 0;
 		fprintf(stderr,"MorphPathName: path is too long\n");
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return;
 	}
 	
@@ -114,7 +130,10 @@ void SysFolderFile(char *fullname, char *shorts)
   	
  	sprintf(fullname,"%s:[System Folder]:%s",volName, shorts );
 #endif
-	
+	if (!fullname || !shorts) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
  	/*
  	 * this checks to make keep compatibility with the Mac
  	 * pathname conventions
