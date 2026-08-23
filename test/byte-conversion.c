@@ -15,6 +15,7 @@
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/runtime_context_internal.h"
 #include "../src/morphlib/smk2beta.proto.h"
+#include "../src/morphlib/trimwhite.proto.h"
 
 int main(void)
 {
@@ -39,10 +40,18 @@ int main(void)
 	char remove_chars[] = "a---b-";
 	char replace_high_byte[] = {(char)(unsigned char)0377,'a','\0'};
 	char squeezed[] = "abcdef";
+	char trailing_space[] = "beta  \t";
+	char only_space[] = " \t";
 
 	_Static_assert(_Generic(Xstrlen(""), size_t: 1, default: 0),
 		"Xstrlen must preserve the size_t result of strlen");
 	assert(Xstrlen("beta") == strlen("beta"));
+	trimwhite(empty);
+	trimwhite(trailing_space);
+	trimwhite(only_space);
+	trimwhite(NULL);
+	assert(!strcmp(trailing_space,"beta"));
+	assert(!only_space[0]);
 	assert(Xstrcpy(overlap_left,overlap_left+2));
 	assert(!strcmp(overlap_left,"cdef"));
 	assert(Xstrcpy(overlap_right+2,overlap_right));
