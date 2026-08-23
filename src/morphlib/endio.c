@@ -9,6 +9,13 @@
 #define LEGACY_GROUP_DOMAIN_INDEX 1
 #define LEGACY_GROUP_DOMAIN_MASK ((unsigned char)040)
 
+static int valid_ending_io(FILE *f, const gk_string *gstr, int maxend)
+{
+	if (f && gstr && maxend > 0 && maxend <= MAXWORDSIZE) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 static int32 pack_word_form(word_form form)
 {
 	return((int32)(
@@ -39,9 +46,10 @@ static void unpack_word_form(int32 packed, word_form *form)
 int WriteEnding(FILE *f, gk_string *gstr, int maxend)
 {
 	char stored_domains[MAXDOMAINS+1];
-	const int32 stored_form = pack_word_form(forminfo_of(gstr));
-	if(maxend < 0)
-		return(-1);
+	int32 stored_form;
+
+	if (!valid_ending_io(f,gstr,maxend)) return(-1);
+	stored_form = pack_word_form(forminfo_of(gstr));
 	memcpy(stored_domains,domains_of(gstr),sizeof stored_domains);
 	if(Is_group_name(morphflags_of(gstr))) {
 		if(stored_domains[0]) {
@@ -87,9 +95,10 @@ int ReadEnding(FILE *f, gk_string *gstr, int maxend)
 {
 	int nread = 0;
 	int32 stored_form;
-	if(maxend < 0)
-		return(-1);
-	if((nread=vax_fread(gkstring_of(gstr),sizeof *gkstring_of(gstr),maxend,f))
+	gk_string decoded = {0};
+
+	if (!valid_ending_io(f,gstr,maxend)) return(-1);
+	if((nread=vax_fread(gkstring_of(&decoded),sizeof *gkstring_of(&decoded),maxend,f))
 		<= 0)
 		goto inputerr;
 	if(nread != maxend)
@@ -97,35 +106,35 @@ int ReadEnding(FILE *f, gk_string *gstr, int maxend)
 	if((nread=vax_fread(&stored_form,sizeof stored_form,1,f))
 		!= 1)
 			goto inputerr;
-	unpack_word_form(stored_form,&forminfo_of(gstr));
-	if((nread=vax_fread(&dialect_of(gstr),sizeof dialect_of(gstr),1,f)) != 1)
+	unpack_word_form(stored_form,&forminfo_of(&decoded));
+	if((nread=vax_fread(&dialect_of(&decoded),sizeof dialect_of(&decoded),1,f)) != 1)
 			goto inputerr;
-	if((nread=vax_fread(&geogregion_of(gstr),sizeof geogregion_of(gstr),1,f))
+	if((nread=vax_fread(&geogregion_of(&decoded),sizeof geogregion_of(&decoded),1,f))
 		!= 1)
 			goto inputerr;
-	if((nread=vax_fread(&stemtype_of(gstr),sizeof stemtype_of(gstr),1,f)) != 1)
+	if((nread=vax_fread(&stemtype_of(&decoded),sizeof stemtype_of(&decoded),1,f)) != 1)
 			goto inputerr;
-	if((nread=vax_fread(&derivtype_of(gstr),sizeof derivtype_of(gstr),1,f)) != 1)
+	if((nread=vax_fread(&derivtype_of(&decoded),sizeof derivtype_of(&decoded),1,f)) != 1)
 			goto inputerr;
 
-	if((nread=vax_fread(morphflags_of(gstr),1,MORPHFLAG_BYTES,f))
+	if((nread=vax_fread(morphflags_of(&decoded),1,MORPHFLAG_BYTES,f))
 		!= MORPHFLAG_BYTES)
 			goto inputerr;
 
-	if((nread=vax_fread(domains_of(gstr),1,MAXDOMAINS+1,f)) != MAXDOMAINS+1)
+	if((nread=vax_fread(domains_of(&decoded),1,MAXDOMAINS+1,f)) != MAXDOMAINS+1)
 			goto inputerr;
-	memset(morphflags_of(gstr)+MORPHFLAG_BYTES,0,
+	memset(morphflags_of(&decoded)+MORPHFLAG_BYTES,0,
 	       MORPHFLAG_STORAGE_BYTES-MORPHFLAG_BYTES);
-	if(!domains_of(gstr)[0] &&
-	   ((unsigned char)domains_of(gstr)[LEGACY_GROUP_DOMAIN_INDEX] &
+	if(!domains_of(&decoded)[0] &&
+	   ((unsigned char)domains_of(&decoded)[LEGACY_GROUP_DOMAIN_INDEX] &
 	    LEGACY_GROUP_DOMAIN_MASK)) {
-		add_morphflag(morphflags_of(gstr),GROUP_NAME);
-		domains_of(gstr)[LEGACY_GROUP_DOMAIN_INDEX]=(char)(
-		    (unsigned char)domains_of(gstr)[LEGACY_GROUP_DOMAIN_INDEX] &
+		add_morphflag(morphflags_of(&decoded),GROUP_NAME);
+		domains_of(&decoded)[LEGACY_GROUP_DOMAIN_INDEX]=(char)(
+		    (unsigned char)domains_of(&decoded)[LEGACY_GROUP_DOMAIN_INDEX] &
 		    (unsigned char)~LEGACY_GROUP_DOMAIN_MASK);
 	}
 
-
+	*gstr = decoded;
 	return(1);
 	inputerr:
 		if( nread < 0 ) {
@@ -145,8 +154,10 @@ int set_endheader(FILE *f, int maxstring)
 	int32 morph_version = MORPH_VERSION;
 	int32 len;
 
-	if(maxstring < 0)
+	if(!f || maxstring <= 0 || maxstring > MAXWORDSIZE) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(-1);
+	}
 	len = (int32)maxstring;
 
 	if(vax_fwrite(&morph_version,sizeof morph_version,1,f) != 1)
@@ -171,6 +182,15 @@ int get_endheader(FILE *f, int *maxp)
 	size_t nendings;
 	long header_size;
 
+	if (!maxp) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
+	*maxp = 0;
+	if (!f) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	if(vax_fread(&morph_version,sizeof morph_version,1,f) != 1)
 		return(-1);
 	if( morph_version != MORPH_VERSION ) {
@@ -180,7 +200,7 @@ int get_endheader(FILE *f, int *maxp)
 
 	if(vax_fread(&len,sizeof len,1,f) != 1)
 		return(-1);
-	if(len > (int32)INT_MAX)
+	if(len <= 0 || len > (int32)INT_MAX || len > (int32)MAXWORDSIZE)
 		return(-1);
 	*maxp = (int)len;
 	
@@ -225,6 +245,10 @@ void localtrimwhite(char *s,int n)
 {
 	int i;
 	int sdone = 0;
+	if (!s || n < 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	for(i=0;i<n;i++) {
 		if(!*s) sdone=1;
 		if(sdone) *s = 0;

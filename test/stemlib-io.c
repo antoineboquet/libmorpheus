@@ -74,11 +74,28 @@ int main(int argc, char **argv)
 	assert(domains_of(&group_result)[0] == 0);
 	assert(domains_of(&group_result)[1] == 0);
 	assert(ReadEnding(stream,&result,stored_maxend) == 0);
+	assert(WriteEnding(NULL,&source,maxend) == -1);
+	assert(WriteEnding(stream,NULL,maxend) == -1);
+	assert(WriteEnding(stream,&source,0) == -1);
+	assert(WriteEnding(stream,&source,MAXWORDSIZE+1) == -1);
+	assert(ReadEnding(NULL,&result,maxend) == -1);
+	assert(ReadEnding(stream,NULL,maxend) == -1);
+	assert(ReadEnding(stream,&result,0) == -1);
+	assert(set_endheader(NULL,maxend) == -1);
+	assert(set_endheader(stream,0) == -1);
+	stored_maxend = 7;
+	assert(get_endheader(NULL,&stored_maxend) == -1);
+	assert(stored_maxend == 0);
+	assert(get_endheader(stream,NULL) == -1);
 	fclose(stream);
 
 	stream = fopen(argv[1],"w+b");
 	assert(stream);
 	assert(fputc(0x44,stream) != EOF);
+	assert(fseek(stream,0L,SEEK_SET) == 0);
+	strcpy(gkstring_of(&result),"unchanged");
+	assert(ReadEnding(stream,&result,maxend) < 1);
+	assert(!strcmp(gkstring_of(&result),"unchanged"));
 	assert(fseek(stream,0L,SEEK_SET) == 0);
 	assert(vax_fread(&truncated_word,sizeof truncated_word,1,stream) == 0);
 	truncated_word = UINT32_C(0xdeadbeef);
