@@ -52,6 +52,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
   `public-api.md` cover the same functions.
 - The installed CMake consumer must configure, build, link, and run through
   `Morpheus::morpheus`.
+- `installed_surface` must confirm that no private header, internal archive,
+  static library, or source-tree path enters the installation.
 - The installed `pkg-config` consumer must compile, link, and run, and the
   nested-libdir test must resolve the relocated prefix correctly.
 - Confirm that the generated project version, package-config version, SONAME,
@@ -66,6 +68,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Inspect the native installation and confirm it contains only the public
   header, shared library, CMake package files, `libmorpheus.pc`, and optional
   `cruncher` executable.
+- Require the optimized `Release` CTest job to pass; Debug and sanitizer
+  success does not substitute for testing the configuration that is published.
 - Produce a versioned JSON benchmark report as described in `benchmarks.md`,
   including source revision, stemlib revision, and compiler metadata. Compare
   it with the previous accepted report on the same controlled hardware and
