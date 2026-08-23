@@ -27,6 +27,28 @@ jobs:
       - name: Test
         run: ctest --preset dev
 
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure optimized release
+        run: cmake --preset release -DBUILD_TESTING=ON
+
+      - name: Build optimized release
+        run: cmake --build --preset release
+
+      - name: Test optimized release and installed surface
+        run: ctest --preset release
+
   sanitizers:
     runs-on: ubuntu-latest
     steps:
