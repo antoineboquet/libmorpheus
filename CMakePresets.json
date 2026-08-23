@@ -72,6 +72,13 @@
       }
     },
     {
+      "name": "release",
+      "configurePreset": "release",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
       "name": "sanitizers",
       "configurePreset": "sanitizers",
       "output": {

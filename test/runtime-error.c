@@ -17,6 +17,17 @@
 #include "../src/morphlib/morphpath.proto.h"
 #include "../src/morphlib/retrentry.proto.h"
 
+static void build_test_path(char *destination,size_t capacity,
+                            const char *base,const char *suffix)
+{
+  size_t base_length=strlen(base);
+  size_t suffix_length=strlen(suffix);
+
+  if(base_length>=capacity || suffix_length>=capacity-base_length) abort();
+  memcpy(destination,base,base_length);
+  memcpy(destination+base_length,suffix,suffix_length+1);
+}
+
 int main(void)
 {
   morpheus_runtime_context *context=morpheus_runtime_context_create();
@@ -173,12 +184,9 @@ int main(void)
       assert(errno==EEXIST);
     }
     assert(created);
-    written=snprintf(greek,sizeof greek,"%s/Greek",root);
-    assert(written>0 && (size_t)written<sizeof greek);
-    written=snprintf(input,sizeof input,"%s/input",greek);
-    assert(written>0 && (size_t)written<sizeof input);
-    written=snprintf(output,sizeof output,"%s.lindex",input);
-    assert(written>0 && (size_t)written<sizeof output);
+    build_test_path(greek,sizeof greek,root,"/Greek");
+    build_test_path(input,sizeof input,greek,"/input");
+    build_test_path(output,sizeof output,input,".lindex");
     assert(mkdir(greek,0700)==0);
     stream=fopen(input,"w");
     assert(stream);

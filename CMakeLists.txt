@@ -1128,6 +1128,19 @@ if(BUILD_TESTING)
         "-DMORPHEUS_GENERATOR=${CMAKE_GENERATOR}"
         -P "${PROJECT_SOURCE_DIR}/test/test-installed-package.cmake"
     )
+    add_test(
+      NAME installed_surface
+      COMMAND
+        "${CMAKE_COMMAND}"
+        "-DMORPHEUS_BUILD_DIR=${PROJECT_BINARY_DIR}"
+        "-DMORPHEUS_INSTALL_BINDIR=${CMAKE_INSTALL_BINDIR}"
+        "-DMORPHEUS_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_INCLUDEDIR}"
+        "-DMORPHEUS_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+        "-DMORPHEUS_LIBRARY_FILE_NAME=$<TARGET_FILE_NAME:morpheus>"
+        "-DMORPHEUS_CRUNCHER_FILE_NAME=cruncher${CMAKE_EXECUTABLE_SUFFIX}"
+        "-DMORPHEUS_EXPECT_CRUNCHER=${MORPHEUS_BUILD_CRUNCHER}"
+        -P "${PROJECT_SOURCE_DIR}/test/test-installed-surface.cmake"
+    )
     find_program(MORPHEUS_PKG_CONFIG_EXECUTABLE pkg-config)
     if(MORPHEUS_PKG_CONFIG_EXECUTABLE)
       add_test(
@@ -1213,4 +1226,25 @@ if(MORPHEUS_BUILD_CRUNCHER)
       endif()
     endif()
   endif()
+endif()
+
+# Test programs use assertions as their executable checks.  Keep them enabled
+# when the library itself is built with an optimized configuration defining
+# NDEBUG (Release, RelWithDebInfo, or MinSizeRel).
+if(BUILD_TESTING)
+  get_property(
+    morpheus_directory_targets
+    DIRECTORY
+    PROPERTY BUILDSYSTEM_TARGETS
+  )
+  foreach(morpheus_directory_target IN LISTS morpheus_directory_targets)
+    if(morpheus_directory_target MATCHES "^morpheus_.*_test$")
+      target_compile_options(
+        "${morpheus_directory_target}"
+        PRIVATE
+          $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-UNDEBUG>
+          $<$<COMPILE_LANG_AND_ID:C,MSVC>:/UNDEBUG>
+      )
+    endif()
+  endforeach()
 endif()

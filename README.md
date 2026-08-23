@@ -75,6 +75,17 @@ cmake --build --preset thread-sanitizer
 ctest --preset thread-sanitizer
 ```
 
+The publishable optimized configuration is tested separately from Debug:
+
+```sh
+cmake --preset release -DBUILD_TESTING=ON
+cmake --build --preset release
+ctest --preset release
+```
+
+This run also installs into a clean prefix and verifies that no private header
+or internal static archive enters the installed package.
+
 ## Install and consume from C
 
 ```sh
