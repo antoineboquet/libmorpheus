@@ -5,6 +5,7 @@
 #include <gkstring.h>
 
 #include "../src/morphlib/gkstring.proto.h"
+#include "../src/morphlib/is_thirdmono.proto.h"
 #include "../src/morphlib/adddomain.proto.h"
 #include "../src/morphlib/antepenform.proto.h"
 #include "../src/morphlib/augment.proto.h"
@@ -270,6 +271,40 @@ main(void)
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
 		add_double_augment(empty,NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
+	{
+		gk_string stem = { 0 };
+		gk_string ending = { 0 };
+		word_form form = { 0 };
+		char one_vowel[] = "a";
+
+		assert(!diphth_end(one_vowel,empty));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_NONE);
+		assert(!is_thirdmono(NULL,&ending,empty,empty,form,NO));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!is_thirdmono(&stem,NULL,empty,empty,form,NO));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!is_mono_stem(NULL,empty));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!is_thirdexception(empty,NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!poss_thirdmono((Stemtype)DECL3,NULL,empty));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!diphth_end(NULL,empty));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);

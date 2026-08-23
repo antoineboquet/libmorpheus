@@ -4,6 +4,13 @@
 
 #include "is_thirdmono.proto.h"
 
+static int valid_third_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 /*
  * do we have a third declension monosyllabic stem in the genitive or dative?
  * (e.g. ai)go/s, ai)gw=n)
@@ -16,8 +23,14 @@ MorphFlags * morphflags;
 int is_thirdmono(gk_string *stemgstr, gk_string *endgstr, char *stem, char *endstring, word_form form_info, int is_ending)
 {
 	char * p;
-	Stemtype stemtype = stemtype_of(stemgstr);
+	Stemtype stemtype;
 
+	if (!valid_third_argument(stemgstr) ||
+	    !valid_third_argument(endgstr) ||
+	    !valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
+	stemtype = stemtype_of(stemgstr);
 	if( is_ending && ! *stem) return(0);
 /*
  * fail on anything except nouns
@@ -72,6 +85,9 @@ int is_thirdmono(gk_string *stemgstr, gk_string *endgstr, char *stem, char *ends
 
 int is_mono_stem(char *stems, char *ends)
 {
+	if (!valid_third_argument(stems) ||
+	    !valid_third_argument(ends))
+		return(0);
 	return( (nsylls(stems)+nsylls(ends) == 2) );
 }
 
@@ -81,6 +97,9 @@ int is_thirdexception(char *stem, char *endstring)
 	int i;
 	int len;
 
+	if (!valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
 	Xstrncpy(workword,stem,MAXWORDSIZE); 
 	Xstrncat(workword,endstring,MAXWORDSIZE);
 	stripquant(workword);
@@ -101,6 +120,9 @@ int poss_thirdmono(Stemtype stemtype, char *stem, char *endstring)
 {
 	char * p1;
 	char * p2;
+	if (!valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
 	if(  (stemtype & DECL3 ) &&
 	     ((p1=getsyll(stem,PENULT)) == P_ERR) &&
 	     ((p2=getsyll(endstring,PENULT)) == P_ERR) ) {
@@ -147,12 +169,15 @@ int diphth_end(char *stem, char *endstring)
 	char tmp[MAXWORDSIZE];
 	char * s;
 	
+	if (!valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
 	Xstrcpy(tmp,stem);
 	strcat(tmp,endstring);
 	
 	s = getsyll(tmp,ULTIMA);
 	if( s == P_ERR ) return(0);
-	if( Is_vowel(*s) && Is_vowel(*(s-1) ) ) {
+	if( s > tmp && Is_vowel(*s) && Is_vowel(*(s-1) ) ) {
 		*(s-1) = 0;
 		if( nsylls(tmp) != 0 )
 			return(1);
