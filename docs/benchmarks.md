@@ -25,6 +25,28 @@ deno run --allow-env --allow-ffi --allow-read --allow-run \
 Use `libmorpheus.dylib` on macOS. Pass `--json` to produce a machine-readable
 report suitable for archiving with a release or deployment evaluation.
 
+Release reports should identify the exact code, data, and compiler inputs:
+
+```sh
+MORPHEUS_LIBRARY="$PWD/build/release/libmorpheus.so" \
+MORPHEUS_STEMLIB="$PWD/vendor/alpheios-morpheus/dist/stemlib" \
+MORPHEUS_CRUNCHER="$PWD/build/release/cruncher" \
+deno run --allow-env --allow-ffi --allow-read --allow-run \
+  bench/compare.ts --json \
+  --label release-candidate \
+  --revision "$(git rev-parse HEAD)" \
+  --stemlib-revision "$(git -C vendor/alpheios-morpheus rev-parse HEAD)" \
+  --compiler "$(cc --version | head -n 1)" \
+  > benchmark.json
+```
+
+The JSON schema is versioned. It records the Deno runtime, target platform,
+hardware concurrency, corpus path and SHA-256 digest, source and stemlib
+revisions, compiler label, run parameters, and raw measurements. The revision
+and compiler values may instead be supplied through
+`MORPHEUS_BENCHMARK_REVISION`, `MORPHEUS_STEMLIB_REVISION`, and
+`MORPHEUS_BENCHMARK_COMPILER`.
+
 ## Measurements
 
 The runner reports three execution models:
@@ -73,3 +95,23 @@ CPU, and operating-system metadata. Compare at least:
 Do not infer a production context count from shared CI results. Increase the
 context count only while throughput improves without unacceptable RSS growth or
 tail latency in the calling application.
+
+## Comparing reports
+
+Pass a prior JSON report with `--baseline` to compare matching engine/context
+configurations:
+
+```sh
+deno run --allow-env --allow-ffi --allow-read --allow-run \
+  bench/compare.ts --baseline previous.json --json > current.json
+```
+
+The output adds percentage changes for throughput, mean latency, peak RSS, and
+RSS growth. Positive throughput is an improvement; positive latency or memory
+is an increase. Reports with different corpus digests or missing engine/context
+pairs are rejected rather than producing a misleading comparison.
+
+No timing threshold is enforced in CI because shared-runner variance would make
+it unstable. CI type-checks the runner, tests report comparison and corpus
+validation deterministically, and executes a one-iteration end-to-end smoke
+run. Release decisions use repeated measurements on controlled hardware.
