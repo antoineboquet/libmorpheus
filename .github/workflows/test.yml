@@ -49,6 +49,25 @@ jobs:
       - name: Test optimized release and installed surface
         run: ctest --preset release
 
+      - name: Package optimized release
+        run: >-
+          cpack --config build/release/CPackConfig.cmake
+          -G TGZ -B build/release/packages
+
+      - name: Verify native package
+        run: >-
+          cmake
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
+          -P test/test-release-package.cmake
+
+      - name: Preserve native package
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-native-linux-x86_64
+          path: build/release/packages/libmorpheus-*.tar.gz*
+          if-no-files-found: error
+
   sanitizers:
     runs-on: ubuntu-latest
     steps:

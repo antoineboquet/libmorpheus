@@ -1,0 +1,97 @@
+if(NOT DEFINED MORPHEUS_BUILD_DIR OR
+   NOT DEFINED MORPHEUS_PACKAGE_DIR)
+  message(FATAL_ERROR "MORPHEUS_BUILD_DIR and MORPHEUS_PACKAGE_DIR are required")
+endif()
+
+include("${MORPHEUS_BUILD_DIR}/MorpheusPackageLayout.cmake")
+
+set(archive
+    "${MORPHEUS_PACKAGE_DIR}/${MORPHEUS_PACKAGE_BASENAME}.tar.gz")
+if(NOT EXISTS "${archive}")
+  message(FATAL_ERROR "native package is missing: ${archive}")
+endif()
+
+file(GLOB checksum_files "${archive}.*")
+list(LENGTH checksum_files checksum_file_count)
+if(NOT checksum_file_count EQUAL 1)
+  message(FATAL_ERROR
+    "expected one checksum for ${archive}, found: ${checksum_files}"
+  )
+endif()
+list(GET checksum_files 0 checksum_file)
+file(SHA256 "${archive}" actual_checksum)
+file(READ "${checksum_file}" recorded_checksum)
+string(FIND "${recorded_checksum}" "${actual_checksum}" checksum_at)
+if(checksum_at EQUAL -1)
+  message(FATAL_ERROR "package checksum does not match ${archive}")
+endif()
+
+set(extract_root "${MORPHEUS_BUILD_DIR}/release-package-test")
+file(REMOVE_RECURSE "${extract_root}")
+file(MAKE_DIRECTORY "${extract_root}")
+execute_process(
+  COMMAND "${CMAKE_COMMAND}" -E tar xzf "${archive}"
+  WORKING_DIRECTORY "${extract_root}"
+  RESULT_VARIABLE extract_result
+  OUTPUT_VARIABLE extract_output
+  ERROR_VARIABLE extract_error
+)
+if(NOT extract_result EQUAL 0)
+  message(FATAL_ERROR
+    "could not extract package:\n${extract_output}\n${extract_error}"
+  )
+endif()
+
+set(prefix "${extract_root}/${MORPHEUS_PACKAGE_BASENAME}")
+set(public_header
+    "${prefix}/${MORPHEUS_PACKAGE_INCLUDEDIR}/morpheus/morpheus.h")
+set(public_library
+    "${prefix}/${MORPHEUS_PACKAGE_LIBDIR}/${MORPHEUS_PACKAGE_LIBRARY_FILE}")
+set(cmake_package
+    "${prefix}/${MORPHEUS_PACKAGE_LIBDIR}/cmake/Morpheus")
+set(pkg_config_file
+    "${prefix}/${MORPHEUS_PACKAGE_LIBDIR}/pkgconfig/libmorpheus.pc")
+
+foreach(required IN ITEMS
+    "${public_header}"
+    "${public_library}"
+    "${cmake_package}/MorpheusConfig.cmake"
+    "${cmake_package}/MorpheusConfigVersion.cmake"
+    "${cmake_package}/MorpheusTargets.cmake"
+    "${pkg_config_file}")
+  if(NOT EXISTS "${required}")
+    message(FATAL_ERROR "required package file is missing: ${required}")
+  endif()
+endforeach()
+
+if(MORPHEUS_PACKAGE_CRUNCHER)
+  set(cruncher
+      "${prefix}/${MORPHEUS_PACKAGE_BINDIR}/${MORPHEUS_PACKAGE_CRUNCHER_FILE}")
+  if(NOT EXISTS "${cruncher}")
+    message(FATAL_ERROR "packaged cruncher is missing: ${cruncher}")
+  endif()
+endif()
+
+file(
+  GLOB_RECURSE packaged_headers
+  LIST_DIRECTORIES false
+  "${prefix}/${MORPHEUS_PACKAGE_INCLUDEDIR}/*"
+)
+list(LENGTH packaged_headers packaged_header_count)
+if(NOT packaged_header_count EQUAL 1 OR
+   NOT packaged_headers STREQUAL public_header)
+  message(FATAL_ERROR "private headers entered the package: ${packaged_headers}")
+endif()
+
+file(GLOB_RECURSE packaged_files LIST_DIRECTORIES false "${prefix}/*")
+foreach(packaged_file IN LISTS packaged_files)
+  file(RELATIVE_PATH relative_file "${prefix}" "${packaged_file}")
+  if(relative_file MATCHES "(^|/)src/" OR
+     relative_file MATCHES
+       "morpheus_(anal|gener|gkends|gkdict|morphlib|greeklib|build_options)" OR
+     relative_file MATCHES "\\.a$")
+    message(FATAL_ERROR
+      "internal build artifact entered the package: ${relative_file}"
+    )
+  endif()
+endforeach()
