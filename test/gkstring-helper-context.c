@@ -276,6 +276,51 @@ main(void)
 		morpheus_runtime_context_clear_error(context);
 	}
 	{
+		gk_word augment_word = { 0 };
+		gk_string possible = { 0 };
+		gk_string quantity = { 0 };
+		gk_string *possibles[] = { &possible };
+		gk_string *quantities[] = { &quantity };
+		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+
+		assert(!do_syllaug(NULL,1));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!do_tempaug(&augment_word,0));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!unaugment(NULL,possibles,quantities,1,(Dialect)0,NO,NO));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!unaugment(empty,possibles,quantities,0,(Dialect)0,NO,NO));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(unaugfromlemma(NULL,empty) == -1);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!add_augment(NULL,flags,1));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!add_augment(&augment_word,flags,0));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!needs_augment(NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!needs_augment2(NULL,empty));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
+	{
 		gk_string stem = { 0 };
 		gk_string ending = { 0 };
 		word_form form = { 0 };
