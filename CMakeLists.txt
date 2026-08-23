@@ -1227,3 +1227,24 @@ if(MORPHEUS_BUILD_CRUNCHER)
     endif()
   endif()
 endif()
+
+# Test programs use assertions as their executable checks.  Keep them enabled
+# when the library itself is built with an optimized configuration defining
+# NDEBUG (Release, RelWithDebInfo, or MinSizeRel).
+if(BUILD_TESTING)
+  get_property(
+    morpheus_directory_targets
+    DIRECTORY
+    PROPERTY BUILDSYSTEM_TARGETS
+  )
+  foreach(morpheus_directory_target IN LISTS morpheus_directory_targets)
+    if(morpheus_directory_target MATCHES "^morpheus_.*_test$")
+      target_compile_options(
+        "${morpheus_directory_target}"
+        PRIVATE
+          $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-UNDEBUG>
+          $<$<COMPILE_LANG_AND_ID:C,MSVC>:/UNDEBUG>
+      )
+    endif()
+  endforeach()
+endif()
