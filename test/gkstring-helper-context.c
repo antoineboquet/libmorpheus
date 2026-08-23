@@ -801,19 +801,19 @@ main(void)
 		char unterminated[4] = { 'a', 'b', 'c', 'd' };
 		char unchanged[5] = "keep";
 
-		Xstrncat(bounded.value,"def",sizeof bounded.value);
+		assert(!Xstrncat(bounded.value,"def",sizeof bounded.value));
 		assert(!strcmp(bounded.value,"abcde"));
 		assert(!strcmp(bounded.guard,"end"));
-		Xstrncat(overlap,overlap,sizeof overlap);
+		assert(Xstrncat(overlap,overlap,sizeof overlap));
 		assert(!strcmp(overlap,"abcabc"));
-		Xstrncat(unterminated,"x",sizeof unterminated);
+		assert(!Xstrncat(unterminated,"x",sizeof unterminated));
 		assert(!strcmp(unterminated,"abc"));
-		Xstrncat(unchanged,"drop",0);
+		assert(!Xstrncat(unchanged,"drop",0));
 		assert(!strcmp(unchanged,"keep"));
-		Xstrncat(one,"value",sizeof one);
+		assert(!Xstrncat(one,"value",sizeof one));
 		assert(!one[0]);
-		Xstrncat(NULL,"value",5);
-		Xstrncat(unchanged,NULL,sizeof unchanged);
+		assert(!Xstrncat(NULL,"value",5));
+		assert(!Xstrncat(unchanged,NULL,sizeof unchanged));
 	}
 	assert(add_domain(&item,1) == 1);
 	assert(add_domain(&item,1) == 0);

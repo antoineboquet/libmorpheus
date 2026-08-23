@@ -25,23 +25,24 @@ Xstrncpy(char *s1, const char *s2, size_t len)
 }
 
 
-void Xstrncat(char *s1, const char *s2, size_t len)
+int Xstrncat(char *s1, const char *s2, size_t len)
 {
 	size_t dest_length = 0;
 	size_t source_length;
 	size_t copy_length;
 
-	if (!s1 || !s2 || !len) return;
+	if (!s1 || !s2 || !len) return(0);
 	while (dest_length < len && s1[dest_length]) dest_length++;
 	if (dest_length == len) {
 		s1[len-1] = 0;
-		return;
+		return(0);
 	}
 	source_length = strlen(s2);
 	copy_length = source_length < len - dest_length ?
 	              source_length : len - dest_length - 1;
 	memmove(s1+dest_length,s2,copy_length);
 	s1[dest_length+copy_length] = 0;
+	return(source_length < len - dest_length);
 }
 
 int Xstrncmp(const char *s1, const char *s2, size_t len)
