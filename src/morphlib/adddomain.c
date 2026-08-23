@@ -6,9 +6,14 @@
 
 int add_domain(gk_string *gstr, int n)
 {
-	char * p = domains_of(gstr);
+	char *p;
 	unsigned char domain;
 
+	if (!gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
+	p = domains_of(gstr);
 	if (n <= 0 || n > UCHAR_MAX)
 		return(-1);
 	domain = (unsigned char)n;

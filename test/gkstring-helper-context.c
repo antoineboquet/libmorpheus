@@ -476,6 +476,25 @@ main(void)
 	assert(add_domain(&item,1) == 0);
 	assert(add_domain(&item,0) == -1);
 	assert(add_domain(&item,256) == -1);
+	assert(add_domain(NULL,1) == -1);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	{
+		void (*mutators[])(gk_string *, unsigned long) = {
+			new_person, new_number, new_case, new_tense, new_voice,
+			new_mood, new_degree, new_gender, new_dialect, new_region,
+			new_morphflags, new_stemtype, new_domain, new_derivtype
+		};
+		size_t i;
+
+		for (i = 0; i < sizeof mutators / sizeof mutators[0]; i++) {
+			mutators[i](NULL,1);
+			assert(morpheus_runtime_context_error(context) ==
+			       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			morpheus_runtime_context_clear_error(context);
+		}
+	}
 	set_morphflag(morphflags_of(&item),8);
 	assert(morphflags_of(&item)[0] == (MorphFlags)0200);
 	add_morphflag(morphflags_of(&item),9);
