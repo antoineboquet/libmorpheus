@@ -1,4 +1,5 @@
 #include <greek.h>
+#include <stdint.h>
 
 int binlook(char *table, char *tag, int nelems, int size, bool exact_match,
             int (*compare)(char *, char *))
@@ -7,39 +8,29 @@ int binlook(char *table, char *tag, int nelems, int size, bool exact_match,
 	int low;
 	int mid;
 	int comp;
-	int i;
-	long offset;
+	size_t offset;
 
-	high = nelems-1;
-	low = 0 ;
+	if (!table || !tag || !compare || nelems <= 0 || size <= 0)
+		return(-1);
+	if ((size_t)nelems > SIZE_MAX/(size_t)size)
+		return(-1);
+	high = nelems;
+	low = 0;
 
+	while( low<high ) {
+		mid = low+(high-low)/2;
+		offset = (size_t)mid*(size_t)size;
 
-	while( low<=high ) {
-		mid = (low+high)/2 ;
-		offset = (long)(mid) * (long)size;
+		comp = (*compare)(tag,table+offset);
 
-		comp = (*compare)( tag , (char *)table+offset );
-
-		if( comp < 0 ) 
-			high = mid - 1 ;
+		if( comp < 0 )
+			high = mid;
 		else if ( comp > 0 )
 			low = mid + 1;
-		else  { /* found match */
- 			return(mid);
-		}
+		else
+			return(mid);
 	}
 
 	if( exact_match ) return(-1);
-	if( mid > 0 ) {
-		for(i=mid-1;i<nelems;i++) {
-			offset = (long) size * (long)i;
-			if( (*compare)(tag,table+offset) < 0 ) {
-				break;
-			}
-		}
-		if( i > 0 ) i--;
-	} else
-		i = 0;
-
-	return( i );
+	return(low > 0 ? low-1 : 0);
 }

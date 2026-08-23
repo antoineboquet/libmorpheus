@@ -26,5 +26,19 @@ main(void)
 		compare_text) == -1);
 	assert(binlook((char *)entries,"delta",3,sizeof entries[0],NO,
 		compare_text) == 1);
+	assert(binlook((char *)entries,"aardvark",3,sizeof entries[0],NO,
+		compare_text) == 0);
+	assert(binlook((char *)entries,"omega",3,sizeof entries[0],NO,
+		compare_text) == 2);
+	assert(binlook(NULL,"alpha",3,sizeof entries[0],YES,
+		compare_text) == -1);
+	assert(binlook((char *)entries,NULL,3,sizeof entries[0],YES,
+		compare_text) == -1);
+	assert(binlook((char *)entries,"alpha",0,sizeof entries[0],NO,
+		compare_text) == -1);
+	assert(binlook((char *)entries,"alpha",3,0,NO,
+		compare_text) == -1);
+	assert(binlook((char *)entries,"alpha",3,sizeof entries[0],YES,
+		NULL) == -1);
 	return(0);
 }
