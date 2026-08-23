@@ -17,6 +17,8 @@ utilities are outside the release contract.
 - Confirm that the Deno `ABI_VERSION` and native structure declarations match
   the C header.
 - Write release notes that distinguish code changes from stemlib data changes.
+- Move the candidate notes in `CHANGELOG.md` from `Unreleased` to a dated
+  version heading without changing their technical scope during packaging.
 
 ## 2. Source and data provenance
 
@@ -58,6 +60,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
   nested-libdir test must resolve the relocated prefix correctly.
 - Confirm that the generated project version, package-config version, SONAME,
   and `libmorpheus.pc` version agree.
+- Require the `release_metadata` test to pass; it keeps the C header, Deno
+  binding, public API documentation, changelog, and CMake ABI decisions aligned.
 
 ## 5. Runtime artifacts
 
