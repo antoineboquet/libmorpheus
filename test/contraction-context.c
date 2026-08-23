@@ -78,6 +78,22 @@ main(void)
 	assert(morpheus_runtime_context_error(greek) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	morpheus_runtime_context_clear_error(greek);
+	{
+		gk_string source = { 0 };
+		char longword[MAXWORDSIZE];
+		size_t i;
+
+		longword[0] = 'r';
+		longword[1] = 'h';
+		for (i = 2; i < sizeof longword - 1; i++) longword[i] = 'a';
+		longword[sizeof longword - 1] = 0;
+		set_gkstring(&source,longword);
+		set_stemtype(&source,(Stemtype)DECL1);
+		assert(!fix_eta(&source));
+		assert(morpheus_runtime_context_error(greek) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(greek);
+	}
 	AccComposForm(NULL);
 	assert(morpheus_runtime_context_error(greek) ==
 	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
