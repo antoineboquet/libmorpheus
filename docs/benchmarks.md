@@ -40,6 +40,23 @@ deno run --allow-env --allow-ffi --allow-read --allow-run \
   > benchmark.json
 ```
 
+Before accepting the file as release evidence, validate both its completeness
+and the revisions it claims:
+
+```sh
+deno run --allow-read bench/validate.ts benchmark.json \
+  --label release-candidate \
+  --revision "$(git rev-parse HEAD)" \
+  --stemlib-revision "$(git -C vendor/alpheios-morpheus rev-parse HEAD)" \
+  --compiler "$(cc --version | head -n 1)"
+```
+
+The validator requires full 40-character Git object IDs, compiler and platform
+metadata, a SHA-256 corpus identity, and measurements for FFI with 1, 2, and 4
+contexts plus persistent and cold `cruncher`. It does not impose timing
+thresholds; accepting or rejecting a measured regression remains an explicit
+release decision.
+
 The JSON schema is versioned. It records the Deno runtime, target platform,
 hardware concurrency, corpus path and SHA-256 digest, source and stemlib
 revisions, compiler label, run parameters, and raw measurements. The revision
@@ -113,5 +130,6 @@ pairs are rejected rather than producing a misleading comparison.
 
 No timing threshold is enforced in CI because shared-runner variance would make
 it unstable. CI type-checks the runner, tests report comparison and corpus
-validation deterministically, and executes a one-iteration end-to-end smoke
-run. Release decisions use repeated measurements on controlled hardware.
+validation deterministically, tests the release-evidence validator, and
+executes a one-iteration end-to-end smoke run. Release decisions use repeated
+measurements on controlled hardware.
