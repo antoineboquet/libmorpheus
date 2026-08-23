@@ -3,6 +3,14 @@
 
 #include "checkgenwds.proto.h"
 
+static int
+valid_analysis_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 static int append_text(char *dest, size_t capacity, const char *source)
 {
 	size_t used = strlen(dest);
@@ -29,12 +37,19 @@ int CheckGenWords(gk_word *Gkword, gk_word *gkforms)
 	char wordnoacc[MAXWORDSIZE+1];
 	char curform[MAXWORDSIZE+1];
 	char * checks;
-	char * preverb = preverb_of(gkforms);
-	char * lemma = lemma_of(gkforms);
+	char * preverb;
+	char * lemma;
 /* grc 6/8/89
 	char * origword = rawword_of(gkforms);
 */
-	char * origword = workword_of(Gkword);
+	char * origword;
+
+	if (!valid_analysis_argument(Gkword) ||
+	    !valid_analysis_argument(gkforms))
+		return(0);
+	preverb = preverb_of(gkforms);
+	lemma = lemma_of(gkforms);
+	origword = workword_of(Gkword);
 
 	Xstrncpy(accword,origword,(int)sizeof accword);
 	/*
@@ -191,6 +206,10 @@ int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	char cmplem[LONGSTRING];
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
+	if (!valid_analysis_argument(Gkword) ||
+	    !valid_analysis_argument(gkform))
+		return(0);
+
 	if (context->analysis_storage_error) {
 		fprintf(stderr,"something wrong with the analysis storage!\n");
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
@@ -198,16 +217,16 @@ int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	}
 
 	if( analysis_of(Gkword) == NULL ) {
-		if( ! ( analysis_of(Gkword) = (gk_analysis *)CreatGkAnal(MAXANALYSES+1) )) {
-			fprintf(stderr,"not enough memory for greek analysis\n");
-			context->analysis_storage_error++;
-			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
-			return(0);
-		}
 		if( totanal_of(Gkword) != 0 ) {
 			fprintf(stderr,"hey! anal pointer NULL but totanal is %d\n", totanal_of(Gkword) );
 			context->analysis_storage_error++;
 			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return(0);
+		}
+		if( ! ( analysis_of(Gkword) = (gk_analysis *)CreatGkAnal(MAXANALYSES+1) )) {
+			fprintf(stderr,"not enough memory for greek analysis\n");
+			context->analysis_storage_error++;
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 			return(0);
 		}
 	}
@@ -221,6 +240,7 @@ int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	if( totanal_of(Gkword) >= MAXANALYSES ) {
 		fprintf(stderr,"%s:  ran out of space with %d analyses!\n",
 			rawword_of(Gkword), totanal_of(Gkword) );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(0);
 	} 
 	curanal = analysis_of(Gkword) + totanal_of(Gkword);
@@ -415,6 +435,9 @@ int show_totlems(void)
 
 void merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
 {
+	if (!valid_analysis_argument(anal1) ||
+	    !valid_analysis_argument(anal2))
+		return;
 	/*
 	 * grc 3/10/91:  if anal1 has no dialects set, then this form can appear in
 	 * any dialect.  don't add false constraints here.
@@ -424,7 +447,10 @@ void merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
 }
 
 int equiv_anal(gk_analysis *anal1, gk_analysis *anal2)
-{	
+{
+	if (!valid_analysis_argument(anal1) ||
+	    !valid_analysis_argument(anal2))
+		return(0);
 	if( strcmp(lemma_of(anal1),lemma_of(anal2))) 
 		return(0);
 	/*
