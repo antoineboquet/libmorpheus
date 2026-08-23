@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <gkstring.h>
@@ -19,6 +20,7 @@
 #include "../src/greeklib/cinsert.proto.h"
 #include "../src/greeklib/do_dissim.proto.h"
 #include "../src/greeklib/endsinstr.proto.h"
+#include "../src/greeklib/Fclose.proto.h"
 #include "../src/greeklib/getaccent.proto.h"
 #include "../src/greeklib/getaccp.proto.h"
 #include "../src/greeklib/getbreath.proto.h"
@@ -111,6 +113,17 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		FILE *temporary = tmpfile();
+		void *allocation = malloc(1);
+
+		assert(temporary);
+		assert(allocation);
+		xFclose(temporary);
+		xFclose(NULL);
+		assert(!xFree(allocation,NULL));
+		assert(xFree(NULL,NULL) == -1);
+	}
 	{
 		char accents[] = "a/=\\";
 		char aspirated = 'p';
