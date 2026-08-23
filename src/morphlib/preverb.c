@@ -694,6 +694,7 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 
 int First_K_aspirate(char *word)
 {
+	if (!valid_preverb_pointer(word)) return(0);
 	while(*word&&!Is_cons(*word)) word++;
 	if( ! *word ) return(0);
 	if(Is_asp(*word) || Is_asp(*(word+1)) ) return(1);
@@ -702,6 +703,7 @@ int First_K_aspirate(char *word)
 
 void shift_su_to_cu(char *s)
 {
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(*s=='s'&&*(s+1)=='u') *s = 'c';
 		s++;
@@ -710,6 +712,7 @@ void shift_su_to_cu(char *s)
 
 void shift_eis_to_es(char *s)
 {
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"eis",3) || !Xstrncmp(s,"ei)s",4) ) {
 			Xstrcpy(s+1,s+2);
@@ -721,7 +724,8 @@ void shift_eis_to_es(char *s)
 void shift_pros_to_poti(char *s)
 {
 	char tmp[MAXWORDSIZE];
-	
+
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"pros",4) ) {
 			Xstrcpy(tmp,s+4);
@@ -735,7 +739,8 @@ void shift_pros_to_poti(char *s)
 void shift_pros_to_proti(char *s)
 {
 	char tmp[MAXWORDSIZE];
-	
+
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"pros",4) ) {
 			Xstrcpy(tmp,s+4);
@@ -749,7 +754,8 @@ void shift_pros_to_proti(char *s)
 void shift_upo_to_upai(char *s)
 {
 	char tmp[MAXWORDSIZE];
-	
+
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"upo",3) ) {
 			Xstrcpy(tmp,s+3);
@@ -768,7 +774,8 @@ void shift_upo_to_upai(char *s)
 void shift_uper_to_upeir(char *s)
 {
 	char tmp[MAXWORDSIZE];
-	
+
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"uper",4) ) {
 			Xstrcpy(tmp,s+4);
@@ -787,7 +794,8 @@ void shift_uper_to_upeir(char *s)
 void shift_para_to_parai(char *s)
 {
 	char tmp[MAXWORDSIZE];
-	
+
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"para",4) ) {
 			Xstrcpy(tmp,s+4);
@@ -801,7 +809,8 @@ void shift_para_to_parai(char *s)
 void shift_meta_to_peda(char *s)
 {
 	char tmp[MAXWORDSIZE];
-	
+
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"meta",4) ) {
 			Xstrcpy(tmp,s+4);
@@ -815,7 +824,8 @@ void shift_meta_to_peda(char *s)
 void shift_en_to_eni(char *s)
 {
 	char tmp[MAXWORDSIZE];
-	
+
+	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"e)n",3) && Xstrncmp(s,"e)ni",4)) {
 			Xstrcpy(tmp,s+3);
@@ -835,7 +845,9 @@ void shift_en_to_eni(char *s)
 
 void set_odd_prvb(MorphFlags *oddpb, char *work)
 {	
-
+	if (!valid_preverb_pointer(oddpb) ||
+	    !valid_preverb_pointer(work))
+		return;
 	if( has_morphflag(oddpb,SIG_TO_CI) ) {
 		shift_su_to_cu(work);
 	}

@@ -211,6 +211,35 @@ main(void)
 		morpheus_runtime_context_clear_error(context);
 	}
 	{
+		void (*shifts[])(char *) = {
+			shift_su_to_cu, shift_eis_to_es, shift_pros_to_poti,
+			shift_pros_to_proti, shift_upo_to_upai,
+			shift_uper_to_upeir, shift_para_to_parai,
+			shift_meta_to_peda, shift_en_to_eni
+		};
+		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+		size_t i;
+
+		assert(!First_K_aspirate(NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		for (i = 0; i < sizeof shifts / sizeof shifts[0]; i++) {
+			shifts[i](NULL);
+			assert(morpheus_runtime_context_error(context) ==
+			       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			morpheus_runtime_context_clear_error(context);
+		}
+		set_odd_prvb(NULL,empty);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		set_odd_prvb(flags,NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
+	{
 		gk_string preverb = { 0 };
 		char word[MAXWORDSIZE] = "beta";
 		char previous[MAXWORDSIZE] = "";
