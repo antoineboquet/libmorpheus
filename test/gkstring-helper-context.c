@@ -16,6 +16,7 @@
 #include "../src/morphlib/numovable.proto.h"
 #include "../src/morphlib/penultform.proto.h"
 #include "../src/morphlib/preverb3.proto.h"
+#include "../src/morphlib/preverb2.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
 #include "../src/morphlib/standphon.proto.h"
@@ -204,6 +205,46 @@ main(void)
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
 		assert(!is_rawpreverb(NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
+	{
+		gk_string preverb = { 0 };
+		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+		char empty_preverb[MAXWORDSIZE] = "";
+		char rest[MAXWORDSIZE] = "beta";
+		char full[MAXWORDSIZE] = "";
+
+		assert(!CombPbStem(NULL,rest,(Dialect)0,flags));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!CombPbStem(empty_preverb,rest,(Dialect)0,flags));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!CombPbStemL("pro",NULL,(Dialect)0,flags));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!CombPbStemG("pro",rest,(Dialect)0,NULL));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!is_preverb(NULL,full,&preverb));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!is_preverb(rest,NULL,&preverb));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!exp_preverb(NULL,full,&preverb));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!exp_preverb(rest,full,NULL));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
