@@ -33,6 +33,7 @@
 #include "quantprim.proto.h"
 #include "shortanalog.proto.h"
 #include "sprntGkflags.proto.h"
+#include "standalpha.proto.h"
 #include "standword.proto.h"
 #include "stripacc.proto.h"
 #include "stripacute.proto.h"

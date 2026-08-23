@@ -29,6 +29,7 @@
 #include "../src/greeklib/longbyposition.proto.h"
 #include "../src/greeklib/nsylls.proto.h"
 #include "../src/greeklib/quantprim.proto.h"
+#include "../src/greeklib/standalpha.proto.h"
 #include "../src/greeklib/stripacc.proto.h"
 #include "../src/greeklib/stripbreath.proto.h"
 #include "../src/greeklib/stripdiaer.proto.h"
@@ -102,6 +103,16 @@ main(void)
 	assert(!nsylls(NULL));
 	assert(getsyll(NULL,ULTIMA) == P_ERR);
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
+	{
+		char adjacent[] = "a_a_";
+		char unchanged[] = "alpha";
+
+		standalpha(adjacent);
+		assert(!strcmp(adjacent,"hh"));
+		standalpha(unchanged);
+		assert(!strcmp(unchanged,"alpha"));
+		standalpha(NULL);
+	}
 	{
 		char consecutive[] = "e)n((a";
 		char extra[] = "e)nh(/bwsa";
