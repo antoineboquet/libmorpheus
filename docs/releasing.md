@@ -78,11 +78,17 @@ Alpheios fixture suites must run where their data prerequisites are available.
   including source revision, stemlib revision, and compiler metadata. Compare
   it with the previous accepted report on the same controlled hardware and
   investigate material regressions before tagging.
+- Generate the native archive with `cpack` and require
+  `test-release-package.cmake` to verify its checksum and installed surface.
+  The CI artifact is a release candidate, not a published release or a
+  cryptographic signature.
 
 ## 6. Publish and verify
 
 - Tag the exact commit that passed the complete matrix.
 - Build release artifacts from that tag rather than from an uncommitted tree.
+- Rebuild the native archive from the tag; do not promote an artifact produced
+  by an earlier pull-request run.
 - Install the produced native package into a fresh prefix and repeat one CMake
   and one `pkg-config` consumer smoke test.
 - Verify the container by digest on both architectures.
