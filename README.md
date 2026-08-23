@@ -20,7 +20,8 @@ See [the architecture baseline](docs/architecture.md),
 exact upstream revisions, and tested deployment targets.
 The complete native contract is in [the public API reference](docs/public-api.md);
 [release qualification](docs/releasing.md) defines the checks required before
-tagging a publishable version.
+tagging a publishable version, and the [changelog](CHANGELOG.md) records the
+candidate release contents.
 
 ## Clone
 
