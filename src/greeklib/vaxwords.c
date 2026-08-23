@@ -14,21 +14,18 @@
  */
 int get_int32(int32 *lword, FILE *f)
 {
-	
-	int32 tmp;
-	int i;
+	int32 value = 0;
+	unsigned int i;
 	int c;
 
-	for(*lword=0,i=0;i<4;i++) {
+	if (!lword || !f) return(0);
+	for(i=0;i<4;i++) {
 		c = getc(f);
 		if(c == EOF)
 			return(0);
-		tmp = (int32)c;
-		tmp &= 0377;
-		tmp = tmp << (8 * i);
-
-		*lword += tmp;
+		value |= (int32)(c&0377) << (8U*i);
 	}
+	*lword = value;
 	return(1);
 }
 
@@ -39,6 +36,7 @@ int put_int32(const int32 *lword, FILE *f)
 	int i;
 	int c;
 
+	if (!lword || !f) return(0);
 	for(i=0;i<4;i++) {
 		tmp = *lword;
 		tmp = tmp >> (8 * i);
@@ -60,6 +58,7 @@ int get_short(unsigned short *sword, FILE *f)
 	unsigned int i;
 	int c;
 
+	if (!sword || !f) return(0);
 	for(i=0;i<2;i++) {
 		c = getc(f);
 		if(c == EOF)
@@ -72,10 +71,12 @@ int get_short(unsigned short *sword, FILE *f)
 
 int put_short(const unsigned short *sword, FILE *f)
 {
-	unsigned int value = *sword;
+	unsigned int value;
 	unsigned int i;
 	int c;
 
+	if (!sword || !f) return(0);
+	value = *sword;
 	for(i=0;i<2;i++) {
 		c = (int)((value >> (8U*i)) & 0377U);
 		if(fputc(c , f ) == EOF)
@@ -100,6 +101,10 @@ int vax_fread(void *Buffer, size_t size, int nswap, FILE *f)
 	size_t count;
 
 	if(nswap < 0)
+		return(-1);
+	if(nswap == 0)
+		return(0);
+	if(!Buffer || !f)
 		return(-1);
 	
 	switch( size )  {
@@ -157,6 +162,10 @@ int vax_fwrite(const void *Buffer, size_t size, int nswap, FILE *f)
 	size_t count;
 
 	if(nswap < 0)
+		return(-1);
+	if(nswap == 0)
+		return(0);
+	if(!Buffer || !f)
 		return(-1);
 	
 	switch( size )  {

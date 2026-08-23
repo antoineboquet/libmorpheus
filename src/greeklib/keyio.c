@@ -8,6 +8,7 @@ int WriteKey(char *key, morpheus_stemlib_offset *offp, FILE *f)
 {
 	int nwritten;
 
+	if (!key || !offp || !f) return(-1);
 	if((nwritten=vax_fwrite(key,(size_t)sizeof * key, (int)KEYLEN,f)) <= 0 )
 		return(nwritten);
 	if((nwritten=vax_fwrite((char *)offp,(size_t)sizeof (* offp), 1,f)) <= 0 )
@@ -19,6 +20,7 @@ int ReadKey(char *key, morpheus_stemlib_offset *offp, FILE *f)
 {
 	int nread;
 
+	if (!key || !offp || !f) return(-1);
 	if((nread=vax_fread(key,sizeof * key, (int)KEYLEN,f)) <= 0 ) {
 		return(nread);
 	}

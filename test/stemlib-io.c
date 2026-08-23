@@ -4,6 +4,7 @@
 
 #include <gkstring.h>
 
+#include "../src/greeklib/keyio.proto.h"
 #include "../src/greeklib/vaxwords.proto.h"
 #include "../src/morphlib/endio.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
@@ -19,6 +20,9 @@ int main(int argc, char **argv)
 	int maxend = 8;
 	int stored_maxend = 0;
 	int32 truncated_word = 0;
+	morpheus_stemlib_offset key_offset = 0;
+	unsigned short truncated_short = 0;
+	char key[KEYLEN] = {0};
 	unsigned char header[8];
 	unsigned char stored_form[4];
 	const unsigned char expected_header[8] = {
@@ -77,7 +81,35 @@ int main(int argc, char **argv)
 	assert(fputc(0x44,stream) != EOF);
 	assert(fseek(stream,0L,SEEK_SET) == 0);
 	assert(vax_fread(&truncated_word,sizeof truncated_word,1,stream) == 0);
+	truncated_word = UINT32_C(0xdeadbeef);
+	assert(fseek(stream,0L,SEEK_SET) == 0);
+	assert(get_int32(&truncated_word,stream) == 0);
+	assert(truncated_word == UINT32_C(0xdeadbeef));
+	truncated_short = 0xbeefU;
+	assert(fseek(stream,0L,SEEK_SET) == 0);
+	assert(get_short(&truncated_short,stream) == 0);
+	assert(truncated_short == 0xbeefU);
 	assert(vax_fread(&truncated_word,sizeof truncated_word,-1,stream) == -1);
+	assert(vax_fread(NULL,1,0,NULL) == 0);
+	assert(vax_fwrite(NULL,1,0,NULL) == 0);
+	assert(vax_fread(NULL,1,1,stream) == -1);
+	assert(vax_fread(&truncated_word,1,1,NULL) == -1);
+	assert(vax_fwrite(NULL,1,1,stream) == -1);
+	assert(vax_fwrite(&truncated_word,1,1,NULL) == -1);
+	assert(!get_int32(NULL,stream));
+	assert(!get_int32(&truncated_word,NULL));
+	assert(!put_int32(NULL,stream));
+	assert(!put_int32(&truncated_word,NULL));
+	assert(!get_short(NULL,stream));
+	assert(!get_short(&truncated_short,NULL));
+	assert(!put_short(NULL,stream));
+	assert(!put_short(&truncated_short,NULL));
+	assert(WriteKey(NULL,&key_offset,stream) == -1);
+	assert(WriteKey(key,NULL,stream) == -1);
+	assert(WriteKey(key,&key_offset,NULL) == -1);
+	assert(ReadKey(NULL,&key_offset,stream) == -1);
+	assert(ReadKey(key,NULL,stream) == -1);
+	assert(ReadKey(key,&key_offset,NULL) == -1);
 	fclose(stream);
 	assert(remove(argv[1]) == 0);
 
