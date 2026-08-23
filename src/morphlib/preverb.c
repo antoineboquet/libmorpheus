@@ -32,6 +32,23 @@ static bool valid_preverb_text(const char *text)
 	return(NO);
 }
 
+static bool replace_preverb_prefix(char *base, char *position,
+				   const char *replacement,
+				   const char *tail)
+{
+	size_t offset = (size_t)(position-base);
+	size_t available;
+
+	if (offset >= MAXWORDSIZE) goto failed;
+	available = MAXWORDSIZE-offset;
+	if (strlen(replacement)+strlen(tail) >= available) goto failed;
+	Xstrcpy(position,replacement);
+	if (Xstrncat(position,tail,available)) return(YES);
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(NO);
+}
+
 bool checkprevb(char *word, char *prevb, bool *brflg)
 /* remove preverb from word and reply whether preverb was found */
 /* found preverb returned in prevb */
@@ -241,7 +258,11 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
 
 		if( has_morphflag(oddpb,D_PREVB) ) {
 			Xstrcpy(work,prevb);
-			strcat(work,"d");
+			if (!Xstrncat(work,"d",sizeof work)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return;
+			}
 		}
 
 		if( has_morphflag(oddpb,T_PREVB) && !strcmp(prevb,"re") ) {
@@ -385,7 +406,11 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
 		}
 	
 		
-		strcat(work,word);
+		if (!Xstrncat(work,word,sizeof work)) {
+			morpheus_runtime_error_record(
+				MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return;
+		}
 		Xstrcpy(word,work);
 		return;
 	   }
@@ -414,10 +439,19 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
  */	
 		Xstrncpy(work,prevb,MAXWORDSIZE);
 		comp_preverb(work,0,oddpb);
-		if( Is_vowel(*(lastn(work,1))) && Is_vowel(*word) ) strcat(work,"+");
+		if (Is_vowel(*(lastn(work,1))) && Is_vowel(*word) &&
+		    !Xstrncat(work,"+",sizeof work)) {
+			morpheus_runtime_error_record(
+				MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return;
+		}
 		set_odd_prvb(oddpb,work);
 		stripbreath(tmpword); /* avoid forms such as a)na-oi)/gw */
-		Xstrncat(work,tmpword,MAXWORDSIZE);
+		if (!Xstrncat(work,tmpword,sizeof work)) {
+			morpheus_runtime_error_record(
+				MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return;
+		}
 		Xstrncpy(word,work,MAXWORDSIZE);
 		return;
 	}
@@ -440,7 +474,11 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
 	} 
 	
 	if( has_morphflag(oddpb,IOTA_INTENS) && *lastn(work,1) == 'n' ) {
-		strcat(work,"i");
+		if (!Xstrncat(work,"i",sizeof work)) {
+			morpheus_runtime_error_record(
+				MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return;
+		}
 	}
 
 	comp_preverb(work,has_morphflag(oddpb,UNASP_PREVERB),oddpb);
@@ -472,7 +510,10 @@ void rstprevb(char *word, char *prevb, gk_string *gstr)
 	}
 	stripbreath(tmpword);
 
-	Xstrncat(work,tmpword,MAXWORDSIZE);
+	if (!Xstrncat(work,tmpword,sizeof work)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	Xstrncpy(word,work,MAXWORDSIZE);
 }
 
@@ -611,7 +652,11 @@ void getprvbform(char *word, char *prevb, MorphFlags *oddpb)
 				    getbreath(word)==ROUGHBR && !Has_unasp_preverb(oddpb))
 						aspirate(lastn(prevb,1));
 			  } else {
-			  	strcat(prevb,"+");
+				if (!Xstrncat(prevb,"+",MAXWORDSIZE)) {
+					morpheus_runtime_error_record(
+						MORPHEUS_RUNTIME_ERROR_INTERNAL);
+					return;
+				}
 /*
  * grc 7/14/89 
  *
@@ -724,13 +769,13 @@ void shift_eis_to_es(char *s)
 void shift_pros_to_poti(char *s)
 {
 	char tmp[MAXWORDSIZE];
+	char *base = s;
 
 	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"pros",4) ) {
 			Xstrcpy(tmp,s+4);
-			Xstrcpy(s,"poti");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"poti",tmp);
 			return;
 		}
 		s++;
@@ -739,13 +784,13 @@ void shift_pros_to_poti(char *s)
 void shift_pros_to_proti(char *s)
 {
 	char tmp[MAXWORDSIZE];
+	char *base = s;
 
 	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"pros",4) ) {
 			Xstrcpy(tmp,s+4);
-			Xstrcpy(s,"proti");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"proti",tmp);
 			return;
 		}
 		s++;
@@ -754,18 +799,17 @@ void shift_pros_to_proti(char *s)
 void shift_upo_to_upai(char *s)
 {
 	char tmp[MAXWORDSIZE];
+	char *base = s;
 
 	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"upo",3) ) {
 			Xstrcpy(tmp,s+3);
-			Xstrcpy(s,"upai");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"upai",tmp);
 			return;
 		} else if(!Xstrncmp(s,"u(po",4) ) {
 			Xstrcpy(tmp,s+4);
-			Xstrcpy(s,"u(pai");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"u(pai",tmp);
 			return;
 		}
 		s++;
@@ -774,18 +818,17 @@ void shift_upo_to_upai(char *s)
 void shift_uper_to_upeir(char *s)
 {
 	char tmp[MAXWORDSIZE];
+	char *base = s;
 
 	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"uper",4) ) {
 			Xstrcpy(tmp,s+4);
-			Xstrcpy(s,"upeir");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"upeir",tmp);
 			return;
 		} else if(!Xstrncmp(s,"u(per",5) ) {
 			Xstrcpy(tmp,s+5);
-			Xstrcpy(s,"u(peir");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"u(peir",tmp);
 			return;
 		}
 		s++;
@@ -794,13 +837,13 @@ void shift_uper_to_upeir(char *s)
 void shift_para_to_parai(char *s)
 {
 	char tmp[MAXWORDSIZE];
+	char *base = s;
 
 	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"para",4) ) {
 			Xstrcpy(tmp,s+4);
-			Xstrcpy(s,"parai");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"parai",tmp);
 			return;
 		} 
 		s++;
@@ -809,13 +852,13 @@ void shift_para_to_parai(char *s)
 void shift_meta_to_peda(char *s)
 {
 	char tmp[MAXWORDSIZE];
+	char *base = s;
 
 	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"meta",4) ) {
 			Xstrcpy(tmp,s+4);
-			Xstrcpy(s,"peda");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"peda",tmp);
 			return;
 		}
 		s++;
@@ -824,19 +867,18 @@ void shift_meta_to_peda(char *s)
 void shift_en_to_eni(char *s)
 {
 	char tmp[MAXWORDSIZE];
+	char *base = s;
 
 	if (!valid_preverb_pointer(s)) return;
 	while(*s) {
 		if(!Xstrncmp(s,"e)n",3) && Xstrncmp(s,"e)ni",4)) {
 			Xstrcpy(tmp,s+3);
-			Xstrcpy(s,"e)ni");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"e)ni",tmp);
 			return;
 		}
 		if(!Xstrncmp(s,"en",2) && Xstrncmp(s,"eni",3)) {
 			Xstrcpy(tmp,s+2);
-			Xstrcpy(s,"eni");
-			strcat(s,tmp);
+			replace_preverb_prefix(base,s,"eni",tmp);
 			return;
 		}
 		s++;

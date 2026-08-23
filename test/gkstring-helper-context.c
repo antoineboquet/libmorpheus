@@ -238,7 +238,14 @@ main(void)
 			shift_meta_to_peda, shift_en_to_eni
 		};
 		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+		char long_shift[MAXWORDSIZE];
+		char original[MAXWORDSIZE];
 		size_t i;
+
+		strcpy(long_shift,"pros");
+		memset(long_shift+4,'a',sizeof long_shift - 5);
+		long_shift[sizeof long_shift - 1] = 0;
+		strcpy(original,long_shift);
 
 		assert(!First_K_aspirate(NULL));
 		assert(morpheus_runtime_context_error(context) ==
@@ -250,6 +257,11 @@ main(void)
 			       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 			morpheus_runtime_context_clear_error(context);
 		}
+		shift_pros_to_proti(long_shift);
+		assert(!strcmp(long_shift,original));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
 		set_odd_prvb(NULL,empty);
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
