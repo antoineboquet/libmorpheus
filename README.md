@@ -87,6 +87,21 @@ ctest --preset release
 This run also installs into a clean prefix and verifies that no private header
 or internal static archive enters the installed package.
 
+To build the versioned native archive and its SHA-256 integrity file after the
+Release build:
+
+```sh
+cpack --config build/release/CPackConfig.cmake \
+  -G TGZ -B build/release/packages
+cmake -DMORPHEUS_BUILD_DIR="$PWD/build/release" \
+  -DMORPHEUS_PACKAGE_DIR="$PWD/build/release/packages" \
+  -P test/test-release-package.cmake
+```
+
+The release CI preserves the verified Linux x86-64 archive as a workflow
+artifact. The checksum detects accidental corruption; it is not a release
+signature.
+
 ## Install and consume from C
 
 ```sh
