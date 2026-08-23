@@ -40,6 +40,26 @@ deno run --allow-env --allow-ffi --allow-read --allow-run \
   > benchmark.json
 ```
 
+On the controlled Linux or macOS host selected for release qualification, the
+complete configure, build, CTest, benchmark, and validation sequence is wrapped
+by:
+
+```sh
+sh bench/release.sh benchmark-0.1.0.json
+```
+
+Pass a previous report as the second argument to add the normalized comparison:
+
+```sh
+sh bench/release.sh benchmark-0.1.0.json benchmark-previous.json
+```
+
+The wrapper refuses a dirty tracked worktree or submodule, an uninitialized or
+displaced Alpheios submodule, and an existing output path. Its label, stemlib
+path, iteration counts, warmup, context list, and cold-sample count can be
+overridden through the environment variables documented in the script without
+weakening the release-report validator.
+
 Before accepting the file as release evidence, validate both its completeness
 and the revisions it claims:
 

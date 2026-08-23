@@ -135,10 +135,11 @@ jobs:
         run: cmake --build --preset dev
 
       - name: Check binding and benchmark runner
-        run: >-
-          deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
-          bench/compare.ts bench/compare_test.ts
-          bench/validate.ts bench/validate_test.ts
+        run: |
+          sh -n bench/release.sh
+          deno check bindings/deno/mod.ts bindings/deno/mod_test.ts \
+            bench/compare.ts bench/compare_test.ts \
+            bench/validate.ts bench/validate_test.ts
 
       - name: Test binding
         env:

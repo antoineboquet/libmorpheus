@@ -52,3 +52,17 @@ foreach(expected_changelog_value IN ITEMS
     )
   endif()
 endforeach()
+
+file(READ "${MORPHEUS_SOURCE_DIR}/docs/release-0.1.0.md" release_decision)
+foreach(expected_release_value IN ITEMS
+        "Project version: **${MORPHEUS_PROJECT_VERSION}**"
+        "C ABI: **${MORPHEUS_ABI_VERSION}**"
+        "SONAME major: **${MORPHEUS_SOVERSION}**")
+  string(FIND "${release_decision}" "${expected_release_value}"
+              release_value_at)
+  if(release_value_at EQUAL -1)
+    message(FATAL_ERROR
+      "release-0.1.0.md is missing: ${expected_release_value}"
+    )
+  endif()
+endforeach()
