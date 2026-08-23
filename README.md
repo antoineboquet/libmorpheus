@@ -18,6 +18,9 @@ See [the architecture baseline](docs/architecture.md),
 [source provenance](docs/provenance.md), and
 [platform support](docs/portability.md) for the implementation boundaries,
 exact upstream revisions, and tested deployment targets.
+The complete native contract is in [the public API reference](docs/public-api.md);
+[release qualification](docs/releasing.md) defines the checks required before
+tagging a publishable version.
 
 ## Clone
 

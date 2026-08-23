@@ -1,4 +1,89 @@
-# Public analysis values
+# Public C API
+
+`<morpheus/morpheus.h>` is the complete supported C surface. The shared
+library hides every other symbol. The ABI is C-compatible from C++ through the
+header's `extern "C"` block.
+
+## Versioning and compatibility
+
+The current project version is 0.1.0, the SONAME major is 0, and
+`MORPHEUS_ABI_VERSION` is 1. Call `morpheus_abi_version()` after dynamically
+loading the library and compare it with the header constant before using any
+layout-dependent operation. `morpheus_analysis_size()` provides the producing
+library's native structure size and is especially useful at an FFI boundary.
+
+Within ABI version 1, existing function signatures, numeric constants, and the
+layout of `morpheus_analysis` are stable. Adding an exported function is
+compatible. Removing or changing one, reassigning a published constant, or
+changing the structure layout requires an ABI review and normally a new ABI
+version. The binary symbol test rejects unlisted exports.
+
+## Ownership and concurrency
+
+- A successful `morpheus_open()` or `morpheus_open_path()` returns an owned,
+  opaque context. Release it with `morpheus_close()`.
+- A successful `morpheus_analyze()` returns an owned result even when its count
+  is zero. Release it with `morpheus_result_free()`.
+- A successful `morpheus_compat_analyze()` returns an owned formatted output.
+  Release it with `morpheus_compat_output_free()`.
+- Accessor pointers are borrowed and remain valid only while their owner is
+  alive. Never free `morpheus_status_message()` or
+  `morpheus_compat_output_data()`.
+- Distinct contexts may be used concurrently. Calls using the same context,
+  including destruction, must be serialized by the caller. Results are
+  independent of their originating context after a successful call, but must
+  not be freed concurrently with an accessor operation.
+- The `*_free(NULL)` and `morpheus_close(NULL)` operations are no-ops.
+
+## Status values
+
+| Status | Meaning |
+| --- | --- |
+| `MORPHEUS_OK` | The operation completed and any documented output ownership was transferred. |
+| `MORPHEUS_INVALID_ARGUMENT` | A pointer, language, option combination, empty path, or embedded-NUL input is invalid. |
+| `MORPHEUS_ABI_MISMATCH` | The requested ABI version or configuration size is incompatible. |
+| `MORPHEUS_NO_MEMORY` | Allocation or compatibility-stream creation failed. |
+| `MORPHEUS_INPUT_TOO_LONG` | A Beta Code input or constructed stemlib path exceeds its runtime capacity. |
+| `MORPHEUS_OUT_OF_RANGE` | A result index is outside `[0, morpheus_result_count())`. |
+| `MORPHEUS_INTERNAL_ERROR` | The runtime rejected an inconsistent or overflowing internal operation. |
+| `MORPHEUS_BUFFER_TOO_SMALL` | Caller-provided result or flag storage is below the documented size. |
+| `MORPHEUS_STEMLIB_ERROR` | Required language data is missing, unreadable, or empty. |
+
+`morpheus_status_message()` maps any status to static diagnostic text. It is
+for diagnostics rather than program control; callers should branch on the
+numeric status. Fallible calls transfer no ownership unless they return
+`MORPHEUS_OK`.
+
+## Function reference
+
+| Function | Contract |
+| --- | --- |
+| `morpheus_abi_version()` | Returns the ABI version implemented by the loaded library. |
+| `morpheus_analysis_size()` | Returns the native size required by `morpheus_result_copy()`. |
+| `morpheus_status_message()` | Returns borrowed static text for a status, including unknown values. |
+| `morpheus_open()` | Creates a validated context from a native `morpheus_config`. |
+| `morpheus_open_path()` | Creates a context from an explicit-length path without placing a pointer in an FFI configuration struct. |
+| `morpheus_close()` | Destroys a context and all of its caches. |
+| `morpheus_analyze()` | Analyzes one explicit-length Beta Code form with per-request options. |
+| `morpheus_result_count()` | Returns the analysis count, or zero for `NULL`. |
+| `morpheus_result_copy()` | Copies an analysis into opaque caller storage of at least `morpheus_analysis_size()` bytes. |
+| `morpheus_result_get()` | Copies an analysis into a native `morpheus_analysis`. |
+| `morpheus_result_truncated_fields()` | Returns the fixed-text fields truncated during result construction. |
+| `morpheus_result_all_morph_flags()` | Copies the complete 14-byte morphology bitset. |
+| `morpheus_result_free()` | Destroys an owned structured result. |
+| `morpheus_compat_analyze()` | Produces the historical `cruncher` representation and its counts. |
+| `morpheus_compat_output_data()` | Returns borrowed NUL-terminated formatted bytes, or `NULL` for `NULL`. |
+| `morpheus_compat_output_length()` | Returns the formatted byte count excluding the terminator, or zero for `NULL`. |
+| `morpheus_compat_output_analysis_count()` | Returns the pre-formatting analysis count, or zero for `NULL`. |
+| `morpheus_compat_output_lemma_count()` | Returns the distinct-lemma count, or zero for `NULL`. |
+| `morpheus_compat_output_free()` | Destroys an owned compatibility output. |
+
+Inputs to both analysis functions are explicit-length byte sequences. They need
+not be NUL-terminated, but an embedded NUL is invalid. The maximum accepted
+length is intentionally an implementation capacity rather than a public
+constant; callers must handle `MORPHEUS_INPUT_TOO_LONG`.
+
+## Structured analysis values
 
 The shared library uses hidden visibility by default and exports only the
 functions declared with `MORPHEUS_API` in `<morpheus/morpheus.h>`. Its current
@@ -83,7 +168,29 @@ The Deno binding exposes the same bits through `MorpheusOption`. They can be
 combined with bigint bitwise OR and remain subject to the binding's per-context
 serial queue.
 
+| Option | Effect |
+| --- | --- |
+| `MORPHEUS_OPTION_STRICT_CASE` | Requires the requested capitalization path. |
+| `MORPHEUS_OPTION_IGNORE_ACCENTS` | Enables accent-insensitive fallback. |
+| `MORPHEUS_OPTION_VERBS_ONLY` | Restricts the historical analyzer to verbal results. |
+| `MORPHEUS_OPTION_NO_CRASIS` | Disables crasis expansion for this request. |
+| `MORPHEUS_OPTION_QUICK` | Stops after the first successful dictionary class. |
+| `MORPHEUS_OPTION_HQ_DICTIONARY` | Selects the HQ dictionary backend for this request. |
+| `MORPHEUS_OPTION_DIALECT_*` | Combines one or more Greek dialect restrictions. |
+
+Unknown option bits are invalid. Dialect restrictions on Latin or Italian
+contexts return `MORPHEUS_INVALID_ARGUMENT`. Request state is restored before
+returning on success or failure.
+
 For compatibility, `MorpheusAnalysis.morphFlags` remains 12 bytes. The binding
 also exposes the complete 14-byte value as `allMorphFlags` and publishes flag
 numbers through `MorpheusMorphFlag`. `hasMorpheusMorphFlag()` performs the
 one-based byte-and-bit lookup safely.
+
+## Compatibility output
+
+The compatibility API exists for `cruncher` behavior and migration testing.
+Its flags preserve the historical octal bit layout and its text is not a new
+structured interchange format. New integrations should use
+`morpheus_analyze()` and the result accessors. The returned data contains a
+convenience NUL terminator; `morpheus_compat_output_length()` excludes it.
