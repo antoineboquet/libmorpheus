@@ -92,7 +92,7 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
   }
 		
   dialbuf[0] = 0;
-  DialectNames(dialect_of(gstr),dialbuf,dels);
+  DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf,dels);
   if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);
   if( dialbuf[0] ) {
@@ -100,7 +100,7 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
   }
 		
   dialbuf[0] = 0;
-  GeogRegionNames(geogregion_of(gstr),dialbuf,dels);
+  GeogRegionNames(geogregion_of(gstr),dialbuf,sizeof dialbuf,dels);
   if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);
   if( dialbuf[0] ) {
@@ -109,7 +109,7 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
 		
 		
   dialbuf[0] = 0;
-  DomainNames(domains_of(gstr),dialbuf,dels);
+  DomainNames(domains_of(gstr),dialbuf,sizeof dialbuf,dels);
   if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);
   if( dialbuf[0] ) {
@@ -118,7 +118,7 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
 	
 		
   dialbuf[0] = 0;
-  MorphNames(morphflags_of(gstr),dialbuf,dels,pretty);
+  MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf,dels,pretty);
   if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);
   if( dialbuf[0] ) {
@@ -195,7 +195,7 @@ void GregSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
   }
 		
   dialbuf[0] = 0;
-  DialectNames(dialect_of(gstr),dialbuf,dels);
+  DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf,dels);
   /*
     if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);
@@ -207,7 +207,7 @@ void GregSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
   }
 		
   dialbuf[0] = 0;
-  GeogRegionNames(geogregion_of(gstr),dialbuf,dels);
+  GeogRegionNames(geogregion_of(gstr),dialbuf,sizeof dialbuf,dels);
   if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);
   if( dialbuf[0] ) {
@@ -216,7 +216,7 @@ void GregSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
 		
 		
   dialbuf[0] = 0;
-  DomainNames(domains_of(gstr),dialbuf,dels);
+  DomainNames(domains_of(gstr),dialbuf,sizeof dialbuf,dels);
   if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);
   if( dialbuf[0] ) {
@@ -225,7 +225,7 @@ void GregSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
 	
 		
   dialbuf[0] = 0;
-  MorphNames(morphflags_of(gstr),dialbuf,dels,pretty);
+  MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf,dels,pretty);
   /*
     if( dialbuf[0] || *dels == '\t' )
     strcat(buf,dels);

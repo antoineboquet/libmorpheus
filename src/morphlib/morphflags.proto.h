@@ -20,4 +20,4 @@ int init_ugly_tab(void);
 int is_prvb_morphflag(long);
 int init_prvb_tab(void);
 void xfer_prvbflags(MorphFlags *, MorphFlags *);
-void MorphNames(MorphFlags *, char *, char *, int);
+int MorphNames(MorphFlags *, char *, size_t, const char *, int);

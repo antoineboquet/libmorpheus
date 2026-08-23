@@ -13,9 +13,9 @@ char *NameOfMood(word_form);
 char *NameOfVoice(word_form);
 char *NameOfDialect(Dialect);
 */
-void DomainNames(char *, char *, char *);
-void DialectNames(Dialect, char *, char *);
-void GeogRegionNames(GeogRegion, char *, char *);
+int DomainNames(char *, char *, size_t, const char *);
+int DialectNames(Dialect, char *, size_t, const char *);
+int GeogRegionNames(GeogRegion, char *, size_t, const char *);
 char *NameOfGender(word_form);
 char *NameOfCase(word_form);
 char *NameOfDegree(word_form);

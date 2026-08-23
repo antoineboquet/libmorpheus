@@ -419,7 +419,7 @@ void PrntDomains(char *doms, FILE *f)
 {
 	char buf[256];
 	
- 	MorphNames(mf,buf," ",1);
+	MorphNames(mf,buf,sizeof buf," ",1);
  	fprintf(f,"%s ", buf );
 }
 
@@ -751,7 +751,7 @@ void SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 		}
 		
 		dialbuf[0] = 0;
-		DialectNames(dialect_of(gstr),dialbuf,dels);
+		DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf,dels);
 		if( dialbuf[0] || *dels == '\t' )
 			strcat(buf,dels);
 		if( dialbuf[0] ) {
@@ -759,7 +759,7 @@ void SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 		}
 		
 		dialbuf[0] = 0;
-		GeogRegionNames(geogregion_of(gstr),dialbuf,dels);
+		GeogRegionNames(geogregion_of(gstr),dialbuf,sizeof dialbuf,dels);
 		if( dialbuf[0] || *dels == '\t' )
 			strcat(buf,dels);
 		if( dialbuf[0] ) {
@@ -768,7 +768,7 @@ void SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 		
 		
 		dialbuf[0] = 0;
-		DomainNames(domains_of(gstr),dialbuf,dels);
+		DomainNames(domains_of(gstr),dialbuf,sizeof dialbuf,dels);
 		if( dialbuf[0] || *dels == '\t' )
 			strcat(buf,dels);
 		if( dialbuf[0] ) {
@@ -777,7 +777,7 @@ void SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 	
 		
 		dialbuf[0] = 0;
-		MorphNames(morphflags_of(gstr),dialbuf,dels,pretty);
+		MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf,dels,pretty);
 		if( dialbuf[0] || *dels == '\t' )
 			strcat(buf,dels);
 		if( dialbuf[0] ) {
@@ -815,7 +815,7 @@ void DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
 		AddAdjInfo(buf,wf," ");
 		
 		dialbuf[0] = 0;
-		DialectNames(dialect_of(gstr),dialbuf," ");
+		DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf," ");
 		if( dialbuf[0] ) {
 			strcat(buf,tabstr); 
 			strcat(buf,dialbuf );
@@ -824,7 +824,7 @@ void DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
 		
 		
 		dialbuf[0] = 0;
-		MorphNames(morphflags_of(gstr),dialbuf," ",pretty);
+		MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf," ",pretty);
 		if( dialbuf[0] ) {
 			strcat(buf,tabstr); 
 			strcat(buf,dialbuf );

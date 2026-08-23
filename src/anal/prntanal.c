@@ -253,7 +253,7 @@ void odd_morpheme(gk_analysis *Gkanal, gk_string *gstr, char *tag, char *bufp, i
   char mflagbuf[256];
 	
   tmp2[0] = mflagbuf[0] = 0;
-  MorphNames(morphflags_of(gstr),mflagbuf," ",1);
+  MorphNames(morphflags_of(gstr),mflagbuf,sizeof mflagbuf," ",1);
 
   if( (dialect_of(gstr) /*&& (dialect_of(gstr) != dialect_of(Gkanal))*/) ||
       mflagbuf[0] || showflg ) {
@@ -264,7 +264,7 @@ void odd_morpheme(gk_analysis *Gkanal, gk_string *gstr, char *tag, char *bufp, i
       sprintf(tmp2,"        [&%s $%s-& ", tag , gkstring_of(gstr));
     Xstrncat(bufp,tmp2,LONGSTRING);
     if (dialect_of(gstr)) {
-      DialectNames(dialect_of(gstr),tmp2," ");
+      DialectNames(dialect_of(gstr),tmp2,sizeof tmp2," ");
       Xstrncat(bufp,tmp2,LONGSTRING);
     }
     if(mflagbuf[0] ) {

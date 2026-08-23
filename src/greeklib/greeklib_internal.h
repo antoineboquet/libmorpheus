@@ -51,7 +51,9 @@
 #include "zap2ndbreath.proto.h"
 
 /* Formatting helpers are implemented by morphlib. */
-void DialectNames(Dialect dialect, char *buffer, char *delimiter);
-void MorphNames(MorphFlags *flags, char *buffer, char *delimiter, int pretty);
+int DialectNames(Dialect dialect, char *buffer, size_t capacity,
+                 const char *delimiter);
+int MorphNames(MorphFlags *flags, char *buffer, size_t capacity,
+               const char *delimiter, int pretty);
 
 #endif

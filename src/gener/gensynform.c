@@ -586,7 +586,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 		d &= dialect_of(Gkword);
 		 
 	if( showdialect || (d && d != ATTIC) )	{			
-		DialectNames(d,dialbuf," ");
+		DialectNames(d,dialbuf,sizeof dialbuf," ");
 		if( dialbuf[0] ) {
 			Xstrncat(linebuf," ",sizeof linebuf);
 			Xstrncat(linebuf, dialbuf ,sizeof linebuf);
@@ -594,7 +594,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 	}
 
 	dialbuf[0] = 0;
-	GeogRegionNames(geogregion_of(gkform),dialbuf," ");
+	GeogRegionNames(geogregion_of(gkform),dialbuf,sizeof dialbuf," ");
 	if( dialbuf[0] ) {
 		strcat(linebuf," "); 
 		strcat(linebuf,dialbuf );
@@ -606,7 +606,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 	add_morphflags(gkform,morphflags_of(prvb_gstr_of(gkform)));
 	add_morphflags(gkform,morphflags_of(aug1_gstr_of(gkform)));
 	add_morphflags(gkform,morphflags_of(ends_gstr_of(gkform)));
-	MorphNames(morphflags_of(gkform),dialbuf," ",1);
+	MorphNames(morphflags_of(gkform),dialbuf,sizeof dialbuf," ",1);
 	if( dialbuf[0] ) {
 			Xstrncat(linebuf," ",sizeof linebuf);
 			Xstrncat(linebuf, dialbuf,sizeof linebuf );
@@ -618,7 +618,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 		Xstrncat(linebuf, tmp,sizeof linebuf );
 	}
 	dialbuf[0] = 0;
-	DomainNames(domains_of(gkform),dialbuf," ");
+	DomainNames(domains_of(gkform),dialbuf,sizeof dialbuf," ");
 	if( dialbuf[0] ) {
 		strcat(linebuf," &1"); 
 		strcat(linebuf,dialbuf );

@@ -105,7 +105,7 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
 		}
 
 		dialbuf[0] = 0;
-		DialectNames(dialect_of(gstr),dialbuf,more_dels);
+		DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf,more_dels);
 		if( *s || *dels == '\t' )
 			strcat(buf,dels);	
 		if( dialbuf[0] ) {
@@ -133,7 +133,7 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
  *	
  */		
 		dialbuf[0] = 0;
-		MorphNames(morphflags_of(gstr),dialbuf,more_dels,pretty);
+		MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf,more_dels,pretty);
 		if( *s || *dels == '\t' )
 			strcat(buf,dels);
 		if( dialbuf[0] ) {
@@ -141,4 +141,3 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
 		}
 		return;
 }
-

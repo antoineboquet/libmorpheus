@@ -815,6 +815,22 @@ main(void)
 		assert(!Xstrncat(NULL,"value",5));
 		assert(!Xstrncat(unchanged,NULL,sizeof unchanged));
 	}
+	{
+		char tiny[2] = "x";
+
+		set_dialect(&item,(Dialect)ATTIC);
+		assert(!DialectNames(dialect_of(&item),tiny,sizeof tiny," "));
+		assert(!tiny[0]);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		set_morphflag(morphflags_of(&item),SYLL_AUGMENT);
+		assert(!MorphNames(morphflags_of(&item),tiny,sizeof tiny," ",NO));
+		assert(!tiny[0]);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
 	assert(add_domain(&item,1) == 1);
 	assert(add_domain(&item,1) == 0);
 	assert(add_domain(&item,0) == -1);

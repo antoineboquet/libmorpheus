@@ -265,7 +265,8 @@ void xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
 }
 
 
- void MorphNames(MorphFlags *mf, char *res, char *dels, int pretty)
+ int MorphNames(MorphFlags *mf, char *res, size_t capacity,
+               const char *dels, int pretty)
 {
 	char *s;
 	long i;
@@ -274,6 +275,10 @@ void xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
 	int mask = 1;
 	int hit = 0;
 
+	if (!mf || !res || !capacity || !dels) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	*res = 0;
 	
 	for(i=0;i<MORPHFLAG_BYTES;i++) {
@@ -289,14 +294,20 @@ void xfer_prvbflags(MorphFlags *word_mf, MorphFlags *prvb_mf)
 					s=NameOfMorphFlags(curnum);
 
 					if( *s ) {
-						if(*res) strcat(res,dels);
-						strcat(res,s);
+						if((*res && !Xstrncat(res,dels,capacity)) ||
+						   !Xstrncat(res,s,capacity)) {
+							*res = 0;
+							morpheus_runtime_error_record(
+							    MORPHEUS_RUNTIME_ERROR_INTERNAL);
+							return(0);
+						}
 					}
 				}
 			}
 			mask = mask << 1;
 		}
 	}
+	return(1);
 	
 /*
 fprintf(stderr,"%o %o %o %o \n", mf[0] , mf[1], mf[2], mf[3] );

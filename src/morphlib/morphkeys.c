@@ -356,19 +356,30 @@ char *
 }
 
 
-void DomainNames(char *domp, char *res, char *dels)
+int DomainNames(char *domp, char *res, size_t capacity, const char *dels)
 {
-	char * p = domp;
+	char * p;
+
+	if (!domp || !res || !capacity || !dels) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	p = domp;
+	*res = 0;
 	
 	while(*p) {
-		if( *res )
-			Xstrncat(res,dels,MAXWORDSIZE);
-		Xstrncat(res,NameOfDomain((Stemtype)*p),MAXWORDSIZE);
+		if((*res && !Xstrncat(res,dels,capacity)) ||
+		   !Xstrncat(res,NameOfDomain((Stemtype)*p),capacity)) {
+			*res = 0;
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return(0);
+		}
 		p++;
 	}
+	return(1);
 }
   
- void DialectNames(Dialect di, char *res, char *dels)
+ int DialectNames(Dialect di, char *res, size_t capacity, const char *dels)
 {
 	char * s;
 	int i;
@@ -379,25 +390,35 @@ void DomainNames(char *domp, char *res, char *dels)
 	
 	morph_args = arg_dialect;
 	
+	if (!res || !capacity || !dels) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	*res = 0;
 	if( ! di )
-		return;
+		return(1);
 	mf = (Morph_flags)di;
 
 	while( morph_args->morph_key[0] ) {
 		if( morph_args->morph_flags && 
 		   ( (mf & morph_args->morph_flags) == morph_args->morph_flags ) ) {
 
-			if(*res) Xstrncat(res,dels,LONGSTRING);
-			Xstrncat(res,morph_args->morph_key,LONGSTRING);
+			if((*res && !Xstrncat(res,dels,capacity)) ||
+			   !Xstrncat(res,morph_args->morph_key,capacity)) {
+				*res = 0;
+				morpheus_runtime_error_record(
+				    MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			mf &= ~(morph_args->morph_flags);
 		}
 		morph_args++;
 	}
-	return;
+	return(1);
 }
 
- void GeogRegionNames(GeogRegion gr, char *res, char *dels)
+ int GeogRegionNames(GeogRegion gr, char *res, size_t capacity,
+                     const char *dels)
 {
 	char * s;
 	int i;
@@ -408,20 +429,29 @@ void DomainNames(char *domp, char *res, char *dels)
 	
 	morph_args = arg_geogregion;
 	
+	if (!res || !capacity || !dels) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	*res = 0;
 	if( ! gr )
-		return;
+		return(1);
 	mf = (Morph_flags)gr;
 
 	while( morph_args->morph_key[0] ) {
 		if( morph_args->morph_flags && ( (mf & morph_args->morph_flags) == morph_args->morph_flags ) ) {
-			if(*res) Xstrncat(res,dels,LONGSTRING);
-			Xstrncat(res,morph_args->morph_key,LONGSTRING);
+			if((*res && !Xstrncat(res,dels,capacity)) ||
+			   !Xstrncat(res,morph_args->morph_key,capacity)) {
+				*res = 0;
+				morpheus_runtime_error_record(
+				    MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			mf &= ~(morph_args->morph_flags);
 		}
 		morph_args++;
 	}
-	return;
+	return(1);
 }
 
 char *
