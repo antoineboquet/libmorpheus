@@ -66,8 +66,10 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Inspect the native installation and confirm it contains only the public
   header, shared library, CMake package files, `libmorpheus.pc`, and optional
   `cruncher` executable.
-- Run or review the benchmark baseline in `benchmarks.md`; investigate material
-  regressions before tagging.
+- Produce a versioned JSON benchmark report as described in `benchmarks.md`,
+  including source revision, stemlib revision, and compiler metadata. Compare
+  it with the previous accepted report on the same controlled hardware and
+  investigate material regressions before tagging.
 
 ## 6. Publish and verify
 
