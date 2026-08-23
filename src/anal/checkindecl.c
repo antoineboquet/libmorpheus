@@ -1,5 +1,6 @@
 #include "anal_internal.h"
 #include <modes.h>
+#include "../morphlib/runtime_context.h"
 #define MAXSTEMS 10
 
 #include "checkindecl.proto.h"
@@ -19,6 +20,11 @@ int checkindecl(gk_word *Gkword)
 	char stemkeys[LONGSTRING];
 	char tmpword[MAXWORDSIZE];
 	register char * sp;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 /*
 	keybuf = (char *)malloc((size_t)LONGSTRING);

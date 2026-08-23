@@ -17,6 +17,11 @@ int checkword(gk_word *Gkword)
 {
 	int rval = 0;
 
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+
 	/*
 	 * if NO_AUGMENT is set, then we are fishing for an epic verb form,
 	 * so we don't need to check for indeclinables and nominal forms.

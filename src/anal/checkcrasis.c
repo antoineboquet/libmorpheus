@@ -212,9 +212,15 @@ int checkcrasis(gk_word *Gkword)
 {
 	int i;
 	char saveword[MAXWORDSIZE];
-	char* string = workword_of(Gkword);
+	char* string;
 	const char *mungedword;
 	int rval = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	string = workword_of(Gkword);
 	
 	if( morpheus_runtime_context_current()->analysis_crasis_disabled ) return(0);
 	
@@ -264,6 +270,11 @@ int testcrasis(gk_word *Gkword, const char *mungedword,
 	Dialect olddial = 0;
 	int rval = 0;
 	gk_word  tmpGkword;
+
+	if (!Gkword || !mungedword || !wordstart || !preword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 /*
 	tmpGkword = (gk_word *) CreatGkword(1);

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "anal_internal.h"
+#include "../morphlib/runtime_context.h"
 
 #include "checkverb.proto.h"
 
@@ -10,6 +11,11 @@ int checkverb(gk_word *Gkword)
 	char workword[MAXWORDSIZE];
 	char half1[MAXWORDSIZE];
 	int rval = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 
 	Xstrncpy(workword,workword_of(Gkword),MAXWORDSIZE);
 /*
@@ -116,6 +122,11 @@ int analyzed_verb(gk_word *Gkword)
 	char endkeys[LONGSTRING];
 	
 	int rval;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 
 	*endkeys = 0;
 

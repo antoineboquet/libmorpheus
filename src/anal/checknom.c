@@ -9,6 +9,11 @@ int checknom(gk_word *Gkword)
 {
 	int rval;
 
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+
 	if( (prntflags_of(Gkword) & VERBS_ONLY ) ) return(0);
 
 	if ((rval = checkregnom(Gkword)) != 0)
@@ -22,6 +27,11 @@ int checkregnom(gk_word *Gkword)
 	char workword[MAXWORDSIZE];
 	char half1[MAXWORDSIZE];
 	int rval = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	Xstrncpy(workword,workword_of(Gkword),(int)sizeof workword);
 
 
