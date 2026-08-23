@@ -32,6 +32,8 @@ int main(void)
 	char marker_only[] = "*";
 	char multiple_accents[] = "a//b/";
 	char normalized[] = "*(/ellhn";
+	char overlap_left[16] = "abcdef";
+	char overlap_right[16] = "abcdef";
 	char remove_chars[] = "a---b-";
 	char replace_high_byte[] = {(char)(unsigned char)0377,'a','\0'};
 	char squeezed[] = "abcdef";
@@ -39,6 +41,12 @@ int main(void)
 	_Static_assert(_Generic(Xstrlen(""), size_t: 1, default: 0),
 		"Xstrlen must preserve the size_t result of strlen");
 	assert(Xstrlen("beta") == strlen("beta"));
+	assert(Xstrcpy(overlap_left,overlap_left+2));
+	assert(!strcmp(overlap_left,"cdef"));
+	assert(Xstrcpy(overlap_right+2,overlap_right));
+	assert(!strcmp(overlap_right,"ababcdef"));
+	assert(!Xstrcpy(NULL,"beta"));
+	assert(!Xstrcpy(overlap_left,NULL));
 	stripzeroend(empty);
 	assert(empty[0] == '\0');
 	strsqz(NULL,1);

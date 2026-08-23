@@ -5,7 +5,8 @@
 int
 Xstrcpy(char *s1, const char *s2)
 {
-	while((*s1++ = *s2++));
+	if (!s1 || !s2) return(0);
+	memmove(s1,s2,strlen(s2)+1);
 	return(1);
 }
 
