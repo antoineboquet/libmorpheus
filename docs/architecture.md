@@ -37,6 +37,20 @@ and per-request options. The library is installable as the CMake target
 formats are provided through an owned memory-buffer compatibility API and
 remain validated by both fixture suites.
 
+## Build-only and installed surfaces
+
+The `morpheus_anal`, `morpheus_gener`, `morpheus_gkends`, `morpheus_gkdict`,
+`morpheus_morphlib`, and `morpheus_greeklib` archives are build-graph
+implementation details. Their headers live below `src/`, their targets are not
+exported, and their archives are not installed. White-box tests may link these
+targets to exercise internal contracts; consumers must not do so.
+
+The installed native surface consists of the shared `libmorpheus`, the single
+public header, CMake and `pkg-config` discovery metadata, and `cruncher` when
+its build option is enabled. CTest installs into a fresh prefix and rejects any
+private header, `src/` path, internal archive name, or static archive that
+crosses this boundary.
+
 ## Known constraints
 
 Mutable runtime caches and formatting buffers now belong to opaque contexts,
