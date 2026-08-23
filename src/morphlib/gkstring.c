@@ -1,6 +1,13 @@
 #include "morphlib_internal.h"
 #include <gkstring.h>
 
+static size_t
+bounded_string_length(const char *text, size_t capacity)
+{
+	size_t length = 0;
+	while (length < capacity && text[length]) length++;
+	return(length);
+}
 
 gk_string *
 CreatGkString(int num)
@@ -429,8 +436,8 @@ void PrntDomains(char *doms, FILE *f)
 	
 	paradigm[0] = 0;
 	
-	AddParadigmInfo(paradigm,vf," ");
-	AddPersNumInfo(paradigm,vf," ");
+	AddParadigmInfo(paradigm,sizeof paradigm,vf," ");
+	AddPersNumInfo(paradigm,sizeof paradigm,vf," ");
 	fprintf(f,"%s", paradigm);
 }
 
@@ -439,51 +446,73 @@ void PrntDomains(char *doms, FILE *f)
 	char paradigm[LONGSTRING];
 	paradigm[0] = 0;
 	
-	AddParadigmInfo(paradigm,vf," ");
+	AddParadigmInfo(paradigm,sizeof paradigm,vf," ");
 	fprintf(f,"%s", paradigm);
 }
 	
 
-void AddParadigmInfo(char *s, word_form vf,char * dels)
+int AddParadigmInfo(char *s, size_t capacity, word_form vf,
+                    const char *dels)
 {
 	char * p;
+	size_t initial;
+
+	if (!s || !capacity || !dels) goto failed;
+	initial = bounded_string_length(s,capacity);
+	if (initial == capacity) goto failed;
 	
 	p=NameOfTense(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfMood(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfVoice(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
-	
+	return(1);
+rollback:
+	s[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
-void AddPersNumInfo(char *s, word_form vf,char * dels)
+int AddPersNumInfo(char *s, size_t capacity, word_form vf,
+                   const char *dels)
 {
 	char * p;
+	size_t initial;
+
+	if (!s || !capacity || !dels) goto failed;
+	initial = bounded_string_length(s,capacity);
+	if (initial == capacity) goto failed;
 	
 	p=NameOfPerson(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfNumber(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
-	
+	return(1);
+rollback:
+	s[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
 void PrntPersNumInfo(word_form vf, FILE *f)
@@ -497,7 +526,7 @@ void PrntPersNumInfo(word_form vf, FILE *f)
 	char adjbuf[MAXWORDSIZE];
 	adjbuf[0] = 0;
 	
-	AddAdjInfo(adjbuf,af," ");
+	AddAdjInfo(adjbuf,sizeof adjbuf,af," ");
 	fprintf(f,"%s", adjbuf );
 /*
 	fprintf(f,"%s ", NameOfGender(af ) );
@@ -506,28 +535,38 @@ void PrntPersNumInfo(word_form vf, FILE *f)
 */
 }
 
-void AddAdjInfo(char *s, word_form vf,char * dels)
+int AddAdjInfo(char *s, size_t capacity, word_form vf,
+               const char *dels)
 {
 	char * p;
+	size_t initial;
+
+	if (!s || !capacity || !dels) goto failed;
+	initial = bounded_string_length(s,capacity);
+	if (initial == capacity) goto failed;
 	
 	p=NameOfGender(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfCase(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	p=NameOfDegree(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
-	
-	
+	return(1);
+rollback:
+	s[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
 void
@@ -545,7 +584,7 @@ PrntDialect(Dialect di, FILE *f)
 	char dialbuf[MAXWORDSIZE];
 
 	dialbuf[0] = 0;
-	AddDialect(di,dialbuf," ");
+	AddDialect(di,dialbuf,sizeof dialbuf," ");
 	fprintf(f,"%s ", dialbuf);
 /*
 	for(i=0;i<(((int)sizeof di) * 8);i++) {
@@ -557,21 +596,33 @@ PrntDialect(Dialect di, FILE *f)
 */
 }
 
-void AddDialect(Dialect di, char *dialb, char *dels)
+int AddDialect(Dialect di, char *dialb, size_t capacity,
+               const char *dels)
 {
 	char * s;
 	int i;
 	unsigned int mask = 1;
+	size_t initial;
+
+	if (!dialb || !capacity || !dels) goto failed;
+	initial = bounded_string_length(dialb,capacity);
+	if (initial == capacity) goto failed;
 
 	for(i=0;i<(((int)sizeof di) * 8);i++) {
 		if( (s=NameOfDialect((Dialect)(di & (Dialect)mask))) )
 			if( *s ) {
-				if( *dialb ) strcat(dialb,dels);
-				strcat(dialb, s );
+				if((*dialb && !Xstrncat(dialb,dels,capacity)) ||
+				   !Xstrncat(dialb,s,capacity))
+					goto rollback;
 			}
 		mask <<= 1;
 	}
-
+	return(1);
+rollback:
+	dialb[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
 
@@ -806,13 +857,13 @@ void DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
 		
 
 		strcat(buf,tabstr);
-		AddParadigmInfo(buf,wf," ");
+		AddParadigmInfo(buf,LONGSTRING,wf," ");
 		
 		strcat(buf,tabstr);
-		AddPersNumInfo(buf,wf," ");
+		AddPersNumInfo(buf,LONGSTRING,wf," ");
 
 		strcat(buf,tabstr);
-		AddAdjInfo(buf,wf," ");
+		AddAdjInfo(buf,LONGSTRING,wf," ");
 		
 		dialbuf[0] = 0;
 		DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf," ");

@@ -21,14 +21,14 @@ void PrntDomains(char *, FILE *);
 void PrntMorphFlags(MorphFlags *, FILE *);
 void PrntVerbInfo(word_form, FILE *);
 void PrntParadigmInfo(word_form, FILE *);
-void AddParadigmInfo(char *, word_form, char *);
-void AddPersNumInfo(char *, word_form, char *);
+int AddParadigmInfo(char *, size_t, word_form, const char *);
+int AddPersNumInfo(char *, size_t, word_form, const char *);
 void PrntPersNumInfo(word_form, FILE *);
 void PrntAdjInfo(word_form, FILE *);
-void AddAdjInfo(char *, word_form, char *);
+int AddAdjInfo(char *, size_t, word_form, const char *);
 void PrntStemtype(Stemtype, FILE *);
 void PrntDialect(Dialect, FILE *);
-void AddDialect(Dialect, char *, char *);
+int AddDialect(Dialect, char *, size_t, const char *);
 Dialect AndDialect(Dialect, Dialect);
 int xInsertGstr(gk_string *, gk_string *, int,
                  int (*compare)(char *, char *), int);

@@ -817,6 +817,8 @@ main(void)
 	}
 	{
 		char tiny[2] = "x";
+		char transactional[8] = "base";
+		word_form form = { 0 };
 
 		set_dialect(&item,(Dialect)ATTIC);
 		assert(!DialectNames(dialect_of(&item),tiny,sizeof tiny," "));
@@ -827,6 +829,13 @@ main(void)
 		set_morphflag(morphflags_of(&item),SYLL_AUGMENT);
 		assert(!MorphNames(morphflags_of(&item),tiny,sizeof tiny," ",NO));
 		assert(!tiny[0]);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		set_tense(form,PRESENT);
+		assert(!AddParadigmInfo(transactional,sizeof transactional,
+		                        form," "));
+		assert(!strcmp(transactional,"base"));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);

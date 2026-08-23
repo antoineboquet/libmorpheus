@@ -432,9 +432,9 @@ void DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FI
   tmp[0] = 0;
   PrntStemtype(stemtype_of(anal),fout);
   fprintf(fout,"%s ", endstring_of(anal) );
-  AddParadigmInfo(tmp,forminfo_of(anal),".");
-  AddPersNumInfo(tmp,forminfo_of(anal),".");
-  AddAdjInfo(tmp,forminfo_of(anal),".");
+  AddParadigmInfo(tmp,sizeof tmp,forminfo_of(anal),".");
+  AddPersNumInfo(tmp,sizeof tmp,forminfo_of(anal),".");
+  AddAdjInfo(tmp,sizeof tmp,forminfo_of(anal),".");
   fprintf(fout,"%s %s %d", tmp+1, workword_of(anal), totanal_of(Gkword) );
   if( strcmp(workword_of(anal),rawword_of(anal)))
     fprintf(fout," %s", rawword_of(anal) );

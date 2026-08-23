@@ -520,7 +520,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 			Xstrncat(linebuf,"& ",sizeof linebuf);
 		    Xstrncat(linebuf , NameOfStemtype(stemtype_of(gkform)),sizeof linebuf );
 		    Xstrncat(linebuf , " ",sizeof linebuf);
-			AddParadigmInfo(linebuf,forminfo_of(gkform)," ");
+			AddParadigmInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 		} else if( Is_nounform(gkform) && ! Is_irregform(morphflags_of(gkform)) ) {
 
 			switch(gender_of(forminfo_of(gkform))) {
@@ -561,15 +561,15 @@ dialect_of(ends_gstr_of(gkform+i) ));
 			Xstrncat(tmp," ",sizeof tmp);
 		}
 		Xstrncat(linebuf,tmp,sizeof linebuf);
-		AddParadigmInfo(linebuf,forminfo_of(gkform)," ");
+		AddParadigmInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 
 		if( Is_irregform(morphflags_of(gkform)) || person_of(forminfo_of(gkform)) != PERS1) {
 			if( Is_verbform(gkform) ) {
-				AddPersNumInfo(linebuf,forminfo_of(gkform)," ");
-				AddAdjInfo(linebuf,forminfo_of(gkform)," ");
+				AddPersNumInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
+				AddAdjInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 			} else {
-				AddAdjInfo(linebuf,forminfo_of(gkform)," ");
-				AddPersNumInfo(linebuf,forminfo_of(gkform)," ");
+				AddAdjInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
+				AddPersNumInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 			}
 		}
 	}
