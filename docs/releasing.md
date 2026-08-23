@@ -5,6 +5,9 @@ supported C library, installed metadata, Deno binding, containers, `cruncher`,
 and the pinned runtime data used by the fixtures. Historical standalone
 utilities are outside the release contract.
 
+The decisions specific to the first candidate are recorded in
+`release-0.1.0.md`.
+
 ## 1. Version and ABI decision
 
 - Choose the project version and update `project(VERSION ...)` in
@@ -67,6 +70,10 @@ Alpheios fixture suites must run where their data prerequisites are available.
 
 - Build the runtime and `deno-runtime` container targets for linux/amd64 and
   linux/arm64.
+- Treat those container builds as qualification only for 0.1.0. Do not publish
+  an image embedding the Alpheios stemlib until its redistribution terms have
+  been confirmed; this restriction does not apply to the data-free native
+  package.
 - Smoke-test `cruncher` and the Deno wrapper against the stemlib intended for
   Bailly, not merely the small inherited fixture tree.
 - Inspect the native installation and confirm it contains only the public
@@ -100,5 +107,7 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Install the produced native package into a fresh prefix and repeat one CMake
   and one `pkg-config` consumer smoke test.
 - Verify the container by digest on both architectures.
+- Apply the digest-verification step only if container publication has been
+  authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact
   digests, and benchmark comparison with the release notes.
