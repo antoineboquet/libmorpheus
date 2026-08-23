@@ -674,6 +674,11 @@ void SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
 		char dialbuf[LONGSTRING*2];
 		char * s;
 		word_form wf;
+
+		if (!gstr || !buf || !dels) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return;
+		}
 		
 		wf = forminfo_of(gstr);
 		s=NameOfStemtype(stemtype_of(gstr));

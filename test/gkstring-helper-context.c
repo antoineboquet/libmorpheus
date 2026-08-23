@@ -11,6 +11,7 @@
 #include "../src/morphlib/augment.proto.h"
 #include "../src/morphlib/conjstem.proto.h"
 #include "../src/morphlib/fixacc.proto.h"
+#include "../src/morphlib/errormess.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
 #include "../src/morphlib/markstem.proto.h"
@@ -23,6 +24,7 @@
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/setlang.proto.h"
 #include "../src/morphlib/standphon.proto.h"
+#include "../src/morphlib/sprntGkflags.h"
 #include "../src/morphlib/ultform.proto.h"
 #include "../src/morphlib/ulttakescirc.proto.h"
 #include "../src/greeklib/addaccent.proto.h"
@@ -80,6 +82,22 @@ main(void)
 
 	assert(context);
 	previous = morpheus_runtime_context_activate(context);
+	ErrorMess(NULL);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	SprintGkFlags(NULL,empty,empty,NO);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	JakeSprintGkFlags(&item,NULL,empty,empty,NO);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
+	GregSprintGkFlags(&item,empty,empty,NULL,NO);
+	assert(morpheus_runtime_context_error(context) ==
+	       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	morpheus_runtime_context_clear_error(context);
 	assert(CreatGkString(0) == NULL);
 	assert(CreatGkAnal(0) == NULL);
 	assert(CreatGkword(0) == NULL);

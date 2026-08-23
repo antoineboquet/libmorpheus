@@ -1,9 +1,13 @@
-#include <gkstring.h>
+#include "morphlib_internal.h"
 
 #include "errormess.proto.h"
 
 void ErrorMess(char *s)
 {
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 #ifdef LIGHTSPEED
 /*
 	char tmp[LONGSTRING];

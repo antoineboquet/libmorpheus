@@ -15,6 +15,11 @@ void JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
   char dialbuf[LONGSTRING*2];
   char * s;
   word_form wf;
+
+  if (!gstr || !buf || !dels || !more_dels) {
+    morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+    return;
+  }
   
   wf = forminfo_of(gstr);
   s=NameOfStemtype(stemtype_of(gstr));
@@ -126,6 +131,11 @@ void GregSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, 
   char dialbuf[LONGSTRING*2];
   char * s;
   word_form wf;
+
+  if (!gstr || !buf || !dels || !more_dels) {
+    morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+    return;
+  }
 		
   wf = forminfo_of(gstr);
 
