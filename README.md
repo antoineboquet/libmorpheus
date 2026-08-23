@@ -240,3 +240,8 @@ CFLAGS='-std=c17 -fcommon' make -C src/anal cruncher
 
 They are retained only as a compatibility check. New consumers should use the
 CMake build and public ABI.
+
+Only the inherited `libs` and `cruncher` targets are covered by that check.
+Other standalone programs preserved below `src/` are deliberately excluded
+from the supported build and installation; their status and reintroduction
+criteria are documented in [Historical utility policy](docs/historical-utilities.md).

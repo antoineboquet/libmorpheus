@@ -12,6 +12,16 @@ include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 find_package(Threads REQUIRED)
 
+if(BUILD_TESTING)
+  add_test(
+    NAME historical_utility_scope
+    COMMAND
+      "${CMAKE_COMMAND}"
+      "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+      -P "${PROJECT_SOURCE_DIR}/test/historical-utility-scope.cmake"
+  )
+endif()
+
 option(MORPHEUS_BUILD_CRUNCHER "Build the legacy-compatible cruncher CLI" ON)
 option(
   MORPHEUS_ENABLE_SANITIZERS

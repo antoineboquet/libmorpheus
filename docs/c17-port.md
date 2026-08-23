@@ -276,8 +276,11 @@ The CMake runtime consists only of the sources linked by `cruncher`:
 - the `stdiomorph.c` command-line client.
 
 The stemlib compiler, Flex lexers, platform-specific front ends, and unused
-analysis utilities are outside this porting scope. They may be migrated later
-without blocking the library intended for Bailly.
+analysis utilities are outside this porting scope. They are explicitly
+quarantined by `cmake/HistoricalUtilities.cmake`; a CTest scope check prevents
+an unclassified standalone program from entering the supported build. See
+`historical-utilities.md` for the audit, maintenance decision, and criteria for
+reintroducing an individual tool.
 
 ## Verified linkage constraint
 
