@@ -99,7 +99,8 @@ printf("line:%s\n", line );
 		 		tmp[0] = *cooked;
 		 		tmp[1] = '+';
 		 		tmp[2] = 0;
-		 		Xstrncat(tmp,cooked+1,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,cooked+1,sizeof tmp)) goto failed;
 		 		Xstrncpy(cooked,tmp,MAXWORDSIZE);
 
 		 }

@@ -84,8 +84,10 @@ fprintf(stderr,"checkdict: stem [%s] endstring [%s] keyp [%s]\n", stem_of(Gkword
 	
 	if( prevb[0] ) {
 		if( pbptr == NULL )  {
-			Xstrncat(keyp,":pb:",LONGSTRING);
-			Xstrncat(keyp,prevb,LONGSTRING);
+			if (!morpheus_runtime_string_append(
+			    keyp,":pb:",sizeof keyp) ||
+			    !morpheus_runtime_string_append(
+			    keyp,prevb,sizeof keyp)) goto finish;
 		}
 		/*
 		 * if this stem already has a preverb and it differs
@@ -105,8 +107,10 @@ fprintf(stderr,"checkdict: stem [%s] endstring [%s] keyp [%s]\n", stem_of(Gkword
 	 */
 			if(Xstrncmp(tmppb,lastn(prevb,Xstrlen(tmppb)),Xstrlen(prevb)))
 				goto finish;
-			Xstrncat(keyp,":pb:",LONGSTRING);
-			Xstrncat(keyp,prevb,LONGSTRING);
+			if (!morpheus_runtime_string_append(
+			    keyp,":pb:",sizeof keyp) ||
+			    !morpheus_runtime_string_append(
+			    keyp,prevb,sizeof keyp)) goto finish;
 		}
 	} 
 

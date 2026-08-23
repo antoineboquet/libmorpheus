@@ -137,7 +137,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 
 	if( cur_lang() == LATIN || cur_lang() == ITALIAN ) {
 		Xstrncpy(word,stem,MAXWORDSIZE);
-		Xstrncat(word,endstring,MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(word,endstring,MAXWORDSIZE))
+			*word = 0;
 		return;
 	}
 
@@ -146,7 +147,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
  */
 	if( ! nsylls(stem)  && ! nsylls(endstring) ) {
 		Xstrncpy(word,stem,MAXWORDSIZE);
-		Xstrncat(word,endstring,MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(word,endstring,MAXWORDSIZE))
+			*word = 0;
 		return;
 	}
 
@@ -164,7 +166,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 	for (p=endstring;*p;p++)
 		if (Is_accent(*p)) {
 			Xstrncpy(word,stem,MAXWORDSIZE);
-			Xstrncat(word,endstring,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(word,endstring,MAXWORDSIZE))
+				*word = 0;
 			return;
 	}
 
@@ -172,7 +175,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 	for (p=stem;*p;p++)
 		if (Is_accent(*p)) {
 			Xstrncpy(word,stem,MAXWORDSIZE);
-			Xstrncat(word,endstring,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(word,endstring,MAXWORDSIZE))
+				*word = 0;
 			return;
 	}
 /*
@@ -183,7 +187,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
  */
  	if( Accent_optional(mflags) && has_morphflag(mflags,ENCLITIC) ) {
 			Xstrncpy(word,stem,MAXWORDSIZE);
-			Xstrncat(word,endstring,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(word,endstring,MAXWORDSIZE))
+				*word = 0;
 			return;
 	}
 	
@@ -204,7 +209,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 			
 		 	if( Accent_optional(mflags) ) {
 					Xstrncpy(word,stem,MAXWORDSIZE);
-					Xstrncat(word,endstring,MAXWORDSIZE);
+					if (!morpheus_runtime_string_append(
+					    word,endstring,MAXWORDSIZE)) *word = 0;
 					return;
 			}
 			ep = getsyll(endstring,ULTIMA);
@@ -213,7 +219,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 			}
 			fixnacc2(ep,gstring,form_info,is_ending,is_oblique);
 			Xstrncpy(tmp,workstem,MAXWORDSIZE);
-			Xstrncat(tmp,endstring,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,endstring,sizeof tmp)) return;
 /*			stripmetachars(tmp);*/
 			Xstrncpy(word,tmp,MAXWORDSIZE);
 			return;
@@ -227,7 +234,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 /*
 	 	if( Accent_optional(mflags) ) {
 				Xstrncpy(word,stem,MAXWORDSIZE);
-				Xstrncat(word,endstring,MAXWORDSIZE);
+				if (!morpheus_runtime_string_append(
+				    word,endstring,MAXWORDSIZE)) *word = 0;
 				return;
 		}
 */
@@ -235,7 +243,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 			if( ! naccents(endstring) ) 
 				fixnacc2(endstring,gstring,form_info,is_ending,is_oblique);
 			Xstrncpy(tmp,workstem,MAXWORDSIZE);
-			Xstrncat(tmp,endstring,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,endstring,sizeof tmp)) return;
 /*			stripmetachars(tmp);*/
 			Xstrncpy(word,tmp,MAXWORDSIZE);
 			return;
@@ -244,7 +253,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 			
 			
 			Xstrncpy(tmp,stem,MAXWORDSIZE);
-			Xstrncat(tmp,endstring,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,endstring,sizeof tmp)) return;
 			
 			p = getsyll2(tmp,ULTIMA);
 
@@ -275,7 +285,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 			(quantprim(endstring,ULTIMA,YES,is_oblique)==SHORT) && ! Is_enclitic(mflags) ) {
 			 	if( Accent_optional(mflags) ) {
 						Xstrncpy(word,stem,MAXWORDSIZE);
-						Xstrncat(word,endstring,MAXWORDSIZE);
+						if (!morpheus_runtime_string_append(
+						    word,endstring,MAXWORDSIZE)) *word = 0;
 						return;
 				}
 				addaccent(workstem,CIRCUMFLEX,p);
@@ -296,7 +307,8 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
 			addaccent(workstem,ACUTE,p);
 		}
 		Xstrncpy(tmp,workstem,MAXWORDSIZE);
-		Xstrncat(tmp,endstring,MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(
+		    tmp,endstring,sizeof tmp)) return;
 		Xstrncpy(word,tmp,MAXWORDSIZE);
 		return;
 	} 
@@ -332,13 +344,14 @@ void FixPersAcc2(gk_string *gstring, MorphFlags *mflags, gk_string *stemgstr, ch
  */
 			addaccent(workstem,ACUTE,p);
 		Xstrncpy(tmp,workstem,MAXWORDSIZE);
-		Xstrncat(tmp,endstring,MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(
+		    tmp,endstring,sizeof tmp)) return;
 		Xstrncpy(word,tmp,MAXWORDSIZE);
 		return;
 	}
 
 	Xstrncpy(tmp,workstem,MAXWORDSIZE);
-	Xstrncat(tmp,endstring,MAXWORDSIZE);
+	if (!morpheus_runtime_string_append(tmp,endstring,sizeof tmp)) return;
 
 	fixnacc2(tmp,gstring,form_info,is_ending,is_oblique);
 	Xstrncpy(word,tmp,MAXWORDSIZE);

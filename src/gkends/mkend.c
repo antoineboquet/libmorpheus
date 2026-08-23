@@ -124,7 +124,11 @@ static void
 	gk_string TmpHave;
 	gk_string TmpAvoid;
 
-	sprintf(line,"endtables/basics/%s.end",  endtype );
+	i = snprintf(line,sizeof line,"endtables/basics/%s.end",endtype);
+	if (i < 0 || (size_t)i >= sizeof line) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 
 	if( ! (f=MorphFopen(line,"r")) ) {
 		fprintf(stderr,"could not open [%s]\n", endtype );
@@ -171,8 +175,9 @@ static void
  */
  		CompStemEnd(Have,gkstring_of(Have),endstr);
 
-		strcat(gkstring_of(Have),endstr);
-		mk_end(gkstring_of(Have),Have,Avoid);
+		if (morpheus_runtime_string_append(
+		    gkstring_of(Have),endstr,MAXWORDSIZE))
+			mk_end(gkstring_of(Have),Have,Avoid);
 	} 
 }
 

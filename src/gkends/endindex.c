@@ -284,7 +284,8 @@ checkendind(endind *etags, char *endstr, char *keys, int (*scmp)(const char *, c
 	 * the table is of the form "ending<SPACE>key1<SPACE>key2<SPACE> ..."
 	 */
 	Xstrncpy(curtag,endstr,MAXWORDSIZE);
-	Xstrncat(curtag," ",MAXWORDSIZE);
+	if (!morpheus_runtime_string_append(curtag," ",sizeof curtag))
+		return(0);
 	taglen = strlen(curtag);
 	
 	ntags = endlen_of(etags);

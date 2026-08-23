@@ -9,6 +9,7 @@
  */
 #include <gkstring.h>
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include "endfiles.h"
 #include "compostypes.h"
 
@@ -17,8 +18,8 @@
 int
  expendtables(char *tabname, int maintable, int formcode)
 {
-	FILE * finput;
-	FILE * foutput;
+	FILE * finput = NULL;
+	FILE * foutput = NULL;
 	char line[BUFSIZ];
 	char shortname[LONGSTRING];
 	char fname[MAXPATHNAME];
@@ -120,12 +121,23 @@ int
 			return(-1);
 		}
 	}
-	if( formcode == DODERIV ) strcat(basename," is_deriv"); 
-	else if( formcode == DOWORD ) strcat(basename," indeclform"); 
+	if ((formcode == DODERIV &&
+	     !morpheus_runtime_string_append(
+	         basename," is_deriv",sizeof basename)) ||
+	    (formcode == DOWORD &&
+	     !morpheus_runtime_string_append(
+	         basename," indeclform",sizeof basename))) {
+		fclose(finput);
+		if (foutput) fclose(foutput);
+		return(-1);
+	}
 	
 	if( ! InitGstrMem() )  {
 		fprintf(stderr,"Could not allocate storage for ending array\n" );
-		exit(-1);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		fclose(finput);
+		if (foutput) fclose(foutput);
+		return(-1);
 	}
 
 	while(fgets(line,sizeof line,finput) ) {

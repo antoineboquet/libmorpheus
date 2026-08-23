@@ -126,6 +126,9 @@ struct morpheus_runtime_context {
 	char volume_name[128];
 };
 
+int morpheus_runtime_string_append(char *destination, const char *source,
+                                   size_t capacity);
+
 morpheus_runtime_context *morpheus_runtime_context_current(void);
 
 #endif

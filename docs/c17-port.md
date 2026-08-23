@@ -242,6 +242,27 @@ Typing `gkends` exposed a `gk_string *` passed to `FixRecAcc`, which requires a
 constructs the required temporary word and copies the ending metadata before
 accentuation.
 
+## Transactional bounded strings
+
+`Xstrncat` now has a transactional failure contract: an invalid or
+unterminated destination and a source that does not fit leave the destination
+byte-for-byte unchanged. Runtime callers wrap that primitive with
+`morpheus_runtime_string_append`, which records
+`MORPHEUS_RUNTIME_ERROR_INTERNAL` on failure.
+
+The remaining active assembly paths in `morphlib`, the dictionary and ending
+modules, and the analyzer now check that contract. Multi-part keys and printed
+fragments are assembled in local scratch buffers and committed only after the
+complete value fits. Accentuation, augmentation, compound heads, movable-nu
+insertion, ending generation, dictionary keys, and legacy analysis rendering
+therefore no longer expose a truncated prefix or set metadata for a string that
+could not be stored. Ending-table utilities use checked `snprintf` construction
+and return a runtime error instead of terminating the process.
+
+Focused tests cover unchanged destinations, error propagation, movable-nu
+metadata rollback, accent-output suppression, and transactional conjugation
+when the destination is full.
+
 Declaring the `gkends` boundary exposed one incomplete historical call:
 `mkend.c` invoked `do_dissim` without the function's required `Stemtype`.
 The call now passes `stemtype_of(Have)`, which is the ending metadata inspected

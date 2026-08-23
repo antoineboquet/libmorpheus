@@ -21,8 +21,7 @@ append_stem(char *stem, const char *suffix)
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(0);
 	}
-	Xstrncat(stem,suffix,MAXWORDSIZE);
-	return(1);
+	return(morpheus_runtime_string_append(stem,suffix,MAXWORDSIZE));
 }
 
 void fixcontr(char *stem, char *verb)
@@ -146,6 +145,7 @@ void conjoin(char *stem, char *e)
 	/* observe the laws of euphony, if you please... */
 	register char *p;
 	char ending[MAXWORDSIZE];
+	char workstem[MAXWORDSIZE];
 	int changed;
 	size_t remaining;
 
@@ -157,12 +157,16 @@ void conjoin(char *stem, char *e)
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return;
 	}
+	if (!Xstrncpy(workstem,stem,sizeof workstem)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	if (!*ending) return;
-	if (!*stem) {
+	if (!*workstem) {
 		Xstrncpy(stem,ending,MAXWORDSIZE);
 		return;
 	}
-	p = stem+strlen(stem)-1;
+	p = workstem+strlen(workstem)-1;
 /*
  * this has got to be fixed if it is going to work at all well with
  * dialects!
@@ -174,12 +178,13 @@ void conjoin(char *stem, char *e)
   * i can get the epic form pla/ssa.  unbelievable! ugh.
 	 */
  	if( (Is_dental(*p) || *p == 'z' || *p == 'n' ) && !Xstrncmp(e,"ss",2) ) {
-		remaining = (size_t)MAXWORDSIZE-(size_t)(p-stem);
+		remaining = (size_t)MAXWORDSIZE-(size_t)(p-workstem);
 		if (strlen(ending) >= remaining) {
 			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 			return;
 		}
 		Xstrncpy(p,ending,remaining);
+		Xstrncpy(stem,workstem,MAXWORDSIZE);
  		return;
  	}
  	
@@ -187,20 +192,20 @@ void conjoin(char *stem, char *e)
 		changed = NO;
 		switch(ending[0]) {
 			case 's':
-				changed = do_sigma(stem,ending);
+				changed = do_sigma(workstem,ending);
 				break;
 			case 'q':
-				changed = do_theta(stem);
+				changed = do_theta(workstem);
 				break;
 			case 'm':
-				changed = do_mu(stem);
+				changed = do_mu(workstem);
 				break;
 			case 't':
-				changed = do_tau(stem);
+				changed = do_tau(workstem);
 				break;
 			}
 		} while (changed);
-	append_stem(stem,ending);
+	if (append_stem(workstem,ending)) Xstrncpy(stem,workstem,MAXWORDSIZE);
 }
 
 int do_sigma(char *s, char *ending)

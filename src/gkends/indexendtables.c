@@ -1,5 +1,6 @@
 #include <gkstring.h>
 #include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include "endfiles.h"
 #include "nextsufftab.proto.h"
 #include "../morphlib/morphkeys.proto.h"
@@ -98,14 +99,25 @@ if(  ! *sp ) {
 	continue;
 }
 			if( is_deriv ) {
-				Xstrcpy(tmp,gkstring_of(&Gstr));
-				strcat(tmp,"\t");
-				if( strcmp(gkstring_of(&Gstr),savestr) ) {
-					strcat(tmp,savestr);
+				int written = snprintf(
+					tmp,sizeof tmp,"%s\t%s",gkstring_of(&Gstr),
+					strcmp(gkstring_of(&Gstr),savestr) ? savestr : "");
+				if (written < 0 || (size_t)written >= sizeof tmp) {
+					morpheus_runtime_error_record(
+						MORPHEUS_RUNTIME_ERROR_INTERNAL);
+					return(-1);
 				}
 				SprintGkFlags(&Gstr,tmp,sizeof tmp,":",0);
-			} else
-				sprintf(tmp,"%s\t%s", gkstring_of(&Gstr) , NameOfStemtype(stemtype_of(&Gstr) ) );
+			} else {
+				int written = snprintf(
+					tmp,sizeof tmp,"%s\t%s",gkstring_of(&Gstr),
+					NameOfStemtype(stemtype_of(&Gstr)));
+				if (written < 0 || (size_t)written >= sizeof tmp) {
+					morpheus_runtime_error_record(
+						MORPHEUS_RUNTIME_ERROR_INTERNAL);
+					return(-1);
+				}
+			}
 
 /*
 			if( is_deriv && derivtype_of(&Gstr) ) {
@@ -144,7 +156,12 @@ printf("stype [%o]\n", stype );
 	else
 		basen = "nendind";
 		
-	sprintf(shortname,"%s%cindices%c%s", dirp, DIRCHAR, DIRCHAR , basen );
+	i = snprintf(shortname,sizeof shortname,"%s%cindices%c%s",
+	             dirp,DIRCHAR,DIRCHAR,basen);
+	if (i < 0 || (size_t)i >= sizeof shortname) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 
 printf("output file:%s\n", shortname );
 	if(! (foutput=MorphFopen(shortname,"w"))) {

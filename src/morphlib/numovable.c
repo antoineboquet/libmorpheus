@@ -47,6 +47,6 @@ void add_numovable(gk_string *gstr)
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return;
 	}
-	Xstrncat(gkstring_of(gstr), "n",MAXWORDSIZE);
-	add_morphflag(morphflags_of(gstr),NU_MOVABLE);
+	if (morpheus_runtime_string_append(gkstring_of(gstr),"n",MAXWORDSIZE))
+		add_morphflag(morphflags_of(gstr),NU_MOVABLE);
 }

@@ -336,9 +336,10 @@ int unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems
 			return(0);
 	}
 	if( ! Xstrncmp(s,"e)rr",4) ) {
+		char tmp[MAXWORDSIZE] = "r(";
+		if (!morpheus_runtime_string_append(tmp,s+4,sizeof tmp)) return(0);
 		rval = 1;
-		Xstrncpy(gkstring_of(possibs[0]),"r(",MAXWORDSIZE);
-		Xstrncat(gkstring_of(possibs[0]),s+4,MAXWORDSIZE);
+		Xstrncpy(gkstring_of(possibs[0]),tmp,MAXWORDSIZE);
 		if( ! wantredupl ) {
 			set_mood(forminfo_of(possibs[0]),INDICATIVE);
 		}
@@ -346,9 +347,10 @@ int unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems
 	}
 	
 	if( ! Xstrncmp(s,"e)r",3) ) {
+		char tmp[MAXWORDSIZE] = "r(";
+		if (!morpheus_runtime_string_append(tmp,s+3,sizeof tmp)) return(0);
 		rval = 1;
-		Xstrncpy(gkstring_of(possibs[0]),"r(",MAXWORDSIZE);
-		Xstrncat(gkstring_of(possibs[0]),s+3,MAXWORDSIZE);
+		Xstrncpy(gkstring_of(possibs[0]),tmp,MAXWORDSIZE);
 		add_morphflag(morphflags_of(possibs[0]),RAW_SONANT);
 		if( ! wantredupl ) {
 			set_mood(forminfo_of(possibs[0]),INDICATIVE);
@@ -382,12 +384,14 @@ int unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems
 /*
 			Xstrncat(tmp,s+Xstrlen(TempAugments[i].withaug),MAXWORDSIZE );
 */
-			Xstrncat(tmp,s+Xstrlen(augnoquant) ,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,s+Xstrlen(augnoquant),sizeof tmp)) return(rval);
 			Xstrncpy(gkstring_of(possibs[rval]),tmp,MAXWORDSIZE);
 
 			if( strcmp(augnoquant,TempAugments[i].withaug) ) {
 				Xstrncpy(tmp,TempAugments[i].withaug,MAXWORDSIZE);
-				Xstrncat(tmp,s+Xstrlen(augnoquant) ,MAXWORDSIZE);
+				if (!morpheus_runtime_string_append(
+				    tmp,s+Xstrlen(augnoquant),sizeof tmp)) return(rval);
 				Xstrncpy(gkstring_of(qpossibs[rval]),tmp,MAXWORDSIZE);
 				set_dialect(possibs[rval],TempAugments[i].augdial );
 			}
@@ -412,7 +416,8 @@ int unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems
 /*
 			Xstrncat(tmp,s+Xstrlen(SyllAugments[i].withaug) ,MAXWORDSIZE);
 */
-			Xstrncat(tmp,s+Xstrlen(augnoquant) ,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,s+Xstrlen(augnoquant),sizeof tmp)) return(rval);
 			Xstrncpy(gkstring_of(possibs[rval]),tmp,MAXWORDSIZE);
 			set_dialect(possibs[rval],SyllAugments[i].augdial);
 			add_morphflag(morphflags_of(possibs[rval]),SYLL_AUGMENT);
@@ -470,7 +475,9 @@ int unaugfromlemma(char *stem, char *lemma)
 			if(!Xstrncmp( TempAugments[i].noaug, lemma ,noauglen)){
 
 				Xstrncpy(tmp,TempAugments[i].noaug,MAXWORDSIZE);
-				Xstrncat(tmp,stem+Xstrlen(TempAugments[i].withaug) ,MAXWORDSIZE);
+				if (!morpheus_runtime_string_append(
+				    tmp,stem+Xstrlen(TempAugments[i].withaug),
+				    sizeof tmp)) return(-1);
 				Xstrncpy(stem,tmp,MAXWORDSIZE);
 				return(TEMP_AUGMENT);
 			}
@@ -489,7 +496,9 @@ int unaugfromlemma(char *stem, char *lemma)
 			if(!Xstrncmp( SyllAugments[i].noaug, lemma ,noauglen)){
 
 				Xstrncpy(tmp,SyllAugments[i].noaug,MAXWORDSIZE);
-				Xstrncat(tmp,stem+Xstrlen(SyllAugments[i].withaug),MAXWORDSIZE );
+				if (!morpheus_runtime_string_append(
+				    tmp,stem+Xstrlen(SyllAugments[i].withaug),
+				    sizeof tmp)) return(-1);
 				Xstrncpy(stem,tmp,MAXWORDSIZE);
 				return(SYLL_AUGMENT);
 			}

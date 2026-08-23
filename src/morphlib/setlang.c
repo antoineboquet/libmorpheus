@@ -145,6 +145,15 @@ morpheus_runtime_error_record(morpheus_runtime_error error)
 		context->runtime_error = error;
 }
 
+int
+morpheus_runtime_string_append(char *destination, const char *source,
+			       size_t capacity)
+{
+	if (Xstrncat(destination,source,capacity)) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 void set_lang(int n)
 {
 	morpheus_runtime_context_current()->language = n;

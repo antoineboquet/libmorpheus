@@ -1,6 +1,8 @@
 #include "gkdict_internal.h"
 #include "../morphlib/runtime_context_internal.h"
 
+static int append_derivation_keys(char *, const char *);
+
 static int checkforderiv2(char *stemstr, char *stemkeys, char *had_redupl, char *redupstem);
 int checkcomderivs(char * derivs,char * defstem,char * suffix,char * lemmkeys,char * nkeys,char * had_redupl,char * redupstem);
 int checkcomderiv(char * derivs,char * defstem,char * suffix,char * lemmkeys,char * nkeys,char * had_redupl,char * redupstem);
@@ -83,8 +85,7 @@ checkforderiv(char *stemstr, char *stemkeys)
 	
 	rval2 = checkforredupderiv(stemstr,stemkeys2);
 	if( rval2 ) {
-		if( *stemkeys ) strcat(stemkeys," ");
-		strcat(stemkeys,stemkeys2);
+		if (!append_derivation_keys(stemkeys,stemkeys2)) return(rval);
 	}
 /*
 printf("%d) %d %d [%s] checkedsuff %d, added %d\n", checkedderivs , realderivs++,
@@ -193,15 +194,16 @@ gkstring_of(context->derivation_stem_buffers[i]), tmpkeys);
  */
 
 		if( tmpkeys[0] ) {
-			strcat(had_redupl," ");
-			strcat(had_redupl,tmpkeys);
+			if (!morpheus_runtime_string_append(
+			    had_redupl," ",sizeof had_redupl) ||
+			    !morpheus_runtime_string_append(
+			    had_redupl,tmpkeys,sizeof had_redupl)) return(hits);
 		}
 
 		if( checkforderiv2(tempstem,tmpkeys,had_redupl,
 				gkstring_of(context->derivation_quantity_buffers[i])[0] ?
 				gkstring_of(context->derivation_quantity_buffers[i]) :"") ) {
-			if(*stemkeys) Xstrncat(stemkeys," ",LONGSTRING);
-			Xstrncat(stemkeys,tmpkeys,LONGSTRING);
+			if (!append_derivation_keys(stemkeys,tmpkeys)) return(hits);
 			hits++;
 		}
 
@@ -728,4 +730,20 @@ ends_in_vowel(char *s)
 		if (isalpha(c)) return(Is_vowel(c));
 	}
 	return(0);
+}
+static int
+append_derivation_keys(char *destination, const char *addition)
+{
+	char merged[LONGSTRING];
+
+	if (!destination || !addition ||
+	    !Xstrncpy(merged,destination,sizeof merged) ||
+	    (*merged && !morpheus_runtime_string_append(
+	        merged," ",sizeof merged)) ||
+	    !morpheus_runtime_string_append(merged,addition,sizeof merged)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	Xstrncpy(destination,merged,LONGSTRING);
+	return(1);
 }

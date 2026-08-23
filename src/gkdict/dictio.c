@@ -1,5 +1,6 @@
 #include "gkdict_internal.h"
 #include "../morphlib/runtime_context_internal.h"
+static int append_dictionary_keys(char *, const char *);
 #define DICT_CONTEXT (morpheus_runtime_context_current())
 #define VbTags (DICT_CONTEXT->verb_dictionary_tags)
 #define NomTags (DICT_CONTEXT->nominal_dictionary_tags)
@@ -201,8 +202,7 @@ int
 		rval = chcknstem(stemstr,stemkeys);
 		rval2 = checkforderiv(stemstr,tmpkeys);
 		if( rval2 ) {
-			if( rval ) Xstrncat(stemkeys," ",LONGSTRING);
-			Xstrncat(stemkeys,tmpkeys,LONGSTRING);
+			if (!append_dictionary_keys(stemkeys,tmpkeys)) return(rval);
 		}
 	
 		return(rval+rval2);
@@ -212,8 +212,7 @@ int
 		rval = chckvstem(stemstr,stemkeys);
 		rval2 = checkforderiv(stemstr,tmpkeys);
 		if( rval2 ) {
-			if( rval ) Xstrncat(stemkeys," ",LONGSTRING);
-			Xstrncat(stemkeys,tmpkeys,LONGSTRING);
+			if (!append_dictionary_keys(stemkeys,tmpkeys)) return(rval);
 		}
 	
 		return(rval+rval2);
@@ -252,8 +251,7 @@ int
 	if( ! is_nom ) 
 		rval2 = checkforderiv(stemstr,tmpkeys);
 	if( rval2 ) {
-		if( rval ) Xstrncat(stemkeys," ",LONGSTRING);
-		Xstrncat(stemkeys,tmpkeys,LONGSTRING);
+		if (!append_dictionary_keys(stemkeys,tmpkeys)) return(rval);
 	}
 
 	return(rval+rval2);
@@ -456,5 +454,21 @@ lemma_exists(char *lemma)
 		return(0);
 	xFclose(flemm);
 	flemm = NULL;
+	return(1);
+}
+static int
+append_dictionary_keys(char *destination, const char *addition)
+{
+	char merged[LONGSTRING];
+
+	if (!destination || !addition ||
+	    !Xstrncpy(merged,destination,sizeof merged) ||
+	    (*merged && !morpheus_runtime_string_append(
+	        merged," ",sizeof merged)) ||
+	    !morpheus_runtime_string_append(merged,addition,sizeof merged)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	Xstrncpy(destination,merged,LONGSTRING);
 	return(1);
 }

@@ -3,6 +3,7 @@
 #include "checkstring.proto.h"
 static int checkstring4(gk_word *);
 static void add_apostrvowel(char *, char *, char *);
+static int set_prefixed_workword(gk_word *, const char *, const char *);
 /*
  * a lot of dirty work goes on here. this is where we look for things like apostrophes,
  * crasis, odd preverb forms (e.g. "cun" for "sun"), dialectical things like "tt" vs "ss" etc.
@@ -136,8 +137,7 @@ void checkstring1(gk_word *Gkword)
 		int n = 0;
 		
 		Xstrncpy(savework,workword_of(Gkword),MAXWORDSIZE);
-		set_workword(Gkword,"e)");
-		Xstrncat(workword_of(Gkword),savework+1,MAXWORDSIZE);
+		if (!set_prefixed_workword(Gkword,"e)",savework+1)) return;
 		n = checkstring2(Gkword);
 
 /*
@@ -149,19 +149,16 @@ void checkstring1(gk_word *Gkword)
 			
 			Xstrcpy(tmp,savework);
 			if( hasaccent(tmp) ) stripacc(tmp);
-			set_workword(Gkword,"e)/");
-			Xstrncat(workword_of(Gkword),tmp+1,MAXWORDSIZE);
+			if (!set_prefixed_workword(Gkword,"e)/",tmp+1)) return;
 			n = checkstring2(Gkword);
 			
 		}
 		
-		set_workword(Gkword,"a)");
-		Xstrncat(workword_of(Gkword),savework+1,MAXWORDSIZE);
+		if (!set_prefixed_workword(Gkword,"a)",savework+1)) return;
 		n = checkstring2(Gkword);
 
 		if( ! n && ! hasaccent(savework) ) {
-			set_workword(Gkword,"a)/");
-			Xstrncat(workword_of(Gkword),savework+1,MAXWORDSIZE);
+			if (!set_prefixed_workword(Gkword,"a)/",savework+1)) return;
 			n = checkstring2(Gkword);
 			
 		}
@@ -969,17 +966,39 @@ int checkapostr(gk_word *Gkword)
 
 static void add_apostrvowel(char *word, char *end, char *vow)
 {
+	char candidate[MAXWORDSIZE];
 /*
  * if it has no accents (like a)ll' from a)lla/) stick one on
  */
- 	Xstrncpy(end,vow,MAXWORDSIZE);
+	Xstrncpy(end,vow,MAXWORDSIZE);
+	if (!Xstrncpy(candidate,word,sizeof candidate)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	if( naccents(word) == 0 ) {
-		Xstrncat(word,"/",MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(
+		    candidate,"/",sizeof candidate)) return;
 	}
 
 	if( *end == 'u' || * end == 'i' || *end == 'a' )
-		Xstrncat(word,"^",MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(
+		    candidate,"^",sizeof candidate)) return;
+	Xstrncpy(word,candidate,MAXWORDSIZE);
 
+}
+
+static int
+set_prefixed_workword(gk_word *word, const char *prefix, const char *suffix)
+{
+	char candidate[MAXWORDSIZE];
+
+	if (!Xstrncpy(candidate,prefix,sizeof candidate) ||
+	    !morpheus_runtime_string_append(candidate,suffix,sizeof candidate)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	set_workword(word,candidate);
+	return(1);
 }
 
 int has_tt(char *s)

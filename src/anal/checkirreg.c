@@ -299,8 +299,13 @@ int CheckIrregForm(gk_word *Gkword, char *stem, char *stemkeys)
 	if( * prevb ) {
 		pbptr =is_substring(stemkeys,"pb:");
 		if( pbptr == NULL )  {
-			Xstrncat(stemkeys," pb:",LONGSTRING);
-			Xstrncat(stemkeys,prevb,LONGSTRING);
+			char merged[LONGSTRING];
+			if (!Xstrncpy(merged,stemkeys,sizeof merged) ||
+			    !morpheus_runtime_string_append(
+			        merged," pb:",sizeof merged) ||
+			    !morpheus_runtime_string_append(
+			        merged,prevb,sizeof merged)) return(0);
+			Xstrncpy(stemkeys,merged,LONGSTRING);
 		}
 		/*
 		 * if this stem already has a preverb and it differs

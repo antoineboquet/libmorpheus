@@ -207,16 +207,18 @@ comstemtypes(char *stem, char *stemkeys, char *endkeys)
 		setstemvars(s,cstem,clemma,cstemtype,stembuf);
 
 		if( wantcurstemtype(cstemtype,endkeys) ) {
-			if( tmp[0] ) Xstrncat(tmp," ",(int)LONGSTRING);
-			Xstrncat(tmp,clemma,(int)LONGSTRING);
-			Xstrncat(tmp,":",(int)LONGSTRING);
-			if( cstem[0] ) Xstrncat(tmp,cstem,(int)LONGSTRING);
-			else Xstrncat(tmp,stem,(int)LONGSTRING);
-			Xstrncat(tmp,":",(int)LONGSTRING);
-			Xstrncat(tmp,cstemtype,(int)LONGSTRING);
-			Xstrncat(tmp,":",(int)LONGSTRING);
-			if(*stembuf)
-				Xstrncat(tmp,stembuf,(int)LONGSTRING);
+			if ((tmp[0] && !morpheus_runtime_string_append(
+			        tmp," ",sizeof tmp)) ||
+			    !morpheus_runtime_string_append(tmp,clemma,sizeof tmp) ||
+			    !morpheus_runtime_string_append(tmp,":",sizeof tmp) ||
+			    !morpheus_runtime_string_append(
+			        tmp,cstem[0] ? cstem : stem,sizeof tmp) ||
+			    !morpheus_runtime_string_append(tmp,":",sizeof tmp) ||
+			    !morpheus_runtime_string_append(
+			        tmp,cstemtype,sizeof tmp) ||
+			    !morpheus_runtime_string_append(tmp,":",sizeof tmp) ||
+			    (*stembuf && !morpheus_runtime_string_append(
+			        tmp,stembuf,sizeof tmp))) return(0);
 		}
 		while(! isspace((unsigned char)*s) && *s ) s++;
 		while( isspace((unsigned char)*s) ) s++;

@@ -147,7 +147,8 @@ is_nomhead(char * heads,char * headkeys)
 		return(0);
 	Xstrcpy(tmphead,heads);
 	stripacc(tmphead);
-	strcat(tmphead,"\t");
+	if (!morpheus_runtime_string_append(tmphead,"\t",sizeof tmphead))
+		return(0);
 
 	headkeys[0] = 0;
 	for(i=0;i<context->compound_head_count;i++) {
@@ -159,8 +160,10 @@ is_nomhead(char * heads,char * headkeys)
 			while(isspace((unsigned char)*s)) *s++ = ':';	
 			while(*s&&!isspace((unsigned char)*s)) s++;
 			while(isspace((unsigned char)*s)) *s++ = ':';	
-			strcat(headkeys,headentry);
-			strcat(headkeys," ");
+			if (!morpheus_runtime_string_append(
+			    headkeys,headentry,BUFSIZ) ||
+			    !morpheus_runtime_string_append(headkeys," ",BUFSIZ))
+				return(rval);
 			rval = 1;
 		} 
 	}

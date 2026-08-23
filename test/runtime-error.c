@@ -32,6 +32,16 @@ int main(void)
          MORPHEUS_RUNTIME_ERROR_NONE);
   assert(morpheus_runtime_status(context)==MORPHEUS_OK);
 
+  {
+    char transactional[8]="base";
+
+    assert(!morpheus_runtime_string_append(
+      transactional,"-overflow",sizeof transactional));
+    assert(!strcmp(transactional,"base"));
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+    morpheus_runtime_context_clear_error(context);
+  }
+
   morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
   morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
   assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);

@@ -145,12 +145,24 @@ main(void)
 	assert(getsyll2(NULL,ULTIMA) == P_ERR);
 	{
 		gk_string movable = { 0 };
+		gk_string full_movable = { 0 };
+		char original[MAXWORDSIZE];
 
 		strcpy(gkstring_of(&movable),"lu/si");
 		assert(takes_nu_movable(&movable));
 		add_numovable(&movable);
 		assert(!strcmp(gkstring_of(&movable),"lu/sin"));
 		assert(has_morphflag(morphflags_of(&movable),NU_MOVABLE));
+		memset(gkstring_of(&full_movable),'a',MAXWORDSIZE-1);
+		gkstring_of(&full_movable)[MAXWORDSIZE-1] = 0;
+		memcpy(original,gkstring_of(&full_movable),sizeof original);
+		add_numovable(&full_movable);
+		assert(!memcmp(gkstring_of(&full_movable),original,sizeof original));
+		assert(!has_morphflag(
+		       morphflags_of(&full_movable),NU_MOVABLE));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
 		assert(!takes_nu_movable(NULL));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
@@ -357,6 +369,7 @@ main(void)
 		word_form form_info = { 0 };
 		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
 		char output[MAXWORDSIZE] = "not empty";
+		char long_stem[MAXWORDSIZE];
 
 		putsimpleacc(NULL);
 		assert(morpheus_runtime_context_error(context) ==
@@ -379,6 +392,17 @@ main(void)
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
+		memset(long_stem,'a',sizeof long_stem-1);
+		long_stem[sizeof long_stem-1] = 0;
+		set_gkstring(&stem,long_stem);
+		strcpy(output,"sentinel");
+		set_lang(LATIN);
+		FixPersAcc(&form,flags,&stem,"z",output,form_info,NO);
+		assert(!output[0]);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		set_lang(GREEK);
 	}
 	{
 		gk_string stem = { 0 };
@@ -698,6 +722,7 @@ main(void)
 		char one[MAXWORDSIZE] = "p";
 		char short_verb[MAXWORDSIZE] = "a";
 		char stem[MAXWORDSIZE] = "stem";
+		char full_before[MAXWORDSIZE];
 
 		fixcontr(stem,short_verb);
 		assert(!strcmp(stem,"stem"));
@@ -727,8 +752,10 @@ main(void)
 		       MORPHEUS_RUNTIME_ERROR_NONE);
 		memset(full,'a',sizeof full - 1);
 		full[sizeof full - 1] = 0;
+		memcpy(full_before,full,sizeof full_before);
 		conjoin(full,"a");
 		assert(strlen(full) == sizeof full - 1);
+		assert(!memcmp(full,full_before,sizeof full_before));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
@@ -824,16 +851,16 @@ main(void)
 		char unchanged[5] = "keep";
 
 		assert(!Xstrncat(bounded.value,"def",sizeof bounded.value));
-		assert(!strcmp(bounded.value,"abcde"));
+		assert(!strcmp(bounded.value,"abc"));
 		assert(!strcmp(bounded.guard,"end"));
 		assert(Xstrncat(overlap,overlap,sizeof overlap));
 		assert(!strcmp(overlap,"abcabc"));
 		assert(!Xstrncat(unterminated,"x",sizeof unterminated));
-		assert(!strcmp(unterminated,"abc"));
+		assert(!memcmp(unterminated,"abcd",sizeof unterminated));
 		assert(!Xstrncat(unchanged,"drop",0));
 		assert(!strcmp(unchanged,"keep"));
 		assert(!Xstrncat(one,"value",sizeof one));
-		assert(!one[0]);
+		assert(one[0]=='x');
 		assert(!Xstrncat(NULL,"value",5));
 		assert(!Xstrncat(unchanged,NULL,sizeof unchanged));
 	}
