@@ -30,6 +30,7 @@
 #include "../src/greeklib/hasquant.proto.h"
 #include "../src/greeklib/isdiphth.proto.h"
 #include "../src/greeklib/isblank.proto.h"
+#include "../src/greeklib/issubstring.proto.h"
 #include "../src/greeklib/longbyposition.proto.h"
 #include "../src/greeklib/naccents.proto.h"
 #include "../src/greeklib/nsylls.proto.h"
@@ -126,6 +127,15 @@ main(void)
 		assert(!gkstrlen(NULL));
 		aspirate(NULL);
 		shortanalog(NULL);
+	}
+	{
+		char haystack[] = "alpha beta";
+
+		assert(is_substring("beta",haystack) == haystack+6);
+		assert(!is_substring("gamma",haystack));
+		assert(!is_substring("",haystack));
+		assert(!is_substring(NULL,haystack));
+		assert(!is_substring("beta",NULL));
 	}
 	{
 		char adjacent[] = "a_a_";
