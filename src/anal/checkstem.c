@@ -6,6 +6,14 @@ int comstemtypes(char *, char *, char *);
 static int wantcurstemtype(char *, char *);
 extern int verbose;
 
+static int
+valid_checkstem_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 /*
  * this routine takes a possible verb stem (poss_stem) and tries
  * to figure out whether any such stem exists. 
@@ -65,6 +73,20 @@ int checkstem(char *poss_stem, char *endkeys, gk_string *stemtab[], char *keytab
 	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	gk_string **tstemtab = context->analysis_augmented_stems;
 	gk_string **tqstemtab = context->analysis_augmented_quantities;
+
+	if (!valid_checkstem_argument(poss_stem) ||
+	    !valid_checkstem_argument(endkeys) ||
+	    !valid_checkstem_argument(stemtab) ||
+	    !valid_checkstem_argument(keytab) || maxstems <= 0) {
+		if (maxstems <= 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	for (i = 0; i < maxstems; i++) {
+		if (!valid_checkstem_argument(stemtab[i]) ||
+		    !valid_checkstem_argument(keytab[i]))
+			return(0);
+	}
 
 
 
@@ -135,6 +157,11 @@ fprintf(stderr,"%d) %s\n", i , gkstring_of(tstemtab[i]) );
 int stemexists(char *s, char *endkeys, char *stemkeys, int is_nom)
 {
 	int rval  = 0;
+
+	if (!valid_checkstem_argument(s) ||
+	    !valid_checkstem_argument(endkeys) ||
+	    !valid_checkstem_argument(stemkeys))
+		return(0);
 	
 /*
 fprintf(stderr,"stemexists: s [%s] stemkeys [%s] endkeys [%s]\n", s , stemkeys, endkeys);

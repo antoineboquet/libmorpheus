@@ -5,6 +5,14 @@
 
 extern int verbose;
 
+static int
+valid_stem_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 /*
  * this routine gets handed possible stems that have been stripped
  * of preverbs. it checks to see if we have a stem beginning in a vowel
@@ -14,9 +22,14 @@ extern int verbose;
 int checkhalf1(gk_word *Gkword, char *endkeys)
 {
 	int rval = 0;
-	char * stem = stem_of(Gkword);
+	char * stem;
 	char savestem[MAXWORDSIZE];
 	int unasp_prev = 0;
+
+	if (!valid_stem_argument(Gkword) ||
+	    !valid_stem_argument(endkeys))
+		return(0);
+	stem = stem_of(Gkword);
 
 /*
 printf("half1 stem preverb [%s] stem [%s] end [%s]\n", preverb_of(Gkword) , stem_of(Gkword), endstring_of(Gkword));
@@ -182,6 +195,10 @@ int checkhalf2(gk_word *Gkword, char *endkeys)
 	gk_string **poss_stems = context->analysis_possible_stems;
 	char **poss_keys = context->analysis_possible_keys;
 
+	if (!valid_stem_argument(Gkword) ||
+	    !valid_stem_argument(endkeys))
+		return(0);
+
 	if (!initialize_possible_stems(context)) return(0);
 
 	for(i=0;i<MORPHEUS_POSSIBLE_STEM_COUNT;i++) {
@@ -211,6 +228,18 @@ int StemsWork(gk_word *Gkword, gk_string *poss_stems[], char *poss_keys[], int s
 	char savestem[MAXWORDSIZE];
 	int i, rval, result;
 	result = 0;
+	if (!valid_stem_argument(Gkword) ||
+	    !valid_stem_argument(poss_stems) ||
+	    !valid_stem_argument(poss_keys) || stem_num < 0) {
+		if (stem_num < 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	for (i = 0; i < stem_num; i++) {
+		if (!valid_stem_argument(poss_stems[i]) ||
+		    !valid_stem_argument(poss_keys[i]))
+			return(0);
+	}
 	
 	Xstrncpy(savestem,stem_of(Gkword),(int)sizeof savestem);
 
@@ -233,6 +262,11 @@ int StemWorks(gk_word *Gkword, char *posskey, gk_string *possstem)
 	int curval = 0;
 	char *workkey = NULL;
 	char *curkey = NULL;
+
+	if (!valid_stem_argument(Gkword) ||
+	    !valid_stem_argument(posskey) ||
+	    !valid_stem_argument(possstem))
+		return(0);
 	
 
 	workkey = (char *)malloc((size_t)BUFSIZ*2);
