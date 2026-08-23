@@ -31,19 +31,32 @@ int index_list(char *listname, char *tagstring, int modulus)
 	char field[LONGSTRING];
 	morpheus_stemlib_offset curoff;
 	int i;
+	int written;
 	size_t taglen = 0;
-	
+
+	if (!listname || !*listname || modulus <= 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	if( modulus > MODULUS ) modulus = MODULUS;
 	finput = MorphFopen(listname,"r");
 	if( ! finput ) {
 		fprintf(stderr,"Could not open input %s\n", listname );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(-1);
 	}
-	sprintf(outfile,"%s.lindex",listname);
+	written = snprintf(outfile,sizeof outfile,"%s.lindex",listname);
+	if (written < 0 || (size_t)written >= sizeof outfile) {
+		fclose(finput);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	
 	foutput = MorphFopen(outfile,"wb");
-	if( ! finput ) {
+	if( ! foutput ) {
 		fprintf(stderr,"Could not open output  %s\n", outfile );
+		fclose(finput);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(-1);
 	}
 	if( tagstring ) taglen = Xstrlen(tagstring);

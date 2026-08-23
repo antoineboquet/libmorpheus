@@ -1,12 +1,18 @@
+#define _POSIX_C_SOURCE 200809L
+
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "../src/api/api_internal.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/runtime_context_internal.h"
 #include "../src/morphlib/morphstrcmp.proto.h"
 #include "../src/morphlib/morphkeys.proto.h"
+#include "../src/morphlib/indkeys.proto.h"
 #include "../src/morphlib/retrentry.proto.h"
 
 int main(void)
@@ -93,6 +99,47 @@ int main(void)
   assert(!ChckFullIndex("a",keys,"missing",0,NULL));
   assert(!keys[0]);
   assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(index_list(NULL,NULL,1)==-1);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  morpheus_runtime_context_clear_error(context);
+  assert(index_list("input",NULL,0)==-1);
+  assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+
+  {
+    char temporary[]="/tmp/morpheus-index-XXXXXX";
+    char greek[sizeof temporary+8];
+    char input[sizeof temporary+16];
+    char output[sizeof temporary+24];
+    FILE *stream;
+    char *root=mkdtemp(temporary);
+    size_t path_length;
+
+    assert(root);
+    assert(snprintf(greek,sizeof greek,"%s/Greek",root)>0);
+    assert(snprintf(input,sizeof input,"%s/input",greek)>0);
+    assert(snprintf(output,sizeof output,"%s.lindex",input)>0);
+    assert(mkdir(greek,0700)==0);
+    stream=fopen(input,"w");
+    assert(stream);
+    assert(fputs("alpha\n",stream)>=0);
+    assert(fclose(stream)==0);
+    assert(mkdir(output,0700)==0);
+    free(context->stemlib_path);
+    path_length=strlen(root);
+    context->stemlib_path=malloc(path_length+1);
+    assert(context->stemlib_path);
+    memcpy(context->stemlib_path,root,path_length+1);
+    morpheus_runtime_context_clear_error(context);
+    assert(index_list("input",NULL,1)==-1);
+    assert(morpheus_runtime_status(context)==MORPHEUS_INTERNAL_ERROR);
+    assert(rmdir(output)==0);
+    assert(unlink(input)==0);
+    assert(rmdir(greek)==0);
+    assert(rmdir(root)==0);
+  }
 
   morpheus_runtime_context_activate(previous);
   morpheus_runtime_context_destroy(context);
