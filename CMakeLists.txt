@@ -7,6 +7,9 @@ project(
   LANGUAGES C
 )
 
+set(MORPHEUS_ABI_VERSION 1)
+set(MORPHEUS_SOVERSION 0)
+
 include(CTest)
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -26,6 +29,16 @@ if(BUILD_TESTING)
       "${CMAKE_COMMAND}"
       "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
       -P "${PROJECT_SOURCE_DIR}/test/public-api-documentation.cmake"
+  )
+  add_test(
+    NAME release_metadata
+    COMMAND
+      "${CMAKE_COMMAND}"
+      "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+      "-DMORPHEUS_PROJECT_VERSION=${PROJECT_VERSION}"
+      "-DMORPHEUS_ABI_VERSION=${MORPHEUS_ABI_VERSION}"
+      "-DMORPHEUS_SOVERSION=${MORPHEUS_SOVERSION}"
+      -P "${PROJECT_SOURCE_DIR}/test/release-metadata.cmake"
   )
 endif()
 
@@ -901,7 +914,7 @@ set_target_properties(
   morpheus
   PROPERTIES
     VERSION ${PROJECT_VERSION}
-    SOVERSION 0
+    SOVERSION ${MORPHEUS_SOVERSION}
     EXPORT_NAME morpheus
 )
 install(

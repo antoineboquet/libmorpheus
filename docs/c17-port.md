@@ -289,11 +289,15 @@ indexing utilities no longer contribute the historical duplicate `Gstr` and
 `endlines` symbols. Their temporary records, line table, and entry counter are
 now invocation-local; the counter therefore also starts cleanly on every run.
 
-## Next compatibility-preserving lots
+## Release preparation status
 
-The public ABI, installed CMake consumer, Deno FFI boundary, and compatibility
-client are now established. The next work concentrates on API documentation,
-packaging, benchmarks, and removal of transitional internal build surfaces.
+The public ABI, installed CMake and `pkg-config` consumers, Deno FFI boundary,
+compatibility client, API documentation, comparable benchmark format, and
+installed-package boundary are established. Historical standalone utilities
+are classified and excluded from the supported target graph. These completed
+lots are summarized in the project changelog; remaining work for a published
+version is the explicit release decision and artifact production described in
+`releasing.md`.
 
 The installed `pkg-config` metadata computes its prefix relative to the actual
 metadata destination instead of assuming a two-component `lib/pkgconfig`
