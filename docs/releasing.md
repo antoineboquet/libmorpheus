@@ -78,6 +78,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
   including source revision, stemlib revision, and compiler metadata. Compare
   it with the previous accepted report on the same controlled hardware and
   investigate material regressions before tagging.
+- Pass the final JSON report through `bench/validate.ts` with the exact source,
+  stemlib, compiler, and label values before preserving it as release evidence.
 - Generate the native archive with `cpack` and require
   `test-release-package.cmake` to verify its checksum and installed surface.
   The CI artifact is a release candidate, not a published release or a
@@ -85,6 +87,12 @@ Alpheios fixture suites must run where their data prerequisites are available.
 
 ## 6. Publish and verify
 
+- Integrate `agent/c17-runtime-port` into `main` with a merge commit preserving
+  its complete ancestry. Do not squash or rebase the modernization commits.
+  The intended operation is equivalent to
+  `git merge --no-ff agent/c17-runtime-port`.
+- Verify after the merge that the former branch tip is an ancestor of `main`
+  with `git merge-base --is-ancestor <runtime-tip> main`.
 - Tag the exact commit that passed the complete matrix.
 - Build release artifacts from that tag rather than from an uncommitted tree.
 - Rebuild the native archive from the tag; do not promote an artifact produced
