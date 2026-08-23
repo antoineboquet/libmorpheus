@@ -17,6 +17,7 @@
 #include "../src/greeklib/checkaccent.proto.h"
 #include "../src/greeklib/cinsert.proto.h"
 #include "../src/greeklib/do_dissim.proto.h"
+#include "../src/greeklib/endsinstr.proto.h"
 #include "../src/greeklib/getaccent.proto.h"
 #include "../src/greeklib/getaccp.proto.h"
 #include "../src/greeklib/getbreath.proto.h"
@@ -133,6 +134,21 @@ main(void)
 		standword(NULL);
 		zap2acc(NULL);
 		striphyph(NULL);
+	}
+	{
+		char long_word[600];
+
+		memset(long_word,'a',sizeof long_word-1);
+		memcpy(long_word+sizeof long_word-7,"suffix",7);
+		assert(ends_in(long_word,"suffix"));
+		assert(ends_in("lo/g+os","gos"));
+		assert(ends_in("logos","g/o+s"));
+		assert(ends_in("", ""));
+		assert(ends_in("logos", ""));
+		assert(!ends_in("", "s"));
+		assert(!ends_in("logos", "nos"));
+		assert(!ends_in(NULL, "s"));
+		assert(!ends_in("logos", NULL));
 	}
 	{
 		char consecutive[] = "e)n((a";

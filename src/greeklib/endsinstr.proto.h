@@ -1,3 +1,3 @@
 
 /* endsinstr.c */
-int ends_in(char *, char *);
+int ends_in(const char *, const char *);
