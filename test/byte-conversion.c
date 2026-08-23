@@ -11,6 +11,7 @@
 #include "../src/greeklib/xstrings.proto.h"
 #include "../src/greeklib/isblank.proto.h"
 #include "../src/morphlib/beta2smarta.proto.h"
+#include "../src/morphlib/cmpend.proto.h"
 #include "../src/morphlib/nextkey.proto.h"
 #include "../src/morphlib/runtime_context.h"
 #include "../src/morphlib/runtime_context_internal.h"
@@ -42,6 +43,7 @@ int main(void)
 	char squeezed[] = "abcdef";
 	char trailing_space[] = "beta  \t";
 	char only_space[] = " \t";
+	char stem[16] = "unchanged";
 
 	_Static_assert(_Generic(Xstrlen(""), size_t: 1, default: 0),
 		"Xstrlen must preserve the size_t result of strlen");
@@ -52,6 +54,13 @@ int main(void)
 	trimwhite(NULL);
 	assert(!strcmp(trailing_space,"beta"));
 	assert(!only_space[0]);
+	assert(cmpend("alphabet","bet",stem));
+	assert(!strcmp(stem,"alpha"));
+	assert(!cmpend("beta","beta",stem));
+	assert(!cmpend("beta","",stem));
+	assert(!cmpend(NULL,"a",stem));
+	assert(!cmpend("a",NULL,stem));
+	assert(!cmpend("ab","b",NULL));
 	assert(Xstrcpy(overlap_left,overlap_left+2));
 	assert(!strcmp(overlap_left,"cdef"));
 	assert(Xstrcpy(overlap_right+2,overlap_right));
