@@ -12,6 +12,13 @@ typedef struct {
 	char uniqueflag;
 } augtable;
 
+static int valid_augment_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 /*
  * Smyth 435
  */
@@ -557,6 +564,7 @@ void simpleaugment(char *s, bool syllabic)
 {
 	gk_word * gkform;
 
+	if (!valid_augment_argument(s)) return;
 	gkform = CreatGkword(6);
 	if( ! gkform ) {
 		fprintf(stderr,"no memory for gkform in simpleaugment of [%s]\n",s);
@@ -603,6 +611,7 @@ void simpleredupit(char *s, int syllabic, int redupc)
 {
 	gk_word * gkform;
 
+	if (!valid_augment_argument(s)) return;
 	gkform = CreatGkword(6);
 	if( ! gkform ) {
 		fprintf(stderr,"no memory for gkform in simpleaugment of [%s]\n",s);
@@ -619,7 +628,10 @@ int redupit2(gk_word *gkform, int syllabic, int redupc, int nredups)
 {
 /* Smyth 440-442 */
 	register char c;
-	register char * s = workword_of(gkform);
+	register char *s;
+
+	if (!valid_augment_argument(gkform)) return(0);
+	s = workword_of(gkform);
 
 	if( Is_cons(*s) && Is_cons(*(s+1)) && ! Is_liquid(*(s+1)) && redupc != 'i' )
 		return(augmentit(gkform,syllabic,nredups));
@@ -653,8 +665,10 @@ simpleaugment(s,syllabic);
 int un_redupl(char *src, char *res, int redupc)
 {
 	char sbuf[MAXWORDSIZE+1], * p;
-	
+
+	if (!valid_augment_argument(res)) return(0);
 	*res = 0;
+	if (!valid_augment_argument(src)) return(0);
 	Xstrncpy(sbuf,src,MAXWORDSIZE);
 	stripacc(sbuf);
 	
@@ -686,7 +700,9 @@ int un_redupl(char *src, char *res, int redupc)
  */
 void add_double_augment(char *s, MorphFlags *oddpb)
 {
-	
+	if (!valid_augment_argument(s) ||
+	    !valid_augment_argument(oddpb))
+		return;
 	simpleaugment(s,NO);
 /*
 	if(*s == 'a' || *s == 'e' ) {

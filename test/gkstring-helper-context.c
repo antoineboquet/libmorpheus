@@ -7,6 +7,7 @@
 #include "../src/morphlib/gkstring.proto.h"
 #include "../src/morphlib/adddomain.proto.h"
 #include "../src/morphlib/antepenform.proto.h"
+#include "../src/morphlib/augment.proto.h"
 #include "../src/morphlib/conjstem.proto.h"
 #include "../src/morphlib/fixacc.proto.h"
 #include "../src/morphlib/morphflags.proto.h"
@@ -235,6 +236,40 @@ main(void)
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
 		set_odd_prvb(flags,NULL);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+	}
+	{
+		MorphFlags flags[MORPHFLAG_STORAGE_BYTES] = { 0 };
+		char result[MAXWORDSIZE] = "not empty";
+
+		simpleaugment(NULL,NO);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		simpleredupit(NULL,NO,'e');
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!redupit2(NULL,NO,'e',1));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!un_redupl(NULL,result,'e'));
+		assert(!result[0]);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		assert(!un_redupl(empty,NULL,'e'));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		add_double_augment(NULL,flags);
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
+		add_double_augment(empty,NULL);
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		morpheus_runtime_context_clear_error(context);
