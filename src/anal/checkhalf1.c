@@ -87,11 +87,16 @@ printf("half1 stem preverb [%s] stem [%s] end [%s]\n", preverb_of(Gkword) , stem
 	 		char diaerstem[MAXWORDSIZE];
 	 		
 	 		
-	 		strncpy(diaerstem,savestem,2);
-	 		diaerstem[2] = 0;
-	 		stripdiaer(diaerstem);
-	 		strcat(diaerstem,"+");
-	 		strcat(diaerstem,savestem+2);
+		strncpy(diaerstem,savestem,2);
+		diaerstem[2] = 0;
+		stripdiaer(diaerstem);
+		if (!Xstrncat(diaerstem,"+",sizeof diaerstem) ||
+		    !Xstrncat(diaerstem,savestem+2,sizeof diaerstem)) {
+			morpheus_runtime_error_record(
+				MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			set_stem(Gkword,savestem);
+			return(rval);
+		}
 			set_stem(Gkword,diaerstem);
 	/*
 	 * check for rough breathing

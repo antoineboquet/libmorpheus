@@ -373,10 +373,20 @@ main(void)
 		gk_string ending = { 0 };
 		word_form form = { 0 };
 		char one_vowel[] = "a";
+		char long_stem[MAXWORDSIZE];
+		char long_ending[MAXWORDSIZE];
+
+		memset(long_stem,'a',sizeof long_stem - 1);
+		long_stem[sizeof long_stem - 1] = 0;
+		strcpy(long_ending,"a");
 
 		assert(!diphth_end(one_vowel,empty));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_NONE);
+		assert(!diphth_end(long_stem,long_ending));
+		assert(morpheus_runtime_context_error(context) ==
+		       MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		morpheus_runtime_context_clear_error(context);
 		assert(!is_thirdmono(NULL,&ending,empty,empty,form,NO));
 		assert(morpheus_runtime_context_error(context) ==
 		       MORPHEUS_RUNTIME_ERROR_INTERNAL);

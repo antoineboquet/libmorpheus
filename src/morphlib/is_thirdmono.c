@@ -173,7 +173,10 @@ int diphth_end(char *stem, char *endstring)
 	    !valid_third_argument(endstring))
 		return(0);
 	Xstrcpy(tmp,stem);
-	strcat(tmp,endstring);
+	if (!Xstrncat(tmp,endstring,sizeof tmp)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 	s = getsyll(tmp,ULTIMA);
 	if( s == P_ERR ) return(0);

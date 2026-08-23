@@ -265,7 +265,11 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
 			tmp[0] = 0;
 			Xstrcpy(tmp,cooked);
 			p1 = tmp+strlen(tmp)-1;
-			strcat(tmp,savecur+strlen(raw));
+			if (!Xstrncat(tmp,savecur+strlen(raw),sizeof tmp)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			/*
 			 * here is a little beta code kludge:
 			 *   -- if you have a string such as "aoi" contract to "w|", but if you
@@ -287,7 +291,11 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
 			 	if( *p1 == HARDLONG ) /* if  "aoi_" contracts to "w|", strip the "_"*/
 			 		Xstrcpy(p1,p1+1);
 			 }
-			strcat(savestr,tmp);
+			if (!Xstrncat(savestr,tmp,sizeof savestr)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			Xstrcpy(gkstring_of(gstr),savestr);
 			if( cur_lang() != LATIN ) addbreath(gkstring_of(gstr),curbreath);
 
@@ -321,8 +329,12 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
 	 */
 
 			Xstrcpy(tmp,savestr);
-			strcat(tmp,cooked);
-			strcat(tmp,savecur+strlen(raw));
+			if (!Xstrncat(tmp,cooked,sizeof tmp) ||
+			    !Xstrncat(tmp,savecur+strlen(raw),sizeof tmp)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			p1 = tmp;
 			
 			/*
