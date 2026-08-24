@@ -99,9 +99,9 @@ cmake -DMORPHEUS_BUILD_DIR="$PWD/build/release" \
 ```
 
 Release-tag CI builds and verifies data-free native archives for Linux x86-64
-glibc, Linux aarch64 glibc, and macOS arm64. Each archive has a SHA-256
-integrity file; the checksum detects accidental corruption and is not a release
-signature.
+glibc, Linux aarch64 glibc, and macOS arm64, plus a platform-independent Deno
+binding source archive. Each archive has a SHA-256 integrity file; the checksum
+detects accidental corruption and is not a release signature.
 
 ## Install and consume from C
 
