@@ -1,11 +1,13 @@
 # Release decision: 0.1.1
 
-Status: candidate prepared for history-preserving integration, final platform
-qualification, and benchmark review.
+Status: published.
 
 - Project version: **0.1.1**
 - C ABI: **1**
 - SONAME major: **0**
+- Release tag: `v0.1.1`
+- Release commit:
+  `563bd5c21ee8d3ac7d7d21587254e90f66b4ad04`
 - 0.1.0 tag:
   `54f936a2b674c61d0949e51455ca0f4f2aa8b99c`
 - Post-0.1.0 qualification baseline:
@@ -36,19 +38,25 @@ Each archive contains the shared library, public C header, CMake and
 `pkg-config` discovery metadata, and `cruncher`. The Deno binding remains
 available from the tagged source tree. Stem data is not included.
 
+The release also archives the validated 0.1.1 benchmark report together with
+the release assets. The benchmark protocol records the exact source and stemlib
+revisions, compiler, platform, corpus identity, and run parameters; its
+comparison against the accepted 0.1.0 baseline is part of the release record.
+
 The Alpheios stemlib remains pinned at
 `4632415fe93c85e9fdca47a0c5a13f31385f0023` for fixtures and Bailly
 compatibility. Container images embedding that data remain qualification-only
 until redistribution is authorized.
 
-## Remaining gates
+## Completion record
 
-1. Merge the release-preparation pull request with a normal merge commit,
-   without squash or rebase.
-2. Run the final benchmark from a clean checkout of that exact merge commit and
-   compare it with the accepted 0.1.0 baseline.
-3. Manually dispatch the complete platform workflow for that exact commit with
-   `package_artifacts` enabled and inspect all three archives and checksums.
-4. Tag the qualified commit as `v0.1.1`; require the immutable tag workflows to
-   rebuild and verify every published archive.
-5. Publish only the tag-produced archives and their checksums.
+- The release-preparation history was integrated into `main` with the normal
+  merge commit `563bd5c21ee8d3ac7d7d21587254e90f66b4ad04`.
+- The final benchmark was produced from the qualified release source and
+  archived with the release evidence.
+- Linux x86-64 glibc, Linux aarch64 glibc, and macOS arm64 packages were
+  qualified, including extracted CMake and `pkg-config` consumer checks and
+  platform binary-contract checks.
+- The immutable `v0.1.1` tag identifies the qualified source revision.
+- The GitHub release publishes only the tag-produced native archives, their
+  SHA-256 integrity files, and the relevant benchmark reports.
