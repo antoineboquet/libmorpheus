@@ -19,17 +19,11 @@ foreach(fixture_index RANGE 0 ${fixture_last})
   string(JSON input GET "${fixtures_json}" ${fixture_index} input)
   string(JSON expected GET "${fixtures_json}" ${fixture_index} expected)
   string(
-    JSON opts_type_error ERROR_VARIABLE opts_type_error
-    TYPE "${fixtures_json}" ${fixture_index} opts
+    JSON option_count ERROR_VARIABLE options_error
+    LENGTH "${fixtures_json}" ${fixture_index} opts
   )
   set(options "")
-  if(opts_type_error STREQUAL "NOTFOUND")
-    string(JSON opts_type GET "${fixtures_json}" ${fixture_index} opts)
-    if(NOT opts_type STREQUAL "ARRAY")
-      message(FATAL_ERROR
-        "fixture ${fixture_index} has a non-array opts member in ${MORPHEUS_FIXTURES}")
-    endif()
-    string(JSON option_count LENGTH "${fixtures_json}" ${fixture_index} opts)
+  if(options_error STREQUAL "NOTFOUND")
     if(option_count GREATER 0)
       math(EXPR option_last "${option_count} - 1")
       foreach(option_index RANGE 0 ${option_last})
@@ -37,6 +31,9 @@ foreach(fixture_index RANGE 0 ${fixture_last})
         list(APPEND options "${option}")
       endforeach()
     endif()
+  elseif(NOT options_error MATCHES "member 'opts' not found")
+    message(FATAL_ERROR
+      "fixture ${fixture_index} has an invalid opts member in ${MORPHEUS_FIXTURES}: ${options_error}")
   endif()
 
   set(input_file "${MORPHEUS_WORK_DIR}/fixture-${fixture_index}.input")
