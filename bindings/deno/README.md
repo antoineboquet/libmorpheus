@@ -5,10 +5,10 @@ It requires Deno 2 on a 64-bit x86 or ARM runtime.
 
 ## License
 
-`mod.ts` and `mod_test.ts` are original Deno binding code, licensed under
-[AGPL-3.0-or-later](LICENSE). This license applies only to the binding;
-`libmorpheus` itself remains under its root [MPL-2.0 license](../../LICENSE).
-
+The original Deno binding code in this directory is licensed under
+[AGPL-3.0-or-later](LICENSE). This license applies only to the binding.
+The native `libmorpheus` distribution remains under MPL-2.0 and carries its
+own license file separately.
 
 ```ts
 import {
