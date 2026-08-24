@@ -46,20 +46,25 @@ immutable version-tag runs.
 
 The expensive architecture workflow in `.github/workflows/platform.yml` runs
 weekly, on explicit manual dispatch, and for every `v*` tag. It covers native
-Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Native packages and
-checksums are generated only for version tags and retained as short-lived CI
-artifacts until they are promoted to a GitHub release.
+Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Manual dispatches can
+request all three native release-candidate packages; version tags always build
+them. Packages and checksums are retained as short-lived CI artifacts until
+they are promoted to a GitHub release.
 
 Scheduled runs first compare the current default-branch SHA with the last
 completed weekly run. The architecture jobs are skipped when the SHA is
 unchanged and the previous run succeeded. A changed SHA, a previous failure,
 the first scheduled run, a manual dispatch, or a version tag always runs the
 matrix. Pull requests changing the architecture workflow execute only this
-inexpensive decision job so that its action and expressions are validated.
+inexpensive decision job and the Linux x86-64 package qualification. Native
+ARM, Alpine, and Apple Silicon remain skipped. The same targeted check runs
+when shared package-generation or extracted-consumer scripts change.
 
 Before tagging, manually dispatch the architecture workflow for the exact
-candidate commit. The tagged commit must then pass every job triggered by both
-workflow files:
+candidate commit with `package_artifacts` enabled. Inspect the resulting Linux
+x86-64 glibc, Linux aarch64 glibc, and macOS arm64 archives and checksums. The
+tagged commit must then rebuild those packages and pass every job triggered by
+both workflow files:
 
 - native CMake build and CTest;
 - ASan/UBSan and ThreadSanitizer;
@@ -116,6 +121,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
   stemlib, compiler, and label values before preserving it as release evidence.
 - Generate the native archive with `cpack` and require
   `test-release-package.cmake` to verify its checksum and installed surface.
+  The verification must compile and run independent CMake and `pkg-config`
+  consumers against the extracted archive rather than the build-tree install.
   The CI artifact is a release candidate, not a published release or a
   cryptographic signature.
 
@@ -130,8 +137,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Tag the exact commit that passed the complete matrix.
 - Build release artifacts from that tag rather than from an uncommitted tree;
   ordinary pull-request and `main` runs do not preserve publishable packages.
-- Rebuild the native archive from the tag; do not promote an artifact produced
-  by an earlier pull-request run.
+- Rebuild all three native archives from the tag; the manually qualified
+  artifacts are pre-tag evidence and must not be promoted directly.
 - Install the produced native package into a fresh prefix and repeat one CMake
   and one `pkg-config` consumer smoke test.
 - Verify the container by digest on both architectures.

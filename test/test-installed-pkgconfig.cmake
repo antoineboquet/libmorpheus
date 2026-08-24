@@ -9,23 +9,30 @@ if(NOT DEFINED MORPHEUS_BUILD_DIR OR
 endif()
 
 set(test_root "${MORPHEUS_BUILD_DIR}/installed-pkgconfig-test")
-set(prefix "${test_root}/prefix")
+if(DEFINED MORPHEUS_INSTALL_PREFIX)
+  set(prefix "${MORPHEUS_INSTALL_PREFIX}")
+else()
+  set(prefix "${test_root}/prefix")
+endif()
 set(pkgconfig_dir "${prefix}/${MORPHEUS_INSTALL_LIBDIR}/pkgconfig")
 set(consumer_source "${MORPHEUS_SOURCE_DIR}/test/install-consumer/main.c")
 set(consumer_binary
     "${test_root}/morpheus-pkgconfig-consumer${MORPHEUS_EXECUTABLE_SUFFIX}")
 
 file(REMOVE_RECURSE "${test_root}")
+file(MAKE_DIRECTORY "${test_root}")
 
-execute_process(
-  COMMAND "${CMAKE_COMMAND}" --install "${MORPHEUS_BUILD_DIR}"
-          --prefix "${prefix}"
-  RESULT_VARIABLE install_result
-  OUTPUT_VARIABLE install_output
-  ERROR_VARIABLE install_error
-)
-if(NOT install_result EQUAL 0)
-  message(FATAL_ERROR "install failed:\n${install_output}\n${install_error}")
+if(NOT DEFINED MORPHEUS_INSTALL_PREFIX)
+  execute_process(
+    COMMAND "${CMAKE_COMMAND}" --install "${MORPHEUS_BUILD_DIR}"
+            --prefix "${prefix}"
+    RESULT_VARIABLE install_result
+    OUTPUT_VARIABLE install_output
+    ERROR_VARIABLE install_error
+  )
+  if(NOT install_result EQUAL 0)
+    message(FATAL_ERROR "install failed:\n${install_output}\n${install_error}")
+  endif()
 endif()
 
 execute_process(

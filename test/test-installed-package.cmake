@@ -5,21 +5,25 @@ if(NOT DEFINED MORPHEUS_BUILD_DIR OR
 endif()
 
 set(test_root "${MORPHEUS_BUILD_DIR}/installed-package-test")
-set(prefix "${test_root}/prefix")
 set(consumer_build "${test_root}/build")
 set(consumer_source "${MORPHEUS_SOURCE_DIR}/test/install-consumer")
 
 file(REMOVE_RECURSE "${test_root}")
 
-execute_process(
-  COMMAND "${CMAKE_COMMAND}" --install "${MORPHEUS_BUILD_DIR}"
-          --prefix "${prefix}"
-  RESULT_VARIABLE install_result
-  OUTPUT_VARIABLE install_output
-  ERROR_VARIABLE install_error
-)
-if(NOT install_result EQUAL 0)
-  message(FATAL_ERROR "install failed:\n${install_output}\n${install_error}")
+if(DEFINED MORPHEUS_INSTALL_PREFIX)
+  set(prefix "${MORPHEUS_INSTALL_PREFIX}")
+else()
+  set(prefix "${test_root}/prefix")
+  execute_process(
+    COMMAND "${CMAKE_COMMAND}" --install "${MORPHEUS_BUILD_DIR}"
+            --prefix "${prefix}"
+    RESULT_VARIABLE install_result
+    OUTPUT_VARIABLE install_output
+    ERROR_VARIABLE install_error
+  )
+  if(NOT install_result EQUAL 0)
+    message(FATAL_ERROR "install failed:\n${install_output}\n${install_error}")
+  endif()
 endif()
 
 execute_process(

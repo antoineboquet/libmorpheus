@@ -4,12 +4,22 @@ on:
   pull_request:
     paths:
       - '.github/workflows/platform.yml'
+      - 'CMakeLists.txt'
+      - 'test/test-installed-package.cmake'
+      - 'test/test-installed-pkgconfig.cmake'
+      - 'test/test-release-package.cmake'
   push:
     tags:
       - 'v*'
   schedule:
     - cron: '0 4 * * 1'
   workflow_dispatch:
+    inputs:
+      package_artifacts:
+        description: Build and verify the three native release-candidate packages
+        required: true
+        default: true
+        type: boolean
 
 permissions:
   actions: read
@@ -24,6 +34,7 @@ jobs:
     runs-on: ubuntu-slim
     timeout-minutes: 5
     outputs:
+      package-artifacts: ${{ steps.activity.outputs.package-artifacts }}
       run-platforms: ${{ steps.activity.outputs.run-platforms }}
     steps:
       - name: Decide whether platform qualification is required
@@ -31,8 +42,17 @@ jobs:
         uses: actions/github-script@v8
         with:
           script: |
+            const packageArtifacts = context.eventName === 'pull_request' ||
+              context.ref.startsWith('refs/tags/') ||
+              (context.eventName === 'workflow_dispatch' &&
+                String(context.payload.inputs?.package_artifacts) === 'true')
+            core.setOutput('package-artifacts', String(packageArtifacts))
+
             if (context.eventName === 'pull_request') {
-              core.info('Validate the workflow without running platform jobs.')
+              core.info(
+                'Validate the Linux x86-64 package without running costly ' +
+                'architecture jobs.',
+              )
               core.setOutput('run-platforms', 'false')
               return
             }
@@ -75,13 +95,11 @@ jobs:
 
   linux-x86_64-package:
     needs: activity
-    if: >-
-      needs.activity.outputs.run-platforms == 'true' &&
-      startsWith(github.ref, 'refs/tags/')
+    if: needs.activity.outputs.package-artifacts == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - name: Check out tagged sources and stemlib
+      - name: Check out sources and stemlib
         uses: actions/checkout@v5
         with:
           submodules: recursive
@@ -92,13 +110,25 @@ jobs:
           ruby-version: '3.3'
 
       - name: Configure optimized release
-        run: cmake --preset release -DBUILD_TESTING=ON
+        run: >-
+          cmake --preset release -DBUILD_TESTING=ON
+          -DMORPHEUS_PACKAGE_PLATFORM=Linux-x86_64-glibc
 
       - name: Build optimized release
         run: cmake --build --preset release
 
       - name: Test optimized release and installed surface
         run: ctest --preset release
+
+      - name: Verify native library architecture and dependencies
+        run: |
+          library="$(readlink -f build/release/libmorpheus.so)"
+          file "$library"
+          readelf -h "$library" | grep -F 'Machine:' | \
+            grep -F 'Advanced Micro Devices X86-64'
+          if ldd "$library" | grep -F 'not found'; then
+            exit 1
+          fi
 
       - name: Package optimized release
         run: >-
@@ -145,13 +175,24 @@ jobs:
           deno-version: v2.x
 
       - name: Configure optimized release
-        run: cmake --preset release -DBUILD_TESTING=ON
+        run: >-
+          cmake --preset release -DBUILD_TESTING=ON
+          -DMORPHEUS_PACKAGE_PLATFORM=Linux-aarch64-glibc
 
       - name: Build optimized release
         run: cmake --build --preset release
 
       - name: Test native runtime and installed surface
         run: ctest --preset release
+
+      - name: Verify native library architecture and dependencies
+        run: |
+          library="$(readlink -f build/release/libmorpheus.so)"
+          file "$library"
+          readelf -h "$library" | grep -F 'Machine:' | grep -F AArch64
+          if ldd "$library" | grep -F 'not found'; then
+            exit 1
+          fi
 
       - name: Check binding
         run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
@@ -162,22 +203,22 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
 
-      - name: Package tagged release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Package release candidate
+        if: needs.activity.outputs.package-artifacts == 'true'
         run: >-
           cpack --config build/release/CPackConfig.cmake
           -G TGZ -B build/release/packages
 
-      - name: Verify tagged native package
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Verify native release-candidate package
+        if: needs.activity.outputs.package-artifacts == 'true'
         run: >-
           cmake
           -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
           -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
           -P test/test-release-package.cmake
 
-      - name: Preserve tagged native package
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Preserve native release-candidate package
+        if: needs.activity.outputs.package-artifacts == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: libmorpheus-native-linux-aarch64-glibc
@@ -250,6 +291,7 @@ jobs:
           cmake --preset release -DBUILD_TESTING=ON
           -DCMAKE_OSX_ARCHITECTURES=arm64
           -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+          -DMORPHEUS_PACKAGE_PLATFORM=macOS-arm64
 
       - name: Build optimized release
         run: cmake --build --preset release
@@ -257,8 +299,24 @@ jobs:
       - name: Test native runtime and installed surface
         run: ctest --preset release
 
-      - name: Verify dynamic-library architecture
-        run: test "$(lipo -archs build/release/libmorpheus.dylib)" = arm64
+      - name: Verify dynamic-library contract
+        run: |
+          library=build/release/libmorpheus.dylib
+          test "$(lipo -archs "$library")" = arm64
+          otool -D "$library" | tail -n +2 | \
+            grep -E '^@rpath/libmorpheus(\.0)?\.dylib$'
+          if otool -L "$library" | grep -F '${{ github.workspace }}'; then
+            exit 1
+          fi
+          deployment_target="$(
+            otool -l "$library" |
+              awk '$1 == "cmd" && $2 == "LC_BUILD_VERSION" { found = 1 }
+                   found && $1 == "minos" { print $2; exit }'
+          )"
+          case "$deployment_target" in
+            11.0|11.0.*) ;;
+            *) echo "unexpected deployment target: $deployment_target" >&2; exit 1 ;;
+          esac
 
       - name: Check binding
         run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
@@ -269,22 +327,22 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
 
-      - name: Package tagged release
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Package release candidate
+        if: needs.activity.outputs.package-artifacts == 'true'
         run: >-
           cpack --config build/release/CPackConfig.cmake
           -G TGZ -B build/release/packages
 
-      - name: Verify tagged native package
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Verify native release-candidate package
+        if: needs.activity.outputs.package-artifacts == 'true'
         run: >-
           cmake
           -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
           -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
           -P test/test-release-package.cmake
 
-      - name: Preserve tagged native package
-        if: startsWith(github.ref, 'refs/tags/')
+      - name: Preserve native release-candidate package
+        if: needs.activity.outputs.package-artifacts == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: libmorpheus-native-macos-arm64
