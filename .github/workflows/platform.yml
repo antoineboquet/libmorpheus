@@ -8,6 +8,9 @@ on:
       - 'test/test-installed-package.cmake'
       - 'test/test-installed-pkgconfig.cmake'
       - 'test/test-release-package.cmake'
+      - 'test/package-deno-binding.cmake'
+      - 'test/test-deno-binding-package.cmake'
+      - 'bindings/deno/**'
   push:
     tags:
       - 'v*'
@@ -109,6 +112,11 @@ jobs:
         with:
           ruby-version: '3.3'
 
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
       - name: Configure optimized release
         run: >-
           cmake --preset release -DBUILD_TESTING=ON
@@ -142,11 +150,34 @@ jobs:
           -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
           -P test/test-release-package.cmake
 
+      - name: Package Deno binding
+        run: >-
+          cmake
+          -DMORPHEUS_SOURCE_DIR=${{ github.workspace }}
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
+          -P test/package-deno-binding.cmake
+
+      - name: Verify standalone Deno binding package
+        run: >-
+          cmake
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
+          -P test/test-deno-binding-package.cmake
+
       - name: Preserve native package
         uses: actions/upload-artifact@v4
         with:
           name: libmorpheus-native-linux-x86_64
-          path: build/release/packages/libmorpheus-*.tar.gz*
+          path: build/release/packages/libmorpheus-[0-9]*.tar.gz*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Preserve Deno binding package
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-deno-binding
+          path: build/release/packages/libmorpheus-deno-*.tar.gz*
           if-no-files-found: error
           retention-days: 14
 
