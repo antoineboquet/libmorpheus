@@ -1200,43 +1200,34 @@ if(MORPHEUS_BUILD_CRUNCHER)
   install(TARGETS cruncher RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 
   if(BUILD_TESTING)
-    find_package(Ruby 3.0 COMPONENTS Interpreter)
-    if(Ruby_FOUND)
-      add_test(
-        NAME legacy_fixtures
-        COMMAND
-          "${CMAKE_COMMAND}" -E env
-          "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
-          "MORPHEUS_FIXTURES=${PROJECT_SOURCE_DIR}/test/fixture.json"
-          "MORPHEUS_CRUNCHER=$<TARGET_FILE:cruncher>"
-          "${Ruby_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/test/test.rb"
-      )
-      set_tests_properties(
-        legacy_fixtures
-        PROPERTIES WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-      )
+    add_test(
+      NAME legacy_fixtures
+      COMMAND
+        "${CMAKE_COMMAND}"
+        "-DMORPHEUS_FIXTURES=${PROJECT_SOURCE_DIR}/test/fixture.json"
+        "-DMORPHEUS_CRUNCHER=$<TARGET_FILE:cruncher>"
+        "-DMORPHEUS_STEMLIB=${PROJECT_SOURCE_DIR}/stemlib"
+        "-DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/fixture-test/legacy"
+        -P "${PROJECT_SOURCE_DIR}/test/test-fixtures.cmake"
+    )
 
-      if(EXISTS "${MORPHEUS_STEMLIB_DIR}/Greek/steminds/nomind")
-        add_test(
-          NAME alpheios_greek_fixtures
-          COMMAND
-            "${CMAKE_COMMAND}" -E env
-            "MORPHLIB=${MORPHEUS_STEMLIB_DIR}"
-            "MORPHEUS_FIXTURES=${PROJECT_SOURCE_DIR}/test/alpheios-fixture.json"
-            "MORPHEUS_CRUNCHER=$<TARGET_FILE:cruncher>"
-            "${Ruby_EXECUTABLE}" "${PROJECT_SOURCE_DIR}/test/test.rb"
-        )
-        set_tests_properties(
-          alpheios_greek_fixtures
-          PROPERTIES WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-        )
-      else()
-        message(
-          WARNING
-          "The Alpheios stemlib was not found at ${MORPHEUS_STEMLIB_DIR}; "
-          "the Alpheios Greek fixture test will be skipped."
-        )
-      endif()
+    if(EXISTS "${MORPHEUS_STEMLIB_DIR}/Greek/steminds/nomind")
+      add_test(
+        NAME alpheios_greek_fixtures
+        COMMAND
+          "${CMAKE_COMMAND}"
+          "-DMORPHEUS_FIXTURES=${PROJECT_SOURCE_DIR}/test/alpheios-fixture.json"
+          "-DMORPHEUS_CRUNCHER=$<TARGET_FILE:cruncher>"
+          "-DMORPHEUS_STEMLIB=${MORPHEUS_STEMLIB_DIR}"
+          "-DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/fixture-test/alpheios"
+          -P "${PROJECT_SOURCE_DIR}/test/test-fixtures.cmake"
+      )
+    else()
+      message(
+        WARNING
+        "The Alpheios stemlib was not found at ${MORPHEUS_STEMLIB_DIR}; "
+        "the Alpheios Greek fixture test will be skipped."
+      )
     endif()
   endif()
 endif()
