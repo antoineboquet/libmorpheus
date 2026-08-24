@@ -97,11 +97,29 @@ person, number, gender, case, tense, mood, voice, degree, dialect, and
 geographic region. The Deno binding exports the equivalent `Morpheus*`
 constant objects.
 
+The part-of-speech field distinguishes noun, verb, adjective, adverb, article,
+pronoun, numeral, preposition, conjunction, particle, and interjection. These
+values are derived from the canonical stemlib type while the context is
+active. A generic `indecl` type is reported as
+`MORPHEUS_PART_OF_SPEECH_UNKNOWN`: indeclinability alone is not a lexical part
+of speech. The original noun, verb, and adjective numeric values remain
+unchanged; the finer categories are additive ABI-version-1 values.
+
 Person, number, gender, case, voice, dialect, and geographic-region values are
 bit masks. A result may therefore combine several applicable values; test bits
 rather than assuming a single enumeration member. `MORPHEUS_DIALECT_ALL` is
 zero and means that no dialect restriction is recorded. Tense and mood use the
 named historical codes and must be compared for equality.
+
+The native degree field retains its historical representation, where zero is
+both the positive degree and the empty value used by non-adjectival forms. The
+Deno semantic result resolves that ambiguity: adjectives receive `"positive"`
+unless an irregular-comparative or irregular-superlative flag supplies the
+degree, and categories to which degree does not apply receive `null`.
+`no-comparison` describes the inability to form a regular comparison and does
+not erase the positive degree of the analyzed adjective. The Deno dialect
+decoder similarly canonicalizes the composite epic mask, including when those
+bits occur together with Attic, Doric, or another independent dialect.
 
 `stem_type` and `derivation_type` remain opaque stemlib codes in ABI version 1.
 `morph_flags` remains the historical 96-bit compatibility array so that the
