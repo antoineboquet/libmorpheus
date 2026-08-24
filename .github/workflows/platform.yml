@@ -1,0 +1,227 @@
+name: Platform and release qualification
+
+on:
+  push:
+    tags:
+      - 'v*'
+  schedule:
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ ! startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  linux-x86_64-package:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out tagged sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure optimized release
+        run: cmake --preset release -DBUILD_TESTING=ON
+
+      - name: Build optimized release
+        run: cmake --build --preset release
+
+      - name: Test optimized release and installed surface
+        run: ctest --preset release
+
+      - name: Package optimized release
+        run: >-
+          cpack --config build/release/CPackConfig.cmake
+          -G TGZ -B build/release/packages
+
+      - name: Verify native package
+        run: >-
+          cmake
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
+          -P test/test-release-package.cmake
+
+      - name: Preserve native package
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-native-linux-x86_64
+          path: build/release/packages/libmorpheus-*.tar.gz*
+          if-no-files-found: error
+          retention-days: 14
+
+  linux-aarch64:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 45
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Verify native architecture
+        run: test "$(uname -m)" = aarch64
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Configure optimized release
+        run: cmake --preset release -DBUILD_TESTING=ON
+
+      - name: Build optimized release
+        run: cmake --build --preset release
+
+      - name: Test native runtime and installed surface
+        run: ctest --preset release
+
+      - name: Check binding
+        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+
+      - name: Test binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
+      - name: Package tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: >-
+          cpack --config build/release/CPackConfig.cmake
+          -G TGZ -B build/release/packages
+
+      - name: Verify tagged native package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: >-
+          cmake
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
+          -P test/test-release-package.cmake
+
+      - name: Preserve tagged native package
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-native-linux-aarch64-glibc
+          path: build/release/packages/libmorpheus-*.tar.gz*
+          if-no-files-found: error
+          retention-days: 14
+
+  alpine:
+    name: Alpine (${{ matrix.architecture }})
+    strategy:
+      matrix:
+        include:
+          - architecture: x86_64
+            runner: ubuntu-24.04
+          - architecture: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Verify native architecture
+        run: test "$(uname -m)" = "${{ matrix.architecture }}"
+
+      - name: Build and test Alpine runtime image
+        run: docker build --target runtime --tag morpheus:ci .
+
+      - name: Smoke-test cruncher image
+        run: |
+          output="$(printf 'a)/nqrwpos\n' | docker run --rm -i morpheus:ci -S)"
+          test -n "$output"
+
+      - name: Build Alpine Deno base image
+        run: docker build --target deno-runtime --tag morpheus-deno:ci .
+
+      - name: Smoke-test Deno base image
+        run: docker run --rm morpheus-deno:ci --version
+
+  apple-silicon:
+    runs-on: macos-15
+    timeout-minutes: 45
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Verify native architecture
+        run: test "$(uname -m)" = arm64
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Configure optimized release
+        run: >-
+          cmake --preset release -DBUILD_TESTING=ON
+          -DCMAKE_OSX_ARCHITECTURES=arm64
+          -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+
+      - name: Build optimized release
+        run: cmake --build --preset release
+
+      - name: Test native runtime and installed surface
+        run: ctest --preset release
+
+      - name: Verify dynamic-library architecture
+        run: test "$(lipo -archs build/release/libmorpheus.dylib)" = arm64
+
+      - name: Check binding
+        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+
+      - name: Test binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.dylib
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
+      - name: Package tagged release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: >-
+          cpack --config build/release/CPackConfig.cmake
+          -G TGZ -B build/release/packages
+
+      - name: Verify tagged native package
+        if: startsWith(github.ref, 'refs/tags/')
+        run: >-
+          cmake
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
+          -P test/test-release-package.cmake
+
+      - name: Preserve tagged native package
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-native-macos-arm64
+          path: build/release/packages/libmorpheus-*.tar.gz*
+          if-no-files-found: error
+          retention-days: 14
