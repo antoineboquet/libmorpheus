@@ -27,6 +27,16 @@ The weekly trigger still creates a lightweight Linux decision job, but the
 architecture matrix is skipped when `main` has the same SHA as the preceding
 successful weekly run. Failed qualification is retried even without a new
 commit. Manual and version-tag runs never apply the inactivity shortcut.
+Manual runs offer a `package_artifacts` switch, enabled by default, which
+produces Linux x86-64 glibc, Linux aarch64 glibc, and macOS arm64 archives.
+Scheduled runs test the platforms without producing packages.
+
+Native package labels explicitly include the operating system, architecture,
+and Linux libc contract. Every candidate archive is checksum-verified,
+extracted, and consumed through both its installed CMake package and its
+`pkg-config` metadata. Linux qualification checks the ELF machine and dynamic
+dependencies. macOS qualification checks the Mach-O architecture, install
+name, absence of workspace paths, and the macOS 11.0 deployment target.
 
 ## Stemlib binary contract
 
