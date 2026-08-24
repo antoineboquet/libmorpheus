@@ -250,6 +250,14 @@ export const MorpheusPartOfSpeech = {
   Noun: 1,
   Verb: 2,
   Adjective: 3,
+  Adverb: 4,
+  Article: 5,
+  Pronoun: 6,
+  Numeral: 7,
+  Preposition: 8,
+  Conjunction: 9,
+  Particle: 10,
+  Interjection: 11,
 } as const;
 
 export const MorpheusPerson = {
@@ -407,7 +415,10 @@ export interface MorpheusRawAnalysis {
   readonly truncatedFields: number;
 }
 
-export type MorpheusPartOfSpeechName = "unknown" | "noun" | "verb" | "adjective";
+export type MorpheusPartOfSpeechName =
+  | "unknown" | "noun" | "verb" | "adjective" | "adverb" | "article"
+  | "pronoun" | "numeral" | "preposition" | "conjunction" | "particle"
+  | "interjection";
 export type MorpheusPersonName = "first" | "second" | "third";
 export type MorpheusNumberName = "singular" | "dual" | "plural";
 export type MorpheusGenderName = "masculine" | "feminine" | "neuter" | "adverbial";
@@ -452,7 +463,7 @@ export interface MorpheusAnalysis {
   readonly tense: MorpheusTenseName | null;
   readonly mood: MorpheusMoodName | null;
   readonly voices: readonly MorpheusVoiceName[];
-  readonly degree: MorpheusDegreeName;
+  readonly degree: MorpheusDegreeName | null;
   readonly raw: string;
   readonly workword: string;
   readonly lemma: string;
@@ -576,7 +587,12 @@ function maskNames<T extends string>(
   return entries.filter(([bit]) => (value & bit) === bit).map(([, name]) => name);
 }
 
-const PART_OF_SPEECH_NAMES = [[0, "unknown"], [1, "noun"], [2, "verb"], [3, "adjective"]] as const;
+const PART_OF_SPEECH_NAMES = [
+  [0, "unknown"], [1, "noun"], [2, "verb"], [3, "adjective"],
+  [4, "adverb"], [5, "article"], [6, "pronoun"], [7, "numeral"],
+  [8, "preposition"], [9, "conjunction"], [10, "particle"],
+  [11, "interjection"],
+] as const;
 const PERSON_NAMES = [[1, "first"], [2, "second"], [4, "third"]] as const;
 const NUMBER_NAMES = [[1, "singular"], [2, "dual"], [4, "plural"]] as const;
 const GENDER_NAMES = [[1, "masculine"], [2, "feminine"], [4, "neuter"], [8, "adverbial"]] as const;
@@ -585,26 +601,53 @@ const TENSE_NAMES = [[1, "present"], [10, "imperfect"], [3, "future"], [12, "aor
 const MOOD_NAMES = [[1, "indicative"], [2, "subjunctive"], [3, "optative"], [4, "imperative"], [5, "infinitive"], [6, "participle"], [7, "gerundive"], [8, "supine"], [9, "conditional"]] as const;
 const VOICE_NAMES = [[1, "active"], [2, "middle"], [4, "passive"]] as const;
 const VOICE_EXACT_NAMES = [[6, "medio-passive"], [3, "deponent"]] as const;
-const DEGREE_NAMES = [[0, "positive"], [1, "comparative"], [2, "superlative"]] as const;
+const DEGREE_NAMES = [[1, "comparative"], [2, "superlative"]] as const;
 const DIALECT_NAMES = [[2, "attic"], [8, "ionic"], [16, "aeolic"], [32, "lesbian"], [64, "homeric"], [128, "doric"], [256, "paradigm"], [1024, "non-homeric-epic"], [2048, "prose"]] as const;
-const DIALECT_EXACT_NAMES = [[1088, "epic"]] as const;
+const DIALECT_NAME_ORDER: readonly MorpheusDialectName[] = [
+  "attic", "ionic", "aeolic", "lesbian", "homeric", "doric", "paradigm",
+  "non-homeric-epic", "epic", "prose",
+];
 const REGION_NAMES = [[1, "phocis"], [2, "locris"], [4, "elis"], [16, "laconia"], [32, "heraclea"], [64, "megarid"], [128, "argolid"], [256, "rhodes"], [512, "cos"], [1024, "thera"], [2048, "cyrene"], [4096, "crete"], [8192, "arcadia"], [16384, "cyprus"], [32768, "boeotia"]] as const;
 const TRUNCATED_FIELD_NAMES = [[1 << 0, "raw"], [1 << 1, "workword"], [1 << 2, "lemma"], [1 << 3, "preverb"], [1 << 4, "augment"], [1 << 5, "stem"], [1 << 6, "suffix"], [1 << 7, "ending"], [1 << 8, "crasis"], [1 << 9, "dictionaryForm"], [1 << 10, "englishForm"], [1 << 11, "rawPreverb"], [1 << 12, "domains"]] as const;
+
+function dialectNames(value: number): readonly MorpheusDialectName[] {
+  let remaining = value;
+  const selected = new Set<MorpheusDialectName>();
+  if ((remaining & MorpheusDialect.Epic) === MorpheusDialect.Epic) {
+    selected.add("epic");
+    remaining &= ~MorpheusDialect.Epic;
+  }
+  for (const [bit, name] of DIALECT_NAMES) {
+    if ((remaining & bit) === bit) selected.add(name);
+  }
+  return DIALECT_NAME_ORDER.filter((name) => selected.has(name));
+}
+
+function semanticDegree(
+  raw: MorpheusRawAnalysis,
+  partOfSpeech: MorpheusPartOfSpeechName,
+  morphFlags: readonly MorpheusMorphFlagName[],
+): MorpheusDegreeName | null {
+  if (raw.degree !== MorpheusDegree.Positive) {
+    return exactName(raw.degree, DEGREE_NAMES);
+  }
+  if (morphFlags.includes("irregular-comparative")) return "comparative";
+  if (morphFlags.includes("irregular-superlative")) return "superlative";
+  return partOfSpeech === "adjective" ? "positive" : null;
+}
 
 function semanticAnalysis(raw: MorpheusRawAnalysis): MorpheusAnalysis {
   const morphFlags: MorpheusMorphFlagName[] = [];
   for (const [code, name] of MORPH_FLAG_NAMES) {
     if (hasMorpheusMorphFlag(raw, code)) morphFlags.push(name);
   }
+  const partOfSpeech =
+    exactName(raw.partOfSpeech, PART_OF_SPEECH_NAMES) ?? "unknown";
   return {
-    partOfSpeech: exactName(raw.partOfSpeech, PART_OF_SPEECH_NAMES) ?? "unknown",
+    partOfSpeech,
     stemType: { code: raw.stemType },
     derivationType: raw.derivationType === 0 ? null : { code: raw.derivationType },
-    dialects: maskNames<MorpheusDialectName>(
-      raw.dialect,
-      DIALECT_NAMES,
-      DIALECT_EXACT_NAMES,
-    ),
+    dialects: dialectNames(raw.dialect),
     geographicRegions: maskNames(raw.geographicRegion, REGION_NAMES),
     person: exactName(raw.person, PERSON_NAMES),
     grammaticalNumber: exactName(raw.number, NUMBER_NAMES),
@@ -617,7 +660,7 @@ function semanticAnalysis(raw: MorpheusRawAnalysis): MorpheusAnalysis {
       VOICE_NAMES,
       VOICE_EXACT_NAMES,
     ),
-    degree: exactName(raw.degree, DEGREE_NAMES) ?? "positive",
+    degree: semanticDegree(raw, partOfSpeech, morphFlags),
     raw: raw.raw, workword: raw.workword, lemma: raw.lemma,
     preverb: raw.preverb, augment: raw.augment, stem: raw.stem,
     suffix: raw.suffix, ending: raw.ending, crasis: raw.crasis,
