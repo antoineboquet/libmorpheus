@@ -31,6 +31,13 @@ Deno.test("tests one-based morphology flag bits", () => {
     "arrays of raw analyses must support named flags",
   );
   assert(
+    hasMorpheusMorphFlag(
+      [{ morphFlags: ["person-name"] as const }],
+      MorpheusMorphFlag.PersonName,
+    ),
+    "arrays of semantic analyses must support numeric flags",
+  );
+  assert(
     !hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.Poetic),
     "unset flags must remain false",
   );
