@@ -33,6 +33,15 @@ Linux and `libmorpheus.dylib` on macOS. Run applications with FFI permission:
 deno run --allow-ffi app.ts
 ```
 
+## Standalone release archive
+
+Each GitHub release provides one platform-independent binding archive named
+`libmorpheus-deno-<version>.tar.gz`, with a companion SHA-256 file. Extract it
+alongside a matching native `libmorpheus` archive, then import `mod.ts` from
+the extracted binding directory and pass the installed shared-library path to
+`MorpheusLibrary`. The binding archive does not contain a native library or
+stem data.
+
 Analysis is declared as a nonblocking FFI call and executes away from Deno's
 main event loop. Calls made through one context are serialized by the wrapper
 because a native context must not be used concurrently. Separate contexts may
