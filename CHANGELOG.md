@@ -11,6 +11,10 @@ the corpus.
 
 Target project version: **0.1.2**. C ABI: **1**. Shared-library SONAME: **0**.
 
+### Added
+
+- A standalone, checksummed Deno binding source archive for each release.
+
 ### Fixed
 
 - `hasMorpheusMorphFlag()` now accepts the analysis arrays returned by the Deno
