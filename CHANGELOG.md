@@ -7,6 +7,16 @@ the corpus.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-08-24
+
+Target project version: **0.1.2**. C ABI: **1**. Shared-library SONAME: **0**.
+
+### Fixed
+
+- `hasMorpheusMorphFlag()` now accepts the analysis arrays returned by the Deno
+  binding's `analyze()` and `analyzeRaw()` methods, as well as one
+  individual analysis.
+
 ## [0.1.1] - 2026-08-24
 
 Target project version: **0.1.1**. C ABI: **1**. Shared-library SONAME: **0**.
