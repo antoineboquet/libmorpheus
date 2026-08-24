@@ -5,8 +5,9 @@ supported C library, installed metadata, Deno binding, containers, `cruncher`,
 and the pinned runtime data used by the fixtures. Historical standalone
 utilities are outside the release contract.
 
-The decisions specific to the first candidate are recorded in
-`release-0.1.0.md`.
+Each release records its version and ABI decision in
+`release-<version>.md`. The current candidate is recorded in
+`release-0.1.1.md`; the 0.1.0 decision remains historical evidence.
 
 ## 1. Version and ABI decision
 
@@ -102,10 +103,9 @@ Alpheios fixture suites must run where their data prerequisites are available.
 
 - Build the runtime and `deno-runtime` container targets for linux/amd64 and
   linux/arm64.
-- Treat those container builds as qualification only for 0.1.0. Do not publish
-  an image embedding the Alpheios stemlib until its redistribution terms have
-  been confirmed; this restriction does not apply to the data-free native
-  package.
+- Treat container builds as qualification only. Do not publish an image
+  embedding the Alpheios stemlib until its redistribution terms have been
+  confirmed; this restriction does not apply to data-free native packages.
 - Smoke-test `cruncher` and the Deno wrapper against the stemlib intended for
   Bailly, not merely the small inherited fixture tree.
 - Inspect the native installation and confirm it contains only the public
@@ -128,12 +128,11 @@ Alpheios fixture suites must run where their data prerequisites are available.
 
 ## 6. Publish and verify
 
-- Integrate `agent/c17-runtime-port` into `main` with a merge commit preserving
-  its complete ancestry. Do not squash or rebase the modernization commits.
-  The intended operation is equivalent to
-  `git merge --no-ff agent/c17-runtime-port`.
+- Integrate the release-preparation branch into `main` with a normal merge
+  commit. Do not squash or rebase when the branch contains reviewable release
+  history that must remain visible.
 - Verify after the merge that the former branch tip is an ancestor of `main`
-  with `git merge-base --is-ancestor <runtime-tip> main`.
+  with `git merge-base --is-ancestor <release-tip> main`.
 - Tag the exact commit that passed the complete matrix.
 - Build release artifacts from that tag rather than from an uncommitted tree;
   ordinary pull-request and `main` runs do not preserve publishable packages.
