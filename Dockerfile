@@ -3,7 +3,7 @@ ARG DENO_IMAGE=denoland/deno:alpine
 
 FROM alpine:${ALPINE_VERSION} AS build
 
-RUN apk add --no-cache build-base cmake ninja ruby
+RUN apk add --no-cache build-base cmake ninja
 
 WORKDIR /src
 COPY . .
