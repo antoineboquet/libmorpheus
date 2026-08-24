@@ -21,7 +21,7 @@ file(MAKE_DIRECTORY "${package_dir}")
 file(COPY
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/mod.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/README.md"
-  "${MORPHEUS_SOURCE_DIR}/LICENSE"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSE"
   DESTINATION "${package_dir}"
 )
 file(WRITE "${package_dir}/NOTICE"
