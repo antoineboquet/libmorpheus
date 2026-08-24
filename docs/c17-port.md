@@ -307,7 +307,7 @@ the same independent ABI consumer used by the CMake package test; checking only
 the reported project version is no longer considered sufficient.
 
 Every lot must keep both fixture suites passing: the inherited Perseids
-fixtures and the Greek Alpheios stemlib fixtures used by Bailly.
+fixtures and the pinned Greek Alpheios stemlib fixtures.
 
 Byte-indexed collation and conversion tables are checked with
 `-Werror=char-subscripts`. The context-owned comparison tables cover all 256
