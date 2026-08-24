@@ -5,6 +5,21 @@
 #include <morphflags.h>
 
 _Static_assert(sizeof(morpheus_analysis) == 860,"ABI version 1 analysis size");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_UNKNOWN == 0,"unknown POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_NOUN == 1,"noun POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_VERB == 2,"verb POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_ADJECTIVE == 3,"adjective POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_ADVERB == 4,"adverb POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_ARTICLE == 5,"article POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_PRONOUN == 6,"pronoun POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_NUMERAL == 7,"numeral POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_PREPOSITION == 8,
+               "preposition POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_CONJUNCTION == 9,
+               "conjunction POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_PARTICLE == 10,"particle POS code");
+_Static_assert(MORPHEUS_PART_OF_SPEECH_INTERJECTION == 11,
+               "interjection POS code");
 _Static_assert(MORPHEUS_PERSON_FIRST == PERS1,"first person code");
 _Static_assert(MORPHEUS_PERSON_SECOND == PERS2,"second person code");
 _Static_assert(MORPHEUS_PERSON_THIRD == PERS3,"third person code");
