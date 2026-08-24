@@ -20,6 +20,7 @@ set(consumer_binary
     "${test_root}/morpheus-pkgconfig-consumer${MORPHEUS_EXECUTABLE_SUFFIX}")
 
 file(REMOVE_RECURSE "${test_root}")
+file(MAKE_DIRECTORY "${test_root}")
 
 if(NOT DEFINED MORPHEUS_INSTALL_PREFIX)
   execute_process(
