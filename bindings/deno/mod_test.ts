@@ -105,6 +105,18 @@ Deno.test("analyzes Greek through the native ABI", async () => {
     ),
   ]);
   assert(first.length === 3, "tou= must retain the CLI fixture count");
+  assert(
+    first.some((analysis) => analysis.partOfSpeech === "article"),
+    "the article must not be classified as an adjective",
+  );
+  assert(
+    first.some((analysis) => analysis.partOfSpeech === "pronoun"),
+    "the indefinite pronoun must be classified",
+  );
+  assert(
+    first.some((analysis) => analysis.partOfSpeech === "unknown"),
+    "a generic indeclinable must remain explicitly unknown",
+  );
   assert(second.length > 0, "breathing fallback must be available through FFI");
   assert(second[0].partOfSpeech === "noun", "part of speech must be readable");
   assert(
@@ -121,6 +133,115 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   );
   assert(second[0].stemType.code > 0, "opaque stem type code must be retained");
   assert(second[0].derivationType === null, "absent derivation must be null");
+
+  const numeral = await context.analyze("du/o", MorpheusOption.StrictCase);
+  assert(numeral.length === 1, "du/o must retain its single analysis");
+  assert(numeral[0].partOfSpeech === "numeral", "du/o must be a numeral");
+  assert(numeral[0].degree === null, "numerals have no degree");
+
+  const articleAndAdverb = await context.analyze(
+    "tw\\",
+    MorpheusOption.StrictCase,
+  );
+  assert(
+    articleAndAdverb.some((analysis) => analysis.partOfSpeech === "article"),
+    "tw\\ must retain its article analyses",
+  );
+  assert(
+    articleAndAdverb.some((analysis) => analysis.partOfSpeech === "adverb"),
+    "tw\\ must expose its adverb analysis",
+  );
+  assert(
+    articleAndAdverb.every((analysis) => analysis.degree === null),
+    "articles and adverbs have no degree",
+  );
+
+  const indeclinables = await context.analyze(
+    "a)n",
+    MorpheusOption.StrictCase | MorpheusOption.IgnoreAccents,
+  );
+  for (const expected of ["particle", "conjunction", "preposition"] as const) {
+    assert(
+      indeclinables.some((analysis) => analysis.partOfSpeech === expected),
+      `a)n must expose its ${expected} analysis`,
+    );
+  }
+  assert(
+    indeclinables.every((analysis) => analysis.degree === null),
+    "indeclinable lexical classes have no degree",
+  );
+
+  const irregularComparative = await context.analyze(
+    "presbu/teros",
+    MorpheusOption.StrictCase,
+  );
+  assert(
+    irregularComparative.some((analysis) =>
+      analysis.degree === "comparative" &&
+      analysis.morphFlags.includes("irregular-comparative")
+    ),
+    "irregular comparative flags must determine the semantic degree",
+  );
+  const irregularSuperlative = await context.analyze(
+    "e)laxiston",
+    MorpheusOption.StrictCase,
+  );
+  assert(
+    irregularSuperlative.every((analysis) =>
+      analysis.degree === "superlative" &&
+      analysis.morphFlags.includes("irregular-superlative")
+    ),
+    "irregular superlative flags must determine the semantic degree",
+  );
+  const positiveWithoutRegularComparison = await context.analyze(
+    "a)gaqo/s",
+    MorpheusOption.StrictCase,
+  );
+  assert(
+    positiveWithoutRegularComparison.some((analysis) =>
+      analysis.degree === "positive" &&
+      analysis.morphFlags.includes("no-comparison")
+    ),
+    "no-comparison must not erase an adjective's positive degree",
+  );
+
+  const infinitives = await context.analyze(
+    "parei=nai",
+    MorpheusOption.StrictCase,
+  );
+  assert(
+    infinitives.every((analysis) =>
+      analysis.partOfSpeech === "verb" && analysis.degree === null &&
+      analysis.person === null && analysis.grammaticalNumber === null
+    ),
+    "infinitives must expose inapplicable semantic fields as null",
+  );
+  const participles = await context.analyze(
+    "lu/wn",
+    MorpheusOption.StrictCase,
+  );
+  assert(
+    participles.some((analysis) =>
+      analysis.partOfSpeech === "verb" && analysis.mood === "participle" &&
+      analysis.degree === null && analysis.genders.includes("masculine") &&
+      analysis.grammaticalCases.includes("nominative")
+    ),
+    "participles must retain nominal features without becoming adjectives",
+  );
+
+  const ambiguousUnaccented = await context.analyze(
+    "a)dikoi",
+    MorpheusOption.StrictCase | MorpheusOption.IgnoreAccents,
+  );
+  const dialectVerb = ambiguousUnaccented.find((analysis) =>
+    analysis.partOfSpeech === "verb" && analysis.dialects.includes("epic")
+  );
+  assert(dialectVerb, "the contracted verb analysis must be present");
+  assert(
+    dialectVerb.dialects.join(",") === "attic,doric,epic",
+    "the epic composite must be consumed inside a larger dialect mask",
+  );
+  assert(dialectVerb.degree === null, "verbs have no semantic degree");
 
   let rejectedMissingHqDictionary = false;
   try {
