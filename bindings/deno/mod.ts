@@ -223,12 +223,17 @@ const MORPH_FLAG_NAMES = new Map<number, MorpheusMorphFlagName>([
   [82, "delta-preverb"], [83, "tau-preverb"], [110, "group-name"],
 ]);
 
+type MorpheusMorphFlagAnalysis =
+  | Pick<MorpheusRawAnalysis, "allMorphFlags">
+  | Pick<MorpheusAnalysis, "morphFlags">;
+
 export function hasMorpheusMorphFlag(
-  analysis:
-    | Pick<MorpheusRawAnalysis, "allMorphFlags">
-    | Pick<MorpheusAnalysis, "morphFlags">,
+  analysis: MorpheusMorphFlagAnalysis | readonly MorpheusMorphFlagAnalysis[],
   flag: number | MorpheusMorphFlagName,
 ): boolean {
+  if (Array.isArray(analysis)) {
+    return analysis.some((item) => hasMorpheusMorphFlag(item, flag));
+  }
   if (!("allMorphFlags" in analysis)) {
     const name = typeof flag === "number" ? MORPH_FLAG_NAMES.get(flag) : flag;
     return name !== undefined && analysis.morphFlags.includes(name);
