@@ -48,6 +48,19 @@ if(agpl_title_at EQUAL -1)
   message(FATAL_ERROR "Deno binding package does not contain the AGPL license")
 endif()
 
+file(READ "${binding_dir}/mod.ts" binding_source)
+string(FIND "${binding_source}"
+  "SPDX-License-Identifier: AGPL-3.0-or-later" agpl_spdx_at)
+if(agpl_spdx_at EQUAL -1)
+  message(FATAL_ERROR "Packaged Deno source is missing its AGPL SPDX identifier")
+endif()
+
+file(READ "${binding_dir}/NOTICE" binding_notice)
+string(FIND "${binding_notice}" "AGPL-3.0-or-later" agpl_notice_at)
+if(agpl_notice_at EQUAL -1)
+  message(FATAL_ERROR "Deno binding package notice does not identify its license")
+endif()
+
 find_program(deno_program deno REQUIRED)
 execute_process(
   COMMAND "${deno_program}" check mod.ts
