@@ -5,6 +5,9 @@ on:
     paths:
       - '.github/workflows/platform.yml'
       - 'CMakeLists.txt'
+      - 'CMakePresets.json'
+      - 'Dockerfile'
+      - 'test/test-fixtures.cmake'
       - 'test/test-installed-package.cmake'
       - 'test/test-installed-pkgconfig.cmake'
       - 'test/test-release-package.cmake'
