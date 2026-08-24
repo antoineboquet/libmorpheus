@@ -116,6 +116,21 @@ jobs:
       - name: Build library
         run: cmake --build --preset dev
 
+      - name: Package Deno binding
+        run: >-
+          cmake
+          -DMORPHEUS_SOURCE_DIR=${{ github.workspace }}
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/dev
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/dev/packages
+          -P test/package-deno-binding.cmake
+
+      - name: Verify standalone Deno binding package
+        run: >-
+          cmake
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/dev
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/dev/packages
+          -P test/test-deno-binding-package.cmake
+
       - name: Check binding and benchmark runner
         run: |
           sh -n bench/release.sh
