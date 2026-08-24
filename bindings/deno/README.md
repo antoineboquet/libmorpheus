@@ -46,6 +46,16 @@ are named. `stemType` and `derivationType` remain opaque stemlib identifiers,
 represented as `{ code: number }` because ABI version 1 does not assign them a
 portable public name.
 
+The semantic part-of-speech names distinguish nouns, verbs, adjectives,
+adverbs, articles, pronouns, numerals, prepositions, conjunctions, particles,
+and interjections. A stemlib type named only `indecl` remains `"unknown"`
+because that morphology class does not identify a lexical category. `degree`
+is `null` outside adjectives; irregular comparative and superlative flags are
+used when the historical numeric degree field is zero. An empty `dialects`
+array means that no specific dialect restriction is recorded. The composite
+`"epic"` name consumes its Homeric and non-Homeric epic bits even inside a
+larger dialect mask.
+
 Use `analyzeRaw()` when inspecting the ABI or maintaining low-level tooling.
 It returns `MorpheusRawAnalysis`, including numeric morphology fields,
 `structSize`, the 12- and 14-byte flag vectors, and the numeric truncation mask.
