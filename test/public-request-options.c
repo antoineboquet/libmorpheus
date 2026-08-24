@@ -30,9 +30,15 @@ int main(void)
   assert(!context->dictionary_hq_mode);
   assert(!context->analysis_wanted_dialects_initialized);
   assert(morpheus_analyze(context,word,sizeof word-1,scoped,&result)==
-         MORPHEUS_OK);
-  morpheus_result_free(result);
-  result=NULL;
+         MORPHEUS_STEMLIB_ERROR);
+  assert(!result);
+  assert(context->dictionary_hq_availability_checked);
+  assert(!context->dictionary_hq_available);
+  assert(morpheus_analyze(context,word,sizeof word-1,
+                          MORPHEUS_OPTION_HQ_DICTIONARY,&result)==
+         MORPHEUS_STEMLIB_ERROR);
+  assert(!result);
+  assert(!context->files_opened);
   assert(!context->analysis_crasis_disabled);
   assert(!context->analysis_quick_enabled);
   assert(!context->dictionary_hq_mode);

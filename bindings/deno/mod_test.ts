@@ -122,15 +122,28 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   assert(second[0].stemType.code > 0, "opaque stem type code must be retained");
   assert(second[0].derivationType === null, "absent derivation must be null");
 
-  const scoped = await context.analyze(
-    "a)/nqrwpos",
-    MorpheusOption.StrictCase |
-      MorpheusOption.NoCrasis |
-      MorpheusOption.Quick |
-      MorpheusOption.HqDictionary |
-      MorpheusOption.DialectAttic,
+  let rejectedMissingHqDictionary = false;
+  try {
+    await context.analyze(
+      "a)/nqrwpos",
+      MorpheusOption.StrictCase |
+        MorpheusOption.NoCrasis |
+        MorpheusOption.Quick |
+        MorpheusOption.HqDictionary |
+        MorpheusOption.DialectAttic,
+    );
+  } catch (error) {
+    assert(error instanceof MorpheusError, "HQ stemlib failure must be typed");
+    assert(
+      error.status === MorpheusStatus.StemlibError,
+      "missing HQ indices must have a stable status",
+    );
+    rejectedMissingHqDictionary = true;
+  }
+  assert(
+    rejectedMissingHqDictionary,
+    "missing HQ dictionary must be rejected before analysis",
   );
-  assert(Array.isArray(scoped), "advanced request options must be accepted");
   const afterScoped = await context.analyze(
     "a)/nqrwpos",
     MorpheusOption.StrictCase,

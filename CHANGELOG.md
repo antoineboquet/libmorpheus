@@ -26,6 +26,9 @@ Target project version: **0.1.0**. C ABI: **1**. Shared-library SONAME: **0**.
 - The Deno `analyze()` result uses named grammatical values, named flag and
   truncation lists, and explicit nullable fields; `analyzeRaw()` preserves the
   numeric ABI representation for low-level consumers.
+- Requests for the optional HQ dictionary now fail once and silently with the
+  public stemlib status when its dedicated indices are unavailable, instead of
+  repeatedly writing diagnostics and returning an empty successful result.
 - `cruncher` is now a client of the public library rather than an independent
   owner of the analyzer runtime.
 - Mutable analyzer, dictionary, ending-table, conversion, collation, option,

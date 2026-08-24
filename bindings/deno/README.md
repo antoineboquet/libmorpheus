@@ -50,6 +50,11 @@ Use `analyzeRaw()` when inspecting the ABI or maintaining low-level tooling.
 It returns `MorpheusRawAnalysis`, including numeric morphology fields,
 `structSize`, the 12- and 14-byte flag vectors, and the numeric truncation mask.
 
+`MorpheusOption.HqDictionary` is conditional on the selected stemlib providing
+`hqdict/indices/stindex` and `hqdict/indices/stindex.lindex`. If either file is
+missing or empty, `analyze()` and `analyzeRaw()` reject with a `MorpheusError`
+whose status is `MorpheusStatus.StemlibError`; the native analyzer is not run.
+
 Close contexts before closing their parent library. `using` and `await using`
 provide deterministic cleanup; `MorpheusLibrary.close()` rejects an early
 close while contexts remain active.

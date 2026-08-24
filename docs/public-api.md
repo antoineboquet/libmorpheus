@@ -176,7 +176,7 @@ serial queue.
 | `MORPHEUS_OPTION_VERBS_ONLY` | Restricts the historical analyzer to verbal results. |
 | `MORPHEUS_OPTION_NO_CRASIS` | Disables crasis expansion for this request. |
 | `MORPHEUS_OPTION_QUICK` | Stops after the first successful dictionary class. |
-| `MORPHEUS_OPTION_HQ_DICTIONARY` | Selects the HQ dictionary backend for this request. |
+| `MORPHEUS_OPTION_HQ_DICTIONARY` | Selects the optional HQ dictionary backend for this request. The stemlib must provide `hqdict/indices/stindex` and its `.lindex`; otherwise the request returns `MORPHEUS_STEMLIB_ERROR` without starting analysis. |
 | `MORPHEUS_OPTION_DIALECT_*` | Combines one or more Greek dialect restrictions. |
 
 Unknown option bits are invalid. Dialect restrictions on Latin or Italian

@@ -1,5 +1,7 @@
 #include "api_internal.h"
+#include <stdio.h>
 #include <string.h>
+#include <gkdict.h>
 #include "../anal/anal_internal.h"
 #include "../morphlib/runtime_context_internal.h"
 
@@ -10,6 +12,46 @@ typedef struct {
   Dialect wanted_dialects;
   int wanted_dialects_initialized;
 } request_state;
+
+static const char *language_directory(int language)
+{
+  if(language == LATIN) return("Latin");
+  if(language == ITALIAN) return("Italian");
+  if(language == GREEK) return("Greek");
+  return(NULL);
+}
+
+static int hq_dictionary_available(morpheus_context *context)
+{
+  static const char * const required[]={STEMLIST,STEMLIST ".lindex"};
+  const char *directory;
+  size_t i;
+
+  if(context->dictionary_hq_availability_checked &&
+     context->dictionary_hq_availability_language == context->language)
+    return(context->dictionary_hq_available);
+  context->dictionary_hq_availability_checked=1;
+  context->dictionary_hq_availability_language=context->language;
+  context->dictionary_hq_available=0;
+  directory=language_directory(context->language);
+  if(!context->stemlib_path || !directory) return(0);
+  for(i=0;i<sizeof required/sizeof required[0];i++) {
+    char path[MAXPATHNAME];
+    FILE *file;
+    int written=snprintf(path,sizeof path,"%s/%s/%s",
+                         context->stemlib_path,directory,required[i]);
+    if(written < 0 || (size_t)written >= sizeof path) return(0);
+    file=fopen(path,"rb");
+    if(!file) return(0);
+    if(fgetc(file)==EOF) {
+      fclose(file);
+      return(0);
+    }
+    fclose(file);
+  }
+  context->dictionary_hq_available=1;
+  return(1);
+}
 
 static void apply_request_options(
     morpheus_context *context, morpheus_options options, request_state *saved)
@@ -128,6 +170,9 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
   if((options & MORPHEUS_OPTION_DIALECT_MASK) &&
      context->language != GREEK)
     return(MORPHEUS_INVALID_ARGUMENT);
+  if((options & MORPHEUS_OPTION_HQ_DICTIONARY) &&
+     !hq_dictionary_available(context))
+    return(MORPHEUS_STEMLIB_ERROR);
   if(length >= sizeof input) return(MORPHEUS_INPUT_TOO_LONG);
   if(memchr(beta_code,0,length)) return(MORPHEUS_INVALID_ARGUMENT);
   memcpy(input,beta_code,length);
