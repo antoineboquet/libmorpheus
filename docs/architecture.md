@@ -22,7 +22,7 @@ compiled stemlib.
 
 ## Data source
 
-The runtime data used by Bailly is the precompiled Greek stemlib from
+The reference runtime data is the precompiled Greek stemlib from
 `alpheios-project/morpheus`, under `dist/stemlib/Greek`. The Alpheios repository
 is pinned as the `vendor/alpheios-morpheus` Git submodule. The inherited
 top-level `stemlib` directory comes from Perseids and is not the default runtime
