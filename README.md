@@ -48,7 +48,6 @@ Requirements:
 - CMake 3.25 or newer;
 - Ninja;
 - a C17 compiler;
-- Ruby 3.0 or newer for the behavioral fixtures;
 - Deno 2 only when running the FFI binding tests.
 
 ```sh
@@ -257,7 +256,7 @@ container paths. Application code can import the bundled binding from
 
 ## Behavioral baselines
 
-Two fixture suites intentionally remain separate:
+Two fixture suites, executed by CMake without a scripting-language runtime, intentionally remain separate:
 
 - `legacy_fixtures` runs the inherited Greek and Latin expectations against
   the Perseids `stemlib` directory;
