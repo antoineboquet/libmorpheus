@@ -23,6 +23,11 @@ The Apple Silicon build sets a minimum deployment target of macOS 11.0. Alpine
 images remain qualification artifacts only until stemlib redistribution has
 been authorized.
 
+The weekly trigger still creates a lightweight Linux decision job, but the
+architecture matrix is skipped when `main` has the same SHA as the preceding
+successful weekly run. Failed qualification is retried even without a new
+commit. Manual and version-tag runs never apply the inactivity shortcut.
+
 ## Stemlib binary contract
 
 The compiled stemlib is a versioned data dependency, not a native executable.
