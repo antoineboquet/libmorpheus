@@ -26,6 +26,10 @@ for Linux x86-64 glibc, Linux aarch64 glibc, and macOS arm64. They must be
 rebuilt from the `v0.1.2` tag so their package metadata matches the project
 version, even though the native runtime is unchanged.
 
+It will also publish the platform-independent `libmorpheus-deno-0.1.2.tar.gz`
+source archive and its SHA-256 file. The archive contains the typed Deno
+binding and its installation guidance, but no native library or stem data.
+
 The tagged source tree provides the corrected Deno binding. Stem data remains
 excluded from native archives. The Alpheios stemlib stays pinned at
 `4632415fe93c85e9fdca47a0c5a13f31385f0023`.
