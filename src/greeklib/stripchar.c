@@ -1,19 +1,19 @@
-#include <stdio.h>
-#include <string.h>
+#include "greeklib_internal.h"
 
 #include "stripchar.proto.h"
 
-stripchar(char *s, int c)
+void stripchar(char *s, int c)
 {
-	register char * s1;
-	
-	s1 = s;
-	
-	while(*s1) {
-		if( *s1 == c ) {
-			Xstrcpy(s1,s1+1);
-			continue;
-		}
-		s1++;
+	char *read;
+	char *write;
+
+	if (!s) return;
+	read = s;
+	write = s;
+	while(*read) {
+		if ((unsigned char)*read != (unsigned char)c)
+			*write++ = *read;
+		read++;
 	}
+	*write = 0;
 }

@@ -1,9 +1,26 @@
-#include <gkstring.h>
+#include "anal_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkgenwds.proto.h"
 
-static anals_seen = 0;
-static lems_seen = 0;
+static int
+valid_analysis_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
+static int append_text(char *dest, size_t capacity, const char *source)
+{
+	size_t used = strlen(dest);
+	size_t added = strlen(source);
+
+	if( used >= capacity || added >= capacity - used )
+		return(0);
+	memcpy(dest + used,source,added + 1);
+	return(1);
+}
 
 /*
  * ok, check an array of gk_string's against a single printword to figure
@@ -11,20 +28,28 @@ static lems_seen = 0;
  * "pisteu=sai" "pi/steusai" and "pisteu/sai"
  */
 
-CheckGenWords(gk_word *Gkword, gk_word *gkforms)
+int CheckGenWords(gk_word *Gkword, gk_word *gkforms)
 {
 	int i = 0;
 	int hits = 0;
 	char accword[MAXWORDSIZE+1];
 	char wordnoacute[MAXWORDSIZE+1];
+	char wordnoacc[MAXWORDSIZE+1];
 	char curform[MAXWORDSIZE+1];
 	char * checks;
-	char * preverb = preverb_of(gkforms);
-	char * lemma = lemma_of(gkforms);
+	char * preverb;
+	char * lemma;
 /* grc 6/8/89
 	char * origword = rawword_of(gkforms);
 */
-	char * origword = workword_of(Gkword);
+	char * origword;
+
+	if (!valid_analysis_argument(Gkword) ||
+	    !valid_analysis_argument(gkforms))
+		return(0);
+	preverb = preverb_of(gkforms);
+	lemma = lemma_of(gkforms);
+	origword = workword_of(Gkword);
 
 	Xstrncpy(accword,origword,(int)sizeof accword);
 	/*
@@ -84,8 +109,6 @@ printf("\nin checkgenword accword [%s]\n", accword );
  * "ti/" would match "ti"! 
  */
 	if( (prntflags_of(Gkword) & IGNORE_ACCENTS) ) {
-		char wordnoacc[MAXWORDSIZE];
-
 		Xstrcpy(wordnoacc,wordnoacute);
 		stripacc(wordnoacc);
 		checks = wordnoacc;
@@ -135,7 +158,7 @@ fprintf(stderr,"onwards\n");
 			}
 */
 			if( Comp_only(morphflags_of(stem_gstr_of(gkforms+i))) && ! * preverb ) {
-				near_miss(gkforms+i,checks,COMP_ONLY);
+				near_miss((gk_string *)(gkforms+i),checks,COMP_ONLY);
 /*
 				printf("could be--[%s]",workword_of(gkforms+i));
 				PrntAVerb(gkforms+i,lemma,stdout);
@@ -145,7 +168,7 @@ fprintf(stderr,"onwards\n");
 				continue;
 			} 
 			if( Not_in_compos(morphflags_of(stem_gstr_of(gkforms+i))) && *preverb ) {
-				near_miss(gkforms+i,checks,NOT_IN_COMPOSITION);
+				near_miss((gk_string *)(gkforms+i),checks,NOT_IN_COMPOSITION);
 /*
 				printf("could be--[%s]",workword_of(gkforms+i));
 				PrntAVerb(gkforms+i,lemma,stdout);
@@ -164,7 +187,7 @@ printf("liked [%s] hits [%d]\n", checks , hits);
 
 			continue;
 		} 
-		near_miss(gkforms+i,checks,0);
+		near_miss((gk_string *)(gkforms+i),checks,0);
 /*
 		printf("wanted [%s] and got ", checks );
 		PrntAVerb(gkforms+i,lemma,stdout);
@@ -174,29 +197,36 @@ printf("liked [%s] hits [%d]\n", checks , hits);
 	return(hits);
 }
 
-static analerror  = 0;
-AddAnalysis(gk_word *Gkword, gk_word *gkform)
+int AddAnalysis(gk_word *Gkword, gk_word *gkform)
 {
 	gk_analysis * curanal;
 	int i;
 	int newlem = 1;
-	char tmplem[MAXWORDSIZE];
-	char cmplem[MAXWORDSIZE];
+	char tmplem[LONGSTRING];
+	char cmplem[LONGSTRING];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
-	if (analerror) {
+	if (!valid_analysis_argument(Gkword) ||
+	    !valid_analysis_argument(gkform))
+		return(0);
+
+	if (context->analysis_storage_error) {
 		fprintf(stderr,"something wrong with the analysis storage!\n");
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(0);
 	}
 
 	if( analysis_of(Gkword) == NULL ) {
-		if( ! ( analysis_of(Gkword) = (gk_analysis *)CreatGkAnal(MAXANALYSES+1) )) {
-			fprintf(stderr,"not enough memory for greek analysis\n");
-			analerror++;
-			return(0);
-		}
 		if( totanal_of(Gkword) != 0 ) {
 			fprintf(stderr,"hey! anal pointer NULL but totanal is %d\n", totanal_of(Gkword) );
-			analerror++;
+			context->analysis_storage_error++;
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return(0);
+		}
+		if( ! ( analysis_of(Gkword) = (gk_analysis *)CreatGkAnal(MAXANALYSES+1) )) {
+			fprintf(stderr,"not enough memory for greek analysis\n");
+			context->analysis_storage_error++;
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 			return(0);
 		}
 	}
@@ -210,13 +240,14 @@ AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	if( totanal_of(Gkword) >= MAXANALYSES ) {
 		fprintf(stderr,"%s:  ran out of space with %d analyses!\n",
 			rawword_of(Gkword), totanal_of(Gkword) );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(0);
 	} 
 	curanal = analysis_of(Gkword) + totanal_of(Gkword);
 	
 	if( crasis_of(gkform)[0] ) {
 		set_crasis(curanal,crasis_of(gkform));
-		if( ! do_crasis(gkform,crasis_of(curanal)))
+		if( ! do_crasis((gk_string *)gkform,crasis_of(curanal)))
 			return(0);
 	}
 
@@ -224,10 +255,12 @@ AddAnalysis(gk_word *Gkword, gk_word *gkform)
 	if( preverb_of(gkform)[0] ) {
 		char * s = tmplem;
 		char * t;
-		char tmphalf1[MAXWORDSIZE];
+		char tmphalf1[LONGSTRING];
 		tmphalf1[0] = tmplem[0] = cmplem[0] = 0;
 		
-		sprintf(tmplem,"%s-%s", preverb_of(gkform) , lemma_of(gkform));
+		if( snprintf(tmplem,sizeof tmplem,"%s-%s",
+		             preverb_of(gkform),lemma_of(gkform)) >= (int)sizeof tmplem )
+			return(0);
 		for(;;) {
 			/*
 			 * grc 6/12/94
@@ -241,11 +274,16 @@ AddAnalysis(gk_word *Gkword, gk_word *gkform)
 /*
 printf("tmphalf1 [%s] s [%s]\n", tmphalf1, s );
 */
+			if( strlen(s) >= MAXWORDSIZE - 1 ) {
+				fprintf(stderr,"compound lookup key is too long: [%s]\n",s);
+				return(0);
+			}
 			chckcmpvb(s,cmplem);
 			if( cmplem[0] ) {
 				if( tmphalf1[0] ) {
-					strcat(tmphalf1,"-");
-					strcat(tmphalf1,cmplem);
+					if( ! append_text(tmphalf1,sizeof tmphalf1,"-") ||
+					    ! append_text(tmphalf1,sizeof tmphalf1,cmplem) )
+						return(0);
 					Xstrcpy(cmplem,tmphalf1);
 				}
 				break;
@@ -257,22 +295,26 @@ printf("tmphalf1 [%s] s [%s]\n", tmphalf1, s );
 printf("s [%s] tmplem [%s] tmphalf1 [%s] t [%s] cmplem[%s]\n", s , tmplem , tmphalf1 ,t, cmplem);
 */
 			if(!s ) {
-				if( tmphalf1[0] ) strcat(tmphalf1,",");
-				strcat(tmphalf1,t);
+				if( (tmphalf1[0] && ! append_text(tmphalf1,sizeof tmphalf1,",")) ||
+				    ! append_text(tmphalf1,sizeof tmphalf1,t) )
+					return(0);
 				Xstrcpy(tmplem,tmphalf1);
 				 break;
 			}
 			*s++ = 0;
-			if( tmphalf1[0] ) strcat(tmphalf1,",");
-			strcat(tmphalf1,t);
+			if( (tmphalf1[0] && ! append_text(tmphalf1,sizeof tmphalf1,",")) ||
+			    ! append_text(tmphalf1,sizeof tmphalf1,t) )
+				return(0);
 /*
 printf("tmphalf1 [%s] tmplem[%s] s [%s]\n", tmphalf1 , tmplem, s);
 */
 		}
-		if( cmplem[0] ) {
-			set_lemma(curanal,cmplem);
-		} else
-			set_lemma(curanal,tmplem);
+		if( strlen(cmplem[0] ? cmplem : tmplem) >= sizeof lemma_of(curanal) ) {
+			fprintf(stderr,"compound lemma is too long: [%s]\n",
+			        cmplem[0] ? cmplem : tmplem);
+			return(0);
+		}
+		set_lemma(curanal,cmplem[0] ? cmplem : tmplem);
 	}  else
 		set_lemma(curanal,lemma_of(gkform));
 
@@ -346,10 +388,10 @@ printf("lemam now [%s]\n", lemma_of(curanal) );
 	}
 	set_stemtype(curanal,stemtype_of(gkform));
 	set_derivtype(curanal,derivtype_of(gkform));
-	set_morphflags(curanal,morphflags_of(gkform));
-	add_morphflags(curanal,morphflags_of(prvb_gstr_of(gkform)));
-	add_morphflags(curanal,morphflags_of(stem_gstr_of(gkform)));
-	add_morphflags(curanal,morphflags_of(ends_gstr_of(gkform)));
+	set_morphflags((gk_string *)curanal,morphflags_of(gkform));
+	add_morphflags((gk_string *)curanal,morphflags_of(prvb_gstr_of(gkform)));
+	add_morphflags((gk_string *)curanal,morphflags_of(stem_gstr_of(gkform)));
+	add_morphflags((gk_string *)curanal,morphflags_of(ends_gstr_of(gkform)));
 /*
 printf("analysis [%s] [%o]", rawword_of(curanal), dialect_of(curanal) );
 PrntAWord(curanal,Gkword,lemma_of(curanal),stdout);
@@ -376,23 +418,26 @@ printf("\n");
 		}
 	}
 	totanal_of(Gkword)++;
-	anals_seen++;
-	lems_seen += newlem;
+	context->analysis_total_analyses++;
+	context->analysis_total_lemmas += newlem;
 	return(1);
 }
 
-show_totanals()
+int show_totanals(void)
 {
-	return(anals_seen);
+	return(morpheus_runtime_context_current()->analysis_total_analyses);
 }
 
-show_totlems()
+int show_totlems(void)
 {
-	return(lems_seen);
+	return(morpheus_runtime_context_current()->analysis_total_lemmas);
 }
 
-merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
+void merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
 {
+	if (!valid_analysis_argument(anal1) ||
+	    !valid_analysis_argument(anal2))
+		return;
 	/*
 	 * grc 3/10/91:  if anal1 has no dialects set, then this form can appear in
 	 * any dialect.  don't add false constraints here.
@@ -401,8 +446,11 @@ merge_anal_dialects(gk_analysis *anal1, gk_analysis *anal2)
 		dialect_of(anal1) |= dialect_of(anal2);	
 }
 
-equiv_anal(gk_analysis *anal1, gk_analysis *anal2)
-{	
+int equiv_anal(gk_analysis *anal1, gk_analysis *anal2)
+{
+	if (!valid_analysis_argument(anal1) ||
+	    !valid_analysis_argument(anal2))
+		return(0);
 	if( strcmp(lemma_of(anal1),lemma_of(anal2))) 
 		return(0);
 	/*

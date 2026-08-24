@@ -4,7 +4,7 @@
  *
  * see Smyth 252a
  */
-static  char thirdexceptions[][MAXWORDSIZE] = {
+static const char thirdexceptions[][MAXWORDSIZE] = {
 	"paidwn",
 	"paidoin",
 	"dmwwn",

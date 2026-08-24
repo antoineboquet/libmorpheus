@@ -1,23 +1,53 @@
+#include "morphlib_internal.h"
 #include <ctype.h>
 #include <gkstring.h>
 
 #include "conjstem.proto.h"
 
-
-fixcontr(char *stem, char *verb)
-/* expand stem for contract verbs */
+static int
+ends_with(const char *word, const char *suffix)
 {
-	if (A_CONTR(verb) || E_CONTR(verb))
-		Xstrncat(stem,"h",MAXWORDSIZE);
-	if (O_CONTR(verb))
-		Xstrncat(stem,"w",MAXWORDSIZE);
+	size_t word_length = strlen(word);
+	size_t suffix_length = strlen(suffix);
+
+	return(word_length >= suffix_length &&
+	       !strcmp(word+word_length-suffix_length,suffix));
 }
 
-makeperf(char *s)
+static int
+append_stem(char *stem, const char *suffix)
+{
+	if (strlen(stem) + strlen(suffix) >= MAXWORDSIZE) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	return(morpheus_runtime_string_append(stem,suffix,MAXWORDSIZE));
+}
+
+void fixcontr(char *stem, char *verb)
+/* expand stem for contract verbs */
+{
+	if (!stem || !verb) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	if (ends_with(verb,"a/w") || ends_with(verb,"a/omai") ||
+	    ends_with(verb,"e/w") || ends_with(verb,"e/omai"))
+		append_stem(stem,"h");
+	if (ends_with(verb,"o/w") || ends_with(verb,"o/omai"))
+		append_stem(stem,"w");
+}
+
+void makeperf(char *s)
 {
 	register char *p;
 
-	p = lastn(s,1);
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	if (!*s) return;
+	p = s+strlen(s)-1;
 	if (Is_dental(*p) || *p == 'z')
 		*p = 'k';	 /* Smyth 560 */
 	else if (Is_labial(*p) && *p != 'f')
@@ -32,14 +62,20 @@ makeperf(char *s)
 		conjoin(s,"k");
 }
 
-fixperf(char *s)
+void fixperf(char *s)
 {
 	register char *p;
+	size_t length;
 
-	if( *(lastn(s,1)) != 'k' ) 
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	length = strlen(s);
+	if (length < 2 || s[length-1] != 'k')
 		return;
 		
-	p = lastn(s,2);
+	p = s+length-2;
 	if (Is_dental(*p) || *p == 'z') {
 		*p = 'k';	 /* Smyth 560 */
 		*(p+1) = 0;
@@ -60,19 +96,30 @@ fixperf(char *s)
  *
  * no! leave as is
  * otherwise we get e)fqar-ka --> e)fa-ka
- */
+	 */
 	else if (/*Is_liquid(*p) ||*/ Is_nasal(*p)) {
 		*(p+1) = 0; /* Smyth 562 */
 	}
 }
 
-conjstem(char *stem, char *e)
+void conjstem(char *stem, char *e)
 {
 	register char *p;
 	char ending[MAXWORDSIZE];
 
-	p = lastn(stem,1);
-	Xstrncpy(ending,e,MAXWORDSIZE);
+	if (!stem || !e) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	if (!Xstrncpy(ending,e,MAXWORDSIZE)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	if (!*stem) {
+		Xstrncpy(stem,ending,MAXWORDSIZE);
+		return;
+	}
+	p = stem+strlen(stem)-1;
 
 	/* quick and dirty implementation of Smyth 405 */
 	if (Is_cons(*p)) {
@@ -93,15 +140,33 @@ conjstem(char *stem, char *e)
 	conjoin(stem,ending);
 }
 
-conjoin(char *stem, char *e)
+void conjoin(char *stem, char *e)
 {
 	/* observe the laws of euphony, if you please... */
 	register char *p;
 	char ending[MAXWORDSIZE];
+	char workstem[MAXWORDSIZE];
 	int changed;
+	size_t remaining;
 
-	p = lastn(stem,1);
-	Xstrncpy(ending,e,MAXWORDSIZE);
+	if (!stem || !e) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	if (!Xstrncpy(ending,e,MAXWORDSIZE)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	if (!Xstrncpy(workstem,stem,sizeof workstem)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	if (!*ending) return;
+	if (!*workstem) {
+		Xstrncpy(stem,ending,MAXWORDSIZE);
+		return;
+	}
+	p = workstem+strlen(workstem)-1;
 /*
  * this has got to be fixed if it is going to work at all well with
  * dialects!
@@ -111,9 +176,15 @@ conjoin(char *stem, char *e)
   * grc 4/21/89
   * an unbelievable kludge to allow me to generate plass- from plat-ss so that
   * i can get the epic form pla/ssa.  unbelievable! ugh.
-  */
+	 */
  	if( (Is_dental(*p) || *p == 'z' || *p == 'n' ) && !Xstrncmp(e,"ss",2) ) {
- 		Xstrncpy(p,e,MAXWORDSIZE-(int)(p-stem));
+		remaining = (size_t)MAXWORDSIZE-(size_t)(p-workstem);
+		if (strlen(ending) >= remaining) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return;
+		}
+		Xstrncpy(p,ending,remaining);
+		Xstrncpy(stem,workstem,MAXWORDSIZE);
  		return;
  	}
  	
@@ -121,36 +192,41 @@ conjoin(char *stem, char *e)
 		changed = NO;
 		switch(ending[0]) {
 			case 's':
-				changed = do_sigma(p,ending);
+				changed = do_sigma(workstem,ending);
 				break;
 			case 'q':
-				changed = do_theta(p);
+				changed = do_theta(workstem);
 				break;
 			case 'm':
-				changed = do_mu(p);
+				changed = do_mu(workstem);
 				break;
 			case 't':
-				changed = do_tau(p);
+				changed = do_tau(workstem);
 				break;
 			}
 		} while (changed);
-	Xstrncat(stem,ending,MAXWORDSIZE);
+	if (append_stem(workstem,ending)) Xstrncpy(stem,workstem,MAXWORDSIZE);
 }
 
-do_sigma(char *s, char *ending)
+int do_sigma(char *s, char *ending)
 {
 	/* Smyth 537,545 */
 	register char *p;
 	int changed;
 
-	p = lastn(s,1);
+	if (!s || !ending) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NO);
+	}
+	if (!*s || !*ending) return(NO);
+	p = s+strlen(s)-1;
 	changed = YES;
 
 	if (*p == 'q' && ! strncmp(ending,"sk",2)) {
 		*p = 's'; /* grc 9/3/94:  paq-skw --> pasxw */
 		ending[1] = 'x';
 	}
-	if (Is_cons(*p) && Is_cons(ending[1]))
+	if (ending[1] && Is_cons(*p) && Is_cons(ending[1]))
 		strsqz(ending,1);	/* s between consonants drops out */
 	else if (Is_labial(*p)) {
 		*p = 'y';
@@ -186,8 +262,13 @@ int do_theta(char *s)
 	register char *p;
 	int changed;
 
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NO);
+	}
+	if (!*s) return(NO);
 	changed = YES;
-	p = lastn(s,1);
+	p = s+strlen(s)-1;
 	if (Is_labial(*p) && *p != 'f')
 		*p = 'f';
 	else if (Is_palatal(*p) && *p != 'x')
@@ -205,10 +286,15 @@ int do_mu(char *s)
 	register char *p;
 	int changed;
 
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NO);
+	}
+	if (!*s) return(NO);
 	changed = YES;
-	p = lastn(s,1);
+	p = s+strlen(s)-1;
 	if (Is_labial(*p)) {
-		if (*(p-1) == 'm')
+		if (p > s && *(p-1) == 'm')
 			*p = 0;
 		else
 			*p = 'm';
@@ -228,8 +314,13 @@ int do_tau(char *s)
 	register char *p;
 	int changed;
 
+	if (!s) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NO);
+	}
+	if (!*s) return(NO);
 	changed = YES;
-	p = lastn(s,1);
+	p = s+strlen(s)-1;
 	if (Is_labial(*p) && *p != 'p')
 		*p = 'p';
 	else if (Is_palatal(*p) && *p != 'k')

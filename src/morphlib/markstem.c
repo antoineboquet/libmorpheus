@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 /*
  * Gregory Crane
  * June 1987
@@ -14,14 +15,18 @@
 #include <gkstring.h>
 
 #include "markstem.proto.h"
- markstem(char *stemstr, gk_string *gstr)
+ void markstem(char *stemstr, gk_string *gstr)
 {
 	register char * lastp;
 
+	if (!stemstr || !gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	lastp = stemstr;
 	while(*lastp) lastp++;
 	
-	while(lastp>stemstr&&!isalpha(*lastp)) lastp--;
+	while(lastp>stemstr&&!isalpha((unsigned char)*lastp)) lastp--;
 
 	if( (Is_nounform(gstr) 
 	  || Is_adjform(gstr) 

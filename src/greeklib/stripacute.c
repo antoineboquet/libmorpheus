@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 #include <greek.h>
 
 #include "stripacute.proto.h"
@@ -8,11 +9,7 @@
  * harvard university
  */
  
- stripacute(char *s)
+void stripacute(char *s)
 {
-	while(*s) {
-		if( *s == ACUTE ) 
-				strsqz(s,1);
-		s++;
-	}
+	stripchar(s,ACUTE);
 }

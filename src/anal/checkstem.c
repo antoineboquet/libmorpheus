@@ -1,13 +1,18 @@
-#include <gkstring.h>
-#define MAXAUGSTEMS 12
+#include "anal_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkstem.proto.h"
 int comstemtypes(char *, char *, char *);
-static wantcurstemtype(char *, char *);
-extern verbose;
-static int digstem = 0;
+static int wantcurstemtype(char *, char *);
+extern int verbose;
 
-char * is_substring();
+static int
+valid_checkstem_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
 
 /*
  * this routine takes a possible verb stem (poss_stem) and tries
@@ -26,12 +31,38 @@ char * is_substring();
  * the resulting keys for each possible stem are stored in *keytab[]
  */
 
-static	gk_string * tstemtab[MAXAUGSTEMS];
-static	gk_string * tqstemtab[MAXAUGSTEMS];
-static	char * tkeytab[MAXAUGSTEMS];
-static init_stor = 0;
+static int
+initialize_augmented_stems(morpheus_runtime_context *context)
+{
+	int i;
 
- checkstem(char *poss_stem, char *endkeys, gk_string *stemtab[], char *keytab[], int maxstems)
+	if (context->analysis_augmented_stems_initialized) return(1);
+	for (i = 0; i < MORPHEUS_AUGMENT_STEM_COUNT; i++) {
+		if (!context->analysis_augmented_stems[i])
+			context->analysis_augmented_stems[i] = CreatGkString(1);
+		if (!context->analysis_augmented_quantities[i])
+			context->analysis_augmented_quantities[i] = CreatGkString(1);
+		if (!context->analysis_augmented_stems[i] ||
+		    !context->analysis_augmented_quantities[i])
+			goto no_memory;
+	}
+	context->analysis_augmented_stems_initialized = 1;
+	return(1);
+
+no_memory:
+	for (i = 0; i < MORPHEUS_AUGMENT_STEM_COUNT; i++) {
+		if (context->analysis_augmented_stems[i])
+			FreeGkString(context->analysis_augmented_stems[i]);
+		if (context->analysis_augmented_quantities[i])
+			FreeGkString(context->analysis_augmented_quantities[i]);
+		context->analysis_augmented_stems[i] = NULL;
+		context->analysis_augmented_quantities[i] = NULL;
+	}
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	return(0);
+}
+
+int checkstem(char *poss_stem, char *endkeys, gk_string *stemtab[], char *keytab[], int maxstems)
 {
 	char *curstemkeys;
 	int i;
@@ -39,23 +70,35 @@ static init_stor = 0;
 	int poss_augs = 0;
 	int possno = 0;
 	int rval = 0;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	gk_string **tstemtab = context->analysis_augmented_stems;
+	gk_string **tqstemtab = context->analysis_augmented_quantities;
+
+	if (!valid_checkstem_argument(poss_stem) ||
+	    !valid_checkstem_argument(endkeys) ||
+	    !valid_checkstem_argument(stemtab) ||
+	    !valid_checkstem_argument(keytab) || maxstems <= 0) {
+		if (maxstems <= 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	for (i = 0; i < maxstems; i++) {
+		if (!valid_checkstem_argument(stemtab[i]) ||
+		    !valid_checkstem_argument(keytab[i]))
+			return(0);
+	}
 
 
 
 	curstemkeys = (char *)malloc((size_t)LONGSTRING+1);
-
-	if( ! init_stor ) {
-		init_stor = 1;
-		for(i=0;i<MAXAUGSTEMS;i++) {
-			tstemtab[i] = CreatGkString(1);
-			tqstemtab[i] = CreatGkString(1);
-			tkeytab[i] = (char *)malloc((size_t)LONGSTRING+1);
-		}
+	if (!curstemkeys || !initialize_augmented_stems(context)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		free(curstemkeys);
+		return(0);
 	}
-	for(i=0;i<MAXAUGSTEMS;i++) {
+	for(i=0;i<MORPHEUS_AUGMENT_STEM_COUNT;i++) {
 		ClearGkstring(tstemtab[i]);
 		ClearGkstring(tqstemtab[i]);
-		*tkeytab[i] = 0;
 	}
 	
 	*curstemkeys = 0;
@@ -66,7 +109,7 @@ fprintf(stderr,"rval %d poss stem [%s] endkeys {%s] curstem [%s]\n", rval, poss_
 
 	if( rval ) {
 
-		if( curstemkeys[0] ) {
+		if( curstemkeys[0] && possno < maxstems ) {
 			set_gkstring(stemtab[possno],poss_stem);
 			Xstrncpy((char *)keytab[possno],(char *)curstemkeys,(size_t)LONGSTRING);
 			curstemkeys[0] = 0;
@@ -84,7 +127,8 @@ fprintf(stderr,"rval %d poss stem [%s] endkeys {%s] curstem [%s]\n", rval, poss_
 		goto finish;
 
 
-	poss_augs = unaugment(poss_stem,tstemtab,tqstemtab,MAXAUGSTEMS,ALL_DIAL,1,0);
+	poss_augs = unaugment(poss_stem,tstemtab,tqstemtab,
+		MORPHEUS_AUGMENT_STEM_COUNT,ALL_DIAL,1,0);
 
 	for(i=0;i<poss_augs;i++) {
 
@@ -94,7 +138,7 @@ fprintf(stderr,"%d) %s\n", i , gkstring_of(tstemtab[i]) );
 
 		*curstemkeys = 0;
 		if( stemexists(gkstring_of(tstemtab[i]),endkeys,curstemkeys,0) ) {
-			if( curstemkeys[0] ) {
+			if( curstemkeys[0] && hits < maxstems ) {
 				*stemtab[hits] = *tstemtab[i];
 				Xstrncpy((char *)keytab[hits],(char *)curstemkeys,(size_t)LONGSTRING);
 				hits++;
@@ -107,30 +151,22 @@ fprintf(stderr,"%d) %s\n", i , gkstring_of(tstemtab[i]) );
 
 	xFree(curstemkeys,"curstemkeys");
 	curstemkeys = NULL;
-/*
-	for(i=0;i<MAXAUGSTEMS;i++) {
-
-		FreeGkString(tstemtab[i]);
-		tstemtab[i] = NULL;
-
-		xFree(tkeytab[i],"tkeytab[i]");
-		tkeytab[i] = NULL;
-	}
-*/
 	return(hits);
 }
 
-stemexists(char *s, char *endkeys, char *stemkeys, int is_nom)
+int stemexists(char *s, char *endkeys, char *stemkeys, int is_nom)
 {
 	int rval  = 0;
+
+	if (!valid_checkstem_argument(s) ||
+	    !valid_checkstem_argument(endkeys) ||
+	    !valid_checkstem_argument(stemkeys))
+		return(0);
 	
 /*
 fprintf(stderr,"stemexists: s [%s] stemkeys [%s] endkeys [%s]\n", s , stemkeys, endkeys);
 */
 	rval = chckstem(s,stemkeys,is_nom);
-if( ! rval && digstem ) {
-longeststem(s);
-}
 /*
 if( rval ) printf("rval %d for [%s] with keys [%s]\n", rval , s , stemkeys );
 */
@@ -171,19 +207,21 @@ comstemtypes(char *stem, char *stemkeys, char *endkeys)
 		setstemvars(s,cstem,clemma,cstemtype,stembuf);
 
 		if( wantcurstemtype(cstemtype,endkeys) ) {
-			if( tmp[0] ) Xstrncat(tmp," ",(int)LONGSTRING);
-			Xstrncat(tmp,clemma,(int)LONGSTRING);
-			Xstrncat(tmp,":",(int)LONGSTRING);
-			if( cstem[0] ) Xstrncat(tmp,cstem,(int)LONGSTRING);
-			else Xstrncat(tmp,stem,(int)LONGSTRING);
-			Xstrncat(tmp,":",(int)LONGSTRING);
-			Xstrncat(tmp,cstemtype,(int)LONGSTRING);
-			Xstrncat(tmp,":",(int)LONGSTRING);
-			if(*stembuf)
-				Xstrncat(tmp,stembuf,(int)LONGSTRING);
+			if ((tmp[0] && !morpheus_runtime_string_append(
+			        tmp," ",sizeof tmp)) ||
+			    !morpheus_runtime_string_append(tmp,clemma,sizeof tmp) ||
+			    !morpheus_runtime_string_append(tmp,":",sizeof tmp) ||
+			    !morpheus_runtime_string_append(
+			        tmp,cstem[0] ? cstem : stem,sizeof tmp) ||
+			    !morpheus_runtime_string_append(tmp,":",sizeof tmp) ||
+			    !morpheus_runtime_string_append(
+			        tmp,cstemtype,sizeof tmp) ||
+			    !morpheus_runtime_string_append(tmp,":",sizeof tmp) ||
+			    (*stembuf && !morpheus_runtime_string_append(
+			        tmp,stembuf,sizeof tmp))) return(0);
 		}
-		while(! isspace(*s) && *s ) s++;
-		while( isspace(*s) ) s++;
+		while(! isspace((unsigned char)*s) && *s ) s++;
+		while( isspace((unsigned char)*s) ) s++;
 	}
 	Xstrncpy((char *)stemkeys,(char *)p,(size_t)LONGSTRING);
 
@@ -193,10 +231,9 @@ comstemtypes(char *stem, char *stemkeys, char *endkeys)
 		return(0);
 }
 
-static
-wantcurstemtype(char *curst, char *stlist)
+static int wantcurstemtype(char *curst, char *stlist)
 {
-	char * is_substring(), *s;
+	char *s;
 	int rval = 0;
 	
 	s = is_substring(curst,stlist);
@@ -206,9 +243,8 @@ wantcurstemtype(char *curst, char *stlist)
 }
 
 
-setstemvars(char *s, char *cstem, char *clemma, char *cstemtype, char *cstemkeys)
+void setstemvars(char *s, char *cstem, char *clemma, char *cstemtype, char *cstemkeys)
 {
-	char * parsefield();
 	*cstemkeys = *cstem = *clemma = *cstemtype = 0;
 	
 	s = parsefield(s,cstem,':',MAXWORDSIZE);
@@ -224,26 +260,25 @@ parsefield(char *s, char *buf, int c, int len)
 	
 	*buf = 0;
 /*
-	while(*s&&*s!=c&&!isspace(*s)) *buf++ = *s++;
+	while(*s&&*s!=c&&!isspace((unsigned char)*s)) *buf++ = *s++;
 */
-	for(i=0;*s&&*s!=c&&!isspace(*s);i++) {
+	for(i=0;*s&&*s!=c&&!isspace((unsigned char)*s);i++) {
 		*buf++ = *s++;
 		if( i >= len ) {
-			fprintf(stderr,"Hey %d chars; %d s [%s] left!\n", len , Xstrlen(s) ,s );
+			fprintf(stderr,"Hey %d chars; %zu s [%s] left!\n", len , Xstrlen(s) ,s );
 			*buf = 0;
-			while(*s&&!isspace(*s)) s++;
+			while(*s&&!isspace((unsigned char)*s)) s++;
 			break;
 		}
 	}
 	
 	*buf = 0;
-	if( isspace(*s) ) return("");
+	if( isspace((unsigned char)*s) ) return("");
 	if(*s) s++;
 	return(s);
 }
 
-longeststem(s)
-char * s;
+void longeststem(char *s)
 {
 	char * p = s;
 	char tmp[256],tmp2[256];

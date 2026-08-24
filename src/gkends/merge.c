@@ -1,10 +1,12 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 
 #include "merge.proto.h"
 
 /*
  *
  */
+int
  merge_keys(gk_string *Have, gk_string *Avoid, char *stem, char *endstr, char *newkeys)
 {
 	int rval = 0;

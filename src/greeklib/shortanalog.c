@@ -7,9 +7,10 @@
 
 #include "shortanalog.proto.h"
 
-shortanalog(char *p)
+void shortanalog(char *p)
 /* change long vowel in syll pointed to by p to its short analog */
 {
+	if (!p) return;
 	switch (*p) {
 		case 'h':
 			*p = 'e';

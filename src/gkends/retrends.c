@@ -1,27 +1,13 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include <modes.h>
 #include "endfiles.h" 
 
-#ifdef LIGHTSPEED
-char * GetEndString();
-
-#endif
-
 #include "retrends.proto.h"
 static gk_string *RetrCompEnds(gk_string *, gk_string *, int *, Dialect);
-static ProcEndRecord(char *, gk_string *);
-static char *GetEndString(char *, gk_string *);
-static NoWantGkEnd(gk_string *, gk_string *, int);
-static AddNewEnd(gk_string *, gk_string *, int);
-
-static gk_string  Cur_gkend;
-
-static gk_string WantEnd;
-static gk_string AvoidEnd;
-static gk_string BlankGkend;
-static gk_word BlankGkword;
-gk_string * CreatGkString();
-static int start_match = 0;
+static int NoWantGkEnd(gk_string *, gk_string *, int);
+static void AddNewEnd(gk_string *, gk_string *, int);
 
 gk_string *
  chckendings(char *endstr, char *restricts, char *stemstr, char *prevbstr, Dialect dial, int *nends)
@@ -31,7 +17,14 @@ gk_string *
 	Dialect OrDialect;
 	gk_string * tmpgstr;
 	gk_word  * BlnkGkword;
+	gk_string WantEnd = { 0 };
+	gk_string AvoidEnd = { 0 };
 
+	if (!restricts || !nends) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	*nends = 0;
 
 	Xstrncpy(stemkeys,restricts,(int)sizeof stemkeys);
 
@@ -41,15 +34,18 @@ gk_string *
  * is deponent, we don't want to get any active endings ).
  */
 
-	WantEnd = BlankGkend;
-	AvoidEnd = BlankGkend;
-
 	tmpgstr = &WantEnd;
 
 	BlnkGkword = CreatGkword(1);
+	if (!BlnkGkword)
+		return(NULL);
 	
 	ScanAsciiKeys(stemkeys,BlnkGkword,&WantEnd,&AvoidEnd);
 	FreeGkword(BlnkGkword);
+	if (morpheus_runtime_context_error(
+	    morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE)
+		return(NULL);
 	
 /*
 printf("\nstemkeys [%s]\n", stemkeys );
@@ -58,7 +54,7 @@ printf("AvoidEnd:"); PrntAGstr(&AvoidEnd,stdout); printf("\n");
 */
 	if( ! stemtype_of(&WantEnd) ) {
 		printf("could not find a stemtype for [%s] with restricts [%s]\n", 
-			restricts );
+			stemkeys, restricts );
 		return(NULL);
 	}
 
@@ -99,24 +95,38 @@ printf("AvoidEnd:"); PrntAGstr(&AvoidEnd,stdout); printf("\n");
 	return(gstring);
 }
 
+int
  CompatKeys(char *keys1, char *keys2, gk_string *gstr)
 {
-	gk_string  Gstr;
-	gk_string  Gstr2;
+	gk_string  Gstr = { 0 };
+	gk_string  Gstr2 = { 0 };
 	gk_word * BlnkGkword;
+	gk_string original;
 	int rval = 0;
 	int is_deriv = 0;
+
+	if (!keys1 || !keys2 || !gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	original = *gstr;
 	
 	BlnkGkword = CreatGkword(1);
+	if (!BlnkGkword)
+		return(0);
 	
 	is_deriv = has_morphflag(morphflags_of(gstr),IS_DERIV);
-	Gstr = BlankGkend;
-	Gstr2 = BlankGkend;
-	*gstr = BlankGkend;
+	*gstr = (gk_string){ 0 };
 	if( is_deriv ) add_morphflag(morphflags_of(gstr),IS_DERIV);
 	ScanAsciiKeys(keys1,BlnkGkword,gstr,NULL);
 	ScanAsciiKeys(keys2,BlnkGkword,&Gstr2,NULL);
 	FreeGkword(BlnkGkword);
+	if (morpheus_runtime_context_error(
+	    morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE) {
+		*gstr = original;
+		return(0);
+	}
 
 	rval = EndingOk(keys2,gstr,&Gstr,1);
 	/*
@@ -137,15 +147,34 @@ printf("AvoidEnd:"); PrntAGstr(&AvoidEnd,stdout); printf("\n");
 }
  
  
+int
  EndingOk(char *keys, gk_string *gstr, gk_string *avoidgstr, int wantderiv)
 {
 	int good = 0;
 	gk_word * BlnkGkword;
+	gk_string Cur_gkend = { 0 };
+	gk_string original_gstr;
+	gk_string original_avoid;
+
+	if (!keys || !gstr || !avoidgstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	original_gstr = *gstr;
+	original_avoid = *avoidgstr;
 	
-	Cur_gkend = BlankGkend;
 	BlnkGkword = CreatGkword(1);
+	if (!BlnkGkword)
+		return(0);
 	ScanAsciiKeys(keys,BlnkGkword,&Cur_gkend,avoidgstr);
 	FreeGkword(BlnkGkword);
+	if (morpheus_runtime_context_error(
+	    morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE) {
+		*gstr = original_gstr;
+		*avoidgstr = original_avoid;
+		return(0);
+	}
 	
 	if( wantderiv ) {
 		if( ! derivtype_of(gstr) || derivtype_of(gstr) < 0 ) return(0);
@@ -175,14 +204,14 @@ LPrntGstr(&Cur_gkend,stdout);
 		voice1 = voice_of(forminfo_of(&Cur_gkend));
 		voice2 = voice_of(forminfo_of(gstr));
 		
-		if( voice1 ) set_voice(forminfo_of(gstr),voice1);
+		if( voice1 ) set_voice(forminfo_of(gstr),(unsigned int)voice1 & 07U);
 		
 		case1 = case_of(forminfo_of(&Cur_gkend));
 		case2 = case_of(forminfo_of(gstr));
 		if( case1 & case2 )
-			set_case(forminfo_of(gstr), (case1 & case2) );
+			set_case(forminfo_of(gstr), (unsigned int)(case1 & case2) & 077U);
 		else if( case1 && ! case2 )
-			set_case(forminfo_of(gstr), case1 );
+			set_case(forminfo_of(gstr), (unsigned int)case1 & 077U);
 	
 		num2 = number_of(forminfo_of(&Cur_gkend));
 		if( num2 )
@@ -195,9 +224,9 @@ LPrntGstr(&Cur_gkend,stdout);
 		gend1 = gender_of(forminfo_of(&Cur_gkend));
 		gend2 = gender_of(forminfo_of(gstr));
 		if( gend1 & gend2 )
-			set_gender(forminfo_of(gstr), (gend1 & gend2) );
+			set_gender(forminfo_of(gstr), (unsigned int)(gend1 & gend2) & 017U);
 		else if( gend1 && ! gend2 )
-			set_gender(forminfo_of(gstr), gend1 );
+			set_gender(forminfo_of(gstr), (unsigned int)gend1 & 017U);
 
 		dial1 = dialect_of(&Cur_gkend);
 		dial2 = dialect_of(gstr);
@@ -215,16 +244,19 @@ static gk_string *
  RetrCompEnds(gk_string *wantgkend, gk_string *avoidgkend, int *nends, Dialect OrDialect)
 {
 	gk_string * ListOfEnds;
-	gk_string * CurrentList, *GetCurrentEndList();
+	gk_string *CurrentList;
 	int rval, avoidrval;
 	int lno = 0;
 	int maxend = 0;
 	char fname[BUFSIZ];
 	int i;
+	gk_string Cur_gkend;
 
 	*nends = 0;
 	
 	CurrentList = GetCurrentEndList(wantgkend,&lno);
+	if (!CurrentList)
+		return(NULL);
 
 /*
 	sprintf(fname,"%s/out/%s.out", ENDTABLEDIR , NameOfStemtype(stemtype_of(wantgkend)) );
@@ -277,6 +309,14 @@ PrntAGstr(&Cur_gkend,stdout); putchar('\n');
 
 	    	set_stemtype(&Cur_gkend,stemtype_of(wantgkend) );
 
+		/*
+		 * GROUP_NAME classifies the stem rather than its ending.  It is
+		 * consumed while selecting plural endings, so retain it explicitly
+		 * in the completed analysis returned by the structured API.
+		 */
+		if( Is_group_name(morphflags_of(wantgkend)) )
+			add_morphflag(morphflags_of(&Cur_gkend),GROUP_NAME);
+
 		    AddNewEnd(ListOfEnds,&Cur_gkend,*nends);
 	            (*nends)++;
 		}
@@ -301,35 +341,7 @@ printf("Cur_gkend:"); PrntGkFlags(&Cur_gkend,stdout); printf("\n\n");
 	return(ListOfEnds);
 }
 
-static
- ProcEndRecord(char *s, gk_string *gkend)
-{
-	gk_word * BlnkGkword;
-	
-	BlnkGkword = CreatGkword(1);
-	s=GetEndString(s,gkend);
-	ScanAsciiKeys(s,BlnkGkword,gkend,NULL);
-	FreeGkword(BlnkGkword);
-}
-
-static char * 
- GetEndString(char *s, gk_string *gkend)
-{
-	char tmp[128];
-	char *a;
-
-	a = tmp; 
-	while( isspace( *s ) ) s++;
-	if( ! *s ) return(NULL);
-	while( ! isspace( *s ) && *s ) *a++ = *s++;
-	*a = 0;
-	while( isspace( *s ) ) s++;
-	if( !*s ) return(NULL);
-	set_gkstring(gkend,tmp);
-	return(s);
-}
-
-static
+static int
  NoWantGkEnd(gk_string *skipend, gk_string *haveend, int strict)
 {
 
@@ -366,6 +378,7 @@ static
  *		
  */
 /*static*/
+int
  WantGkEnd(gk_string *wantend, gk_string *haveend, bool writeflag, int strict)
 {
 	int compval;
@@ -440,7 +453,7 @@ printf("failing on wmood %o hmood %o\n", wmood, hmood );
 
    	if( (stemtype_of(wantend) & PPARTMASK ) == PP_SU && 
 	     cur_lang() == LATIN && wvoice == DEPONENT ) {
-			set_voice(forminfo_of(haveend), wvoice);
+			set_voice(forminfo_of(haveend), (unsigned int)wvoice & 07U);
    	}
 
 	if( cur_lang() == LATIN && wvoice == DEPONENT ) {
@@ -461,7 +474,7 @@ printf("have [%s] failing on wvoice %o hvoice %o\n",hendstr, wvoice, hvoice );
  */
 
 			if( writeflag == YES )
-			   set_voice(forminfo_of(haveend), wvoice);
+			   set_voice(forminfo_of(haveend), (unsigned int)wvoice & 07U);
 		}
 	}
 
@@ -484,7 +497,6 @@ printf("failing on wtense %o htense %o\n", wtense, htense );
  * an ending that is common to both (but not, for example, to a neuter
  * stem, e.g. -es in nom pl for masc and fem, but -a for neuter)
  */
-/*
 
 /*
  * only fail if gender set for both.
@@ -502,11 +514,12 @@ printf("failing with hgender %o and wgender %o\n", hgender , wgender );
 				return(0);
 			}
 		}
-		if( writeflag )
+		if( writeflag ) {
 			if( Want_Gender(wform,hform) )
-				set_gender(forminfo_of(haveend), Want_Gender(wform, hform));
+				set_gender(forminfo_of(haveend), Want_Gender(wform, hform) & 017U);
 			else
-			   	set_gender(forminfo_of(haveend), wgender );
+			   	set_gender(forminfo_of(haveend), (unsigned int)wgender & 017U);
+		}
 	}
 
 	if( wcase ) {
@@ -521,7 +534,7 @@ if( writeflag ) {
 #ifdef SHOWFAIL
 printf("[%s] hcase %o wcase %o anded %o\n", gkstring_of(haveend), hcase, wcase, hcase & wcase );
 #endif
-		set_case(forminfo_of(haveend) , wcase&hcase );
+		set_case(forminfo_of(haveend) , (unsigned int)(wcase & hcase) & 077U);
 }
 	}
 
@@ -641,7 +654,8 @@ printf("[%s] failing on euph end\n", gkstring_of(haveend) );
 			if( hdegree || (!hdegree && strict) )
 				return(0);
 		}
-		if( wdegree && writeflag ) set_degree(forminfo_of(haveend),wdegree);
+		if( wdegree && writeflag )
+			set_degree(forminfo_of(haveend),(unsigned int)wdegree & 03U);
 	}
 
 	if( ! RightMorphflags(wantend,haveend)) {
@@ -653,6 +667,7 @@ printf("[%s] failing on rightmorphflags\n", gkstring_of(haveend) );
 	return(1);
 }
 
+int
  RightMorphflags(gk_string *wantend, gk_string *haveend)
 {
 /*
@@ -684,7 +699,7 @@ printf("[%s] failing on rightmorphflags\n", gkstring_of(haveend) );
 	return(1);
 }
 
-static 
+static void
  AddNewEnd(gk_string *gstrings, gk_string *newgstr, int sofar)
 {
 	int i, rval;
@@ -720,6 +735,7 @@ printf("starting with: "); PrntGkFlags(newgstr,stdout); printf("\n", rval );
 }
 
 
+void
 setwendstr(char *wendstr, char *str)
 {
 	char * p = str;
@@ -730,30 +746,31 @@ setwendstr(char *wendstr, char *str)
 		*s++ = *p++;
 	}
 
-	if(*(s-1) == HARDSHORT ) *--s = 0;
-	if( *(s-1) == '-' && p > str) {
-		start_match = 1;
+	if(s > wendstr && *(s-1) == HARDSHORT ) *--s = 0;
+	if(s > wendstr && *(s-1) == '-') {
+		morpheus_runtime_context_current()->ending_start_match = 1;
 		s--;
 	} else
-		start_match = 0;
+		morpheus_runtime_context_current()->ending_start_match = 0;
 	*s = 0;
 	stripacc(wendstr);
 }
 
+int
 endstrcmp(char *wendstr, char *haveendstr)
 {
 	char tmp[MAXWORDSIZE];
 	char *hp, *sp;
-	int i = 0;
-	int wlen, j;
+	size_t i = 0;
+	size_t wlen;
 	
 	
-	if( start_match) {
+	if( morpheus_runtime_context_current()->ending_start_match ) {
 		wlen = Xstrlen(wendstr);
 		hp = haveendstr;
 		sp = tmp;
 		for(i=0;i<wlen;) {
-			if( ! isalpha(*hp) && *(wendstr+i) != *hp ) {
+			if( ! isalpha((unsigned char)*hp) && *(wendstr+i) != *hp ) {
 				hp++;
 				continue;
 			}
@@ -772,6 +789,7 @@ printf("%s --> %s\n", haveendstr, tmp );
 	return(dictstrcmp(wendstr,haveendstr));
 }
 
+int
 noaccstrcmp(char *wendstr, char *hendstr)
 {
 	char tmp1[BUFSIZ];
@@ -786,6 +804,7 @@ noaccstrcmp(char *wendstr, char *hendstr)
 	return(strcmp(tmp1,tmp2));
 }
 
+int
 has_quantacc(char *s)
 {
 	int rval = 0;
@@ -794,6 +813,7 @@ has_quantacc(char *s)
 	return(rval);
 }
 
+void
 stripquantacc(char *s)
 {
 	stripquant(s);

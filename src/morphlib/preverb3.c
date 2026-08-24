@@ -1,45 +1,59 @@
+#include "morphlib_internal.h"
 #include <contract.h>
 
 #include "preverb3.proto.h"
 
-static previndex = 0;
-static char prevprevb[MAXWORDSIZE];
-static gk_string * PrevbTable;
-gk_string * load_euph_tab();
-static int numprevb = 0;
-
-nextpreverb(char *word, char *oldprevb, char *pblemma, gk_string *gstr)
+static int ensure_preverb_table(void)
 {
-  int i = 0;
-  
-  if( ! PrevbTable ) {
-    PrevbTable = load_euph_tab(RAWPBLIST,&numprevb,NO);
-    if( ! PrevbTable ) {
-      fprintf(stderr,"Could not create numpreverbs!\n");
-      return(0);
-    }
+  morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+  if (context->raw_preverb_table &&
+      context->raw_preverb_language == cur_lang())
+    return(1);
+
+  if (context->raw_preverb_table) {
+    FreeGkString(context->raw_preverb_table);
+    context->raw_preverb_table = NULL;
+    context->raw_preverb_count = 0;
   }
 
+  context->raw_preverb_table =
+    load_euph_tab(RAWPBLIST,&context->raw_preverb_count,NO);
+  if (!context->raw_preverb_table) {
+    fprintf(stderr,"Could not create preverb table!\n");
+    return(0);
+  }
+  context->raw_preverb_language = cur_lang();
+  return(1);
+}
 
-  /* 
-   * this loop allows you to come back to the list of preverbs
-   * and skip over an aborted match.
-   *  e.g. skip past "pros" to "pro" if you had unsuccessfully
-   * looked for "pros-ai/nw" rather than "pro-sai/nw"
-   *
-   * grc 7/21/89
-   * i replaced this loop with the simpler comparison
-   *
-   if( ! strcmp(prevprevb,oldprevb) ) i = previndex;
-   *
-   if(*oldprevb) i = previndex;
-   else i = 0;
-   */
+static int valid_preverb_argument(const void *argument)
+{
+  if (argument) return(1);
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  return(0);
+}
+
+int nextpreverb(char *word, char *oldprevb, char *pblemma, gk_string *gstr)
+{
+  morpheus_runtime_context *context = morpheus_runtime_context_current();
+  gk_string *prevb_table;
+  int numprevb;
+  int i = 0;
+
+  if (!valid_preverb_argument(word) ||
+      !valid_preverb_argument(oldprevb) ||
+      !valid_preverb_argument(pblemma) ||
+      !valid_preverb_argument(gstr))
+    return(0);
+  if (!ensure_preverb_table()) return(0);
+  prevb_table = context->raw_preverb_table;
+  numprevb = context->raw_preverb_count;
 
   for ( i = 0; i < numprevb; i++) {
     if ( !*oldprevb )
       break;
-    if ( has_rawpreverb(oldprevb, PrevbTable+i) ) {
+    if ( has_rawpreverb(oldprevb, prevb_table+i) ) {
       i++;
       break;
     }
@@ -50,15 +64,13 @@ nextpreverb(char *word, char *oldprevb, char *pblemma, gk_string *gstr)
     /*
        if (! Xstrncmp(prevbtab[i].rawstring,word,Xstrlen(prevbtab[i].rawstring))) {
        */
-    if( has_rawpreverb(word,PrevbTable+i) ) {
+    if( has_rawpreverb(word,prevb_table+i) ) {
       
       char tmp[MAXWORDSIZE];
       
-      Xstrncpy(oldprevb,gkstring_of(PrevbTable+i),MAXWORDSIZE);
-      Xstrncpy(prevprevb,gkstring_of(PrevbTable+i),MAXWORDSIZE);
-      previndex = i+1;
-      Xstrncpy(pblemma,gkstring_of(PrevbTable+i)+MAXSUBSTRING,MAXWORDSIZE);
-      Xstrncpy(tmp,word+Xstrlen(gkstring_of(PrevbTable+i)) ,MAXWORDSIZE);
+      Xstrncpy(oldprevb,gkstring_of(prevb_table+i),MAXWORDSIZE);
+      Xstrncpy(pblemma,gkstring_of(prevb_table+i)+MAXSUBSTRING,MAXWORDSIZE);
+      Xstrncpy(tmp,word+Xstrlen(gkstring_of(prevb_table+i)) ,MAXWORDSIZE);
       Xstrncpy(word,tmp,MAXWORDSIZE);
       
       /*
@@ -73,13 +85,13 @@ nextpreverb(char *word, char *oldprevb, char *pblemma, gk_string *gstr)
        */
       
       if( ! no_morphflag(morphflags_of(gstr)) &&  
-	 overlap_morphflags(morphflags_of(gstr) ,morphflags_of(PrevbTable+i))
+	 overlap_morphflags(morphflags_of(gstr) ,morphflags_of(prevb_table+i))
 	 &&  has_morphflag(morphflags_of(gstr),RAW_PREVERB) )
 	continue;
       
-      add_morphflags(gstr,morphflags_of(PrevbTable+i));
-      if( dialect_of(PrevbTable+i) ) {
-	dialect_of(gstr) = dialect_of(PrevbTable+i);
+      add_morphflags(gstr,morphflags_of(prevb_table+i));
+      if( dialect_of(prevb_table+i) ) {
+	dialect_of(gstr) = dialect_of(prevb_table+i);
       }
       
       /*
@@ -98,17 +110,23 @@ nextpreverb(char *word, char *oldprevb, char *pblemma, gk_string *gstr)
   return(0);
 }
 
-has_rawpreverb(char *curpb, gk_string *pbentry)
+int has_rawpreverb(char *curpb, gk_string *pbentry)
 {
+  if (!valid_preverb_argument(curpb) ||
+      !valid_preverb_argument(pbentry))
+    return(0);
   return(!Xstrncmp(curpb,gkstring_of(pbentry),Xstrlen(gkstring_of(pbentry))));
 }
 
-is_rawpreverb(char *s) 
+int is_rawpreverb(char *s)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	int i;
 
-	for ( i = 0; i < numprevb; i++) {
-		if(!strcmp(s,gkstring_of(PrevbTable+i)))
+	if (!valid_preverb_argument(s)) return(0);
+	if (!ensure_preverb_table()) return(0);
+	for ( i = 0; i < context->raw_preverb_count; i++) {
+		if(!strcmp(s,gkstring_of(context->raw_preverb_table+i)))
 			return(1);
 	}
 	return(0);

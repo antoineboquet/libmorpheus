@@ -1,9 +1,10 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 #define MAXAUG 8
 #define TEMP_AUGMENT SYLL_AUGMENT * 2
 
 #include "augment.proto.h"
-static augmentit(gk_word *, bool, int);
+static int augmentit(gk_word *, bool, int);
 typedef struct {
 	char noaug[MAXAUG];
 	char withaug[MAXAUG];
@@ -11,10 +12,24 @@ typedef struct {
 	char uniqueflag;
 } augtable;
 
+static int valid_augment_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
+static int valid_augment_capacity(int capacity)
+{
+	if (capacity > 0) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 /*
  * Smyth 435
  */
-augtable TempAugments[] = {
+static const augtable TempAugments[] = {
 
 	"ai)",	"h)|",	(Dialect)ALL_DIAL,   0,
 	"ai(",	"h(|",	(Dialect)ALL_DIAL,   0,
@@ -92,7 +107,7 @@ augtable TempAugments[] = {
 /*
  * Smyth 431 
  */
-augtable SyllAugments[] = {
+static const augtable SyllAugments[] = {
 /*
  *	i)dw/n, ei)=don
  */
@@ -159,16 +174,19 @@ augtable SyllAugments[] = {
 	0,
 };
 
-do_syllaug(gk_word *gkform, int maxaugs)
+int do_syllaug(gk_word *gkform, int maxaugs)
 {
 	int i;
 	int naugs = 0;
 	Dialect d;
 	int compval;
-	int wstart;
+	size_t wstart;
 	char tmpstem[MAXWORDSIZE];
 	gk_word TmpGkword;
-	
+
+	if (!valid_augment_argument(gkform) ||
+	    !valid_augment_capacity(maxaugs))
+		return(0);
 	TmpGkword = *gkform;
 
 	Xstrncpy(tmpstem,workword_of(gkform),MAXWORDSIZE);
@@ -188,8 +206,16 @@ if( d ) set_dialect((gkform+naugs),d);
 			wstart = Xstrlen(SyllAugments[i].noaug);
 			if( tmpstem[wstart] == HARDSHORT ) wstart++;
 			
-			Xstrncat(tmp,tmpstem+wstart ,MAXWORDSIZE);
-			sprintf(aug1_of(gkform+naugs),"%s>%s", SyllAugments[i].noaug,SyllAugments[i].withaug);
+			if (!Xstrncat(tmp,tmpstem+wstart,sizeof tmp) ||
+			    snprintf(aug1_of(gkform+naugs),
+			             sizeof aug1_of(gkform+naugs),"%s>%s",
+			             SyllAugments[i].noaug,
+			             SyllAugments[i].withaug) >=
+			             (int)sizeof aug1_of(gkform+naugs)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(naugs);
+			}
 
 /*
 			if(d) set_dialect(aug1_gstr_of((gkform+naugs)),d);
@@ -212,14 +238,18 @@ fprintf(stderr,"temp: got naugs %d with max %d\n", naugs , maxaugs );
 	return(naugs);
 }
 
-do_tempaug(gk_word *gkform, int maxaugs)
+int do_tempaug(gk_word *gkform, int maxaugs)
 {
-	int i, wstart;
+	int i;
+	size_t wstart;
 	int naugs = 0;
 	char tmpstem[MAXWORDSIZE];
 	Dialect d;
 	gk_word TmpGkword;
-	
+
+	if (!valid_augment_argument(gkform) ||
+	    !valid_augment_capacity(maxaugs))
+		return(0);
 	TmpGkword = *gkform;
 
 	Xstrncpy(tmpstem,workword_of(gkform),MAXWORDSIZE);
@@ -240,12 +270,24 @@ do_tempaug(gk_word *gkform, int maxaugs)
 
 			wstart = Xstrlen(TempAugments[i].noaug);
 			if( tmpstem[wstart] == HARDSHORT ) wstart++;
-			Xstrncat(tmp,tmpstem+wstart ,MAXWORDSIZE);
+			if (!Xstrncat(tmp,tmpstem+wstart,sizeof tmp)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(naugs);
+			}
 
 /*			
 			Xstrncat(tmp,tmpstem+wstart ,MAXWORDSIZE);
 */
-			sprintf(aug1_of(gkform+naugs),"%s>%s", TempAugments[i].noaug,TempAugments[i].withaug);
+			if (snprintf(aug1_of(gkform+naugs),
+			             sizeof aug1_of(gkform+naugs),"%s>%s",
+			             TempAugments[i].noaug,
+			             TempAugments[i].withaug) >=
+			    (int)sizeof aug1_of(gkform+naugs)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(naugs);
+			}
 
 /*
 			if(d) set_dialect(aug1_gstr_of((gkform+naugs)),d);
@@ -274,19 +316,30 @@ fprintf(stderr,"temp: got naugs %d with max %d\n", naugs , maxaugs );
  *
  * if not, then these stems should only be attached to indicatives
  */
-unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Dialect dial, int wantsyllaugs, int wantredupl)
+int unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Dialect dial, int wantsyllaugs, int wantredupl)
 {
 	int rval = 0;
 	int compval;
 	int i;
 	char augnoquant[MAXWORDSIZE];
 	Dialect d;
+	int slot;
 
-
+	if (!valid_augment_argument(s) ||
+	    !valid_augment_argument(possibs) ||
+	    !valid_augment_argument(qpossibs) ||
+	    !valid_augment_capacity(maxstems))
+		return(0);
+	for (slot = 0; slot < maxstems; slot++) {
+		if (!valid_augment_argument(possibs[slot]) ||
+		    !valid_augment_argument(qpossibs[slot]))
+			return(0);
+	}
 	if( ! Xstrncmp(s,"e)rr",4) ) {
+		char tmp[MAXWORDSIZE] = "r(";
+		if (!morpheus_runtime_string_append(tmp,s+4,sizeof tmp)) return(0);
 		rval = 1;
-		Xstrncpy(gkstring_of(possibs[0]),"r(",MAXWORDSIZE);
-		Xstrncat(gkstring_of(possibs[0]),s+4,MAXWORDSIZE);
+		Xstrncpy(gkstring_of(possibs[0]),tmp,MAXWORDSIZE);
 		if( ! wantredupl ) {
 			set_mood(forminfo_of(possibs[0]),INDICATIVE);
 		}
@@ -294,9 +347,10 @@ unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Di
 	}
 	
 	if( ! Xstrncmp(s,"e)r",3) ) {
+		char tmp[MAXWORDSIZE] = "r(";
+		if (!morpheus_runtime_string_append(tmp,s+3,sizeof tmp)) return(0);
 		rval = 1;
-		Xstrncpy(gkstring_of(possibs[0]),"r(",MAXWORDSIZE);
-		Xstrncat(gkstring_of(possibs[0]),s+3,MAXWORDSIZE);
+		Xstrncpy(gkstring_of(possibs[0]),tmp,MAXWORDSIZE);
 		add_morphflag(morphflags_of(possibs[0]),RAW_SONANT);
 		if( ! wantredupl ) {
 			set_mood(forminfo_of(possibs[0]),INDICATIVE);
@@ -330,12 +384,14 @@ unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Di
 /*
 			Xstrncat(tmp,s+Xstrlen(TempAugments[i].withaug),MAXWORDSIZE );
 */
-			Xstrncat(tmp,s+Xstrlen(augnoquant) ,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,s+Xstrlen(augnoquant),sizeof tmp)) return(rval);
 			Xstrncpy(gkstring_of(possibs[rval]),tmp,MAXWORDSIZE);
 
 			if( strcmp(augnoquant,TempAugments[i].withaug) ) {
 				Xstrncpy(tmp,TempAugments[i].withaug,MAXWORDSIZE);
-				Xstrncat(tmp,s+Xstrlen(augnoquant) ,MAXWORDSIZE);
+				if (!morpheus_runtime_string_append(
+				    tmp,s+Xstrlen(augnoquant),sizeof tmp)) return(rval);
 				Xstrncpy(gkstring_of(qpossibs[rval]),tmp,MAXWORDSIZE);
 				set_dialect(possibs[rval],TempAugments[i].augdial );
 			}
@@ -360,7 +416,8 @@ unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Di
 /*
 			Xstrncat(tmp,s+Xstrlen(SyllAugments[i].withaug) ,MAXWORDSIZE);
 */
-			Xstrncat(tmp,s+Xstrlen(augnoquant) ,MAXWORDSIZE);
+			if (!morpheus_runtime_string_append(
+			    tmp,s+Xstrlen(augnoquant),sizeof tmp)) return(rval);
 			Xstrncpy(gkstring_of(possibs[rval]),tmp,MAXWORDSIZE);
 			set_dialect(possibs[rval],SyllAugments[i].augdial);
 			add_morphflag(morphflags_of(possibs[rval]),SYLL_AUGMENT);
@@ -374,11 +431,16 @@ unaugment(char *s, gk_string *possibs[], gk_string *qpossibs[], int maxstems, Di
 }
 
 
-unaugfromlemma(char *stem, char *lemma)
+int unaugfromlemma(char *stem, char *lemma)
 {
 	char tmp[MAXWORDSIZE];
-	int i, withlen, noauglen;
+	int i;
+	size_t withlen, noauglen;
 	int compval;
+
+	if (!valid_augment_argument(stem) ||
+	    !valid_augment_argument(lemma))
+		return(-1);
 /*
  * normal augment on consonantal stem, e.g. "e)ball" and "ba/llw"
  */
@@ -413,7 +475,9 @@ unaugfromlemma(char *stem, char *lemma)
 			if(!Xstrncmp( TempAugments[i].noaug, lemma ,noauglen)){
 
 				Xstrncpy(tmp,TempAugments[i].noaug,MAXWORDSIZE);
-				Xstrncat(tmp,stem+Xstrlen(TempAugments[i].withaug) ,MAXWORDSIZE);
+				if (!morpheus_runtime_string_append(
+				    tmp,stem+Xstrlen(TempAugments[i].withaug),
+				    sizeof tmp)) return(-1);
 				Xstrncpy(stem,tmp,MAXWORDSIZE);
 				return(TEMP_AUGMENT);
 			}
@@ -432,7 +496,9 @@ unaugfromlemma(char *stem, char *lemma)
 			if(!Xstrncmp( SyllAugments[i].noaug, lemma ,noauglen)){
 
 				Xstrncpy(tmp,SyllAugments[i].noaug,MAXWORDSIZE);
-				Xstrncat(tmp,stem+Xstrlen(SyllAugments[i].withaug),MAXWORDSIZE );
+				if (!morpheus_runtime_string_append(
+				    tmp,stem+Xstrlen(SyllAugments[i].withaug),
+				    sizeof tmp)) return(-1);
 				Xstrncpy(stem,tmp,MAXWORDSIZE);
 				return(SYLL_AUGMENT);
 			}
@@ -441,14 +507,18 @@ unaugfromlemma(char *stem, char *lemma)
 	return(-1);
 }
 
-add_augment(gk_word *gkform, MorphFlags *mf, int maxaugs)
+int add_augment(gk_word *gkform, MorphFlags *mf, int maxaugs)
 {
 	bool syllabic;
 	char * res;
 	int rval = 0;
 	gk_string SaveGstr;
 	gk_string * tmpgstr;
-	
+
+	if (!valid_augment_argument(gkform) ||
+	    !valid_augment_argument(mf) ||
+	    !valid_augment_capacity(maxaugs))
+		return(0);
 	tmpgstr = &SaveGstr;
 
 	syllabic = syll_augment(morphflags_of(stem_gstr_of(gkform))) ? YES : NO;
@@ -489,11 +559,12 @@ add_augment(gk_word *gkform, MorphFlags *mf, int maxaugs)
 	return(rval);
 }
 
-needs_augment(gk_string *gstr)
+int needs_augment(gk_string *gstr)
 {
 	gk_word * TmpGkword;
 	int rval;
-	
+
+	if (!valid_augment_argument(gstr)) return(0);
 	TmpGkword = CreatGkword(2);
 	if( ! TmpGkword ) {
 		fprintf(stderr,"no memory for TmpGkword in needs_augment\n");
@@ -507,10 +578,13 @@ needs_augment(gk_string *gstr)
 	return(rval);
 }
 
-needs_augment2(gk_word *gkform, char *stem)
+int needs_augment2(gk_word *gkform, char *stem)
 {
 	word_form v_form;
-	
+
+	if (!valid_augment_argument(gkform) ||
+	    !valid_augment_argument(stem))
+		return(0);
 	v_form = forminfo_of(gkform);
 	
 	if( Has_augment(morphflags_of(stem_gstr_of(gkform))) ) 
@@ -550,10 +624,11 @@ needs_augment2(gk_word *gkform, char *stem)
 
 
  
-simpleaugment(char *s, bool syllabic)
+void simpleaugment(char *s, bool syllabic)
 {
 	gk_word * gkform;
 
+	if (!valid_augment_argument(s)) return;
 	gkform = CreatGkword(6);
 	if( ! gkform ) {
 		fprintf(stderr,"no memory for gkform in simpleaugment of [%s]\n",s);
@@ -567,10 +642,16 @@ simpleaugment(char *s, bool syllabic)
 }
 
 static
-augmentit(gk_word *gkform, bool syllabic, int maxaugs)
+int augmentit(gk_word *gkform, bool syllabic, int maxaugs)
 {
-	char * s = workword_of(gkform);
-	gk_string * stem_gstr = stem_gstr_of(gkform);
+	char *s;
+	gk_string *stem_gstr;
+
+	if (!valid_augment_argument(gkform) ||
+	    !valid_augment_capacity(maxaugs))
+		return(0);
+	s = workword_of(gkform);
+	stem_gstr = stem_gstr_of(gkform);
 	
 	if( Is_cons(*s) ) {
 		if (0==Xstrncmp("r(",s,2)) {
@@ -582,7 +663,13 @@ augmentit(gk_word *gkform, bool syllabic, int maxaugs)
 				
 		} else if( has_morphflag(morphflags_of(stem_gstr),SYLL_AUGMENT)) {
 			cinsert(*s,s);
-			sprintf(aug1_of(gkform),"%c>e)%c%c", *s, *s , *s );
+			if (snprintf(aug1_of(gkform),sizeof aug1_of(gkform),
+			             "%c>e)%c%c",*s,*s,*s) >=
+			    (int)sizeof aug1_of(gkform)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 		}
 		cinsert (SMOOTHBR,s);
 		cinsert ('e',s);
@@ -596,10 +683,11 @@ augmentit(gk_word *gkform, bool syllabic, int maxaugs)
 		return(do_tempaug(gkform,maxaugs));
 }
 
-simpleredupit(char *s, int syllabic, int redupc)
+void simpleredupit(char *s, int syllabic, int redupc)
 {
 	gk_word * gkform;
 
+	if (!valid_augment_argument(s)) return;
 	gkform = CreatGkword(6);
 	if( ! gkform ) {
 		fprintf(stderr,"no memory for gkform in simpleaugment of [%s]\n",s);
@@ -612,11 +700,14 @@ simpleredupit(char *s, int syllabic, int redupc)
 	FreeGkword(gkform);
 }
 
-redupit2(gk_word *gkform, int syllabic, int redupc, int nredups)
+int redupit2(gk_word *gkform, int syllabic, int redupc, int nredups)
 {
 /* Smyth 440-442 */
 	register char c;
-	register char * s = workword_of(gkform);
+	register char *s;
+
+	if (!valid_augment_argument(gkform)) return(0);
+	s = workword_of(gkform);
 
 	if( Is_cons(*s) && Is_cons(*(s+1)) && ! Is_liquid(*(s+1)) && redupc != 'i' )
 		return(augmentit(gkform,syllabic,nredups));
@@ -647,11 +738,13 @@ simpleaugment(s,syllabic);
 	return(1);
 }
 
-un_redupl(char *src, char *res, int redupc)
+int un_redupl(char *src, char *res, int redupc)
 {
 	char sbuf[MAXWORDSIZE+1], * p;
-	
+
+	if (!valid_augment_argument(res)) return(0);
 	*res = 0;
+	if (!valid_augment_argument(src)) return(0);
 	Xstrncpy(sbuf,src,MAXWORDSIZE);
 	stripacc(sbuf);
 	
@@ -681,9 +774,11 @@ un_redupl(char *src, char *res, int redupc)
  * or
  *    e --> h [e.g., e)n]
  */
-add_double_augment(char *s, MorphFlags *oddpb)
+void add_double_augment(char *s, MorphFlags *oddpb)
 {
-	
+	if (!valid_augment_argument(s) ||
+	    !valid_augment_argument(oddpb))
+		return;
 	simpleaugment(s,NO);
 /*
 	if(*s == 'a' || *s == 'e' ) {

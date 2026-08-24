@@ -1,77 +1,52 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "greeklib_internal.h"
 #include <string.h>
 #include "xstrings.proto.h"
 
 int
 Xstrcpy(char *s1, const char *s2)
 {
-	while (*s1++ = *s2++);
+	if (!s1 || !s2) return(0);
+	memmove(s1,s2,strlen(s2)+1);
 	return(1);
 }
 
 int
 Xstrncpy(char *s1, const char *s2, size_t len)
 {
-/*
-	strncpy(s1,s2,len);
-*/
-	Xstrcpy(s1,s2);
+	size_t source_length;
+	size_t copy_length;
+
+	if (!s1 || !s2 || !len) return(0);
+	source_length = strlen(s2);
+	copy_length = source_length < len ? source_length : len - 1;
+	memmove(s1,s2,copy_length);
+	s1[copy_length] = 0;
+	return(source_length < len);
+}
+
+
+int Xstrncat(char *s1, const char *s2, size_t len)
+{
+	size_t dest_length = 0;
+	size_t source_length;
+
+	if (!s1 || !s2 || !len) return(0);
+	while (dest_length < len && s1[dest_length]) dest_length++;
+	if (dest_length == len) return(0);
+	source_length = strlen(s2);
+	if (source_length >= len - dest_length) return(0);
+	memmove(s1+dest_length,s2,source_length+1);
 	return(1);
 }
-	
-int
-Ystrncpy(char *s1, const char *s2, size_t len)
-{
-	if( Xstrlen(s2) >= len ) {
-		char * p;
-		if( len  < 5 || len > BUFSIZ*4 ) {
-			fprintf(stderr,"Xstrncpy: hey! len %d for [%s] \n", len, s2 );
-		}
 
-		
-		p = (char *)malloc((size_t)(len+1));
-		if( ! p ) {
-			fprintf(stderr,"could not allocate %d byte buf in Xstrncpy!\n", len+1);
-			*s1 = 0;
-			return;
-		}
-		strncpy(p,s2,(size_t)len);
-		*(p+len-1) = 0;
-		Xstrcpy(s1,p);
-		xFree(p,"Xstrncpy buffer");
-		fprintf(stderr,"%d bytes into %d:%s\n", Xstrlen(s2), len ,s2);
-	} else
-		Xstrcpy(s1,s2);
-}
-
-
-Xstrncat(char *s1, const char *s2, size_t len)
-{
-	size_t nlen;
-	
-	if( len  < 5 || len > BUFSIZ*4 ) {
-		fprintf(stderr,"Xstrncat: hey! len %d for [%s] \n", len, s2 );
-	}
-
-	if( Xstrlen(s1) + Xstrlen(s2) > len - 1 ) {
-		fprintf(stderr,"limit: %d; tacking [%s] + [%s] is too big!\n", len , s1 , s2 );
-		nlen = len - Xstrlen(s1) - 1;
-fprintf(stderr,"nlen %d\n", nlen );
-		strncat(s1,s2,(size_t)nlen);
-		*(s1+len-1) = 0;
-	} else
-		strcat(s1,s2);
-}
-
-Xstrncmp(const char *s1, const char *s2, size_t len)
+int Xstrncmp(const char *s1, const char *s2, size_t len)
 {
 	return(strncmp(s1,s2,(size_t)len));
 }
 
-Xstrlen(const char *s)
+size_t Xstrlen(const char *s)
 {
-	return((int)strlen(s));
+	return(strlen(s));
 }
 
 /*

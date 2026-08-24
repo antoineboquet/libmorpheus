@@ -1,3 +1,3 @@
 
 /* addbreath.c */
-int addbreath(char *, int);
+void addbreath(char *, int);

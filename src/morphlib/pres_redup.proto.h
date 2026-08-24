@@ -1,3 +1,3 @@
 
 /* pres_redup.c */
-int pres_redupl(char *);
+void pres_redupl(char *);

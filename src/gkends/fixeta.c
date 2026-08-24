@@ -1,8 +1,19 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #define MAXEUPHS 5
 
 #include "fixeta.proto.h"
-gk_string * CreatGkString();
+
+static int
+append_eta_replacement(char *word, const char *replacement,
+                       const char *tail)
+{
+	if (Xstrncat(word,replacement,MAXWORDSIZE) &&
+	    Xstrncat(word,tail,MAXWORDSIZE)) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
 
 /*
  *	ote/rhs	--> ote/ra_s	attic
@@ -12,13 +23,18 @@ gk_string *
 fix_eta(gk_string *gstr)
 {
 	gk_string * euphs;
-	char * is_substring();
 	char * orgstr;
 	char * curs;
 	Dialect d;
 
 
+	if (!gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	euphs =  CreatGkString(MAXEUPHS);
+	if (!euphs)
+		return(NULL);
 	/*
 	 * deal with h --> a_ in Attic after rho, epsilon and iota
 	 */
@@ -36,7 +52,7 @@ PrntGkStr(gstr,stdout);
 			*euphs = *gstr;
 			curs = gkstring_of(euphs);
 			Xstrcpy(curs,"a_");
-			strcat(curs,orgstr+1);
+			if (!Xstrncat(curs,orgstr+1,MAXWORDSIZE)) goto failed;
 			add_morphflag(morphflags_of(euphs),R_E_I_ALPHA);
 			set_dialect(euphs,ATTIC);
 			return(euphs);
@@ -55,8 +71,7 @@ PrntGkStr(gstr,stdout);
 			s = is_substring("rh",orgstr);
 			*s = 0; s++; s++;
 			Xstrcpy(tmp,s);
-			strcat(orgstr,"ra_");
-			strcat(orgstr,tmp);
+			if (!append_eta_replacement(orgstr,"ra_",tmp)) goto failed;
 			set_dialect(euphs,ATTIC);
 			dialect_of(gstr) &= ~(ATTIC);
 			return(euphs);
@@ -71,8 +86,7 @@ PrntGkStr(gstr,stdout);
 			s = is_substring("ih",orgstr);
 			*s = 0; s++; s++;
 			Xstrcpy(tmp,s);
-			strcat(orgstr,"ia_");
-			strcat(orgstr,tmp);
+			if (!append_eta_replacement(orgstr,"ia_",tmp)) goto failed;
 			set_dialect(euphs,ATTIC);
 			dialect_of(gstr) &= ~(ATTIC);
 			return(euphs);
@@ -89,12 +103,9 @@ PrntGkStr(gstr,stdout);
 			s = is_substring("i!h",orgstr);
 			*s = 0; s++; s++; s++;
 			Xstrcpy(tmp,s);
-			if(tmp[0] == '=' )
-				strcat(orgstr,"i!a");
-			else
-				strcat(orgstr,"i!a_");
-			
-			strcat(orgstr,tmp);
+			if (!append_eta_replacement(orgstr,
+			                            tmp[0] == '=' ? "i!a" : "i!a_",
+			                            tmp)) goto failed;
 			set_dialect(euphs,ATTIC);
 			dialect_of(gstr) &= ~(ATTIC);
 			return(euphs);
@@ -107,8 +118,7 @@ PrntGkStr(gstr,stdout);
 			s = is_substring("i_h",orgstr);
 			*s = 0; s++; s++;s++;
 			Xstrcpy(tmp,s);
-			strcat(orgstr,"i_a_");
-			strcat(orgstr,tmp);
+			if (!append_eta_replacement(orgstr,"i_a_",tmp)) goto failed;
 			set_dialect(euphs,ATTIC);
 			dialect_of(gstr) &= ~(ATTIC);
 
@@ -122,8 +132,7 @@ PrntGkStr(gstr,stdout);
 			s = is_substring("i/h",orgstr);
 			*s = 0; s++; s++; s++;
 			Xstrcpy(tmp,s);
-			strcat(orgstr,"i/a_");
-			strcat(orgstr,tmp);
+			if (!append_eta_replacement(orgstr,"i/a_",tmp)) goto failed;
 			set_dialect(euphs,ATTIC);
 			dialect_of(gstr) &= ~(ATTIC);
 			return(euphs);
@@ -136,8 +145,7 @@ PrntGkStr(gstr,stdout);
 			s = is_substring("i_/h",orgstr);
 			*s = 0; s++; s++;s++; s++;
 			Xstrcpy(tmp,s);
-			strcat(orgstr,"i_/a_");
-			strcat(orgstr,tmp);
+			if (!append_eta_replacement(orgstr,"i_/a_",tmp)) goto failed;
 			set_dialect(euphs,ATTIC);
 			dialect_of(gstr) &= ~(ATTIC);
 
@@ -152,8 +160,7 @@ PrntGkStr(gstr,stdout);
 			*s = 0;/* s++; s++; s++; */
 			Xstrcpy(tmp,s+strlen("e/-h"));
 
-			strcat(orgstr,"e/-a_");
-			strcat(orgstr,tmp);
+			if (!append_eta_replacement(orgstr,"e/-a_",tmp)) goto failed;
 
 			set_dialect(euphs,ATTIC);
 			dialect_of(gstr) &= ~(ATTIC);
@@ -191,6 +198,10 @@ PrntGkStr(gstr,stdout);
 
 
 
+	FreeGkString(euphs);
+	return(NULL);
+
+failed:
 	FreeGkString(euphs);
 	return(NULL);
 }

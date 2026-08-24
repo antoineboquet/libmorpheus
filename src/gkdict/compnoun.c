@@ -1,9 +1,8 @@
 #include <stdio.h>
-#include <gkdict.h>
-#include <gkstring.h>
+#include "gkdict_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
-int is_nomhead(char * heads,char * headkeys);
-
+void
 checkforcompnoun(char * curstem,char * endkeys,char * stemkeys)
 {
 	char *s = curstem;
@@ -24,11 +23,11 @@ checkforcompnoun(char * curstem,char * endkeys,char * stemkeys)
 				char * p;
 				p = headkeys;
 				while(*p) {
-					while(isspace(*p)) p++;
+					while(isspace((unsigned char)*p)) p++;
 					if(!*p) break;
 					printf("%s-", firsth);
 					if(*p==':') p++;
-					while(*p&&!isspace(*p)) putchar(*p++);
+					while(*p&&!isspace((unsigned char)*p)) putchar(*p++);
 					putchar('\n');
 				}
 			}
@@ -38,56 +37,133 @@ checkforcompnoun(char * curstem,char * endkeys,char * stemkeys)
 }
 
 #define MAXTAILS 10000
-char *headtab[MAXTAILS];
-static int init_headtab = 0;
-static int nheads = 0;
+#define INITIAL_HEAD_CAPACITY 64
 
-setup_headtab()
+static void
+clear_headtab(morpheus_runtime_context *context)
 {
-	FILE * fheads;
-	char line[1000];
+	int i;
 
-	if( init_headtab ) return(1);
+	for (i = 0; i < context->compound_head_count; i++)
+		free(context->compound_head_table[i]);
+	free(context->compound_head_table);
+	context->compound_head_table = NULL;
+	context->compound_head_count = 0;
+	context->compound_head_capacity = 0;
+	context->compound_head_table_initialized = 0;
+}
+
+static int
+append_head(morpheus_runtime_context *context, const char *line)
+{
+	char **new_table;
+	char *entry;
+	int capacity;
+	size_t length = strlen(line);
+
+	if (context->compound_head_count >= MAXTAILS) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	if (context->compound_head_count == context->compound_head_capacity) {
+		capacity = context->compound_head_capacity ?
+			context->compound_head_capacity * 2 : INITIAL_HEAD_CAPACITY;
+		if (capacity > MAXTAILS) capacity = MAXTAILS;
+		new_table = realloc(context->compound_head_table,
+			(size_t)capacity * sizeof *new_table);
+		if (!new_table) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+			return(0);
+		}
+		context->compound_head_table = new_table;
+		context->compound_head_capacity = capacity;
+	}
+	entry = malloc(length);
+	if (!entry) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
+	}
+	memcpy(entry,line+1,length);
+	context->compound_head_table[context->compound_head_count++] = entry;
+	return(1);
+}
+
+int
+setup_headtab_stream(FILE *fheads)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char line[1000];
+	size_t length;
+
+	if (context->compound_head_table_initialized) return(1);
+	while(fgets(line,sizeof line,fheads) ) {
+		if( line[0] != '#' ) continue;
+		length = strlen(line);
+		while (length && (line[length-1] == '\n' || line[length-1] == '\r'))
+			line[--length] = 0;
+		if (!append_head(context,line)) {
+			clear_headtab(context);
+			return(0);
+		}
+	}
+	if (ferror(fheads)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		clear_headtab(context);
+		return(0);
+	}
+	context->compound_head_table_initialized = 1;
+	return(1);
+}
+
+int
+setup_headtab(void)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	FILE * fheads;
+	int result;
+
+	if( context->compound_head_table_initialized ) return(1);
 	if(!(fheads=fopen(COMPHEADS,"r"))) {
 		fprintf(stderr,"could not open [%s]\n", COMPHEADS ); 
 		return(0);
 	}
-	while(fgets(line,sizeof line,fheads) ) {
-		if( line[0] != '#' ) continue;
-		headtab[nheads] = malloc(strlen(line));
-		line[strlen(line)-1] = 0;
-		Xstrcpy(headtab[nheads],line+1);
-		nheads++;
-	}
+	result = setup_headtab_stream(fheads);
 	fclose(fheads);
-	init_headtab = 1;
-	return(1);
+	return(result);
 }
 
+int
 is_nomhead(char * heads,char * headkeys)
 {
 	int rval = 0;
 	char tmphead[BUFSIZ];
 	char tmptab[BUFSIZ];
+	char headentry[BUFSIZ];
 	int i;
 	char *s;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 
-	if( ! init_headtab ) setup_headtab();
+	if( ! context->compound_head_table_initialized && ! setup_headtab() )
+		return(0);
 	Xstrcpy(tmphead,heads);
 	stripacc(tmphead);
-	strcat(tmphead,"\t");
+	if (!morpheus_runtime_string_append(tmphead,"\t",sizeof tmphead))
+		return(0);
 
 	headkeys[0] = 0;
-	for(i=0;i<nheads;i++) {
-		Xstrcpy(tmptab,headtab[i]);
+	for(i=0;i<context->compound_head_count;i++) {
+		Xstrcpy(tmptab,context->compound_head_table[i]);
 		stripquant(tmptab);
 		if( !strncmp(tmptab,tmphead,strlen(tmphead)) ) {
-			s = headtab[i]+strlen(tmphead)-1;
-			while(isspace(*s)) *s++ = ':';	
-			while(*s&&!isspace(*s)) s++;
-			while(isspace(*s)) *s++ = ':';	
-			strcat(headkeys,headtab[i]);
-			strcat(headkeys," ");
+			Xstrcpy(headentry,context->compound_head_table[i]);
+			s = headentry+strlen(tmphead)-1;
+			while(isspace((unsigned char)*s)) *s++ = ':';	
+			while(*s&&!isspace((unsigned char)*s)) s++;
+			while(isspace((unsigned char)*s)) *s++ = ':';	
+			if (!morpheus_runtime_string_append(
+			    headkeys,headentry,BUFSIZ) ||
+			    !morpheus_runtime_string_append(headkeys," ",BUFSIZ))
+				return(rval);
 			rval = 1;
 		} 
 	}

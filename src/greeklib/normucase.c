@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 #include <greek.h>
 
 #include "normucase.proto.h"
@@ -12,28 +13,28 @@
  * start with something like "*(/ellhn"
  * and end with "E(/llhn"
  */
-normucase(char *word)
+int normucase(char *word)
 {
 	register char * s;
-	register char * t;
 
+	if (!word) return(0);
 	if( *word != BETA_UCASE_MARKER ) return(0);
 
 	s = word;
-	while(!isalpha(*s)&&*s) s++;
+	while(!isalpha((unsigned char)*s)&&*s) s++;
 
 	/*
 	 * in case of "*(/ellhn", s points now to "ellhn"
  	 */
-	if( ! islower(*s) )
+	if( ! islower((unsigned char)*s) )
 		return(0);
-	*word = toupper(*s);
+	*word = (char)toupper((unsigned char)*s);
 	/*
  	 * word now "E(/ellhn"
 	 */
-	t = s+1;
-	Xstrcpy(s,t);
+	strsqz(s,1);
 	/*
- 	 * word now "E(/llhn"
+	 * word now "E(/llhn"
 	 */
+	return(1);
 }

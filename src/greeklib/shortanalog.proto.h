@@ -1,3 +1,3 @@
 
 /* shortanalog.c */
-int shortanalog(char *);
+void shortanalog(char *);

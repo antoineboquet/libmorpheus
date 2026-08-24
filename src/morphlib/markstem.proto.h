@@ -1,3 +1,3 @@
 
 /* markstem.c */
-int markstem(char *, gk_string *);
+void markstem(char *, gk_string *);

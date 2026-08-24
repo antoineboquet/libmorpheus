@@ -1,21 +1,32 @@
 #include <string.h>
 
 #include <gkstring.h> 
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "acccompos.proto.h"
-char * skip_to_syll();
 
+void
 AccComposForm(gk_string *gstr)
 {
 	gk_word * gkform;
-	char * p = gkstring_of(gstr);
+	char *p;
 	char *s;
 	char word[MAXWORDSIZE];
 	char prefword[MAXWORDSIZE];
 	char saveword[MAXWORDSIZE];
+	gk_string original;
 	int had_stem_acc = 0;
 	int had_suff_acc = 0;
+	if (!gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	original = *gstr;
+	p = gkstring_of(gstr);
 	gkform = (gk_word *) CreatGkword(1);
+	if (!gkform)
+		return;
 	word[0] = prefword[0] = saveword[0] = 0;
 
 /*
@@ -93,7 +104,8 @@ printf("start with p [%s]\n", p );
 		has_morphflag(morphflags_of(gstr),INDECLFORM) ? 0 : 1 );
 		if(word[0] ) {
 			if( prefword[0] ) {
-				strcat(prefword,word);
+				if (!Xstrncat(prefword,word,sizeof prefword))
+					goto text_overflow;
 				Xstrcpy(word,prefword);
 			}
 			Xstrcpy(gkstring_of(gstr),word);
@@ -103,7 +115,8 @@ printf("start with p [%s]\n", p );
 	} else if( Is_verbform(gstr) || had_suff_acc ) {
 		FixRecAcc(gkform,morphflags_of(gstr),p);
 		if( prefword[0] ) {
-			strcat(prefword,p);
+			if (!Xstrncat(prefword,p,sizeof prefword))
+				goto text_overflow;
 			Xstrcpy(p,prefword);
 		}
 	}  
@@ -127,7 +140,12 @@ finish:
 	}
 
 	FreeGkword(gkform);
-	
+	return;
+
+text_overflow:
+	*gstr = original;
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	FreeGkword(gkform);
 }
 
 char *

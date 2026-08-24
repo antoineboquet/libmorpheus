@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*	Univ. of Calif. Greek Project	*/
 /*	1985-86				*/
 /*	Joshua Kosman			*/
@@ -7,16 +8,21 @@
 
 #include "nsylls.proto.h"
 
-nsylls(char *word)
+int nsylls(char *word)
 {
 	register char *p;
 	register int syllcount;
+	size_t length;
 
 	syllcount = 0;
-	for (p = lastn(word,1);p>=word;p--)
+	if (!word) return(0);
+	length = Xstrlen(word);
+	while (length) {
+		p = word + --length;
 		if (Is_vowel(*p)) {
 			if (!is_diphth(p,word)) /* count first vowel only */
 				syllcount++;
 			}
+	}
 	return (syllcount);
 }

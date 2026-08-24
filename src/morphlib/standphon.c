@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 
 #include "standphon.proto.h"
@@ -16,10 +17,16 @@
  * sigma has been replaced by the 'h'. It replaces the 's' and marks this word as 
  * "Laconian".
  */
-stand_phonetics(gk_word *Gkword)
+void stand_phonetics(gk_word *Gkword)
 {
-	register char * s = workword_of(Gkword);
+	char *s;
 	int lastc = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	s = workword_of(Gkword);
 	
 	while(*s) {
 		
@@ -40,7 +47,8 @@ stand_phonetics(gk_word *Gkword)
 		if( *s == H_AS_ROUGH ) {
 				Xstrcpy(s,s+1);
 				addbreath(s,ROUGHBR);
-				if( islower(*s) ) *s = toupper(*s);
+				if( islower((unsigned char)*s) )
+					*s = (char)toupper((unsigned char)*s);
 				continue;
 		}
 		
@@ -48,7 +56,7 @@ stand_phonetics(gk_word *Gkword)
 		 * grc 6/29/89
 		 * this causes ei)s-de/xomai, ei)s-de/rkomai etc. to fail
 		 *
-		if( *s == 's' && *(s+1) == 'd' ) { /* "sd" --> "z" *
+		if( *s == 's' && *(s+1) == 'd' ) { -- "sd" becomes "z"
 			*s = 'z';
 			s++;
 			Xstrcpy(s,s+1);
@@ -58,13 +66,13 @@ stand_phonetics(gk_word *Gkword)
 		 * grc 6/29/89
 		 * this causes e)k-ste/llw, e)kste/fw etc. to fail
 		 *
-		if( *s == 'k' && *(s+1) == 's' ) { /* "ks" --> "c" *
+		if( *s == 'k' && *(s+1) == 's' ) { -- "ks" becomes "c"
 			*s = 'c';
 			s++;
 			Xstrcpy(s,s+1);
 		}
 		*/
-		if( isalpha(*s) ) lastc = *s;
+		if( isalpha((unsigned char)*s) ) lastc = *s;
 		s++;
 	}
 	

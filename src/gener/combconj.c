@@ -346,7 +346,7 @@ printf("str1 [%s] str2 [%s] rval %d\n", gkstring_of(gstr1), gkstring_of(gstr2), 
 			
 		
 		Xstrcpy(domains_of(gstr2),domains_of(gstr1));
-		SprintGkFlags(gstr2,showbuf," ",0);
+		SprintGkFlags(gstr2,showbuf,sizeof showbuf," ",0);
 /* fflush(fout);*/
 		if( stemtype_of(gstr2) & PPARTMASK ) fprintf(fout,":vs:");
 		else if( stemtype_of(gstr2) & ADJSTEM ) fprintf(fout,":aj:");
@@ -427,7 +427,7 @@ return;
 		}
 	}
 	fprintf(fdbaseform,"%s\t%s\t%s\t%s\t%s\t", curlemma, curformula , word, endstring, preverb );
-	DbaseFormat(gstr,curbuf,"\t",0);
+	DbaseFormat(gstr,curbuf,sizeof curbuf,"\t",0);
 	fprintf(fdbaseform,"%s\t", curbuf );
 	fprintf(fdbaseform,"%s\n", oddptr );
 }

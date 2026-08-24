@@ -1,8 +1,12 @@
+#ifndef MORPHEUS_MORPHFLAGS_H
+#define MORPHEUS_MORPHFLAGS_H
 /* morphological peculiarities */
 
 /*typedef unsigned long MorphFlags;*/
 typedef unsigned char MorphFlags;
 #define MORPHFLAG_BYTES 12
+#define MORPHFLAG_STORAGE_BYTES 14
+#define MORPHFLAG_MAX (MORPHFLAG_STORAGE_BYTES*8)
 #define MORPHFLAG_MASK			0377
 
 #define	SYLL_AUGMENT		1
@@ -142,3 +146,5 @@ typedef unsigned char MorphFlags;
 
 #define Is_deriv(gs) (has_morphflag(gs,IS_DERIV))
 
+
+#endif

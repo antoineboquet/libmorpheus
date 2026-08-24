@@ -1,13 +1,13 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #include <modes.h>
+#include "../morphlib/runtime_context.h"
 #define MAXSTEMS 10
 
 #include "checkindecl.proto.h"
-static IndeclWorks(gk_word *, char *);
-long matchendtag();
+static int IndeclWorks(gk_word *, char *);
 
 
-checkindecl(gk_word *Gkword)
+int checkindecl(gk_word *Gkword)
 {
 	int rval;
 	int hits = 0;
@@ -17,10 +17,14 @@ checkindecl(gk_word *Gkword)
 	char *keys;
 	char keybuf[LONGSTRING];
 	char workword[MAXWORDSIZE];
-	char * parsefield();
 	char stemkeys[LONGSTRING];
 	char tmpword[MAXWORDSIZE];
 	register char * sp;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 /*
 	keybuf = (char *)malloc((size_t)LONGSTRING);
@@ -58,8 +62,8 @@ printf("rval %d workword [%s] keys [%s]\n", rval, workword, keys );
 */
 		set_stem(Gkword,workword );
 		hits += IndeclWorks(Gkword,stemkeys);
-		while(*keys && ! isspace(*keys) ) keys++;
-		while(isspace(*keys)) keys++;
+		while(*keys && ! isspace((unsigned char)*keys) ) keys++;
+		while(isspace((unsigned char)*keys)) keys++;
 
 	}
 	finish:
@@ -73,12 +77,10 @@ printf("rval %d workword [%s] keys [%s]\n", rval, workword, keys );
 	return(hits);
 }
 
-static
-IndeclWorks(gk_word *Gkword, char *keys)
+static int IndeclWorks(gk_word *Gkword, char *keys)
 {
 	int i;
 	int rval = 0;
-	gk_word * GenIrregForm();
 	gk_word * Forms;
 
 /*
@@ -88,7 +90,7 @@ printf("keys [%s] workword [%s]\n", keys, workword ); getchar();
 
 	if( Forms ) {
 		rval += CheckGenWords(Gkword,Forms);
-		FreeGkString(Forms);
+		FreeGkString((gk_string *)Forms);
 	} /* else
 		ErrorMess("Forms was null!"); 
 	*/

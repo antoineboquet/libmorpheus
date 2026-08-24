@@ -1,3 +1,3 @@
 
 /* stripmeta.c */
-int stripmetachars(char *);
+void stripmetachars(char *);

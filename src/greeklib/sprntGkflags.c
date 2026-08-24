@@ -2,6 +2,8 @@
 
 #include "sprntGkflags.proto.h"
 
+int SprintGkFlags(gk_string *, char *, size_t, const char *, int);
+
 /*
 	Created:	04.24.92
 	Author:		jjake
@@ -17,127 +19,11 @@
 	modified: 	04.30.92
 	By:			jjake
 	I got the wrong fields. It seems that derivType is the empty one, and not stemtype, and
-	furthermore that there is an extra tab somewhere. So Here goes…
+	furthermore that there is an extra tab somewhere. So here goes.
 */
-JakeSprintGkFlags(gk_string *gstr, char *buf, char *dels, char *more_dels, int pretty)
+int JakeSprintGkFlags(gk_string *gstr, char *buf, size_t capacity,
+                      const char *dels, const char *more_dels, int pretty)
 {
-		char dialbuf[LONGSTRING*2];
-		char * s;
-		word_form wf;
-					
-		wf = forminfo_of(gstr);
-		
-		s=NameOfStemtype(stemtype_of(gstr));
-
-/*		
-		For some reason we are getting two tabs in arow here, and so we need to get
-		rid of one for now.
-		
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-			
-*/
-		if( * s ) {
-			strcat(buf, NameOfStemtype(stemtype_of(gstr) ) );
-		}
-
-/*
-		s=NameOfDerivtype(derivtype_of(gstr));
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfDerivtype(derivtype_of(gstr) ) );
-		}
-		
-*/		s=NameOfTense(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf,s );
-		}
-		
-		s=NameOfMood(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		
-		s=NameOfVoice(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-	
-		s=NameOfGender(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		
-		s=NameOfCase(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-
-		s=NameOfDegree(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-
-		s=NameOfPerson(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		s=NameOfNumber(wf);		
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfNumber(wf ) );
-		}
-
-		dialbuf[0] = 0;
-		DialectNames(dialect_of(gstr),dialbuf,more_dels);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);	
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
-
-/*SEE HEADER COMMENT:
- *		
- *		dialbuf[0] = 0;
- *		GeogRegionNames(geogregion_of(gstr),dialbuf,more_dels);
- *		if( *s || *dels == '\t' )
- *			strcat(buf,dels);
- *		if( dialbuf[0] ) {
- *			strcat(buf,dialbuf );
- *		}
- *		
- *		
- *		dialbuf[0] = 0;
- *		DomainNames(domains_of(gstr),dialbuf,more_dels);
- *		if( *s || *dels == '\t' )
- *			strcat(buf,dels);
- * 		if( dialbuf[0] ) {
- *			strcat(buf,dialbuf );
- *		}
- *	
- */		
-		dialbuf[0] = 0;
-		MorphNames(morphflags_of(gstr),dialbuf,more_dels,pretty);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
+	if (!more_dels) return(0);
+	return(SprintGkFlags(gstr,buf,capacity,dels,pretty));
 }
-

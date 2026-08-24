@@ -1,3 +1,3 @@
 
 /* errormess.c */
-int ErrorMess(char *);
+void ErrorMess(char *);

@@ -1,14 +1,14 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #include <gkdict.h>
 
 #include "dictstems.proto.h"
+#include "../gkdict/dictio.proto.h"
+#include "../greeklib/issubstring.proto.h"
+#include "../morphlib/runtime_context.h"
 
-char * is_substring();
-
-dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemtype, char *pparttab[], int maxpparts)
+int dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemtype, char *pparttab[], int maxpparts)
 {
-	FILE * f;
-	FILE * getlemmstart();
+	FILE *f = NULL;
 	char *line = NULL;
 	char *lemmfile = NULL;
 	char *tmp = NULL;
@@ -16,16 +16,32 @@ dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemtype,
 	char wantstem[MAXWORDSIZE];
 	char curtarget[MAXWORDSIZE * 2];
 	register char * cp;
-	int slen;
 	long startoff;
 	int gotpparts = 0;
 
 	int anystem = 0;
+	int slot;
+
+	if (!lemma || !nstems || !orgstem || !pparttab || maxpparts < 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
+	for (slot = 0; slot < maxpparts; slot++) {
+		if (!pparttab[slot]) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			return(-1);
+		}
+	}
 	
-	line = (char *)malloc((size_t)(BUFSIZ*4)+1);
-	lemmfile = (char *)malloc((size_t)LONGSTRING+1);
-	tmp = (char *)malloc((size_t)(BUFSIZ*4)+1);
-	line[(BUFSIZ*4)+1] = lemmfile[LONGSTRING+1] = tmp[(BUFSIZ*4)+1] = 0;
+	line = malloc((size_t)(BUFSIZ * 4) + 1);
+	lemmfile = malloc((size_t)LONGSTRING + 1);
+	tmp = malloc((size_t)(BUFSIZ * 4) + 1);
+	if (!line || !lemmfile || !tmp) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		gotpparts = -1;
+		goto finish;
+	}
+	line[BUFSIZ * 4] = lemmfile[LONGSTRING] = tmp[BUFSIZ * 4] = 0;
 	
 	lemmfile[0] = 0;
 	startoff = 0;
@@ -59,7 +75,7 @@ dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemtype,
  *   the option "wantacc" is now an argument passed to this routine
  * telling whether or not you should pay attention to the accent.
  */
-	Xstrncpy(wantstem,orgstem,(BUFSIZ*4));
+	Xstrncpy(wantstem,orgstem,(int)sizeof wantstem);
 	stripquant(wantstem);
 	if( wantacc == NO ) 
 		stripacc(wantstem);
@@ -77,7 +93,6 @@ dictstems(char *lemma, int *nstems, bool wantacc, char *orgstem, char *stemtype,
 	/*
 	 * now look for stems
 	 */
-	slen = Xstrlen(wantstem);
 	for(gotpparts=0;fgets(line,BUFSIZ*4 , f) && gotpparts <maxpparts;) {
 		if( is_blank(line) ) break;
 		if( Is_comment(line) ) continue;
@@ -115,9 +130,9 @@ morphstrcmp(cstem,wantstem) );
 			xFclose(f);
 			f = NULL;
 		}
-		xFree(line,"dicts line");
-		xFree(lemmfile,"dicts lemmfile");
-		xFree(tmp,"dicts tmp");
+		if (line) xFree(line,"dicts line");
+		if (lemmfile) xFree(lemmfile,"dicts lemmfile");
+		if (tmp) xFree(tmp,"dicts tmp");
 		line = lemmfile = tmp = NULL;
 		
 		return(gotpparts);

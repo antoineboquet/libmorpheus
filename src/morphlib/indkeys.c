@@ -1,82 +1,107 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 #include <endfiles.h>
 #include <endtags.h>
-#define DECALPHA 1
+#include <stdint.h>
 
 #include "indkeys.proto.h"
 
+typedef struct {
+	char curkey[LONGSTRING];
+	char prevkey[LONGSTRING];
+	int nkeys;
+} index_key_state;
 
-char curkey[LONGSTRING];
-char prevkey[LONGSTRING];
-int nkeys = MODULUS + 1;
+static void prockeyline(
+	char *,
+	int,
+	morpheus_stemlib_offset,
+	FILE *,
+	index_key_state *
+);
 
-index_list(char *listname, char *tagstring, int modulus)
+int index_list(char *listname, char *tagstring, int modulus)
 {
+	index_key_state state = {{0}, {0}, MODULUS + 1};
 	FILE * finput;
 	FILE * foutput;
 	char outfile[BUFSIZ];
 	char line[LONGSTRING*4];
 	char curlemma[LONGSTRING];
 	char field[LONGSTRING];
-#ifdef DECALPHA
-	int curoff;
-#else
-	long curoff;
-#endif
+	morpheus_stemlib_offset curoff;
 	int i;
-	int taglen;
-	
+	int written;
+	size_t taglen = 0;
+
+	if (!listname || !*listname || modulus <= 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	if( modulus > MODULUS ) modulus = MODULUS;
 	finput = MorphFopen(listname,"r");
 	if( ! finput ) {
 		fprintf(stderr,"Could not open input %s\n", listname );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(-1);
 	}
-	sprintf(outfile,"%s.lindex",listname);
+	written = snprintf(outfile,sizeof outfile,"%s.lindex",listname);
+	if (written < 0 || (size_t)written >= sizeof outfile) {
+		fclose(finput);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	
 	foutput = MorphFopen(outfile,"wb");
-	if( ! finput ) {
+	if( ! foutput ) {
 		fprintf(stderr,"Could not open output  %s\n", outfile );
+		fclose(finput);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(-1);
 	}
 	if( tagstring ) taglen = Xstrlen(tagstring);
 	for(i=0;;i++) {
-#ifdef DECALPHA
-		curoff = (int)ftell(finput);
-#else
-		curoff = ftell(finput);
-#endif
+		long file_offset = ftell(finput);
+
+		if(file_offset < 0 || (uintmax_t)file_offset > UINT32_MAX) {
+			fprintf(stderr, "Index offset is outside the 32-bit stemlib format\n");
+			fclose(finput);
+			fclose(foutput);
+			return(-1);
+		}
+		curoff = (morpheus_stemlib_offset)file_offset;
 		if( ! fgets(line,sizeof line,finput) )
 			break;
 		if( Xstrlen(line) >= LONGSTRING ) {
 			FILE * f;
 			
 			if( (f=fopen("inderr","a")) ) {
-				fprintf(f,"fat line %d bytes:%s\n", Xstrlen(line) , line );
+				fprintf(f,"fat line %zu bytes:%s\n", Xstrlen(line) , line );
 				fclose(f);
 			}
-			printf("fat line %d bytes:%s\n", Xstrlen(line) , line );
+			printf("fat line %zu bytes:%s\n", Xstrlen(line) , line );
 		}
 		if( is_blank(line) ) continue;
 		if( line[0] == '#' ) continue;
 		if( tagstring ) {
 			if( ! Xstrncmp(line,tagstring,taglen) ) 
-			prockeyline(line+taglen,modulus,curoff,foutput);
+			prockeyline(line+taglen,modulus,curoff,foutput,&state);
 		} else
-			prockeyline(line,modulus,curoff,foutput);
+			prockeyline(line,modulus,curoff,foutput,&state);
 	}
 	fclose(finput);
 	fclose(foutput);
+	return(0);
 }
 
 
-static int count = 0;
-
-#ifdef DECALPHA
-prockeyline(char *s, int modulus, int curoff, FILE *f)
-#else
-prockeyline(char *s, int modulus, long curoff, FILE *f)
-#endif
+static void prockeyline(
+	char *s,
+	int modulus,
+	morpheus_stemlib_offset curoff,
+	FILE *f,
+	index_key_state *state
+)
 {
 	char curlemma[LONGSTRING];
 	char * p;
@@ -86,23 +111,22 @@ prockeyline(char *s, int modulus, long curoff, FILE *f)
 	p = s;
 	
 	for(i=0;i<KEYLEN;i++) {
-		curkey[i] = *p++;
-		curkey[i+1] = 0;
-		if( (! *p) || isspace( * p ) )
+		state->curkey[i] = *p++;
+		state->curkey[i+1] = 0;
+		if( (! *p) || isspace((unsigned char)*p) )
 			break;
 	}
 	
-	if( ++nkeys >= modulus && morphstrcmp(curkey,prevkey) ) {
+	if( ++state->nkeys >= modulus && morphstrcmp(state->curkey,state->prevkey) ) {
 		if( prntflag )
-			fprintf(stdout,"%s\t%ld\n", curkey , curoff );
+			fprintf(stdout,"%s\t%ld\n", state->curkey , (long)curoff );
 
-		WriteKey(curkey,&curoff,f);
-		nkeys = 0;
+		WriteKey(state->curkey,&curoff,f);
+		state->nkeys = 0;
 	} else {
 		if( prntflag )
-			printf("not writing key [%s]:nkeys %d modulus %d prev %s curkey [%s] curoff %ld\n",s,nkeys, modulus, prevkey, curkey , curoff );
+			printf("not writing key [%s]:nkeys %d modulus %d prev %s curkey [%s] curoff %ld\n",
+				s,state->nkeys,modulus,state->prevkey,state->curkey,(long)curoff);
 	}
-	Xstrncpy(prevkey,curkey,LONGSTRING);
-
-	count++;
+	Xstrncpy(state->prevkey,state->curkey,LONGSTRING);
 }

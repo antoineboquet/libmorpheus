@@ -1,47 +1,65 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>	
 
 #include "new_val.proto.h"
 
+static int valid_target(gk_string *gstr)
+{
+	if (gstr) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
 void
 new_person(gk_string *gstr, unsigned long val)
 {
-		set_person(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		set_person(forminfo_of(gstr),(unsigned int)(val & 07UL));
 }
 void
 new_number(gk_string *gstr, unsigned long val)
 {
-		set_number(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		set_number(forminfo_of(gstr),(unsigned int)(val & 07UL));
 }
 
 void
 new_case(gk_string *gstr, unsigned long val)
 {
-		add_case(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		set_case(forminfo_of(gstr),
+			case_of(forminfo_of(gstr)) | (unsigned int)(val & 077UL));
 }
 
 
 void
 new_tense(gk_string *gstr, unsigned long val)
 {
-		set_tense(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		set_tense(forminfo_of(gstr),(unsigned int)(val & 017UL));
 }
 
 
 void
 new_voice(gk_string *gstr, unsigned long val)
 {
-		if( val == ACTIVE && (voice_of(forminfo_of(gstr)) & (MEDIO_PASS) ) ) 
-			set_voice(forminfo_of(gstr),val);
-		else if( ( val & (MEDIO_PASS) ) && (voice_of(forminfo_of(gstr)) ==ACTIVE) )
-			set_voice(forminfo_of(gstr),val);
-		else add_voice(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		unsigned int voice = (unsigned int)(val & 07UL);
+
+		if( voice == ACTIVE && (voice_of(forminfo_of(gstr)) & (MEDIO_PASS) ) ) 
+			set_voice(forminfo_of(gstr),voice & 07U);
+		else if( ( voice & (MEDIO_PASS) ) && (voice_of(forminfo_of(gstr)) ==ACTIVE) )
+			set_voice(forminfo_of(gstr),voice & 07U);
+		else set_voice(forminfo_of(gstr),
+			(voice_of(forminfo_of(gstr)) | voice) & 07U);
 }
 
 
 void
 new_mood(gk_string *gstr, unsigned long val)
 {
-		set_mood(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		set_mood(forminfo_of(gstr),(unsigned int)(val & 017UL));
 }
 
 
@@ -49,20 +67,24 @@ new_mood(gk_string *gstr, unsigned long val)
 void
 new_degree(gk_string *gstr, unsigned long val)
 {
-		set_degree(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		set_degree(forminfo_of(gstr),(unsigned int)(val & 03UL));
 }
 
 
 void
 new_gender(gk_string *gstr, unsigned long val)
 {
-		add_gender(forminfo_of(gstr),val);
+		if (!valid_target(gstr)) return;
+		set_gender(forminfo_of(gstr),
+			gender_of(forminfo_of(gstr)) | (unsigned int)(val & 017UL));
 }
 
 
 void
 new_dialect(gk_string *gstr, unsigned long val)
 {
+		if (!valid_target(gstr)) return;
 		add_dialect(gstr,(Dialect)val);
 }
 
@@ -70,6 +92,7 @@ new_dialect(gk_string *gstr, unsigned long val)
 void
 new_region(gk_string *gstr, unsigned long val)
 {
+		if (!valid_target(gstr)) return;
 		add_geogregion(gstr,(GeogRegion)val);
 }
 
@@ -77,7 +100,7 @@ new_region(gk_string *gstr, unsigned long val)
 void
 new_morphflags(gk_string *gstr, unsigned long val)
 {
-
+		if (!valid_target(gstr)) return;
 		add_morphflag(morphflags_of(gstr),(int)val);
 }
 	
@@ -85,6 +108,7 @@ new_morphflags(gk_string *gstr, unsigned long val)
 void
 new_stemtype(gk_string *gstr, unsigned long val)
 {
+		if (!valid_target(gstr)) return;
 		set_stemtype(gstr,(Stemtype)val);
 }
 
@@ -92,6 +116,7 @@ new_stemtype(gk_string *gstr, unsigned long val)
 void
 new_domain(gk_string *gstr, unsigned long val)
 {
+		if (!valid_target(gstr)) return;
 		add_domain(gstr,(int)val);
 }
 
@@ -100,6 +125,6 @@ new_domain(gk_string *gstr, unsigned long val)
 void
 new_derivtype(gk_string *gstr, unsigned long val)
 {
+		if (!valid_target(gstr)) return;
 		set_derivtype(gstr,(Derivtype)val);
 }
-

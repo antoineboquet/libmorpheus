@@ -1,32 +1,31 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
-static gk_string * StoreGstr;
 #define MAXENDINGS 	10000
 
 #include "stor.proto.h"
-static cur_endcnt = 0;
-static int maxstring = 0;
-gk_string * CreatGkString();
-int dictstrcmp();
-int CompByDictStr(const void *gstr1, const void *gstr2);
- int
- CompGkString(const void *gstr1, const void *gstr2);
-
+int
 InitGstrMem(void)
 {
-	if( ! StoreGstr ) {
-		if( (StoreGstr = (gk_string *) 	CreatGkString(MAXENDINGS+1)) == NULL ) {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	if( ! context->ending_store ) {
+		context->ending_store = CreatGkString(MAXENDINGS+1);
+		if( ! context->ending_store ) {
 			return(0);
 		}
 	}
-	cur_endcnt = 0;
+	context->ending_store_count = 0;
 	return(1);
 }
 
+int
  AddNewGstr(gk_string *gstr)
 {
 	char * news;
 	Dialect d;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
 	
 	news = gkstring_of(gstr);
 
@@ -36,13 +35,13 @@ InitGstrMem(void)
 			return;
 	}
 */
-	if( cur_endcnt >= MAXENDINGS ) {
+	if( context->ending_store_count >= MAXENDINGS ) {
 		fprintf(stderr,"Hey! you only have space for %d endings!\n", MAXENDINGS );
 		fprintf(stderr,"Change to variable MAXENDINGS to reflect the actual number you want!\n");
 		return(-1);
 	}
-	if( strlen(news) + 1 >= maxstring )
-		maxstring = strlen(news) + 1;
+	if( strlen(news) + 1 >= (size_t)context->ending_store_max_string )
+		context->ending_store_max_string = (int)strlen(news) + 1;
 	if( *news != '*' )
 		stripzeroend(news);
 
@@ -52,18 +51,19 @@ InitGstrMem(void)
 */
 	stripchar(news,'!');
 
-	*(StoreGstr+cur_endcnt) = *gstr;
-	cur_endcnt++;
-
+	context->ending_store[context->ending_store_count] = *gstr;
+	context->ending_store_count++;
+	return(1);
 
 }
 
-ResetGstrBuf()
+void
+ResetGstrBuf(void)
 {
-
-	cur_endcnt = 0;
+	morpheus_runtime_context_current()->ending_store_count = 0;
 }
 
+void
  PrntNewGstrings(FILE *f, int compiled_flag)
 {
 	int rval, i;
@@ -71,6 +71,10 @@ ResetGstrBuf()
 	char line[LONGSTRING*2];
 	char res[LONGSTRING*2];
 	int deriv, indeclform;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	gk_string *StoreGstr = context->ending_store;
+	int cur_endcnt = context->ending_store_count;
+	int maxstring = context->ending_store_max_string;
 	
 	indeclform = has_morphflag(morphflags_of(StoreGstr),INDECLFORM);
 	
@@ -111,9 +115,10 @@ ResetGstrBuf()
 	}
 }
 
+void
 LPrntGstr(gk_string *gstr, FILE *f)
 {
-	char tmp[256], res[256], line[256];
+	char tmp[256], res[256], line[LONGSTRING];
 	int indecl;
 	
 	tmp[0] = line[0] = res[0] = 0;
@@ -121,8 +126,8 @@ LPrntGstr(gk_string *gstr, FILE *f)
 	if( has_morphflag(morphflags_of(gstr),IS_DERIV) || indecl ) {
 		zap_morphflag(morphflags_of(gstr),IS_DERIV);
 		zap_morphflag(morphflags_of(gstr),INDECLFORM);
-		SprintGkFlags(gstr,tmp," ",0);
-		sprintf(line,"%s  %s\n", gkstring_of(gstr), tmp );
+		SprintGkFlags(gstr,tmp,sizeof tmp," ",0);
+		snprintf(line,sizeof line,"%s  %s\n", gkstring_of(gstr), tmp );
 	
 		if( indecl ) {
 			if( Is_verbform(gstr) ) fprintf(f,":vb:");
@@ -130,11 +135,11 @@ LPrntGstr(gk_string *gstr, FILE *f)
 		}
 		fprintf(f,"%s", line );
 	} else {
-		SprintGkFlags(gstr,tmp," ",0);
+		SprintGkFlags(gstr,tmp,sizeof tmp," ",0);
 		if( cur_lang() == LATIN  || cur_lang() == ITALIAN )
-			sprintf(line,"%s%s\n", gkstring_of(gstr), tmp );
+			snprintf(line,sizeof line,"%s%s\n", gkstring_of(gstr), tmp );
 		else
-			sprintf(line,"<G>%s</G>%s\n", gkstring_of(gstr), tmp );
+			snprintf(line,sizeof line,"<G>%s</G>%s\n", gkstring_of(gstr), tmp );
 /*	
 		beta2smarta(line,res);
 		fprintf(f,"%s", res );
@@ -143,6 +148,7 @@ LPrntGstr(gk_string *gstr, FILE *f)
 	}
 }
 
+int
 new_parad(gk_string *gstr1, gk_string *gstr2)
 {
 	word_form wf1, wf2;
@@ -167,6 +173,7 @@ new_parad(gk_string *gstr1, gk_string *gstr2)
  *
  * added so that we would be able to analyze "gh/rai+".
  */
+void
 hyphtodiaer(char *news)
 {
 	register char * s= news;

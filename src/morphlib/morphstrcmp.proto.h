@@ -1,7 +1,14 @@
+#ifndef MORPHEUS_MORPHSTRCMP_PROTO_H
+#define MORPHEUS_MORPHSTRCMP_PROTO_H
 
-/* morphstrcmp.c */
+#include <stddef.h>
+
 int morphstrcmp(char *, char *);
-int morphstrncmp(char *, char *, size_t);
+int betastrcmp(char *, char *);
+int morphstrncmp(const char *, const char *, size_t);
 int dictstrcmp(char *, char *);
-int dictstrncmp(char *, char *, size_t);
-int init_comptab(void);
+int dictstrncmp(const char *, const char *, size_t);
+void init_comptab(void);
+void init_betatab(void);
+
+#endif

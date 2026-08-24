@@ -1,10 +1,7 @@
 #include "contract.h"
+#include "gkends_internal.h"
 
 #include "lcontr.proto.h"
-
-gk_string * CreatGkString();
-
-gk_string * load_euph_tab();
 
 gk_string * 
 load_ccontr(int *gotno)
@@ -29,4 +26,3 @@ load_vcontr(int *gotno)
 */
 	return(load_euph_tab(VOWCONTRACTS,gotno,YES));
 }
-

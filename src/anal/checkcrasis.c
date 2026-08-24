@@ -1,5 +1,6 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #define MAXCRASIS 12
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkcrasis.proto.h"
 typedef struct {
@@ -11,7 +12,7 @@ typedef struct {
  	Dialect possdial;
  } precise_crasis;
  
- precise_crasis CrasTab[] = {
+static const precise_crasis CrasTab[] = {
  	"o(",	"ai(",	FEMININE, NOMINATIVE, PLURAL,		0,
  	"o(",	"oi(",	MASCULINE, NOMINATIVE, PLURAL,		0,
  	"o(",	"o(",	MASCULINE, NOMINATIVE, SINGULAR,	0,
@@ -48,7 +49,7 @@ typedef struct {
  	Dialect possdial;
  } poss_crasis;
  
- poss_crasis PossCras[] = {
+static const poss_crasis PossCras[] = {
 
 "*)=w",		"*)/a",	"w)=", (Dialect)0,		/* *)=wpollon << w)= *)/apollon */
 "*)=w",		"*)e",	"w)=", (Dialect)0,		/* *)wkba/atana << w)= *)ekba/tana */
@@ -186,7 +187,7 @@ typedef struct {
 
 };
 
- poss_crasis LatSync[] = {
+static const poss_crasis LatSync[] = {
 "cognor",		"cognover",	"",	 (Dialect)0,	
 "ignor",		"ignover",	"",	 (Dialect)0,	
 "cognoss",		"cognoviss",	"",	 (Dialect)0,	
@@ -207,17 +208,21 @@ typedef struct {
 "eccistam",		"ecce",		"istam",	(Dialect)0,
  };
 
-int nocrasis = 0;
-
-checkcrasis(gk_word *Gkword)
+int checkcrasis(gk_word *Gkword)
 {
 	int i;
 	char saveword[MAXWORDSIZE];
-	char* string = workword_of(Gkword);
-	char* mungedword;
+	char* string;
+	const char *mungedword;
 	int rval = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	string = workword_of(Gkword);
 	
-	if( nocrasis ) return(0);
+	if( morpheus_runtime_context_current()->analysis_crasis_disabled ) return(0);
 	
 	if( cur_lang() == LATIN )
 	{
@@ -226,7 +231,7 @@ checkcrasis(gk_word *Gkword)
 		{
 			if (string[i] == 0)
 				break;
-			string[i] = tolower(string[i]);
+			string[i] = (char)tolower((unsigned char)string[i]);
 		}
 		for(i=0;i<LENGTH_OF(LatSync);i++) {
 			mungedword = LatSync[i].mungedword;
@@ -251,12 +256,13 @@ checkcrasis(gk_word *Gkword)
 	return(rval);
 }
 
-set_nocrasis()
+void set_nocrasis(void)
 {
-	nocrasis = 1;
+	morpheus_runtime_context_current()->analysis_crasis_disabled = 1;
 }
 
-testcrasis(gk_word *Gkword, char *mungedword, char *wordstart, char *preword,Dialect possdial)
+int testcrasis(gk_word *Gkword, const char *mungedword,
+	const char *wordstart, const char *preword, Dialect possdial)
 {
 	char saveword[MAXWORDSIZE];
 	char word1[MAXWORDSIZE];
@@ -264,6 +270,11 @@ testcrasis(gk_word *Gkword, char *mungedword, char *wordstart, char *preword,Dia
 	Dialect olddial = 0;
 	int rval = 0;
 	gk_word  tmpGkword;
+
+	if (!Gkword || !mungedword || !wordstart || !preword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 /*
 	tmpGkword = (gk_word *) CreatGkword(1);
@@ -301,7 +312,7 @@ testcrasis(gk_word *Gkword, char *mungedword, char *wordstart, char *preword,Dia
 }
 	
 
-do_crasis(gk_string *gstring, char *crasis)
+int do_crasis(gk_string *gstring, char *crasis)
 {
 	int gend, num, wcase;
 	int saw_this_crasis = 0;

@@ -1,5 +1,8 @@
 #include <gkstring.h>
-#include <endindex.h>
+#include <limits.h>
+#include <stdint.h>
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "../morphlib/morphstrcmp.proto.h"
 #include "endfiles.h"
@@ -8,33 +11,37 @@
 
 #include "endindex.proto.h"
 
-long matchendtag();
 /*int dictstrcmp(), dictstrncmp(), morphstrcmp(), morphstrncmp();*/
 
-endind * DictEntTags = NULL;
-static int ndictenttags = 0;
+static endind *load_end_index(endind **, char *, const char *);
 
-endind * CmpVbtags = NULL;
-static int ncmpvbtags = 0;
+static endind *
+load_end_index(endind **slot, char *filename, const char *description)
+{
+	endind *index;
 
-endind * VbEtags = NULL;
-static int nvbetags = 0;
+	if (*slot) return(*slot);
+	index = calloc(1,sizeof *index);
+	if (!index) {
+		fprintf(stderr,"could not allocate %s\n",description);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(NULL);
+	}
+	if (!init_endind(filename,index)) {
+		free(index);
+		return(NULL);
+	}
+	*slot = index;
+	return(index);
+}
 
-endind * DerEtags = NULL;
-static int nderetags = 0;
-
-endind * NomEtags = NULL;
-static int nnometags = 0;
-
-endind * VstemEtags = NULL;
-static int nvstemetags = 0;
-
-endind * init_endind();
-
+int
 chcknend(char *endstr, char *keys)
 {
 	long startoff;
 	char tmpendstr[MAXWORDSIZE+1];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *NomEtags;
 
 	Xstrncpy(tmpendstr,endstr,(int)sizeof  tmpendstr);
 	/*
@@ -43,22 +50,20 @@ chcknend(char *endstr, char *keys)
 	 */
 	stripquant(tmpendstr);
 	
-	if( ! NomEtags ) {
-		NomEtags = (endind *) calloc((size_t)1, (size_t) sizeof * NomEtags);
-		if( ! NomEtags ) {
-			fprintf(stderr,"could not allcoate NomEtags\n");
-			return(0);
-		}
-		init_endind(NENDLIST,NomEtags);
-	}
+	NomEtags = load_end_index(&context->nominal_ending_index,NENDLIST,
+		"nominal ending index");
+	if (!NomEtags) return(0);
 	return( checkendind(NomEtags,tmpendstr,keys,morphstrncmp));
 }
 
 
+int
 chckdictent(char * possent, char *keys)
 {
 	long startoff;
 	char tmpendstr[MAXWORDSIZE+1];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *DictEntTags;
 
 	Xstrncpy(tmpendstr,possent,(int)sizeof  tmpendstr);
 	/*
@@ -67,21 +72,19 @@ chckdictent(char * possent, char *keys)
 	 */
 	stripquant(tmpendstr);
 	
-	if( ! DictEntTags ) {
-		DictEntTags = (endind *) calloc((size_t)1, (size_t) sizeof * DictEntTags);
-		if( ! DictEntTags ) {
-			fprintf(stderr,"could not allcoate DictEntTags\n");
-			return(0);
-		}
-		init_endind(DICTENTLIST,DictEntTags);
-	}
+	DictEntTags = load_end_index(&context->dictionary_entry_index,DICTENTLIST,
+		"dictionary entry index");
+	if (!DictEntTags) return(0);
 	return( checkendind(DictEntTags,tmpendstr,keys,strncmp));
 }
 
+int
 chckcmpvb(char *endstr, char *keys)
 {
 	long startoff;
 	char tmpendstr[MAXWORDSIZE+1];
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *CmpVbtags;
 
 	Xstrncpy(tmpendstr,endstr,(int)sizeof  tmpendstr);
 	/*
@@ -90,17 +93,13 @@ chckcmpvb(char *endstr, char *keys)
 	 */
 	stripquant(tmpendstr);
 	
-	if( ! CmpVbtags ) {
-		CmpVbtags = (endind *) calloc((size_t)1, (size_t) sizeof * CmpVbtags);
-		if( ! CmpVbtags ) {
-			fprintf(stderr,"could not allcoate CmpVbtags\n");
-			return(0);
-		}
-		init_endind(CMPVBLIST,CmpVbtags);
-	}
+	CmpVbtags = load_end_index(&context->compound_verb_index,CMPVBLIST,
+		"compound verb index");
+	if (!CmpVbtags) return(0);
 	return( checkendind(CmpVbtags,tmpendstr,keys,strncmp));
 }
 
+int
 chckend(char *endstring) 
 {
 	char tmp[LONGSTRING];
@@ -110,55 +109,49 @@ chckend(char *endstring)
 	return(chckvend(endstring,tmp)||chcknend(endstring,tmp));
 }
 
+int
 chckvend(char *endstr, char *keys)
 {
 	long startoff;
 	int curhit;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *VbEtags;
 	
-	if( ! VbEtags ) {
-		VbEtags = (endind *) calloc((size_t)1, (size_t)sizeof * VbEtags);
-		if( ! VbEtags ) {
-			fprintf(stderr,"could not allcoate VbEtags\n");
-			return(0);
-		}
-		init_endind(VENDLIST,VbEtags);
-	}
+	VbEtags = load_end_index(&context->verb_ending_index,VENDLIST,
+		"verb ending index");
+	if (!VbEtags) return(0);
 	curhit = checkendind(VbEtags,endstr,keys,morphstrncmp);
 
 	return(curhit);
 }
 
+int
 chckvstem(char *stemstr, char *keys)
 {
 	long startoff;
 	int curhit;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *VstemEtags;
 	
-	if( ! VstemEtags ) {
-		VstemEtags = (endind *) calloc((size_t)1, (size_t)sizeof * VstemEtags);
-		if( ! VstemEtags ) {
-			fprintf(stderr,"could not allcoate VstemEtags\n");
-			return(0);
-		}
-		init_endind(VBINDEX,VstemEtags);
-	}
+	VstemEtags = load_end_index(&context->verb_stem_index,VBINDEX,
+		"verb stem index");
+	if (!VstemEtags) return(0);
 	curhit = checkendind(VstemEtags,stemstr,keys,morphstrncmp);
 
 	return(curhit);
 }
 
+int
 chckdvend(char *endstr, char *keys)
 {
 	long startoff;
 	int curhit;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	endind *DerEtags;
 	
-	if( ! DerEtags ) {
-		DerEtags = (endind *) calloc((size_t)1, (size_t)sizeof * DerEtags);
-		if( ! DerEtags ) {
-			fprintf(stderr,"could not allcoate DerEtags\n");
-			return(0);
-		}
-		init_endind(DERENDLIST,DerEtags);
-	}
+	DerEtags = load_end_index(&context->derivation_ending_index,DERENDLIST,
+		"derivation ending index");
+	if (!DerEtags) return(0);
 
 	curhit = checkendind(DerEtags,endstr,keys,morphstrncmp);
 
@@ -168,16 +161,15 @@ chckdvend(char *endstr, char *keys)
 endind *
 init_endind(char *fname, endind *etags)
 {
-	FILE * f;
-	register char * s;
-	register char * t;
-	char ** pp;
-	long flen;
+	FILE *f = NULL;
+	char *buffer = NULL;
+	char **pointers = NULL;
+	long file_size;
+	size_t file_length;
+	size_t sofar = 0;
+	size_t nlines = 0;
+	size_t i;
 	int nread;
-	long i;
-	int j;
-	int nlines = 0;
-	long sofar = 0;
 
 /*
  * grc 3/12/91
@@ -186,70 +178,104 @@ init_endind(char *fname, endind *etags)
  */
  	if( (f=MorphFopen(fname,"r"))==NULL) {
 		fprintf(stderr,"init_endind: could not open %s\n", fname );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return( NULL );
 	}
-	fseek(f,0L,2);
-	flen = ftell(f);
-	fseek(f,0L,0);
+	if (fseek(f,0L,SEEK_END) != 0 || (file_size = ftell(f)) < 0 ||
+	    fseek(f,0L,SEEK_SET) != 0) {
+		fprintf(stderr,"could not measure %s\n",fname);
+		goto invalid_index;
+	}
+	if ((uintmax_t)file_size > (uintmax_t)(SIZE_MAX-1)) {
+		fprintf(stderr,"ending index is too large: %s\n",fname);
+		goto invalid_index;
+	}
+	file_length = (size_t)file_size;
 
 /*
-	if( !(endbuffer_of(etags) = clalloc(/*(int)*flen + 1,(long) sizeof * endbuffer_of(etags)  ))) {
-*/
-	if( !(endbuffer_of(etags) = (char *)calloc((size_t)flen + 1, (size_t)sizeof * endbuffer_of(etags)  ))) {
-
+ * The ANSI port replaced the historical clalloc allocation of flen + 1
+ * elements with calloc.
+ */
+	buffer = (char *)calloc(file_length + 1,sizeof *buffer);
+	if (!buffer) {
 		fprintf(stderr,"could not build buffer for endtags\n");
-		return(NULL);
+		goto no_memory;
 	}
-	s = endbuffer_of(etags);
-	for(;;) {		
-/*
-	nread = vax_fread(s,(int)sizeof  * s, (int)flen, f);
-*/
-		nread = vax_fread((char *)s+sofar,sizeof  * s, BUFSIZ, f);
-		if( nread <= 0 ) break;
-		sofar += (long)nread;
-	}
-	for(i=0;i<sofar;i++) {
-		if(*(s+i) == '\n' )
-			nlines++;
-	}
-	nlines++;
+	while (sofar < file_length) {
+		size_t remaining = file_length-sofar;
+		int requested = remaining > (size_t)BUFSIZ ? BUFSIZ : (int)remaining;
 
-  	endeptr_of(etags) = (char **) calloc((size_t)nlines,(size_t)sizeof * endeptr_of(etags));
-	if( ! endeptr_of(etags) ) {
-		fprintf(stderr,"ran out of memory in init_endind\n");
-		return(NULL);
+		nread = vax_fread(buffer+sofar,sizeof *buffer,requested,f);
+		if (nread != requested) {
+			fprintf(stderr,"short read while loading %s\n",fname);
+			goto invalid_index;
+		}
+		sofar += (size_t)nread;
 	}
-	pp = endeptr_of(etags);
-	for(i=0;i<nlines;i++) {
-		*(pp+i) = s;
-		while(*s && *s != '\n')
-			s++;
-		if( ! *s ) 
-			break;
-		else if( *s == '\n' ) {
-			*s = 0;
-			s++;
+	xFclose(f);
+	f = NULL;
+	if (file_length) {
+		nlines = 1;
+		for (i = 0; i + 1 < file_length; i++) {
+			if (buffer[i] == '\n') nlines++;
+		}
+	}
+	if (nlines > (size_t)INT_MAX) {
+		fprintf(stderr,"ending index has too many entries: %s\n",fname);
+		goto invalid_index;
+	}
+	if (nlines) pointers = (char **)calloc(nlines,sizeof *pointers);
+	if (nlines && !pointers) {
+		fprintf(stderr,"ran out of memory in init_endind\n");
+		goto no_memory;
+	}
+	if (nlines) {
+		size_t current = 1;
+
+		pointers[0] = buffer;
+		for (i = 0; i < file_length; i++) {
+			if (buffer[i] == '\n') {
+				buffer[i] = 0;
+				if (i + 1 < file_length)
+					pointers[current++] = buffer+i+1;
+			}
 		}
 	}
 
-	endlen_of(etags) = nlines;
+	endbuffer_of(etags) = buffer;
+	endeptr_of(etags) = pointers;
+	endlen_of(etags) = (int)nlines;
 /*
 	printf("nread %d flen %ld nlines %d\n", nread ,flen , nlines);
 	for(i=0;i<10;i++)
 		printf("%d) [%s]\n", i , *(pp+i) );
 	getchar();
-*/
+	*/
 	return(etags);
+
+no_memory:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	if (f) xFclose(f);
+	free(buffer);
+	free(pointers);
+	return(NULL);
+
+invalid_index:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	if (f) xFclose(f);
+	free(buffer);
+	free(pointers);
+	return(NULL);
 }
 
-checkendind(endind *etags, char *endstr, char *keys, int (*scmp )())
+int
+checkendind(endind *etags, char *endstr, char *keys, int (*scmp)(const char *, const char *, size_t))
 {
 	int high = 0;
 	int low = 0;
 	int mid = 0;
 	int comp;
-	int i, ntags;
+	int ntags;
 	char curtag[MAXWORDSIZE];
 	size_t taglen;
 	char ** pp;
@@ -258,7 +284,8 @@ checkendind(endind *etags, char *endstr, char *keys, int (*scmp )())
 	 * the table is of the form "ending<SPACE>key1<SPACE>key2<SPACE> ..."
 	 */
 	Xstrncpy(curtag,endstr,MAXWORDSIZE);
-	Xstrncat(curtag," ",MAXWORDSIZE);
+	if (!morpheus_runtime_string_append(curtag," ",sizeof curtag))
+		return(0);
 	taglen = strlen(curtag);
 	
 	ntags = endlen_of(etags);
@@ -300,5 +327,3 @@ printf("B returning with curtag [%s] tagstring [%s] and off %d\n", curtag, tagst
 	*keys = 0;
 	return(0);
 }
-
-

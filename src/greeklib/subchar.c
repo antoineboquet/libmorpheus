@@ -8,10 +8,12 @@
 
 #include "subchar.proto.h"
 
-subchar(char *s, int c1, int c2)
+void subchar(char *s, int c1, int c2)
 {
+	if (!s) return;
 	while(*s) {
-		if(*s == c1) *s = c2;
+		if((unsigned char)*s == (unsigned char)c1)
+			*s = (char)(unsigned char)c2;
 		s++;
 	}
 }

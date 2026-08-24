@@ -1,0 +1,10 @@
+prefix=@MORPHEUS_PC_PREFIX@
+exec_prefix=${prefix}
+libdir=@MORPHEUS_PC_LIBDIR@
+includedir=@MORPHEUS_PC_INCLUDEDIR@
+
+Name: libmorpheus
+Description: Modernized Morpheus morphological analyzer
+Version: @PROJECT_VERSION@
+Libs: -L${libdir} -lmorpheus
+Cflags: -I${includedir}

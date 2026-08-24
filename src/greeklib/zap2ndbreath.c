@@ -1,4 +1,6 @@
+#include "greeklib_internal.h"
 #include <greek.h>
+#include <string.h>
 
 #include "zap2ndbreath.proto.h"
 
@@ -7,45 +9,50 @@
  * "parh(/bwsa" --> "parh/bwsa"
  */
 
-zap_extra_breath(char *s)
+void zap_extra_breath(char *s)
 {
 	int breath_is_extra = 0;
 	
+	if (!s) return;
 	if( *s == 'r' && *(s+1) == ROUGHBR ) s += 2;
 	
 	while(*s) {
 	
 		if( Is_cons(*s) ) {
-			breath_is_extra++;
+			breath_is_extra = 1;
 			s++;
 			continue;
 		}
 		
 		if( *s == ROUGHBR || *s == SMOOTHBR  ) {
 			if( ! breath_is_extra ) {
-				breath_is_extra++;
+				breath_is_extra = 1;
 				s++;
 				continue;
 			}
-			Xstrcpy(s,s+1);
+			strsqz(s,1);
+			continue;
 		}
 		s++;
 	}
 }
 
-has_extra_breath(char *s)
+int has_extra_breath(char *s)
 {	
 	int breath_is_extra = 0;
+
+	if (!s) return(0);
+	if( *s == 'r' && *(s+1) == ROUGHBR ) s += 2;
 	while(*s) {
 		if( Is_cons(*s) ) {
-			breath_is_extra++;
+			breath_is_extra = 1;
 			s++;
 			continue;
 		}
 	
 		if( *s == ROUGHBR || *s == SMOOTHBR) {
 			if( ! breath_is_extra ) {
-				breath_is_extra++;
+				breath_is_extra = 1;
 				s++;
 				continue;
 			}
@@ -61,15 +68,15 @@ has_extra_breath(char *s)
  *
  * e.g., go from a)nanti/r)r(hton to a)nanti/rrhton
  */
-zap_rr_breath(s)
-char *s;
+void zap_rr_breath(char *s)
 {
+	if (!s || !*s) return;
 	s++; /* careful about r(i/ptw etc. */
 	while(*s) {
 		if( *s=='r' && *(s+1) == ')' 
 		&&  *(s+2)=='r' && *(s+3) == '(' ) {
-			Xstrcpy(s,"rr");
-			strcat(s,s+4);
+			s[1] = 'r';
+			memmove(s+2,s+4,strlen(s+4)+1);
 		}
 		s++;
 	}

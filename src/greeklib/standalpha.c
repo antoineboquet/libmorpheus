@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*
  * grc 11/28/94
  *
@@ -5,17 +6,23 @@
  * are the same except for minor dialectical shift between alpha and eta
  */
 
+#include "standalpha.proto.h"
 
-#include <string.h>
-
-standalpha(char *s )
+void standalpha(char *s )
 {
-	while(*s) {
-		if(!strncmp("a_",s,2)) {
-			*s++ = 'h';
-			Xstrcpy(s,s+1);
-		}
-		s++;
-	}
+	char *read;
+	char *write;
 
+	if (!s) return;
+	read = s;
+	write = s;
+	while(*read) {
+		if (read[0] == 'a' && read[1] == '_') {
+			*write++ = 'h';
+			read += 2;
+		} else {
+			*write++ = *read++;
+		}
+	}
+	*write = 0;
 }

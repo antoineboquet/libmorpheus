@@ -1,7 +1,15 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 #include "is_thirdmono.h"
 
 #include "is_thirdmono.proto.h"
+
+static int valid_third_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
 
 /*
  * do we have a third declension monosyllabic stem in the genitive or dative?
@@ -12,12 +20,17 @@ is_thirdmono(stemtype,morphflags,stem,endstring,form_info,is_ending)
 Stemtype stemtype;
 MorphFlags * morphflags;
 */
-is_thirdmono(gk_string *stemgstr, gk_string *endgstr, char *stem, char *endstring, word_form form_info, int is_ending)
+int is_thirdmono(gk_string *stemgstr, gk_string *endgstr, char *stem, char *endstring, word_form form_info, int is_ending)
 {
 	char * p;
-	Stemtype stemtype = stemtype_of(stemgstr);
-	char * getsyll();
+	Stemtype stemtype;
 
+	if (!valid_third_argument(stemgstr) ||
+	    !valid_third_argument(endgstr) ||
+	    !valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
+	stemtype = stemtype_of(stemgstr);
 	if( is_ending && ! *stem) return(0);
 /*
  * fail on anything except nouns
@@ -70,17 +83,23 @@ is_thirdmono(gk_string *stemgstr, gk_string *endgstr, char *stem, char *endstrin
 	
 }
 
-is_mono_stem(char *stems, char *ends)
+int is_mono_stem(char *stems, char *ends)
 {
+	if (!valid_third_argument(stems) ||
+	    !valid_third_argument(ends))
+		return(0);
 	return( (nsylls(stems)+nsylls(ends) == 2) );
 }
 
-is_thirdexception(char *stem, char *endstring)
+int is_thirdexception(char *stem, char *endstring)
 {
 	char workword[MAXWORDSIZE];
 	int i;
 	int len;
 
+	if (!valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
 	Xstrncpy(workword,stem,MAXWORDSIZE); 
 	Xstrncat(workword,endstring,MAXWORDSIZE);
 	stripquant(workword);
@@ -97,10 +116,13 @@ is_thirdexception(char *stem, char *endstring)
 /*
  * does not regard case information and returns only a possibility
  */
-poss_thirdmono(Stemtype stemtype, char *stem, char *endstring)
+int poss_thirdmono(Stemtype stemtype, char *stem, char *endstring)
 {
 	char * p1;
 	char * p2;
+	if (!valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
 	if(  (stemtype & DECL3 ) &&
 	     ((p1=getsyll(stem,PENULT)) == P_ERR) &&
 	     ((p2=getsyll(endstring,PENULT)) == P_ERR) ) {
@@ -129,11 +151,11 @@ char * ending;
 		case hs_eos:
 		case is_ews:
 		case is_ios:
-/*		case os_eos:*
-/*		case u_ews:*
+		case os_eos:
+		case u_ews:
 		case us_ews:
-/*		case ws_w:*
-/*		case ws_wos:*
+		case ws_w:
+		case ws_wos:
 			return(0);
 			
 		default:
@@ -142,17 +164,23 @@ char * ending;
 }
 */
 
-diphth_end(char *stem, char *endstring)
+int diphth_end(char *stem, char *endstring)
 {
 	char tmp[MAXWORDSIZE];
 	char * s;
 	
+	if (!valid_third_argument(stem) ||
+	    !valid_third_argument(endstring))
+		return(0);
 	Xstrcpy(tmp,stem);
-	strcat(tmp,endstring);
+	if (!Xstrncat(tmp,endstring,sizeof tmp)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 	s = getsyll(tmp,ULTIMA);
 	if( s == P_ERR ) return(0);
-	if( Is_vowel(*s) && Is_vowel(*(s-1) ) ) {
+	if( s > tmp && Is_vowel(*s) && Is_vowel(*(s-1) ) ) {
 		*(s-1) = 0;
 		if( nsylls(tmp) != 0 )
 			return(1);

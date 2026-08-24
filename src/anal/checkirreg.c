@@ -1,20 +1,53 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #define MAXIRREGS 10
-#define MAXIRR 3
+#include "../morphlib/runtime_context_internal.h"
 
 #include "checkirreg.proto.h"
 
-long matchendtag();
+static int
+valid_irregular_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
 
-static	char *IrrForms[MAXIRR]; 
-static	char *IrrKeys[MAXIRR];
-static init_stor = 0;
 
-try_irregvb(gk_word *Gkword)
+static int
+initialize_irregular_buffers(morpheus_runtime_context *context)
+{
+	int i;
+
+	if (context->analysis_irregular_buffers_initialized) return(1);
+	for (i = 0; i < MORPHEUS_IRREGULAR_FORM_COUNT; i++) {
+		if (!context->analysis_irregular_forms[i])
+			context->analysis_irregular_forms[i] =
+				malloc((size_t)MAXWORDSIZE);
+		if (!context->analysis_irregular_keys[i])
+			context->analysis_irregular_keys[i] =
+				malloc((size_t)LONGSTRING);
+		if (!context->analysis_irregular_forms[i] ||
+		    !context->analysis_irregular_keys[i])
+			goto no_memory;
+	}
+	context->analysis_irregular_buffers_initialized = 1;
+	return(1);
+
+no_memory:
+	for (i = 0; i < MORPHEUS_IRREGULAR_FORM_COUNT; i++) {
+		free(context->analysis_irregular_forms[i]);
+		free(context->analysis_irregular_keys[i]);
+		context->analysis_irregular_forms[i] = NULL;
+		context->analysis_irregular_keys[i] = NULL;
+	}
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	return(0);
+}
+
+int try_irregvb(gk_word *Gkword)
 {
 	gk_word Workword;
 	char *saveirrform = NULL;
-	char *keys = NULL;
 	char *fullpreverb;
 	int unasp_prev = 0;
 
@@ -22,19 +55,20 @@ try_irregvb(gk_word *Gkword)
 	int i;
 	char * irrform;
 	char * rawprvb;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	char **IrrForms = context->analysis_irregular_forms;
+	char **IrrKeys = context->analysis_irregular_keys;
+
+	if (!valid_irregular_argument(Gkword)) return(0);
 	
 	saveirrform = (char *)malloc((size_t)MAXWORDSIZE);
-	keys = (char *)malloc((size_t)LONGSTRING);
-	*saveirrform = *keys = 0;
-	
-	if( ! init_stor ) {
-		init_stor = 1;
-		for(i=0;i<MAXIRR;i++) {
-			IrrForms[i] = (char *)malloc((size_t)MAXWORDSIZE);
-			IrrKeys[i] = (char *)malloc((size_t)LONGSTRING);
-		}
+	if (!saveirrform || !initialize_irregular_buffers(context)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		free(saveirrform);
+		return(0);
 	}
-	for(i=0;i<MAXIRR;i++) {
+	*saveirrform = 0;
+	for(i=0;i<MORPHEUS_IRREGULAR_FORM_COUNT;i++) {
 		*IrrForms[i] = 0;
 		*IrrKeys[i] = 0;
 	}
@@ -116,7 +150,9 @@ printf("rval b %d irrform [%s] irkkeys [%s]\n", rval , irrform, IrrKeys[0] );
  * on the irrform 
  */
 
- 	if( (cur_lang() != LATIN && (! Is_asp(*(rawprvb + Xstrlen(rawprvb) - 1))) || mfi_prvb(rawprvb)) && getbreath(irrform) == NOBREATH) {
+	if( ((cur_lang() != LATIN &&
+	      (!*rawprvb || !Is_asp(*(rawprvb + Xstrlen(rawprvb) - 1)))) ||
+	     mfi_prvb(rawprvb)) && getbreath(irrform) == NOBREATH) {
 		addbreath(irrform,SMOOTHBR);
 		if( has_morphflag(morphflags_of(stem_gstr_of(&Workword)),UNASP_PREVERB) ) {
 			unasp_prev = 1;
@@ -181,18 +217,10 @@ printf("rval b %d irrform [%s] irkkeys [%s]\n", rval , irrform, IrrKeys[0] );
 
 	finish:
 		xFree(saveirrform,"saveirrform");
-		xFree(keys,"keys");
 /*
 		xFree(fullpreverb,"fullpreverb");
 */
-		saveirrform = keys = fullpreverb = NULL;
-/*
-		for(i=0;i<MAXIRR;i++) {
-			xFree(IrrForms[i],"IrrForms[i]");
-			xFree(IrrKeys[i],"IrrKeys[i]");
-			IrrForms[i] = IrrKeys[i] = NULL;
-		}
-*/
+		saveirrform = fullpreverb = NULL;
 		if( rval ) 
 			CpGkAnal(Gkword,&Workword);
 		return(rval);
@@ -205,10 +233,9 @@ printf("rval b %d irrform [%s] irkkeys [%s]\n", rval , irrform, IrrKeys[0] );
  */
 
 
-ChckIrrLemms(gk_word *Gkword, char *irrform, char *irrkey)
+int ChckIrrLemms(gk_word *Gkword, char *irrform, char *irrkey)
 {
 	register char * sp;
-	char * parsefield();
 	char stemkeys[LONGSTRING];
 	char curlemma[LONGSTRING];
 	char tmpword[LONGSTRING];
@@ -216,6 +243,11 @@ ChckIrrLemms(gk_word *Gkword, char *irrform, char *irrkey)
 	gk_word TmpGkword;
 	int rval = 0;
 	int curval = 0;
+
+	if (!valid_irregular_argument(Gkword) ||
+	    !valid_irregular_argument(irrform) ||
+	    !valid_irregular_argument(irrkey))
+		return(0);
 
 
 	while( nextkey(irrkey,curlemma) ) {
@@ -246,16 +278,20 @@ ChckIrrLemms(gk_word *Gkword, char *irrform, char *irrkey)
 	return(rval);
 }
 
-CheckIrregForm(gk_word *Gkword, char *stem, char *stemkeys)
+int CheckIrregForm(gk_word *Gkword, char *stem, char *stemkeys)
 {
 	gk_word * Forms = NULL;
-	gk_word * GenIrregForm();
 	gk_word StemForms;
 	gk_string Gstr;
-	char * is_substring();
-	char * prevb = preverb_of(Gkword);
+	char * prevb;
 	char * pbptr;
 	int rval = 0;
+
+	if (!valid_irregular_argument(Gkword) ||
+	    !valid_irregular_argument(stem) ||
+	    !valid_irregular_argument(stemkeys))
+		return(0);
+	prevb = preverb_of(Gkword);
 
 	StemForms = (*Gkword);
 	set_stem(&StemForms,stem);
@@ -263,8 +299,13 @@ CheckIrregForm(gk_word *Gkword, char *stem, char *stemkeys)
 	if( * prevb ) {
 		pbptr =is_substring(stemkeys,"pb:");
 		if( pbptr == NULL )  {
-			Xstrncat(stemkeys," pb:",LONGSTRING);
-			Xstrncat(stemkeys,prevb,LONGSTRING);
+			char merged[LONGSTRING];
+			if (!Xstrncpy(merged,stemkeys,sizeof merged) ||
+			    !morpheus_runtime_string_append(
+			        merged," pb:",sizeof merged) ||
+			    !morpheus_runtime_string_append(
+			        merged,prevb,sizeof merged)) return(0);
+			Xstrncpy(stemkeys,merged,LONGSTRING);
 		}
 		/*
 		 * if this stem already has a preverb and it differs
@@ -281,17 +322,21 @@ CheckIrregForm(gk_word *Gkword, char *stem, char *stemkeys)
 	set_morphflags(&Gstr,morphflags_of(Gkword));
 	if( Forms ) {
 		rval = CheckGenWords(Gkword,Forms);
-		FreeGkString(Forms);
+		FreeGkString((gk_string *)Forms);
 	}
 	set_gwmorphflags(Gkword,morphflags_of(&Gstr));
 	return(rval);
 }
 
-chckirrvform(char *form, char *keys)
+int chckirrvform(char *form, char *keys)
 {
 	char tmpform[MAXWORDSIZE];
 	int rval;
 	int curacc, cursyll;
+
+	if (!valid_irregular_argument(form) ||
+	    !valid_irregular_argument(keys))
+		return(0);
 	
 /*
 	if( (rval=chckirrverb(form,keys)) )
@@ -304,10 +349,12 @@ chckirrvform(char *form, char *keys)
 
 }
 
-mfi_prvb(char *rawprvb)
+int mfi_prvb(char *rawprvb)
 {
-	int slen = Xstrlen(rawprvb);
+	if (!valid_irregular_argument(rawprvb)) return(0);
+	size_t slen = Xstrlen(rawprvb);
 	
+	if (slen < 2) return(0);
 	if( rawprvb[slen-1] == 'f' && rawprvb[slen-2] == 'm' ) return(1);
 	return(0);
 }

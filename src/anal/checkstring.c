@@ -1,67 +1,99 @@
-#include <gkstring.h>
+#include "anal_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include "checkstring.proto.h"
-static checkstring4(gk_word *);
-static add_apostrvowel(char *, char *, char *);
+static int checkstring4(gk_word *);
+static void add_apostrvowel(char *, char *, char *);
+static int set_prefixed_workword(gk_word *, const char *, const char *);
 /*
  * a lot of dirty work goes on here. this is where we look for things like apostrophes,
  * crasis, odd preverb forms (e.g. "cun" for "sun"), dialectical things like "tt" vs "ss" etc.
  */
 gk_word * CreatGkword(int n);
-int 	checkstring1(gk_word * Gkword);
-int 	stand_phonetics(gk_word * Gkword);
-int 	standword(char * s);
+void 	checkstring1(gk_word * Gkword);
+void 	stand_phonetics(gk_word * Gkword);
+void 	standword(char * s);
 int 	is_blank(char * s);
-Dialect WantDialects = ALL_DIAL;
-
-gk_word BlankWord, CheckWord;
-
 int
 teststring(char *string)
 {
 	return(checkstring(string,(PrntFlags)0,stdout));
 }
 
-checkstring(char *string, PrntFlags prntflags, FILE *fout)
+static gk_word *
+check_word_once(char *string, PrntFlags prntflags)
 {
-	gk_word * Gkword = NULL;
-	FILE * fcurout = fout;
-	int nanals = 0;
-	int nlems = 0;
-
-	if( is_blank(string) ) return(0);
-	if( strlen(string) >= MAXWORDSIZE ) return(0);
-
-	Gkword = (gk_word *) CreatGkword(1 );
-
-	set_dialect(Gkword,WantDialects);
-	set_workword(Gkword,string);
-	set_prntflags(Gkword,prntflags);
-	set_rawword(Gkword,workword_of(Gkword));
-	if( cur_lang() != ITALIAN ) standword(workword_of(Gkword));
-	stand_phonetics(Gkword);
-	
-	checkstring1(Gkword);
-
-	if( prntflags & LEMCOUNT ) {
-		nlems = cntlems(Gkword);
-		FreeGkword( Gkword );
-		return(nlems);
-	}
-
-	if( prntflags && (nanals=totanal_of(Gkword)) > 0 ) {
-		PrntAnalyses(Gkword,prntflags,fcurout);
-	}
-	FreeGkword( Gkword );
-	return(nanals);
+  gk_word *Gkword;
+  if(is_blank(string) || strlen(string) >= MAXWORDSIZE) return(NULL);
+  Gkword=CreatGkword(1);
+  if(!Gkword) return(NULL);
+  set_dialect(Gkword,GetWantDialect());
+  set_workword(Gkword,string);
+  set_prntflags(Gkword,prntflags);
+  set_rawword(Gkword,workword_of(Gkword));
+  if(cur_lang() != ITALIAN) standword(workword_of(Gkword));
+  stand_phonetics(Gkword);
+  checkstring1(Gkword);
+  return(Gkword);
 }
 
+gk_word *
+morpheus_check_word(char *string, PrntFlags prntflags)
+{
+  if(!string) {
+    morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+    return(NULL);
+  }
+  gk_word *word=check_word_once(string,prntflags);
+  char retry[MAXWORDSIZE];
 
-cntlems(gk_word *Gkword ) 
+  if(!word || totanal_of(word) || cur_lang() == LATIN ||
+     !(prntflags & IGNORE_ACCENTS))
+    return(word);
+
+  FreeGkword(word);
+  Xstrncpy(retry,string,sizeof retry);
+  stripbreath(retry);
+  addbreath(retry,')');
+  word=check_word_once(retry,prntflags);
+  if(!word || totanal_of(word)) return(word);
+
+  FreeGkword(word);
+  stripbreath(retry);
+  addbreath(retry,'(');
+  return(check_word_once(retry,prntflags));
+}
+
+int checkstring(char *string, PrntFlags prntflags, FILE *fout)
+{
+  if(!string) {
+    morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+    return(0);
+  }
+  gk_word *Gkword=morpheus_check_word(string,prntflags);
+  int nanals;
+  if(!Gkword) return(0);
+  if(prntflags & LEMCOUNT) {
+    int nlems=cntlems(Gkword);
+    FreeGkword(Gkword);
+    return(nlems);
+  }
+  nanals=totanal_of(Gkword);
+  if(prntflags && nanals > 0) PrntAnalyses(Gkword,prntflags,fout);
+  FreeGkword(Gkword);
+  return(nanals);
+}
+
+int cntlems(gk_word *Gkword )
 {
 	int i;
 	int cnt = 0;
 	gk_analysis * Anal;
 	char prevlem[BUFSIZ];
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 
 	prevlem[0] = 0;
 	
@@ -76,10 +108,16 @@ cntlems(gk_word *Gkword )
 	return(cnt);
 }
 
-is_article(gk_word * Gkword)
+int is_article(gk_word * Gkword)
 {
 	int i;
-	gk_analysis * curanal = analysis_of(Gkword);
+	gk_analysis * curanal;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	curanal = analysis_of(Gkword);
 
 	for(i=0;i<totanal_of(Gkword);i++) {
 		if( !strcmp("article", NameOfStemtype(stemtype_of(curanal+i))))
@@ -88,10 +126,10 @@ is_article(gk_word * Gkword)
 	return(0);
 }
 
-end_phrase(gk_word * checkw,gk_word * Gkword)
+void end_phrase(gk_word * checkw,gk_word * Gkword)
 {
 }
-checkstring1(gk_word *Gkword)
+void checkstring1(gk_word *Gkword)
 {
 
 	if( workword_of(Gkword)[0] == '\'' ) { /* check for prodelision */
@@ -99,8 +137,7 @@ checkstring1(gk_word *Gkword)
 		int n = 0;
 		
 		Xstrncpy(savework,workword_of(Gkword),MAXWORDSIZE);
-		set_workword(Gkword,"e)");
-		Xstrncat(workword_of(Gkword),savework+1,MAXWORDSIZE);
+		if (!set_prefixed_workword(Gkword,"e)",savework+1)) return;
 		n = checkstring2(Gkword);
 
 /*
@@ -112,19 +149,16 @@ checkstring1(gk_word *Gkword)
 			
 			Xstrcpy(tmp,savework);
 			if( hasaccent(tmp) ) stripacc(tmp);
-			set_workword(Gkword,"e)/");
-			Xstrncat(workword_of(Gkword),tmp+1,MAXWORDSIZE);
+			if (!set_prefixed_workword(Gkword,"e)/",tmp+1)) return;
 			n = checkstring2(Gkword);
 			
 		}
 		
-		set_workword(Gkword,"a)");
-		Xstrncat(workword_of(Gkword),savework+1,MAXWORDSIZE);
+		if (!set_prefixed_workword(Gkword,"a)",savework+1)) return;
 		n = checkstring2(Gkword);
 
 		if( ! n && ! hasaccent(savework) ) {
-			set_workword(Gkword,"a)/");
-			Xstrncat(workword_of(Gkword),savework+1,MAXWORDSIZE);
+			if (!set_prefixed_workword(Gkword,"a)/",savework+1)) return;
 			n = checkstring2(Gkword);
 			
 		}
@@ -134,7 +168,7 @@ checkstring1(gk_word *Gkword)
 		checkstring2(Gkword);
 }
 
-checkstring2(gk_word *Gkword)
+int checkstring2(gk_word *Gkword)
 {
 	int rval;
 	Dialect d;
@@ -226,12 +260,12 @@ typedef struct {
   Stemtype stemtype;
 } enclitic_word;
 
-enclitic_word GreekSuff[] = {
+static const enclitic_word GreekSuff[] = {
   "per", NOUNSTEM|ADJSTEM,
   "", 0				/* sentinel */
 };
 
-enclitic_word LatinSuff[] = {
+static const enclitic_word LatinSuff[] = {
   "que", 0,
   "cumque", 0,
   "cunque", 0,
@@ -248,7 +282,7 @@ enclitic_word LatinSuff[] = {
 };
 
 /* these should only work with verbs, excluding participles */
-enclitic_word ItalianSuff[] = {
+static const enclitic_word ItalianSuff[] = {
   "glie", PPARTMASK,
   "gli", PPARTMASK,		/* needs to be before "li" */
   "mi", PPARTMASK,
@@ -271,7 +305,7 @@ enclitic_word ItalianSuff[] = {
 };
 
 
-checkstring3(gk_word *Gkword)
+int checkstring3(gk_word *Gkword)
 {
   char saveword[MAXWORDSIZE];
   char workword[MAXWORDSIZE];
@@ -282,7 +316,7 @@ checkstring3(gk_word *Gkword)
   int totanal, acount;
   int idx;
 
-  enclitic_word *EnclitArr;
+  const enclitic_word *EnclitArr;
   
   switch (cur_lang()) {
     
@@ -306,7 +340,7 @@ checkstring3(gk_word *Gkword)
   rval=checkstring4(Gkword);
 
 
-  if(  (isupper(*string) || *string == BETA_UCASE_MARKER) && !(prntflags_of(Gkword)&STRICT_CASE) ) {
+  if(  (isupper((unsigned char)*string) || *string == BETA_UCASE_MARKER) && !(prntflags_of(Gkword)&STRICT_CASE) ) {
     /*
      * check to see if we failed because we 
      * have a word that is upper case
@@ -318,7 +352,7 @@ checkstring3(gk_word *Gkword)
      * grc -- 8/14/93
      */
     if( cur_lang() == LATIN || cur_lang() == ITALIAN ) {
-      *string = tolower(*string);
+      *string = (char)tolower((unsigned char)*string);
       /*
        * 12/18/97 grc
        * Vbi --> ubi
@@ -326,7 +360,7 @@ checkstring3(gk_word *Gkword)
        * Vtinam --> utinam etc.
        */
 
-      if(*string == 'v' && isalpha(*(string+1)) /* &&
+      if(*string == 'v' && isalpha((unsigned char)*(string+1)) /* &&
 	* 
 	 * 07/12/2006 grc
 	 * loosen this up for "vacuus/uacuus"
@@ -347,7 +381,7 @@ checkstring3(gk_word *Gkword)
     {
 	for (idx = 0;  string[idx] != 0;  idx ++)
 	{
-	    string[idx] = tolower(string[idx]);
+	    string[idx] = (char)tolower((unsigned char)string[idx]);
 	    if (string[idx] == 'v' && strchr("aeiou", string[idx+1]) == 0)
 	      string[idx] = 'u';
 	}
@@ -356,7 +390,7 @@ checkstring3(gk_word *Gkword)
 	  set_workword(Gkword,saveword);
 	  return(rval);
         }
-	*string = toupper(*string);
+	*string = (char)toupper((unsigned char)*string);
 	if ((rval = checkstring4(Gkword)) > 0 )
 	{
 	  set_workword(Gkword,saveword);
@@ -699,8 +733,7 @@ checkstring3(gk_word *Gkword)
   return(rval);
 }
 
-static
-checkstring4(gk_word *Gkword)
+static int checkstring4(gk_word *Gkword)
 {
 	char saveword[MAXWORDSIZE];
 	char wordnoacc[MAXWORDSIZE];
@@ -799,7 +832,7 @@ checkstring4(gk_word *Gkword)
 	return(0);
 }
 
-has_cun(char *s)
+int has_cun(char *s)
 {
 	while(*s) {
 		if( *s == 'c' && *(s+1) == 'u' ) {
@@ -812,7 +845,7 @@ has_cun(char *s)
 }
 
 
-checkapostr(gk_word *Gkword)
+int checkapostr(gk_word *Gkword)
 {
 	char saveword[MAXWORDSIZE];
 	gk_string TmpGstr;
@@ -931,23 +964,44 @@ checkapostr(gk_word *Gkword)
 	return(rval);
 }
 
-static
-add_apostrvowel(char *word, char *end, char *vow)
+static void add_apostrvowel(char *word, char *end, char *vow)
 {
+	char candidate[MAXWORDSIZE];
 /*
  * if it has no accents (like a)ll' from a)lla/) stick one on
  */
- 	Xstrncpy(end,vow,MAXWORDSIZE);
+	Xstrncpy(end,vow,MAXWORDSIZE);
+	if (!Xstrncpy(candidate,word,sizeof candidate)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	if( naccents(word) == 0 ) {
-		Xstrncat(word,"/",MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(
+		    candidate,"/",sizeof candidate)) return;
 	}
 
 	if( *end == 'u' || * end == 'i' || *end == 'a' )
-		Xstrncat(word,"^",MAXWORDSIZE);
+		if (!morpheus_runtime_string_append(
+		    candidate,"^",sizeof candidate)) return;
+	Xstrncpy(word,candidate,MAXWORDSIZE);
 
 }
 
-has_tt(char *s)
+static int
+set_prefixed_workword(gk_word *word, const char *prefix, const char *suffix)
+{
+	char candidate[MAXWORDSIZE];
+
+	if (!Xstrncpy(candidate,prefix,sizeof candidate) ||
+	    !morpheus_runtime_string_append(candidate,suffix,sizeof candidate)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	set_workword(word,candidate);
+	return(1);
+}
+
+int has_tt(char *s)
 {
 	while(*s) {
 		if( *s == 't' && *(s+1) == 't' ) {
@@ -959,42 +1013,48 @@ has_tt(char *s)
 	return(0);
 }
 
-setepic()
+void setepic(void)
 {
 
 AddWantDialect((Dialect )( EPIC));	
 }	
 
-setatticprose()
+void setatticprose(void)
 {
 SetWantDialect((Dialect )( ATTIC|PROSE));	
 }
 
 
-SetWantDialect(Dialect dial)
+void SetWantDialect(Dialect dial)
 {
-	WantDialects = dial;
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	context->analysis_wanted_dialects = dial;
+	context->analysis_wanted_dialects_initialized = 1;
 }
 
-AddWantDialect(Dialect dial)
+void AddWantDialect(Dialect dial)
 {
-	WantDialects |= dial;
+	SetWantDialect(GetWantDialect() | dial);
 }
 
-ZapWantDialect(Dialect dial)
+void ZapWantDialect(Dialect dial)
 {
-	WantDialects &= (~dial);
+	SetWantDialect(GetWantDialect() & (~dial));
 }
 
 Dialect
 GetWantDialect(void)
 {
-	return(WantDialects);
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+
+	if (!context->analysis_wanted_dialects_initialized)
+		return(ALL_DIAL);
+	return(context->analysis_wanted_dialects);
 }
 
-updateDialect(Dialect dial)
+int updateDialect(Dialect dial)
 {
-	Dialect GetWantDialect();
 	Dialect curdial;
 	
 	curdial = GetWantDialect();
@@ -1012,7 +1072,7 @@ updateDialect(Dialect dial)
 
 #define LatVow(X) (strchr("aeiouAEIOU",X))
 
-u2v(char *s) {
+int u2v(char *s) {
 	int nchanges = 0;
 	char half1[BUFSIZ], *t;
 

@@ -1,34 +1,37 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include <libfiles.h>
-static OpenDerivFile(void);
-
-static FILE * fsuff = NULL;
-static int noderivfile = 0;
+static int OpenDerivFile(morpheus_runtime_context *);
 
 char * 
 NextSuffTable(char *entry)
 {
-		if( ! fsuff ) {
+		morpheus_runtime_context *context = morpheus_runtime_context_current();
+		size_t length;
+
+		if( ! context->suffix_table_file ) {
 			
-			if(  noderivfile ) 
+			if( context->suffix_table_unavailable )
 				return(NULL);
-			if( ! OpenDerivFile() )
+			if( ! OpenDerivFile(context) )
 				return(NULL);
 		}
-		if( ! fgets(entry,MAXPATHNAME,fsuff) ) {
-			fclose(fsuff);
-			fsuff = NULL;
+		if( ! fgets(entry,MAXPATHNAME,context->suffix_table_file) ) {
+			fclose(context->suffix_table_file);
+			context->suffix_table_file = NULL;
 			return(NULL);
 		}
-		*(entry+strlen(entry)-1) = 0;
+		length = strlen(entry);
+		if (length && entry[length-1] == '\n') entry[length-1] = 0;
 		return(entry);
 }
 
-static
-OpenDerivFile(void)
+static int
+OpenDerivFile(morpheus_runtime_context *context)
 {
-	fsuff = MorphFopen(DERIVTYPES,"r");
-	if( ! fsuff ) 
-		noderivfile = 1;
-	return( noderivfile == 0 );
+	context->suffix_table_file = MorphFopen(DERIVTYPES,"r");
+	if( ! context->suffix_table_file )
+		context->suffix_table_unavailable = 1;
+	return( context->suffix_table_unavailable == 0 );
 }

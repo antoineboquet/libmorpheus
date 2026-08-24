@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 
 #include "addninfix.proto.h"
@@ -9,10 +10,9 @@
  * a(d --> a(nd
  * etc.
  */
-addninfix(char *word)
+int addninfix(char *word)
 {
 	char * syllp;
-	char *getaccp();
 	int c = 'n';
 	
 

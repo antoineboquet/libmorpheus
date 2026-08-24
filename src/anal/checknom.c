@@ -1,26 +1,37 @@
 #include <stdio.h>
-#include <gkstring.h>
+#include "anal_internal.h"
+#include "../morphlib/runtime_context.h"
 
 #include "checknom.proto.h"
-static gotnom(gk_word *);
+static int gotnom(gk_word *);
 
-checknom(gk_word *Gkword)
+int checknom(gk_word *Gkword)
 {
 	int rval;
 
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+
 	if( (prntflags_of(Gkword) & VERBS_ONLY ) ) return(0);
 
-	if(rval=checkregnom(Gkword))
+	if ((rval = checkregnom(Gkword)) != 0)
 		return(rval);
 	return(0);
 }
 
-checkregnom(gk_word *Gkword)
+int checkregnom(gk_word *Gkword)
 {
 	register char * wp;
 	char workword[MAXWORDSIZE];
 	char half1[MAXWORDSIZE];
 	int rval = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	Xstrncpy(workword,workword_of(Gkword),(int)sizeof workword);
 
 
@@ -81,8 +92,7 @@ checkregnom(gk_word *Gkword)
 		return(rval);
 }
 
-static 
-gotnom(gk_word *Gkword)
+static int gotnom(gk_word *Gkword)
 {
 	int is_ending = 0;
 	int rval = 0;
@@ -98,6 +108,10 @@ gotnom(gk_word *Gkword)
 	stemkeys = (char *)malloc((size_t)LONGSTRING);
 	curstem = CreatGkString(1);
 	curend = (char *)malloc((size_t)MAXWORDSIZE);
+	if (!endkeys || !stemkeys || !curstem || !curend) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		goto finish;
+	}
 	
 	endkeys[0] = stemkeys[0] = 0;
 	stripacc(endstring_of(Gkword));
@@ -124,11 +138,12 @@ gotnom(gk_word *Gkword)
 		if(!rval) checkforcompnoun(gkstring_of(curstem),endkeys,stemkeys);
 	}
 
-	xFree(endkeys,"endkeys");
-	xFree(stemkeys,"stemkeys");
-	FreeGkString(curstem);
-	xFree(curend,"curend");
-	endkeys = stemkeys = curend = NULL;
-	curstem = NULL;
-	return(rval);
+	finish:
+		if (endkeys) xFree(endkeys,"endkeys");
+		if (stemkeys) xFree(stemkeys,"stemkeys");
+		if (curstem) FreeGkString(curstem);
+		if (curend) xFree(curend,"curend");
+		endkeys = stemkeys = curend = NULL;
+		curstem = NULL;
+		return(rval);
 }

@@ -1,12 +1,13 @@
+#include "greeklib_internal.h"
 #include <greek.h>
-#define Is_zeroend(X) (X=='*')
-
 #include "stripzeroend.proto.h"
-stripzeroend(char *word)
+void stripzeroend(char *word)
 {
-	int n;
+	size_t n;
 
+	if (!word) return;
 	n = Xstrlen(word);
+	if (n == 0) return;
 
 	if (Is_zeroend(*(word+n-1)) )
 		*(word+n-1) = 0;

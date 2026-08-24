@@ -1,26 +1,36 @@
-#include <gkstring.h>
+#include "anal_internal.h"
 #include <modes.h>
+#include "../morphlib/runtime_context.h"
 #define MAXPPARTS 12
 
 #include "checkdict.proto.h"
-gk_word * GenStemForms();
-static int count = 0;
-char * 	GetLemmStem();
+extern int verbose;
 
-extern verbose;
+static int
+valid_dictionary_argument(const void *argument)
+{
+	if (argument) return(1);
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
 
-checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
+int checkdict(gk_word *Gkword, gk_string *stem, char *stemkeys)
 {
 	int i, j;
 	int hits;
 	gk_word * gkforms = NULL;
 	char tmp[MAXWORDSIZE];
 	gk_word SaveGkword;
-	char * prevb = preverb_of(Gkword);
+	char * prevb;
 	char * pbptr;
 	char curkeys[LONGSTRING+1];
 	char keyp[LONGSTRING+1];
-	char *is_substring();
+
+	if (!valid_dictionary_argument(Gkword) ||
+	    !valid_dictionary_argument(stem) ||
+	    !valid_dictionary_argument(stemkeys))
+		return(0);
+	prevb = preverb_of(Gkword);
 
 	hits = 0;
 	
@@ -74,8 +84,10 @@ fprintf(stderr,"checkdict: stem [%s] endstring [%s] keyp [%s]\n", stem_of(Gkword
 	
 	if( prevb[0] ) {
 		if( pbptr == NULL )  {
-			Xstrncat(keyp,":pb:",LONGSTRING);
-			Xstrncat(keyp,prevb,LONGSTRING);
+			if (!morpheus_runtime_string_append(
+			    keyp,":pb:",sizeof keyp) ||
+			    !morpheus_runtime_string_append(
+			    keyp,prevb,sizeof keyp)) goto finish;
 		}
 		/*
 		 * if this stem already has a preverb and it differs
@@ -95,8 +107,10 @@ fprintf(stderr,"checkdict: stem [%s] endstring [%s] keyp [%s]\n", stem_of(Gkword
 	 */
 			if(Xstrncmp(tmppb,lastn(prevb,Xstrlen(tmppb)),Xstrlen(prevb)))
 				goto finish;
-			Xstrncat(keyp,":pb:",LONGSTRING);
-			Xstrncat(keyp,prevb,LONGSTRING);
+			if (!morpheus_runtime_string_append(
+			    keyp,":pb:",sizeof keyp) ||
+			    !morpheus_runtime_string_append(
+			    keyp,prevb,sizeof keyp)) goto finish;
 		}
 	} 
 
@@ -146,7 +160,7 @@ fprintf(stderr,"checkdict: stem [%s] endstring [%s] keyp [%s]\n", stem_of(Gkword
 		* ends_gstr_of(Gkword) = * ends_gstr_of(&SaveGkword);
 	
 		if( gkforms ) {
-			FreeGkString(gkforms);
+			FreeGkString((gk_string *)gkforms);
 			gkforms = NULL;
 		}
 	
@@ -157,6 +171,11 @@ char *
 GetLemmStem(char *keys, char *lemma, char *stem)
 {
 	register char * a;
+
+	if (!valid_dictionary_argument(keys) ||
+	    !valid_dictionary_argument(lemma) ||
+	    !valid_dictionary_argument(stem))
+		return(NULL);
 	
 	if( *keys == ':' ) keys++;
 	

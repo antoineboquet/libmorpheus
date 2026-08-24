@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*
  * gregory crane
  * harvard university
@@ -9,15 +10,20 @@
 
 #include "do_dissim.proto.h"
 
-do_dissim(char *s, Stemtype stype)
+int do_dissim(char *s, Stemtype stype)
 {
-	register char *p1, *p2, *cp;
+	register char *p1;
+	size_t length;
+
+	if (!s) return(0);
+	length = Xstrlen(s);
+	if (!length) return(0);
 	
 	/*
 	 * added -- grc 5/10/89: a)riqmh/qhn not a)ritmh/qhn
 	 */
 
-	if( Is_asp(*(lastn(s,1))) && ((stype & VERBSTEM ) == PP_AP) ) {
+	if( Is_asp(s[length-1]) && ((stype & VERBSTEM ) == PP_AP) ) {
 		return(0);
 	}
 	/* end 5/10/89 addition */
@@ -57,12 +63,14 @@ do_dissim(char *s, Stemtype stype)
 	return(0);
 }
 
-next_cons_rough(char *s)
+int next_cons_rough(char *s)
 {
-	char * cp, *next_cons();
+	char *cp;
 	int rval = 0;
 	
+	if (!s) return(0);
 	cp = next_cons(s);
+	if (!cp) return(0);
 	rval = Is_asp(*cp);
 	if( ! rval ) {
 		if( *cp == 's' && Is_asp(*(cp+1) ) )
@@ -75,6 +83,7 @@ next_cons_rough(char *s)
 char *
 next_cons(char *s)
 {
+	if (!s) return(NULL);
 	while(Is_cons(*s)||Is_accent(*s)) s++;
 	while(Is_vowel(*s)||Is_accent(*s)) s++;
 	return(s);

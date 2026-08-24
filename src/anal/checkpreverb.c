@@ -1,4 +1,5 @@
-#include <gkstring.h>
+#include "anal_internal.h"
+#include "../morphlib/runtime_context.h"
 
 #include "checkpreverb.proto.h"
 /*
@@ -8,12 +9,17 @@
 /*
  * more trouble than it is worth--no longer called as of 6/7/88, grc
  */
-Check_preverb(gk_word *Gkword, gk_string *gstr)
+int Check_preverb(gk_word *Gkword, gk_string *gstr)
 {
 	char savelemma[MAXWORDSIZE];
 	int rval = 0;
 	int sawstems = 0;
 	int voice;
+
+	if (!Gkword || !gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	
 	voice = voice_of(forminfo_of(gstr));
 return(1);

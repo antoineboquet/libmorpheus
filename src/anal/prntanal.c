@@ -1,25 +1,40 @@
-#include <gkstring.h>
-static char * pbuf = NULL;
+#include "anal_internal.h"
+#include "../morphlib/runtime_context_internal.h"
+
+#define ANALYSIS_CONTEXT (morpheus_runtime_context_current())
+#define pbuf (ANALYSIS_CONTEXT->analysis_print_buffer)
+#define prevlemma (ANALYSIS_CONTEXT->analysis_previous_lemma)
+#define prevword (ANALYSIS_CONTEXT->analysis_previous_word)
+#define prevstem (ANALYSIS_CONTEXT->analysis_previous_stem)
+#define curan (ANALYSIS_CONTEXT->analysis_current_number)
 #define NEWLINE "\r"
 
 #include "prntanal.proto.h"
 
-static char prevlemma[MAXWORDSIZE];
-static char prevword[MAXWORDSIZE];
-static char prevstem[MAXWORDSIZE];
-static int curan = 0;
-
-PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
+int PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 {
   int i, nanals;
   gk_analysis * Anal;
   char tmp[LONGSTRING];
+
+	if (!Gkword) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	  return(0);
+	}
+	nanals = totanal_of(Gkword);
+	if (nanals < 0 || (nanals && !analysis_of(Gkword))) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	  return(0);
+	}
 	
   if( ! pbuf ) {
     pbuf = (char *)calloc((size_t) MAXANALYSES * 128 , (size_t)sizeof * pbuf );
+	if (!pbuf) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+	  return(0);
+	}
   }
   *pbuf = 0;
-  nanals = totanal_of(Gkword);
   SortAnals(analysis_of(Gkword),nanals);
 
   if(  prntflags & SHOW_LEMMA ) {
@@ -35,12 +50,20 @@ PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 	
 
   if( ! (prntflags & SHOW_LEMMA )  ) {
-    sprintf(tmp,"$%s&  %s%s", rawword_of(Gkword) ,
-	    nanals == 1 ? "is" : "could be" , NEWLINE );
-    if( prntflags & KEEP_BETA ) 
-      strcat(pbuf,tmp);
-    else
+	if (snprintf(tmp,sizeof tmp,"$%s&  %s%s", rawword_of(Gkword),
+	             nanals == 1 ? "is" : "could be",NEWLINE) >=
+	    (int)sizeof tmp) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	  return(0);
+	}
+    if( prntflags & KEEP_BETA ) {
+	  if (!Xstrncat(pbuf,tmp,(size_t)MAXANALYSES * 128)) {
+	    morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	    return(0);
+	  }
+    } else {
       beta2smarta(tmp,pbuf);
+    }
   }
 	
   prevlemma[0] = 0;
@@ -58,11 +81,14 @@ PrntAnalyses(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 		putchar( '\n' );
 		else*/
     if( prntflags & SHOW_LEMMA ) 
-      Xstrncat(pbuf,"\n",MAXANALYSES * 128);
+      morpheus_runtime_string_append(
+	  pbuf,"\n",(size_t)MAXANALYSES * 128);
     else
-      Xstrncat(pbuf,"\r",MAXANALYSES * 128);
+      morpheus_runtime_string_append(
+	  pbuf,"\r",(size_t)MAXANALYSES * 128);
   }
   /*	puts(pbuf);*/
+  return(nanals);
 }
 
 char *
@@ -71,9 +97,7 @@ anal_buf(void)
   return(pbuf);
 }
 
-GoodAnals(Gkword,lemmflag)
-gk_word * Gkword;
-int lemmflag;
+static int GoodAnals(gk_word *Gkword, int lemmflag)
 {
   char curlem[MAXWORDSIZE];
   gk_analysis * Anal;
@@ -95,14 +119,14 @@ int lemmflag;
       difflems ++;
       Xstrcpy(curlem,lemma_of(Anal));
     }
-    if( (strchr(lemma_of(Anal),'-') == NULL ) ) {
+    if(strchr(lemma_of(Anal),'-') == NULL) {
       goodanals++;
     }
   }
   return(lemmflag? difflems : goodanals );
 }
 
-DumpLemmaInfo(gk_word *Gkword, PrntFlags prntflags, FILE *f)
+void DumpLemmaInfo(gk_word *Gkword, PrntFlags prntflags, FILE *f)
 {
   int i = 0;
   gk_analysis * Anal;
@@ -132,10 +156,10 @@ DumpLemmaInfo(gk_word *Gkword, PrntFlags prntflags, FILE *f)
   }
 }
 
-PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
+void PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
 {
   PrntFlags showlemma;
-  gk_string * TmpGstr;
+  gk_string TmpGstr = { 0 };
   char tmp[LONGSTRING];
   char wtmp[LONGSTRING];
   char prntlem[MAXWORDSIZE];
@@ -143,7 +167,10 @@ PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
   int funnyacc = 0;
 		
 
-  TmpGstr = (gk_string *)CreatGkString(1);
+	if (!Gkanal || !pbuf) {
+	  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	  return;
+	}
   tmp[0] = 0;
   curan++;
 
@@ -155,31 +182,40 @@ PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
 
   if( prntflags & SHOW_LEMMA ) {
     if( strcmp(lemma_of(Gkanal),prevlemma)) {
-      if( preverb_of(Gkanal)[0] )
-	sprintf(wtmp,"%s\t%s-%s %d\t", rawword_of(Gkanal), preverb_of(Gkanal) , lemma_of(Gkanal) , curan);
-      else
-	sprintf(wtmp,"%s\t%s %d\t", rawword_of(Gkanal),  lemma_of(Gkanal) ,curan );
-      Xstrncat(pbuf,wtmp,MAXANALYSES * 128);
+      if( preverb_of(Gkanal)[0] ) {
+	if (snprintf(wtmp,sizeof wtmp,"%s\t%s-%s %d\t", rawword_of(Gkanal),
+	             preverb_of(Gkanal),lemma_of(Gkanal),curan) >=
+	    (int)sizeof wtmp) goto too_long;
+      } else {
+	if (snprintf(wtmp,sizeof wtmp,"%s\t%s %d\t", rawword_of(Gkanal),
+	             lemma_of(Gkanal),curan) >= (int)sizeof wtmp)
+	  goto too_long;
+      }
+      if (!morpheus_runtime_string_append(
+	  pbuf,wtmp,(size_t)MAXANALYSES * 128)) return;
       curan = 0;
       Xstrcpy(wtmp,"\n");
     }
-    goto finish;
+    return;
   }
 	
   if( strcmp(lemma_of(Gkanal),prevlemma)) {
 				
-    sprintf(wtmp,"   &from$  %s", prntlem );
-    Xstrncat(tmp,wtmp,LONGSTRING);
+    if (snprintf(wtmp,sizeof wtmp,"   &from$  %s",prntlem) >=
+        (int)sizeof wtmp) goto too_long;
+    if (!morpheus_runtime_string_append(tmp,wtmp,sizeof tmp)) goto too_long;
     Xstrncpy(prevlemma,lemma_of(Gkanal),MAXWORDSIZE);
 	
 
     if( preverb_of(Gkanal)[0] /* && funnyacc */) {
       char tmp2[128];
 		
-      sprintf(tmp2," [$%s&+$%s&]", preverb_of(Gkanal) , lemma_of(Gkanal) );
-      Xstrncat(tmp,tmp2,LONGSTRING);
+      if (snprintf(tmp2,sizeof tmp2," [$%s&+$%s&]",
+                   preverb_of(Gkanal),lemma_of(Gkanal)) >=
+          (int)sizeof tmp2) goto too_long;
+      if (!morpheus_runtime_string_append(tmp,tmp2,sizeof tmp)) goto too_long;
     }
-    Xstrncat(tmp,NEWLINE,LONGSTRING);
+    if (!morpheus_runtime_string_append(tmp,NEWLINE,sizeof tmp)) goto too_long;
   }
 	
 	
@@ -189,12 +225,14 @@ PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
     Xstrncpy(	wtmp,"      ",MAXWORDSIZE);
     if( crasis_of(Gkanal)[0] ) {
 		
-      sprintf(tmp1,"$%s& + $", crasis_of(Gkanal) );
-      Xstrncat(wtmp,tmp1,LONGSTRING);
+      if (snprintf(tmp1,sizeof tmp1,"$%s& + $",crasis_of(Gkanal)) >=
+          (int)sizeof tmp1) goto too_long;
+      if (!morpheus_runtime_string_append(wtmp,tmp1,sizeof wtmp)) goto too_long;
     }
-    sprintf(tmp1,"$%s%s", workword_of(Gkanal), NEWLINE );
-    Xstrncat(wtmp,tmp1,LONGSTRING);
-    Xstrncat(tmp,wtmp,LONGSTRING);
+    if (snprintf(tmp1,sizeof tmp1,"$%s%s",workword_of(Gkanal),NEWLINE) >=
+        (int)sizeof tmp1) goto too_long;
+    if (!morpheus_runtime_string_append(wtmp,tmp1,sizeof wtmp) ||
+        !morpheus_runtime_string_append(tmp,wtmp,sizeof tmp)) goto too_long;
     Xstrncpy(prevword,workword_of(Gkanal),MAXWORDSIZE);
   }
 
@@ -206,23 +244,27 @@ PrntOneAnalysis(gk_analysis *Gkanal, PrntFlags prntflags, FILE *f)
     odd_morpheme(Gkanal,stem_gstr_of(Gkanal),"stem",tmp,0);
   odd_morpheme(Gkanal,ends_gstr_of(Gkanal),"end",tmp,0);
 
-  Xstrncat(tmp,"         &",LONGSTRING);
-  forminfo_of(TmpGstr) = forminfo_of(Gkanal);
-  dialect_of(TmpGstr) = dialect_of(Gkanal);
-  set_morphflags(TmpGstr, morphflags_of(Gkanal));
-  stemtype_of(TmpGstr) = stemtype_of(Gkanal);
-  set_geogregion(TmpGstr,geogregion_of(Gkanal));
+  if (!morpheus_runtime_string_append(
+      tmp,"         &",sizeof tmp)) goto too_long;
+  forminfo_of(&TmpGstr) = forminfo_of(Gkanal);
+  dialect_of(&TmpGstr) = dialect_of(Gkanal);
+  set_morphflags(&TmpGstr, morphflags_of(Gkanal));
+  stemtype_of(&TmpGstr) = stemtype_of(Gkanal);
+  set_geogregion(&TmpGstr,geogregion_of(Gkanal));
 
-  SprintGkFlags(TmpGstr,tmp," ",1);
+  SprintGkFlags(&TmpGstr,tmp,sizeof tmp," ",1);
 
-  Xstrncat(tmp,NEWLINE,LONGSTRING);
-  strcat(pbuf,tmp);
+  if (!morpheus_runtime_string_append(tmp,NEWLINE,sizeof tmp)) goto too_long;
+  if (!Xstrncat(pbuf,tmp,(size_t)MAXANALYSES * 128)) goto too_long;
+  return;
 
-finish:
-  FreeGkString(TmpGstr);
+too_long:
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  return;
+
 }
 
-near_miss(gk_string *gstr, char *checks, int code)
+void near_miss(gk_string *gstr, char *checks, int code)
 {
 /*
 fprintf(stdout,"near miss with code %o checks [%s] and [%s]\n", code, checks , gkstring_of(gstr) );
@@ -232,36 +274,51 @@ fputc('\n',stdout);
 }
 
 
-odd_morpheme(gk_analysis *Gkanal, gk_string *gstr, char *tag, char *bufp, int showflg)
+void odd_morpheme(gk_analysis *Gkanal, gk_string *gstr, char *tag, char *bufp, int showflg)
 {
   char tmp2[128];
   char mflagbuf[256];
+  char result[LONGSTRING];
 	
   tmp2[0] = mflagbuf[0] = 0;
-  MorphNames(morphflags_of(gstr),mflagbuf," ",1);
+  if (!Xstrncpy(result,bufp,sizeof result)) goto too_long;
+  MorphNames(morphflags_of(gstr),mflagbuf,sizeof mflagbuf," ",1);
 
   if( (dialect_of(gstr) /*&& (dialect_of(gstr) != dialect_of(Gkanal))*/) ||
       mflagbuf[0] || showflg ) {
 		
-    if( ! strcmp(tag,"end") ) 
-      sprintf(tmp2,"        [&%s $-%s& ", tag , gkstring_of(gstr));
-    else
-      sprintf(tmp2,"        [&%s $%s-& ", tag , gkstring_of(gstr));
-    Xstrncat(bufp,tmp2,LONGSTRING);
+    if( ! strcmp(tag,"end") ) {
+      if (snprintf(tmp2,sizeof tmp2,"        [&%s $-%s& ",
+                   tag,gkstring_of(gstr)) >= (int)sizeof tmp2) goto too_long;
+    } else {
+      if (snprintf(tmp2,sizeof tmp2,"        [&%s $%s-& ",
+                   tag,gkstring_of(gstr)) >= (int)sizeof tmp2) goto too_long;
+    }
+    if (!morpheus_runtime_string_append(
+	result,tmp2,sizeof result)) goto too_long;
     if (dialect_of(gstr)) {
-      DialectNames(dialect_of(gstr),tmp2," ");
-      Xstrncat(bufp,tmp2,LONGSTRING);
+      DialectNames(dialect_of(gstr),tmp2,sizeof tmp2," ");
+      if (!morpheus_runtime_string_append(
+	  result,tmp2,sizeof result)) goto too_long;
     }
     if(mflagbuf[0] ) {
-      Xstrncat(bufp," ",LONGSTRING);
-      Xstrncat(bufp,mflagbuf,LONGSTRING);
+      if (!morpheus_runtime_string_append(result," ",sizeof result) ||
+	  !morpheus_runtime_string_append(
+	      result,mflagbuf,sizeof result)) goto too_long;
     }
-    Xstrncat(bufp,"]",LONGSTRING);
-    Xstrncat(bufp,NEWLINE,LONGSTRING);
+    if (!morpheus_runtime_string_append(result,"]",sizeof result) ||
+	!morpheus_runtime_string_append(
+	    result,NEWLINE,sizeof result)) goto too_long;
+    Xstrncpy(bufp,result,LONGSTRING);
   }
+  return;
+
+too_long:
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  return;
 }
 
-dump_all_anals(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
+void dump_all_anals(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 {
   int i = 0;
   int nanals = totanal_of(Gkword);
@@ -316,13 +373,25 @@ dump_all_anals(gk_word *Gkword, PrntFlags prntflags, FILE *fout)
 
 int CompAnals(const void*, const void*);
 
-SortAnals(gk_analysis *Anal, int nanals)
+void SortAnals(gk_analysis *Anal, int nanals)
 {
-  /*
-    lqsort(Anal,(long)nanals,(int)sizeof * Anal,CompAnals);
-    */
-  qsort(Anal,(long)nanals,(int)sizeof * Anal,CompAnals);
+  int i;
 
+  /*
+   * The comparator intentionally groups analyses by lemma only.  Preserve
+   * discovery order within each lemma so output does not depend on the
+   * platform-specific ordering of equal qsort elements.
+   */
+  for (i = 1; i < nanals; i++) {
+    gk_analysis current = Anal[i];
+    int j = i;
+
+    while (j > 0 && CompAnals(&current, &Anal[j - 1]) < 0) {
+      Anal[j] = Anal[j - 1];
+      j--;
+    }
+    Anal[j] = current;
+  }
 }
 
 int CompAnals(const void* Anal1, const void* Anal2)
@@ -330,10 +399,10 @@ int CompAnals(const void* Anal1, const void* Anal2)
   return(strcmp(lemma_of((gk_analysis*)Anal1),lemma_of((gk_analysis*)Anal2)));
 }
 
-static gk_string EndGstr;
-static word_form forminfo;
+_Static_assert(sizeof(word_form) <= sizeof(unsigned int),
+               "word_form index must fit in unsigned int");
 
-DumpPerseusAnalysis(
+void DumpPerseusAnalysis(
 		    gk_word *Gkword,
 		    PrntFlags prntflags,
 		    gk_analysis *anal,
@@ -360,7 +429,7 @@ DumpPerseusAnalysis(
      *
      * only english words are upper case
      */
-    if( isupper(lemma_of(anal)[0]) && cur_lang() == GREEK )
+    if( isupper((unsigned char)lemma_of(anal)[0]) && cur_lang() == GREEK )
       fprintf(fout,"E ");
     else
       fprintf(fout,"N ");
@@ -385,16 +454,19 @@ DumpPerseusAnalysis(
   fprintf(fout,"%s ", lemma_of(anal) );
 
   if (prntflags & ENDING_INDEX) {
-    fprintf(fout,"\t%d</NL>",forminfo_of(anal));
+    unsigned int form_index = 0;
+
+    memcpy(&form_index, &forminfo_of(anal), sizeof forminfo_of(anal));
+    fprintf(fout,"\t%u</NL>",form_index);
   }
   else {
-    GregSprintGkFlags(anal,tmp," "," ",1);
+    GregSprintGkFlags((gk_string *)anal,tmp,sizeof tmp," "," ",1);
     fprintf(fout,"%s</NL>", tmp );
   }
 
 }
 
-DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
+void DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
 {
   
   char tmp[BUFSIZ];
@@ -402,9 +474,9 @@ DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   tmp[0] = 0;
   PrntStemtype(stemtype_of(anal),fout);
   fprintf(fout,"%s ", endstring_of(anal) );
-  AddParadigmInfo(tmp,forminfo_of(anal),".");
-  AddPersNumInfo(tmp,forminfo_of(anal),".");
-  AddAdjInfo(tmp,forminfo_of(anal),".");
+  AddParadigmInfo(tmp,sizeof tmp,forminfo_of(anal),".");
+  AddPersNumInfo(tmp,sizeof tmp,forminfo_of(anal),".");
+  AddAdjInfo(tmp,sizeof tmp,forminfo_of(anal),".");
   fprintf(fout,"%s %s %d", tmp+1, workword_of(anal), totanal_of(Gkword) );
   if( strcmp(workword_of(anal),rawword_of(anal)))
     fprintf(fout," %s", rawword_of(anal) );
@@ -412,8 +484,10 @@ DumpEndingIndex(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   fprintf(fout,"\n");
 }
 
-DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
+void DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *fout, int cura)
 {
+  gk_string EndGstr;
+  const word_form empty_form = { 0 };
   char tmp[LONGSTRING];
   char tmp2[LONGSTRING];
   char workw[LONGSTRING];
@@ -421,18 +495,19 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   tmp[0] = workw[0] = 0;
   
   if( prntflags & LEXICON_OUTPUT ) {
-    sprintf(tmp,"%s",  rawword_of(anal));
+    if (snprintf(tmp,sizeof tmp,"%s",rawword_of(anal)) >= (int)sizeof tmp)
+      goto too_long;
     if( strcmp( rawword_of(anal), workword_of(anal)) ) {
-      strcat(tmp," ");
-      strcat(tmp, workword_of(anal) );
+      if (!Xstrncat(tmp," ",sizeof tmp) ||
+          !Xstrncat(tmp,workword_of(anal),sizeof tmp)) goto too_long;
     }
-    strcat(tmp," ");
+    if (!Xstrncat(tmp," ",sizeof tmp)) goto too_long;
     if(  preverb_of(anal)[0] ) {
-      strcat(tmp,preverb_of(anal) );
-      strcat(tmp,"-");
+      if (!Xstrncat(tmp,preverb_of(anal),sizeof tmp) ||
+          !Xstrncat(tmp,"-",sizeof tmp)) goto too_long;
     }
-    strcat(tmp,lemma_of(anal));
-    strcat(tmp,"\t");
+    if (!Xstrncat(tmp,lemma_of(anal),sizeof tmp) ||
+        !Xstrncat(tmp,"\t",sizeof tmp)) goto too_long;
     /*
       beta2smarta(tmp,tmp2);
       */
@@ -453,7 +528,7 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
       Parse elements from a set into an (ordered) vector.
       */
 
-    JakeSprintGkFlags(anal,tmp," "," ",1);
+    JakeSprintGkFlags((gk_string *)anal,tmp,sizeof tmp," "," ",1);
     
     fprintf(fout,"%s\t", tmp );
     
@@ -481,27 +556,27 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
     fprintf(fout,":lem %s\n", lemma_of(anal) );
     
     fprintf(fout,":prvb "); 
-    GregSprintGkFlags(prvb_gstr_of(anal),tmp," ", " ", 1);
+    GregSprintGkFlags(prvb_gstr_of(anal),tmp,sizeof tmp," ", " ", 1);
     fprintf(fout,"%s\t%s\n", gkstring_of(prvb_gstr_of(anal)),tmp );
     tmp[0] = 0;
 
     fprintf(fout,":aug1 "); 
-    GregSprintGkFlags(aug1_gstr_of(anal),tmp," ", " ", 1);
+    GregSprintGkFlags(aug1_gstr_of(anal),tmp,sizeof tmp," ", " ", 1);
     fprintf(fout,"%s\t%s\n", gkstring_of(aug1_gstr_of(anal)),tmp );
     tmp[0] = 0;
 
     fprintf(fout,":stem "); 
-    GregSprintGkFlags(stem_gstr_of(anal),tmp," ", " ", 1);
+    GregSprintGkFlags(stem_gstr_of(anal),tmp,sizeof tmp," ", " ", 1);
     fprintf(fout,"%s\t%s\n", gkstring_of(stem_gstr_of(anal)),tmp );
     tmp[0] = 0;
 
     fprintf(fout,":suff "); 
-    GregSprintGkFlags(suffix_gstr_of(anal),tmp," ", " ", 1);
+    GregSprintGkFlags(suffix_gstr_of(anal),tmp,sizeof tmp," ", " ", 1);
     fprintf(fout,"%s\t%s\n", gkstring_of(suffix_gstr_of(anal)),tmp );
     tmp[0] = 0;
 
     fprintf(fout,":end "); 
-    GregSprintGkFlags(ends_gstr_of(anal),tmp," ", " ", 1);
+    GregSprintGkFlags(ends_gstr_of(anal),tmp,sizeof tmp," ", " ", 1);
     fprintf(fout,"%s\t%s\n", gkstring_of(ends_gstr_of(anal)),tmp );
     tmp[0] = 0;
 
@@ -522,7 +597,7 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
       Parse elements from a set into an (ordered) vector.
       */
 
-    JakeSprintGkFlags(anal,tmp,"\t"," ",1);
+    JakeSprintGkFlags((gk_string *)anal,tmp,sizeof tmp,"\t"," ",1);
     fprintf(fout,"%s\t", tmp );
     fprintf(fout,"%s\t", crasis_of(anal) );
     if( (prntflags) != DBASESHORT ) {
@@ -537,17 +612,17 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   }
 	
   /*
-    SprintGkFlags(anal,tmp,"\t",1);
+    SprintGkFlags(anal,tmp,sizeof tmp,"\t",1);
     */
-  JakeSprintGkFlags(anal,tmp," "," ",1);
+  JakeSprintGkFlags((gk_string *)anal,tmp,sizeof tmp," "," ",1);
 
   if(preverb_of(anal)[0] )	{
     Xstrcpy(workw,preverb_of(anal) );
-    strcat(workw,"-");
+    if (!Xstrncat(workw,"-",sizeof workw)) goto too_long;
   }
   if(aug1_of(anal)[0] )	{
-    strcat(workw,aug1_of(anal) );
-    strcat(workw,"-");
+    if (!Xstrncat(workw,aug1_of(anal),sizeof workw) ||
+        !Xstrncat(workw,"-",sizeof workw)) goto too_long;
   }
   fprintf(fout,":summ %d %s %s%s-%s %s %s\n",cura, rawword_of(anal) , workw,
 	  stem_of(anal), endstring_of(anal) , lemma_of(anal) , tmp );
@@ -565,7 +640,7 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
   }
   if( endstring_of(anal)[0] ) {
     EndGstr = *(ends_gstr_of(anal));
-    forminfo_of(&EndGstr) = forminfo;
+    forminfo_of(&EndGstr) = empty_form;
 	
     DumpGstr(":end",&EndGstr,fout,(int)(prntflags & PARSE_FORMAT ));
   }
@@ -573,22 +648,27 @@ DumpOneAnalysis(gk_word *Gkword, PrntFlags prntflags, gk_analysis *anal, FILE *f
     fprintf(fout,":crasis %s\n", crasis_of(anal) );
   }
   fprintf(fout,"\n");
+  return;
+
+too_long:
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  return;
 }
 
-DumpGstr(char *tags, gk_string *gstr, FILE *fout, int fullrec)
+void DumpGstr(char *tags, gk_string *gstr, FILE *fout, int fullrec)
 {
   char tmp[LONGSTRING];
 	
   tmp[0] = 0;
 	
   fprintf(fout,"%s\t%s\t", tags , gkstring_of(gstr) );
-  SprintGkFlags(gstr,tmp,"\t",1);
+  SprintGkFlags(gstr,tmp,sizeof tmp,"\t",1);
   if( fullrec ) {
     char *s = tmp;
     while(*s) {
-      if(isspace(*s)) {
+      if(isspace((unsigned char)*s)) {
 	fprintf(fout," ");
-	while(isspace(*s)) s++;
+	while(isspace((unsigned char)*s)) s++;
 	continue;
       } else
 	fprintf(fout,"%c", *s++);
@@ -598,11 +678,11 @@ DumpGstr(char *tags, gk_string *gstr, FILE *fout, int fullrec)
     fprintf(fout,"%s\n", tmp );
 }
 
-DumpDbGkString(gk_string *gstr, FILE *fout)
+void DumpDbGkString(gk_string *gstr, FILE *fout)
 {
 	char tmp[LONGSTRING];
 	tmp[0] = 0;
 	fprintf(fout,"%s", gkstring_of(gstr) );
-	SprintGkFlags(gstr,tmp,"\t",1);
+	SprintGkFlags(gstr,tmp,sizeof tmp,"\t",1);
 	fprintf(fout,"%s\t", tmp );
 }

@@ -5,33 +5,90 @@
 
 #include "contract.h"
 #include <string.h>
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 
 #include "contract.proto.h"
+#include "lcontr.proto.h"
 
-gk_string * Vow_contr;
-gk_string * Cons_euph;
-gk_string * load_ccontr();
-gk_string * load_vcontr();
-gk_string * CreatGkString();
+static const gk_string Blnk;
 
-static int numcontr = 0;
-static int numeuphs = 0;
+static gk_string *
+vowel_contraction_table(int *count)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int language = cur_lang();
+
+	if (context->vowel_contraction_table &&
+	    context->vowel_contraction_language != language) {
+		FreeGkString(context->vowel_contraction_table);
+		context->vowel_contraction_table = NULL;
+		context->vowel_contraction_count = 0;
+	}
+	if (!context->vowel_contraction_table) {
+		context->vowel_contraction_table =
+			load_vcontr(&context->vowel_contraction_count);
+		if (context->vowel_contraction_table)
+			context->vowel_contraction_language = language;
+	}
+	*count = context->vowel_contraction_count;
+	return(context->vowel_contraction_table);
+}
+
+static gk_string *
+consonant_euphony_table(int *count)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int language = cur_lang();
+
+	if (context->consonant_euphony_table &&
+	    context->consonant_euphony_language != language) {
+		FreeGkString(context->consonant_euphony_table);
+		context->consonant_euphony_table = NULL;
+		context->consonant_euphony_count = 0;
+	}
+	if (!context->consonant_euphony_table) {
+		context->consonant_euphony_table =
+			load_ccontr(&context->consonant_euphony_count);
+		if (context->consonant_euphony_table)
+			context->consonant_euphony_language = language;
+	}
+	*count = context->consonant_euphony_count;
+	return(context->consonant_euphony_table);
+}
+
+static int
+fix_recessive_accent(gk_string *gstr)
+{
+	gk_word *gkform = CreatGkword(1);
+
+	if( ! gkform )
+		return(0);
+	forminfo_of(gkform) = forminfo_of(gstr);
+	*ends_gstr_of(gkform) = *gstr;
+	FixRecAcc(gkform,morphflags_of(gstr),gkstring_of(gstr));
+	FreeGkword(gkform);
+	return(1);
+}
 
 gk_string *
  poss_contracts(gk_string *gstr, Dialect skipdial)
 {
 	gk_string * Poss_contracts;
+	gk_string *vow_contr;
+	int numcontr;
 
 	Poss_contracts = CreatGkString(MAXCONTRACTS+1);
-	if( ! Vow_contr ) {
-		Vow_contr = load_vcontr(&numcontr);
-		if( ! Vow_contr ) {
-			fprintf(stderr,"Could not create poss_contracts!\n");
-			return(NULL);
-		}
+	if( ! Poss_contracts )
+		return(NULL);
+	vow_contr = vowel_contraction_table(&numcontr);
+	if( ! vow_contr ) {
+		fprintf(stderr,"Could not create poss_contracts!\n");
+		FreeGkString(Poss_contracts);
+		return(NULL);
 	}
 
-	if(sub_for_euph(gstr,skipdial,Poss_contracts,MAXCONTRACTS,Vow_contr,numcontr))
+	if(sub_for_euph(gstr,skipdial,Poss_contracts,MAXCONTRACTS,vow_contr,numcontr))
 		return(Poss_contracts);
 /*
 printf("empty\n");
@@ -46,21 +103,23 @@ gk_string *
  do_euph(gk_string *gstr, Dialect skipdial)
 {
 	gk_string * euphs;
+	gk_string *cons_euph;
 	int hits = 0;
-	char * is_substring();
+	int numeuphs;
 	char * orgstr;
 	char * curs;
 
 	euphs = (gk_string *) CreatGkString(MAXEUPHS);
-	if( ! Cons_euph ) {
-		Cons_euph = load_ccontr(&numeuphs);
-		if( ! Cons_euph ) {
-			fprintf(stderr,"Could not create Cons_euph!\n");
-			return(NULL);
-		}
+	if( ! euphs )
+		return(NULL);
+	cons_euph = consonant_euphony_table(&numeuphs);
+	if( ! cons_euph ) {
+		fprintf(stderr,"Could not create Cons_euph!\n");
+		FreeGkString(euphs);
+		return(NULL);
 	}
 	
-	hits = sub_for_euph(gstr,skipdial,euphs,MAXEUPHS,Cons_euph,numeuphs);
+	hits = sub_for_euph(gstr,skipdial,euphs,MAXEUPHS,cons_euph,numeuphs);
 
 	if( hits )
 		return(euphs);
@@ -94,6 +153,7 @@ gk_string *
  *	the matching routine looking for "eoi" will exit as soon as it fails on
  *	"eou", and will *not* see the second "eoi".
  */
+int
  sub_for_euph(gk_string *gstr, Dialect skipdial, gk_string *poss_subs, int possno, gk_string *sub_table, int len)
 {
 
@@ -164,9 +224,9 @@ PrntGkStr(poss_subs+sofar,stdout);
 	return(0);
 }
 
+int
 needs_sub(gk_string *gstr, Dialect skipdial, gk_string *matchgstr, char *haveseen, char *curstring, char *raw, char *cooked)
 {
-	char * getaccp();
 	register char * p1, *p2;
 	int rval = 0;
 	int syllno;
@@ -205,7 +265,11 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
 			tmp[0] = 0;
 			Xstrcpy(tmp,cooked);
 			p1 = tmp+strlen(tmp)-1;
-			strcat(tmp,savecur+strlen(raw));
+			if (!Xstrncat(tmp,savecur+strlen(raw),sizeof tmp)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			/*
 			 * here is a little beta code kludge:
 			 *   -- if you have a string such as "aoi" contract to "w|", but if you
@@ -227,7 +291,11 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
 			 	if( *p1 == HARDLONG ) /* if  "aoi_" contracts to "w|", strip the "_"*/
 			 		Xstrcpy(p1,p1+1);
 			 }
-			strcat(savestr,tmp);
+			if (!Xstrncat(savestr,tmp,sizeof savestr)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			Xstrcpy(gkstring_of(gstr),savestr);
 			if( cur_lang() != LATIN ) addbreath(gkstring_of(gstr),curbreath);
 
@@ -261,8 +329,12 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
 	 */
 
 			Xstrcpy(tmp,savestr);
-			strcat(tmp,cooked);
-			strcat(tmp,savecur+strlen(raw));
+			if (!Xstrncat(tmp,cooked,sizeof tmp) ||
+			    !Xstrncat(tmp,savecur+strlen(raw),sizeof tmp)) {
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				return(0);
+			}
 			p1 = tmp;
 			
 			/*
@@ -313,22 +385,28 @@ printf("str [%s] skipdial %o match d [%o]\n", curstring, skipdial, dialect_of(ma
  * put this back in because we were getting
  * -a=s instead of -a/s for forms such as kata-ba/s
  */
-				if( Is_verbform(gstr) && (mood_of(forminfo_of(gstr)) != PARTICIPLE) && !strchr(gkstring_of(gstr),'!'))
-					FixRecAcc(gstr,morphflags_of(gstr),gkstring_of(gstr));
-				else
+				if( Is_verbform(gstr) && (mood_of(forminfo_of(gstr)) != PARTICIPLE) && !strchr(gkstring_of(gstr),'!')) {
+					if (!fix_recessive_accent(gstr))
+						return(0);
+				} else {
 /*
  * end 3/17/91 mod
  */
 					AccComposForm(gstr);
+				}
+				if (morpheus_runtime_context_error(
+				    morpheus_runtime_context_current()) !=
+				    MORPHEUS_RUNTIME_ERROR_NONE)
+					return(0);
 				zap_morphflag(morphflags_of(gstr),LOST_ACC);
 			}
- /* commented this out*
-				if( Is_verbform(gstr) && (mood_of(forminfo_of(gstr)) != PARTICIPLE))
- /* 5/9/92:  we were *not*, in fact, generating endings such as "ou=sai" but were
- * getting "ou/sai" instead.
+/*
+ * Commented out 5/9/92: this generated "ou/sai" instead of endings such as
+ * "ou=sai".
  *
-				FixRecAcc(gstr,morphflags_of(gstr),gkstring_of(gstr));
-			*/
+ * if(Is_verbform(gstr) && mood_of(forminfo_of(gstr)) != PARTICIPLE)
+ *     FixRecAcc(gstr,morphflags_of(gstr),gkstring_of(gstr));
+ */
 			return(1);
 		}
 

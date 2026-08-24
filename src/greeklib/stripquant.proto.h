@@ -1,5 +1,5 @@
 
 /* stripquant.c */
-int stripquant(char *);
-int stripshortmark(char *);
-int striplongmark(char *);
+void stripquant(char *);
+void stripshortmark(char *);
+void striplongmark(char *);

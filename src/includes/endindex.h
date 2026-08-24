@@ -1,15 +1,26 @@
-#define MODULUS	10
-#define KEYLEN 6
-#define MAXTAG KEYLEN + 1
+#ifndef MORPHEUS_ENDINDEX_H
+#define MORPHEUS_ENDINDEX_H
 
-typedef struct {
+#ifndef MODULUS
+#define MODULUS	10
+#endif
+#ifndef KEYLEN
+#define KEYLEN 6
+#endif
+#ifndef MAXTAG
+#define MAXTAG KEYLEN + 1
+#endif
+
+typedef struct endind {
 	char *ebuf;
 	char **eptr;
 	int nelems;
 } endind;
 
-#define endbuffer_of( X ) (X->ebuf)
-#define endeptr_of( X ) (X->eptr)
-#define endlen_of(X) (X->nelems)
+#define endbuffer_of(X) ((X)->ebuf)
+#define endeptr_of(X) ((X)->eptr)
+#define endlen_of(X) ((X)->nelems)
 
-endind * init_endind();
+endind *init_endind(char *, endind *);
+
+#endif

@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*	Univ. of Calif. Greek Project	*/
 /*	1985-86				*/
 /*	Joshua Kosman			*/
@@ -7,12 +8,16 @@
 
 #include "stripacc.proto.h"
 
-stripacc(char *word)
+int stripacc(char *word)
 {
 	register char *p;
 	int rval = 0;
+	size_t length;
 
-	for (p = lastn(word,1);p >= word;p--)
+	if (!word) return(0);
+	length = Xstrlen(word);
+	while (length) {
+		p = word + --length;
 		if (Is_accent(*p)) {
 		/*
 		 * return the number of the first syllable with an accent on it
@@ -30,5 +35,6 @@ stripacc(char *word)
 			}
 			strsqz(p,1);
 		}
+	}
 	return(rval);
 }

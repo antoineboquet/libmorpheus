@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 #include <smk.h>
 #define ACUTEFLAG 		01
@@ -14,26 +15,26 @@
 #define SMARTA_ROUGH_RHO		0373
 #define SMK_ROUGH_RHO		075
 #define TERMINAL_SIGMA	'w'
-#define GREEK 			0100
+#define SMARTA_GREEK_FONT 	0100
 #define ROMAN 			0200
 #define AISUB			046
 #define HISUB			0372
 #define WISUB			0304
 #define IS_CHARSTYLE(S) (*S == '&' && (*(S+1) == '3' || *(S+1) == '1' ))
-#define END_CHARSTYLE(S) if (xlit==SMARTA) 	*S++ = 0253;/* \
+#define END_CHARSTYLE(S) if (xlit==SMARTA) 	*S++ = byte_value(0253);/* \
 else { Xstrcpy(S,"}"), S ++; }*/
 
 #define GKFONT "}{\\f132 "
 #define ROMANFONT "}{"
 #define BOLDFONT "}{\\b "
 #define ITALICFONT "}{\\ulw "
-static int charstyle_flag = 0;
 #define ITALIC '3'
 #define BOLD '1'
 
 #include "beta2smarta.proto.h"
-static init_gktab(void);
-static int acctab[] = {
+static void init_gktab(morpheus_runtime_context *);
+static char byte_value(unsigned int);
+static const int acctab[] = {
 	ACUTEFLAG,
 	GRAVEFLAG,
 	CIRCUMFLAG,
@@ -47,17 +48,13 @@ static int acctab[] = {
 	ROUGHFLAG|CIRCUMFLAG
 };
 
-static int gktab[256];
-static int accenttab[256];
-static gkinit = 0;
-static cur_font = GREEK;
-char * greekfont(),  * romanfont();
-
 static 
-init_gktab(void)
+void init_gktab(morpheus_runtime_context *context)
 {
+	int *accenttab = context->smarta_accent_table;
+	int *gktab = context->smarta_greek_table;
 	
-	gkinit++;
+	context->smarta_tables_initialized = 1;
 	
 	accenttab['/'] = ACUTEFLAG;
 	accenttab['\\'] = GRAVEFLAG;
@@ -83,48 +80,57 @@ init_gktab(void)
 	gktab[HISUB] = 0271;
 }
 
-/*
-static int gktab[256];
-*/
-#define Is_accflag(X) (accenttab[X] > 0 && accenttab[X] <= ISUBFLAG )
+static char byte_value(unsigned int value)
+{
+	return (char)(unsigned char)value;
+}
+
+#define Is_accflag(X) \
+	(accenttab[(unsigned char)(X)] > 0 && \
+	 accenttab[(unsigned char)(X)] <= ISUBFLAG)
 #define SMARTA 2
 #define SMK 4
 
-beta2smarta(char *source, char *res)
+void beta2smarta(char *source, char *res)
 {
 	beta2mac(source,res,SMARTA);
 }
 
-beta2smk(char *source, char *res)
+void beta2smk(char *source, char *res)
 {
 	beta2mac(source,res,SMK);
 }
 
-set_greek(void)
+void set_greek(void)
 {
-	cur_font = GREEK;
+	morpheus_runtime_context_current()->smarta_current_font = SMARTA_GREEK_FONT;
 }
 
-set_roman(void)
+void set_roman(void)
 {
-	cur_font = ROMAN;
+	morpheus_runtime_context_current()->smarta_current_font = ROMAN;
 }
 
-beta2mac(char *source, char *res, int xlit)
+void beta2mac(char *source, char *res, int xlit)
 {
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int *accenttab = context->smarta_accent_table;
+	int *gktab = context->smarta_greek_table;
 	 char * sp;
 	/*unsigned*/ char * rp;
 	int acc;
 	int saw_isub = 0;
 	int long_vowel = 0;
 	
-	if( ! gkinit ) init_gktab();
+	if( ! context->smarta_current_font )
+		context->smarta_current_font = SMARTA_GREEK_FONT;
+	if( ! context->smarta_tables_initialized ) init_gktab(context);
 	
 	sp = source; rp = res;
 	
 	while(*sp) {
 		if( *sp == '$' ) {
-			if( charstyle_flag ) {
+			if( context->smarta_character_style ) {
 				if( rp == res ) {
 					END_CHARSTYLE(rp);
 /*					*rp++ = 0253;*/
@@ -133,7 +139,7 @@ beta2mac(char *source, char *res, int xlit)
 /* grc 6/26/89
 					while(*rp == ' ' && rp > res ) rp--;
 */
-					if( ispunct(*rp) ) {
+					if( ispunct((unsigned char)*rp) ) {
 						*(rp+1) = *rp;
 						END_CHARSTYLE(rp);
 /*						*rp = 0253;
@@ -149,7 +155,7 @@ beta2mac(char *source, char *res, int xlit)
 					*rp++ = ' ';
 */
 				}
-				charstyle_flag = 0;
+				context->smarta_character_style = 0;
 			}
 			sp = greekfont(sp);
 			if( xlit == SMK ) {
@@ -159,40 +165,37 @@ beta2mac(char *source, char *res, int xlit)
 			continue;
 		} else if( *sp == '&' ) {
 
-			if( charstyle_flag  && ! IS_CHARSTYLE(sp)) {
+			if( context->smarta_character_style && ! IS_CHARSTYLE(sp)) {
 				END_CHARSTYLE(rp);
-				charstyle_flag = 0;
+				context->smarta_character_style = 0;
 			}
-/*
-			} else if( ! charstyle_flag && IS_CHARSTYLE(sp)  ) {
-*/
 			if( IS_CHARSTYLE(sp) ) {
-				if( (*(sp+1) == '3' && charstyle_flag == BOLD ) &&
-					(*(sp+1) == '1' && charstyle_flag == ITALIC ) ) {
+				if( (*(sp+1) == '3' && context->smarta_character_style == BOLD ) &&
+					(*(sp+1) == '1' && context->smarta_character_style == ITALIC ) ) {
 						END_CHARSTYLE(rp);
-						charstyle_flag = 0;
+						context->smarta_character_style = 0;
 				}
 				if( *(sp+1) == '3' )
-					charstyle_flag = ITALIC;
+					context->smarta_character_style = ITALIC;
 				else if( *(sp+1) == '1' )
-					charstyle_flag = BOLD;
+					context->smarta_character_style = BOLD;
 /*
 				*rp++ = ' ';
 */
 				if( xlit == SMARTA ) 
 					*rp++ = 0137;
 				else {
-					if( charstyle_flag == ITALIC ) {
+					if( context->smarta_character_style == ITALIC ) {
 						Xstrcpy(rp,ITALICFONT); rp += Xstrlen(ITALICFONT);
 					} else {
 						Xstrcpy(rp,BOLDFONT); rp += Xstrlen(BOLDFONT);
 					}
 				}
 				sp += 2;
-				while(isspace(*sp)) sp++;
+				while(isspace((unsigned char)*sp)) sp++;
 			}
 			sp = romanfont(sp);
-			if( xlit == SMK && ! charstyle_flag && *(rp-1) != '}' ) {
+			if( xlit == SMK && ! context->smarta_character_style && *(rp-1) != '}' ) {
 				Xstrcpy(rp,ROMANFONT);  rp += Xstrlen(ROMANFONT);
 			}
 			continue;
@@ -205,7 +208,7 @@ beta2mac(char *source, char *res, int xlit)
 			
 			np = numbuf;
 			n = atoi(++sp);
-			while(isdigit(*sp)) *np++ = *sp++;
+			while(isdigit((unsigned char)*sp)) *np++ = *sp++;
 			*np = 0;
 			
 			switch(n) {
@@ -222,7 +225,7 @@ beta2mac(char *source, char *res, int xlit)
 					if( xlit == SMARTA ) 
 						*rp++ = EQUALS;
 					else {
-						if( cur_font == GREEK ) {
+						if( context->smarta_current_font == SMARTA_GREEK_FONT ) {
 							Xstrcpy(rp,ROMANFONT);
 							rp += Xstrlen(ROMANFONT);
 							Xstrcpy(rp,"=}{");
@@ -242,9 +245,9 @@ beta2mac(char *source, char *res, int xlit)
 				case 40:
 					if( xlit == SMK ) {
 						*rp++ = ' ';
-						*rp++ = SMK_SHORTMARK;
+						*rp++ = byte_value(SMK_SHORTMARK);
 					} else if( xlit == SMARTA ) {
-						*rp++ = SMARTA_SHORTMARK;
+						*rp++ = byte_value(SMARTA_SHORTMARK);
 						break;
 					}
 				case 41:
@@ -264,26 +267,28 @@ beta2mac(char *source, char *res, int xlit)
 				}
 			continue;
 		}
-		if( *sp == '*' && cur_font == ROMAN ) {
+		if( *sp == '*' && context->smarta_current_font == ROMAN ) {
 			if( xlit == SMARTA ) {
 				*rp++ = UCASEMARKER;
 			} else if (xlit == SMK ) {
 				sp++;
 				Xstrcpy(rp,sp);
-				if( islower(*rp) ) *rp = toupper(*rp);
+				if( islower((unsigned char)*rp) )
+					*rp = (char)toupper((unsigned char)*rp);
 				rp++;
 			}
 			sp++;
 			continue;
 		}
-		if( cur_font == ROMAN &&isalpha(*sp) ) {
-			if( isupper(*sp) ) {
+		if( context->smarta_current_font == ROMAN &&
+				isalpha((unsigned char)*sp) ) {
+			if( isupper((unsigned char)*sp) ) {
 				*rp++ = UCASEMARKER;
 				*rp++ = *sp++;
 				continue;
 			} else {
 				if( xlit == SMARTA ) 
-					*rp++ = toupper(*sp++);
+					*rp++ = (char)toupper((unsigned char)*sp++);
 				else
 					*rp++ = *sp++;
 			}
@@ -307,7 +312,7 @@ beta2mac(char *source, char *res, int xlit)
 				continue;
 		}
 		
-		if(isalpha(*sp) || *sp == '*') {
+		if(isalpha((unsigned char)*sp) || *sp == '*') {
 			acc = 0;
 			
 			
@@ -315,11 +320,14 @@ beta2mac(char *source, char *res, int xlit)
 				if( Is_accflag(*(sp+1)) ) {
 					 char * t = sp;
 					*sp = ' ';
-					while(*t&&!isalpha(*t)) t++;
-					if(isalpha(*t) && islower(*t) ) *t = toupper(*t);
+					while(*t&&!isalpha((unsigned char)*t)) t++;
+					if(isalpha((unsigned char)*t) &&
+							islower((unsigned char)*t) )
+						*t = (char)toupper((unsigned char)*t);
 				} else {
 					Xstrcpy(sp,sp+1);
-					if(islower(*sp)) *sp = toupper(*sp);
+					if(islower((unsigned char)*sp))
+						*sp = (char)toupper((unsigned char)*sp);
 				}
 			} 
 			
@@ -327,8 +335,8 @@ beta2mac(char *source, char *res, int xlit)
 			*rp = *sp++;
 			
 			
-			if( isupper(*rp) && xlit == SMARTA ) {
-					*(rp+1) = tolower(*rp);
+			if( isupper((unsigned char)*rp) && xlit == SMARTA ) {
+					*(rp+1) = (char)tolower((unsigned char)*rp);
 					*rp++ = UCASEMARKER;
 			}
 
@@ -338,7 +346,7 @@ beta2mac(char *source, char *res, int xlit)
 				*sp = smk_char_xlit(*sp,sp+1);
 			} else 
 */
-				*rp = smk_char_xlit(*rp,sp,xlit);
+				*rp = (char)smk_char_xlit(*rp,sp,xlit);
 /*			
 			if( *rp == 's' && !isalpha(*sp) && *sp != '\'' && *sp != '-' )
 				*rp = TERMINAL_SIGMA;
@@ -358,11 +366,11 @@ beta2mac(char *source, char *res, int xlit)
 				*rp = 'V';
 			else if (*rp == 'V' )
 				*rp = 'C';
-			else if( *rp == 'v' ) /* digamma *
+			else if( *rp == 'v' ) (digamma)
 				*rp = 'W';
 			else if( *rp == '*' && xlit == SMARTA ) {
 					*rp = UCASEMARKER;
-			} /*else if ( xlit == SMK && ) {
+			} else if ( xlit == SMK && ) {
 					unsigned char * t = sp;
 					if( Is_accflag(*sp)) {
 							*rp = ' ';
@@ -389,7 +397,7 @@ beta2mac(char *source, char *res, int xlit)
 				 * don't count the hard short marker (no way to print it for now)
 				 */
 				 else		
-					acc += accenttab[*sp++];
+					acc += accenttab[(unsigned char)*sp++];
 			}
 /*
 printf("got [%o] ", acc );
@@ -406,9 +414,9 @@ printf("got [%o] ", acc );
 			 * capital would cover.
 			 */
 			if( acc && *rp == UCASEMARKER && xlit == SMARTA ) {
-				if( isalpha(*sp ) ) {
+				if( isalpha((unsigned char)*sp ) ) {
 					*++rp = *sp++;
-					*rp = smk_char_xlit(*rp,sp,xlit);
+					*rp = (char)smk_char_xlit(*rp,sp,xlit);
 				}
 			} 
 			
@@ -422,11 +430,9 @@ printf("got [%o] ", acc );
 						if( *rp == 'a' )
 							*rp = 046;
 						else if( *rp == 'i' ) {
-							*rp = 0372;
-							*rp &= 0377;
+							*rp = byte_value(0372);
 						} else if( *rp == 'u' ) {
-							*rp = 0304;
-							*rp &= 0377;
+							*rp = byte_value(0304);
 						}
 					} else if( xlit == SMK ) {
 						*(rp+1) = *rp;
@@ -441,12 +447,10 @@ printf("got [%o] ", acc );
 						*rp = AISUB;
 						break;
 					case 'h':
-						*rp = HISUB;
-						*rp &= 0377;
+						*rp = byte_value(HISUB);
 						break;
 					case 'v':
-						*rp = WISUB;
-						*rp &= 0377;
+						*rp = byte_value(WISUB);
 						break;
 					default:
 						break;
@@ -460,32 +464,32 @@ printf("got [%o] ", acc );
 					if( xlit == SMK ) 
 						*rp = SMK_ROUGH_RHO;
 					else
-						*rp = SMARTA_ROUGH_RHO;
+						*rp = byte_value(SMARTA_ROUGH_RHO);
 				} else if( acc == DIAERFLAG  &&
 							(*rp == 'i' || *rp == 'u') ) {
 					if( *rp == 'i' ) 
-						*rp = 0363;
+						*rp = byte_value(0363);
 					else 
 						*rp =  043;
 				} else if( acc == (DIAERFLAG|ACUTEFLAG)  &&
 							(*rp == 'i' || *rp == 'u') ) {
 					if( *rp == 'i' ) 
-						*rp = 0375;
+						*rp = byte_value(0375);
 					else 
 						*rp =  0100;
 				}else if( acc == (DIAERFLAG|GRAVEFLAG)  &&
 							(*rp == 'i' || *rp == 'u') ) {
 					if( *rp == 'i' ) 
-						*rp = 0376;
+						*rp = byte_value(0376);
 					else 
-						*rp =  0243;
-				} else if( !gktab[*rp] ) {
+						*rp = byte_value(0243);
+				} else if( !gktab[(unsigned char)*rp] ) {
 					*(rp+1) = *rp;
 					*rp = '?';
 					rp += 2;
 					*rp = '?';
 				} else
-					*rp = (unsigned char) (gktab[*rp] + accnum(acc));
+					*rp = byte_value((unsigned int)(gktab[(unsigned char)*rp] + accnum(acc)));
 /*
 if(1) {
 int n;
@@ -509,7 +513,7 @@ printf(" *rp [%o] n [%o] ", *rp , n  );
 	*rp = 0;
 }
 
-accnum(int n)
+int accnum(int n)
 {
 	int i;
 	
@@ -522,9 +526,10 @@ accnum(int n)
 char * 
 romanfont(char *s)
 {
-	cur_font = ROMAN;
+	morpheus_runtime_context_current()->smarta_current_font = ROMAN;
 	while(*s && *s=='&') s++;
-	if( isdigit(*s) ) while(isdigit(*s)) s++;
+	if( isdigit((unsigned char)*s) )
+		while(isdigit((unsigned char)*s)) s++;
 	else if( *s == ' '&& *(s+1) == ' ' ) s++;
 	return(s);
 }
@@ -532,16 +537,18 @@ romanfont(char *s)
 char * 
 greekfont(char *s)
 {
-	cur_font = GREEK;
+	morpheus_runtime_context_current()->smarta_current_font = SMARTA_GREEK_FONT;
 	while(*s && *s=='$') s++;
-	if( isdigit(*s) ) while(isdigit(*s)) s++;
+	if( isdigit((unsigned char)*s) )
+		while(isdigit((unsigned char)*s)) s++;
 	else if( *s == ' ' && *(s+1) == ' '  ) s++;
 	return(s);
 }
 
-smk_char_xlit(int c, char *s, int xlit)
+int smk_char_xlit(int c, char *s, int xlit)
 {
-			if( c == 's' && !isalpha(*s) && *s != '\'' && *s != '-' )
+			if( c == 's' && !isalpha((unsigned char)*s) &&
+					*s != '\'' && *s != '-' )
 				c = TERMINAL_SIGMA;
 			else if( c == 'w' )
 				c = 'v';

@@ -1,3 +1,5 @@
+#include "morphlib_internal.h"
+
 typedef struct {
 	char keystring[12];
 	int  keycode;
@@ -9,7 +11,7 @@ typedef struct {
 } Xlit_Smarta;
 
 
-static Xlit Beta_SMK[] = {
+static const Xlit Beta_SMK[] = {
 	"a)/",	0220,
 	"a)\\",	0222,
 	"a)=",	0224,
@@ -176,7 +178,7 @@ static Xlit Beta_SMK[] = {
 	"v",	'W', 		/* digamma */
 };
 
-static Xlit Beta_Smarta[] = {
+static const Xlit Beta_Smarta[] = {
 	"a_",	046,
 	"a/_",	0226,
 	"a\\_",	0227,

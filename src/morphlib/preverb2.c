@@ -1,10 +1,29 @@
+#include "morphlib_internal.h"
 #include <string.h>
 
 #include <gkstring.h>
 
 #include "preverb2.proto.h"
-static exp_prevb2(char *, char *, gk_string *);
+static int exp_prevb2(char *, char *, gk_string *);
 
+static int valid_required_argument(const void *argument)
+{
+  if (argument) return(1);
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  return(0);
+}
+
+static int valid_combination(
+    const char *curpb, const char *restofs, const MorphFlags *pbflags)
+{
+  if (!valid_required_argument(curpb) ||
+      !valid_required_argument(restofs) ||
+      !valid_required_argument(pbflags))
+    return(0);
+  if (*curpb) return(1);
+  morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+  return(0);
+}
 
 /*
  * this routine does two things
@@ -27,8 +46,9 @@ static exp_prevb2(char *, char *, gk_string *);
  *		**UNLESS THE VERB COULD BE IONIC OR AEOLIC!
  *			in which case "kat" does not prejudice the breathing at all.
  */
-CombPbStem(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
+int CombPbStem(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 {
+  if (!valid_combination(curpb,restofs,pbflags)) return(NO);
   if( ! * restofs ) return(YES);
   if( cur_lang() == LATIN || cur_lang() == ITALIAN ) 
 	return(CombPbStemL(curpb,restofs, dial,pbflags));
@@ -36,11 +56,13 @@ CombPbStem(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 	return(CombPbStemG(curpb,restofs, dial,pbflags));
 }
 
-CombPbStemL(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
+int CombPbStemL(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 {
 	int lastc, lastc2, lastc3, curbreath;
 	char workrest[MAXWORDSIZE], noaccpb[MAXWORDSIZE];
 
+	if (!valid_combination(curpb,restofs,pbflags)) return(NO);
+	if (!*restofs) return(YES);
 	if( !strcmp("circum",curpb) && *restofs == 'i' ) {
 		add_morphflag(pbflags,RAW_PREVERB);
 		return(YES);
@@ -176,11 +198,12 @@ CombPbStemL(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 	return(YES);
 }
 
-CombPbStemG(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
+int CombPbStemG(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
 {
   int lastc, lastc2, lastc3, curbreath;
   char workrest[MAXWORDSIZE], noaccpb[MAXWORDSIZE];
-  
+  if (!valid_combination(curpb,restofs,pbflags)) return(NO);
+  if (!*restofs) return(YES);
   
   if( has_morphflag(pbflags,DISSIMILATION) && ! next_cons_rough(restofs) ) 
     return(NO);
@@ -404,12 +427,16 @@ CombPbStemG(char *curpb, char *restofs, Dialect dial, MorphFlags *pbflags)
   return(YES);
 }
 
-is_preverb(char *rawpb, char *fullpb, gk_string *gstr)
+int is_preverb(char *rawpb, char *fullpb, gk_string *gstr)
 {
   int rval;
   
   /*	char tmpfullpb[MAXWORDSIZE];*/
-  
+
+  if (!valid_required_argument(rawpb) ||
+      !valid_required_argument(fullpb) ||
+      !valid_required_argument(gstr))
+    return(0);
   if( ! * rawpb ) return(0);
   *fullpb = 0;
   
@@ -426,12 +453,15 @@ is_preverb(char *rawpb, char *fullpb, gk_string *gstr)
  * returns 0 if rawpb does not break up into preverbs.
  * returns 1 if successful
  */
-exp_preverb(char *rawpb, char *fullpb, gk_string *gstr)
+int exp_preverb(char *rawpb, char *fullpb, gk_string *gstr)
 {
   char savepb[MAXWORDSIZE];
   char tmppb[MAXWORDSIZE];
   int rval = 0;
   
+  if (!valid_required_argument(rawpb) ||
+      !valid_required_argument(gstr))
+    return(0);
   if( ! * rawpb ) return(0);
   if( strchr(rawpb,',')  ) {
     Xstrncpy(fullpb,rawpb,MAXWORDSIZE);
@@ -450,7 +480,6 @@ exp_preverb(char *rawpb, char *fullpb, gk_string *gstr)
 }
 
 
-static recursion_level = 0;
 /*
  * this does the real work of exp_preverb()
  *
@@ -463,7 +492,7 @@ static recursion_level = 0;
  * examine "summeta", and "meta" 
  */
 static 
-exp_prevb2(char *str, char *fullpb, gk_string *gstr)
+int exp_prevb2(char *str, char *fullpb, gk_string *gstr)
 {
   int i;
   char startpb[MAXWORDSIZE];
@@ -500,7 +529,6 @@ exp_prevb2(char *str, char *fullpb, gk_string *gstr)
       return(0);
     }
     
-    ++recursion_level;
     rval = exp_prevb2(str,fullpb,gstr);
     if(rval) {
       if( has_morphflag(morphflags_of(&Gstr),UNASP_PREVERB ) ) 

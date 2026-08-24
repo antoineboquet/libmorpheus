@@ -1,22 +1,38 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 
+static size_t
+bounded_string_length(const char *text, size_t capacity)
+{
+	size_t length = 0;
+	while (length < capacity && text[length]) length++;
+	return(length);
+}
 
 gk_string *
 CreatGkString(int num)
 {
 	gk_string * tmpgstring = NULL;
+	size_t count;
 /*
 printf("creat gstr %d\n", num * (sizeof * tmpgstring) );
 */
-	tmpgstring = (gk_string *)calloc((size_t)num, (size_t)sizeof * tmpgstring);
+	if (num <= 0) {
+		if (num < 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	count = (size_t)num;
+	tmpgstring = (gk_string *)calloc(count, sizeof * tmpgstring);
 	if( tmpgstring == NULL ) {
-		fprintf(stderr,"Out of memory for %ld bytes to create %d gstrings\n",
-		(size_t)(num * sizeof * tmpgstring), num );
+		fprintf(stderr,"Out of memory for %zu bytes to create %d gstrings\n",
+		count * sizeof * tmpgstring, num );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 	}
 	return( tmpgstring );
 }
 
-FreeGkString(gk_string *gstring)
+void FreeGkString(gk_string *gstring)
 {
 	if( ! gstring ) {
 		fprintf(stderr,"hey! asked to free NULL gstring \n");
@@ -33,7 +49,14 @@ CreatGkAnal(int num)
 {
 	gk_analysis * tmpanal = NULL;
 
+	if (num <= 0) {
+		if (num < 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	tmpanal= (gk_analysis *)calloc((size_t)num, (size_t)sizeof * tmpanal);
+	if( tmpanal == NULL )
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 /*
 printf("creat ganal %d\n", num * (sizeof * tmpanal) );
 */
@@ -41,7 +64,7 @@ printf("creat ganal %d\n", num * (sizeof * tmpanal) );
 	return(tmpanal);
 }
 
-FreeGkAnal(gk_analysis *gkanal)
+void FreeGkAnal(gk_analysis *gkanal)
 {
 	xFree((char *)gkanal,"freegkanal");
 /*
@@ -54,25 +77,30 @@ CreatGkword(int num)
 {
 	gk_word * tmpgword = NULL;
 	
+	if (num <= 0) {
+		if (num < 0)
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	tmpgword = (gk_word *)calloc((size_t)num,(size_t)(sizeof * tmpgword) );
 /*
 printf("creat gword %d\n", num * (sizeof * tmpgword) );
 */
 	if( ! tmpgword ) {
 		fprintf(stderr,"Could not allocate %d gwords\n", num );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		return((gk_word *)NULL);
 	}
 	return( tmpgword );
 }
 
-static gk_string BlnkGstr;
-
-ClearGkstring(gk_string *gstr)
+void ClearGkstring(gk_string *gstr)
 {
-	gk_string *gstring;
-	gk_string *CreatGkString();
-	
-	*gstr = BlnkGstr;
+	if (!gstr) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
+	*gstr = (gk_string){ 0 };
 	return;
 /*
 	gstring = CreatGkString(1);
@@ -81,7 +109,7 @@ ClearGkstring(gk_string *gstr)
 */
 }
 
-FreeGkword(gk_word *Gkword)
+void FreeGkword(gk_word *Gkword)
 {
 	if( ! Gkword ) {
 		fprintf(stderr,"hey! asked to free NULL gkword \n");
@@ -97,8 +125,12 @@ printf("free gkword \n");
 	xFree((char *)Gkword,"freegkword");
 }
 
-CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
+void CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
 {
+	if (!Gkword1 || !Gkword2) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 	totanal_of(Gkword1) = totanal_of(Gkword2);
 	analysis_of(Gkword1) = analysis_of(Gkword2);
 }
@@ -139,7 +171,7 @@ CpGkAnal(gk_word *Gkword1, gk_word *Gkword2)
 	s2 = stemtype_of((gk_string *)gstr2) & STEMTYPE;
 		
 	if( s1 != s2 ) {
-		rval = s1 - s2;
+		rval = (s1 > s2) - (s1 < s2);
 		goto finish;
 	}
 	
@@ -291,7 +323,7 @@ int CompGkForms(gk_word *gkform1, gk_word *gkform2)
 	return(CompGkString(&Gstr1,&Gstr2));
 }
 
-low_bit_of(int n)
+int low_bit_of(int n)
 {
 	int i;
 	int mask = 0;
@@ -302,7 +334,7 @@ low_bit_of(int n)
 			return(n & mask );
 		}
 	}
-		
+	return(0);
 }
 
 int
@@ -311,12 +343,12 @@ CompByDictStr(const void *gstr1, const void *gstr2)
 	return(dictstrcmp(gkstring_of((gk_string *)gstr1),gkstring_of((gk_string *)gstr2)));
 }
 
-RevCompByStr(gk_string *gstr1, gk_string *gstr2)
+int RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 {
 	return(CompByDictStr(gstr1,gstr2) * -1);
 }
 
- PrntGkStrings(gk_string *gstr, FILE *f)
+ void PrntGkStrings(gk_string *gstr, FILE *f)
 {
 	while((gkstring_of(gstr))[0]) {
 		PrntGkStr(gstr,f);
@@ -328,7 +360,7 @@ RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 /*
  *  this expects an array of data structures of type gk_string
  */
- PrntGkParadigm(gk_string *gstr, FILE *f)
+ void PrntGkParadigm(gk_string *gstr, FILE *f)
 {
 	Stemtype stemtype;
 	int tense, mood, voice;
@@ -362,14 +394,14 @@ RevCompByStr(gk_string *gstr1, gk_string *gstr2)
 
 }
 
-PrntGkStr(gk_string *gstr, FILE *f)
+void PrntGkStr(gk_string *gstr, FILE *f)
 {
 	fprintf(f,"%s ", gkstring_of(gstr) );
 	PrntGkFlags(gstr,f);
 	fprintf(f,"\n");
 }
 
- PrntGkFlags(gk_string *gstr, FILE *f)
+ void PrntGkFlags(gk_string *gstr, FILE *f)
 {
 	PrntVerbInfo(forminfo_of(gstr),f);
 	PrntAdjInfo(forminfo_of(gstr),f);
@@ -380,99 +412,121 @@ PrntGkStr(gk_string *gstr, FILE *f)
 	PrntDomains(domains_of(gstr),f);
 }
 
-PrntDomains(char *doms, FILE *f)
+void PrntDomains(char *doms, FILE *f)
 {
 	char * p=doms;
 	
 	while(*p) {
-		fprintf(f,"%s ", NameOfDomain(*p) );
+		fprintf(f,"%s ", NameOfDomain((Stemtype)(unsigned char)*p) );
 		p++;
 	}
 }
   
- PrntMorphFlags(MorphFlags *mf, FILE *f)
+ void PrntMorphFlags(MorphFlags *mf, FILE *f)
 {
 	char buf[256];
 	
- 	MorphNames(mf,buf," ",1);
+	MorphNames(mf,buf,sizeof buf," ",1);
  	fprintf(f,"%s ", buf );
 }
 
- PrntVerbInfo(word_form vf, FILE *f)
+ void PrntVerbInfo(word_form vf, FILE *f)
 {
 	char paradigm[LONGSTRING];
 	
 	paradigm[0] = 0;
 	
-	AddParadigmInfo(paradigm,vf," ");
-	AddPersNumInfo(paradigm,vf," ");
+	AddParadigmInfo(paradigm,sizeof paradigm,vf," ");
+	AddPersNumInfo(paradigm,sizeof paradigm,vf," ");
 	fprintf(f,"%s", paradigm);
 }
 
- PrntParadigmInfo(word_form vf, FILE *f)
+ void PrntParadigmInfo(word_form vf, FILE *f)
 {
 	char paradigm[LONGSTRING];
 	paradigm[0] = 0;
 	
-	AddParadigmInfo(paradigm,vf," ");
+	AddParadigmInfo(paradigm,sizeof paradigm,vf," ");
 	fprintf(f,"%s", paradigm);
 }
 	
 
-AddParadigmInfo(char *s, word_form vf,char * dels)
+int AddParadigmInfo(char *s, size_t capacity, word_form vf,
+                    const char *dels)
 {
 	char * p;
+	size_t initial;
+
+	if (!s || !capacity || !dels) goto failed;
+	initial = bounded_string_length(s,capacity);
+	if (initial == capacity) goto failed;
 	
 	p=NameOfTense(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfMood(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfVoice(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
-	
+	return(1);
+rollback:
+	s[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
-AddPersNumInfo(char *s, word_form vf,char * dels)
+int AddPersNumInfo(char *s, size_t capacity, word_form vf,
+                   const char *dels)
 {
 	char * p;
+	size_t initial;
+
+	if (!s || !capacity || !dels) goto failed;
+	initial = bounded_string_length(s,capacity);
+	if (initial == capacity) goto failed;
 	
 	p=NameOfPerson(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfNumber(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
-	
+	return(1);
+rollback:
+	s[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
-PrntPersNumInfo(word_form vf, FILE *f)
+void PrntPersNumInfo(word_form vf, FILE *f)
 {
 	fprintf(f,"%s ", NameOfPerson(vf ) );
 	fprintf(f,"%s ", NameOfNumber(vf ) );
 }
 
- PrntAdjInfo(word_form af, FILE *f)
+ void PrntAdjInfo(word_form af, FILE *f)
 {
 	char adjbuf[MAXWORDSIZE];
 	adjbuf[0] = 0;
 	
-	AddAdjInfo(adjbuf,af," ");
+	AddAdjInfo(adjbuf,sizeof adjbuf,af," ");
 	fprintf(f,"%s", adjbuf );
 /*
 	fprintf(f,"%s ", NameOfGender(af ) );
@@ -481,42 +535,48 @@ PrntPersNumInfo(word_form vf, FILE *f)
 */
 }
 
-AddAdjInfo(char *s, word_form vf,char * dels)
+int AddAdjInfo(char *s, size_t capacity, word_form vf,
+               const char *dels)
 {
 	char * p;
+	size_t initial;
+
+	if (!s || !capacity || !dels) goto failed;
+	initial = bounded_string_length(s,capacity);
+	if (initial == capacity) goto failed;
 	
 	p=NameOfGender(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	
 	p=NameOfCase(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
 	p=NameOfDegree(vf);
 	if( *p ) {
-		strcat(s,dels);
-		strcat(s,p);
+		if (!Xstrncat(s,dels,capacity) || !Xstrncat(s,p,capacity))
+			goto rollback;
 	}
-	
-	
+	return(1);
+rollback:
+	s[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
-int
- PrntStemtype(st,f)
- Stemtype st;
- FILE *f;
+void
+PrntStemtype(Stemtype st, FILE *f)
 {
 	fprintf(f,"%s ", NameOfStemtype(st ) );
 }
 
-int
- PrntDialect(di,f)
- Dialect di; 
- FILE *f;
+void
+PrntDialect(Dialect di, FILE *f)
 {
 	char * s;
 	int i;
@@ -524,7 +584,7 @@ int
 	char dialbuf[MAXWORDSIZE];
 
 	dialbuf[0] = 0;
-	AddDialect(di,dialbuf);
+	AddDialect(di,dialbuf,sizeof dialbuf," ");
 	fprintf(f,"%s ", dialbuf);
 /*
 	for(i=0;i<(((int)sizeof di) * 8);i++) {
@@ -536,24 +596,33 @@ int
 */
 }
 
-int AddDialect(di, dialb,dels)
-	Dialect di;
-	char *dialb;
-	char *dels;
+int AddDialect(Dialect di, char *dialb, size_t capacity,
+               const char *dels)
 {
 	char * s;
 	int i;
-	Dialect mask = 1;
+	unsigned int mask = 1;
+	size_t initial;
+
+	if (!dialb || !capacity || !dels) goto failed;
+	initial = bounded_string_length(dialb,capacity);
+	if (initial == capacity) goto failed;
 
 	for(i=0;i<(((int)sizeof di) * 8);i++) {
-		if( (s=NameOfDialect(di&mask)) )
+		if( (s=NameOfDialect((Dialect)(di & (Dialect)mask))) )
 			if( *s ) {
-				if( *dialb ) strcat(dialb,dels);
-				strcat(dialb, s );
+				if((*dialb && !Xstrncat(dialb,dels,capacity)) ||
+				   !Xstrncat(dialb,s,capacity))
+					goto rollback;
 			}
-		mask = mask << 1;
+		mask <<= 1;
 	}
-
+	return(1);
+rollback:
+	dialb[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
 }
 
 
@@ -595,15 +664,12 @@ fprintf(stderr,"End dial [%o] stem [%o]\n", Dial1 , Dial2 );
 
 }
 
-static int (*gkCompare)();
-
- xInsertGstr(gk_string *oldgstr, gk_string *newgstr, int len, int (*compare )(), int backwards)
+ int xInsertGstr(gk_string *oldgstr, gk_string *newgstr, int len,
+                 int (*compare)(char *, char *), int backwards)
 {
 	char * news, *olds;
 	int i;
 	
-	gkCompare = compare;
-
 	news = gkstring_of(newgstr);
 
 	if( len == 0 ) {
@@ -613,10 +679,10 @@ static int (*gkCompare)();
 			olds = gkstring_of(oldgstr+i-1);
 			*(oldgstr+i) = *(oldgstr+i-1);
 			if( backwards == NO ) {
-				if(((*gkCompare)(olds,news)) <= 0 )  {
+				if(((*compare)(olds,news)) <= 0 )  {
 					break;
 				}
-			} else if( ((*gkCompare)(olds,news)) > 0 )  {
+			} else if( ((*compare)(olds,news)) > 0 )  {
 				break;
 			}
 			
@@ -628,7 +694,7 @@ static int (*gkCompare)();
 	return(++len);
 }
 
-GetTableLine(char *s, int len, FILE *f)
+int GetTableLine(char *s, int len, FILE *f)
 {
 	while(fgets(s,len,f)) {
 		if( is_blank(s) )
@@ -640,7 +706,7 @@ GetTableLine(char *s, int len, FILE *f)
 	return(0);
 }
 
-eq_forminfo(word_form f1, word_form f2)
+int eq_forminfo(word_form f1, word_form f2)
 {
 	if( voice_of(f1) != voice_of(f2)) return(0);
 	if( mood_of(f1) != mood_of(f2)) return(0);
@@ -654,159 +720,95 @@ eq_forminfo(word_form f1, word_form f2)
 	return(1);
 }
 		
-SprintGkFlags(gk_string *gstr, char *buf, char *dels, int pretty)
+static int
+append_flag_field(char *buf, size_t capacity, const char *delimiter,
+                  const char *value)
 {
-		char dialbuf[LONGSTRING*2];
-		char * s;
-		word_form wf;
-		
-		wf = forminfo_of(gstr);
-		s=NameOfStemtype(stemtype_of(gstr));
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfStemtype(stemtype_of(gstr) ) );
-		}
-		
-		s=NameOfDerivtype(derivtype_of(gstr));
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfDerivtype(derivtype_of(gstr) ) );
-		}
-		
-		s=NameOfTense(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf,s );
-		}
-		
-		s=NameOfMood(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		
-		s=NameOfVoice(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-	
-		s=NameOfGender(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		
-		s=NameOfCase(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-
-		s=NameOfDegree(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-
-		s=NameOfPerson(wf);
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, s );
-		}
-		s=NameOfNumber(wf);		
-		if( *s || *dels == '\t' )
-			strcat(buf,dels);
-		if( * s ) {
-			strcat(buf, NameOfNumber(wf ) );
-		}
-		
-		dialbuf[0] = 0;
-		DialectNames(dialect_of(gstr),dialbuf,dels);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
-		
-		dialbuf[0] = 0;
-		GeogRegionNames(geogregion_of(gstr),dialbuf,dels);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
-		
-		
-		dialbuf[0] = 0;
-		DomainNames(domains_of(gstr),dialbuf,dels);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
-	
-		
-		dialbuf[0] = 0;
-		MorphNames(morphflags_of(gstr),dialbuf,dels,pretty);
-		if( dialbuf[0] || *dels == '\t' )
-			strcat(buf,dels);
-		if( dialbuf[0] ) {
-			strcat(buf,dialbuf );
-		}
+	if ((*value || *delimiter == '\t') &&
+	    !Xstrncat(buf,delimiter,capacity)) return(0);
+	return(!*value || Xstrncat(buf,value,capacity));
 }
 
+int SprintGkFlags(gk_string *gstr, char *buf, size_t capacity,
+                  const char *dels, int pretty)
+{
+	char dialbuf[LONGSTRING*2];
+	word_form wf;
+	size_t initial;
 
-DbaseFormat(gk_string *gstr, char *buf, char *tabstr, int pretty)
+	if (!gstr || !buf || !capacity || !dels) goto failed;
+	initial = bounded_string_length(buf,capacity);
+	if (initial == capacity) goto failed;
+	wf = forminfo_of(gstr);
+	if (!append_flag_field(buf,capacity,dels,NameOfStemtype(stemtype_of(gstr))) ||
+	    !append_flag_field(buf,capacity,dels,NameOfDerivtype(derivtype_of(gstr))) ||
+	    !append_flag_field(buf,capacity,dels,NameOfTense(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfMood(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfVoice(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfGender(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfCase(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfDegree(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfPerson(wf)) ||
+	    !append_flag_field(buf,capacity,dels,NameOfNumber(wf)))
+		goto rollback;
+	if (!DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf,dels) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf) ||
+	    !GeogRegionNames(geogregion_of(gstr),dialbuf,sizeof dialbuf,dels) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf) ||
+	    !DomainNames(domains_of(gstr),dialbuf,sizeof dialbuf,dels) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf) ||
+	    !MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf,dels,pretty) ||
+	    !append_flag_field(buf,capacity,dels,dialbuf))
+		goto rollback;
+	return(1);
+rollback:
+	buf[initial] = 0;
+failed:
+	morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+	return(0);
+}
+
+int DbaseFormat(gk_string *gstr, char *buf, size_t capacity,
+                const char *tabstr, int pretty)
 {
 		char dialbuf[LONGSTRING];
-		char * s;
 		word_form wf;
+		size_t initial;
 		
+		if (!gstr || !buf || !capacity || !tabstr) goto failed;
+		initial = bounded_string_length(buf,capacity);
+		if (initial == capacity) goto failed;
 		wf = forminfo_of(gstr);
-		s=NameOfStemtype(stemtype_of(gstr));
-		if( * s ) {
-			strcat(buf, NameOfStemtype(stemtype_of(gstr) ) );
-		}
-		
-		strcat(buf,tabstr);
-		s=NameOfDerivtype(derivtype_of(gstr));
-		if( * s ) {
-			strcat(buf, NameOfDerivtype(derivtype_of(gstr) ) );
-		}
-		
-
-		strcat(buf,tabstr);
-		AddParadigmInfo(buf,wf," ");
-		
-		strcat(buf,tabstr);
-		AddPersNumInfo(buf,wf," ");
-
-		strcat(buf,tabstr);
-		AddAdjInfo(buf,wf," ");
+		if (!Xstrncat(buf,NameOfStemtype(stemtype_of(gstr)),capacity) ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !Xstrncat(buf,NameOfDerivtype(derivtype_of(gstr)),capacity) ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !AddParadigmInfo(buf,capacity,wf," ") ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !AddPersNumInfo(buf,capacity,wf," ") ||
+		    !Xstrncat(buf,tabstr,capacity) ||
+		    !AddAdjInfo(buf,capacity,wf," "))
+			goto rollback;
 		
 		dialbuf[0] = 0;
-		DialectNames(dialect_of(gstr),dialbuf," ");
+		DialectNames(dialect_of(gstr),dialbuf,sizeof dialbuf," ");
 		if( dialbuf[0] ) {
-			strcat(buf,tabstr); 
-			strcat(buf,dialbuf );
+			if (!Xstrncat(buf,tabstr,capacity) ||
+			    !Xstrncat(buf,dialbuf,capacity)) goto rollback;
 		}
 		
 		
 		
 		dialbuf[0] = 0;
-		MorphNames(morphflags_of(gstr),dialbuf," ",pretty);
+		MorphNames(morphflags_of(gstr),dialbuf,sizeof dialbuf," ",pretty);
 		if( dialbuf[0] ) {
-			strcat(buf,tabstr); 
-			strcat(buf,dialbuf );
+			if (!Xstrncat(buf,tabstr,capacity) ||
+			    !Xstrncat(buf,dialbuf,capacity)) goto rollback;
 		}
+		return(1);
+rollback:
+		buf[initial] = 0;
+failed:
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
 }

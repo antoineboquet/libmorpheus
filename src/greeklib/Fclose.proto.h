@@ -1,4 +1,4 @@
 
 /* Fclose.c */
-int xFclose(FILE *);
-int xFree(char *, char *);
+void xFclose(FILE *);
+int xFree(void *, const char *);

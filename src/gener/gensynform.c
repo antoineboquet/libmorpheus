@@ -490,7 +490,7 @@ printf("formcnt=%d\n", formcnt);
 			tmp[0] = 0;
 			/*stripquant( workword_of(gkform+i) );*/
 			fprintf(fout,"<G>%s</G> ", workword_of(gkform+i) );
-			SprintGkFlags(ends_gstr_of(gkform+i),tmp," ",1);
+			SprintGkFlags(ends_gstr_of(gkform+i),tmp,sizeof tmp," ",1);
 			fprintf(fout,"%s\n", tmp );
 		}
 		return;
@@ -520,7 +520,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 			Xstrncat(linebuf,"& ",sizeof linebuf);
 		    Xstrncat(linebuf , NameOfStemtype(stemtype_of(gkform)),sizeof linebuf );
 		    Xstrncat(linebuf , " ",sizeof linebuf);
-			AddParadigmInfo(linebuf,forminfo_of(gkform)," ");
+			AddParadigmInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 		} else if( Is_nounform(gkform) && ! Is_irregform(morphflags_of(gkform)) ) {
 
 			switch(gender_of(forminfo_of(gkform))) {
@@ -561,15 +561,15 @@ dialect_of(ends_gstr_of(gkform+i) ));
 			Xstrncat(tmp," ",sizeof tmp);
 		}
 		Xstrncat(linebuf,tmp,sizeof linebuf);
-		AddParadigmInfo(linebuf,forminfo_of(gkform)," ");
+		AddParadigmInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 
 		if( Is_irregform(morphflags_of(gkform)) || person_of(forminfo_of(gkform)) != PERS1) {
 			if( Is_verbform(gkform) ) {
-				AddPersNumInfo(linebuf,forminfo_of(gkform)," ");
-				AddAdjInfo(linebuf,forminfo_of(gkform)," ");
+				AddPersNumInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
+				AddAdjInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 			} else {
-				AddAdjInfo(linebuf,forminfo_of(gkform)," ");
-				AddPersNumInfo(linebuf,forminfo_of(gkform)," ");
+				AddAdjInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
+				AddPersNumInfo(linebuf,sizeof linebuf,forminfo_of(gkform)," ");
 			}
 		}
 	}
@@ -586,7 +586,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 		d &= dialect_of(Gkword);
 		 
 	if( showdialect || (d && d != ATTIC) )	{			
-		DialectNames(d,dialbuf," ");
+		DialectNames(d,dialbuf,sizeof dialbuf," ");
 		if( dialbuf[0] ) {
 			Xstrncat(linebuf," ",sizeof linebuf);
 			Xstrncat(linebuf, dialbuf ,sizeof linebuf);
@@ -594,7 +594,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 	}
 
 	dialbuf[0] = 0;
-	GeogRegionNames(geogregion_of(gkform),dialbuf," ");
+	GeogRegionNames(geogregion_of(gkform),dialbuf,sizeof dialbuf," ");
 	if( dialbuf[0] ) {
 		strcat(linebuf," "); 
 		strcat(linebuf,dialbuf );
@@ -606,7 +606,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 	add_morphflags(gkform,morphflags_of(prvb_gstr_of(gkform)));
 	add_morphflags(gkform,morphflags_of(aug1_gstr_of(gkform)));
 	add_morphflags(gkform,morphflags_of(ends_gstr_of(gkform)));
-	MorphNames(morphflags_of(gkform),dialbuf," ",1);
+	MorphNames(morphflags_of(gkform),dialbuf,sizeof dialbuf," ",1);
 	if( dialbuf[0] ) {
 			Xstrncat(linebuf," ",sizeof linebuf);
 			Xstrncat(linebuf, dialbuf,sizeof linebuf );
@@ -618,7 +618,7 @@ dialect_of(ends_gstr_of(gkform+i) ));
 		Xstrncat(linebuf, tmp,sizeof linebuf );
 	}
 	dialbuf[0] = 0;
-	DomainNames(domains_of(gkform),dialbuf," ");
+	DomainNames(domains_of(gkform),dialbuf,sizeof dialbuf," ");
 	if( dialbuf[0] ) {
 		strcat(linebuf," &1"); 
 		strcat(linebuf,dialbuf );

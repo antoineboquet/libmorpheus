@@ -1,4 +1,5 @@
-
+#ifndef MORPHEUS_STEMTYPE_H
+#define MORPHEUS_STEMTYPE_H
 #define LEMMA 		01
 #define PRES_PPART 	02
 #define FUT_PPART	03
@@ -63,3 +64,5 @@ typedef unsigned int Stemtype;
 
 #define has_passive_stype(stype) ((stype & PPARTMASK ) == PP_AP)
 #define has_middle_stype(stype) (((stype & PPARTMASK ) == PP_FU) || ((stype & PPARTMASK ) == PP_AO))
+
+#endif

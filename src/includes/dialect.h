@@ -1,3 +1,5 @@
+#ifndef MORPHEUS_DIALECT_H
+#define MORPHEUS_DIALECT_H
 /* dialects */
 /* #define ALL_DIAL	01 */
 
@@ -65,3 +67,5 @@
 
 typedef short Dialect;
 typedef int32 GeogRegion;
+
+#endif

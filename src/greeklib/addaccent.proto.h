@@ -1,3 +1,3 @@
 
 /* addaccent.c */
-int addaccent(char *, char, char *);
+void addaccent(char *, int, char *);

@@ -1,34 +1,35 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
+#include "../morphlib/runtime_context_internal.h"
 #include "endfiles.h"
 
 #include "mkend.proto.h"
-static mk_compend(gk_string *, gk_string *, char *, char *);
-static update_end(gk_string *, gk_string *, char *, char *, char *);
-static join_end(gk_string *, char *, int);
+static void mk_compend(gk_string *, gk_string *, char *, char *);
+static void update_end(gk_string *, gk_string *, char *, char *, char *);
+static void join_end(gk_string *, char *);
 
-static gk_string WantGstr;
-static gk_string AvoidGstr;
-static gk_string CurGstr;
-static gk_string BlankGstr;
+static int
+ending_runtime_failed(void)
+{
+	return(morpheus_runtime_context_error(
+		morpheus_runtime_context_current()) !=
+		MORPHEUS_RUNTIME_ERROR_NONE);
+}
 
+void
  mk_end(char *havestr, gk_string *Have, gk_string *Avoid)
 {
 	char * s;
 	char savestr[MAXWORDSIZE];
 	gk_string * contr_forms;
 	gk_string * euph_forms;
-	gk_string * poss_contracts();
-	gk_string * do_euph();
-	gk_string * fix_eta();
-	int saw_vowel = 0;
+	gk_string no_avoid = { 0 };
 	
 	Xstrcpy(savestr,havestr);
 	s = savestr;
 
 
 	while(*s) {
-		if( Is_vowel(*s) ) saw_vowel = 1;
-		
 		if( *s == '@' ) {
 
 			*s = 0;
@@ -38,36 +39,47 @@ static gk_string BlankGstr;
 		s++;
 	}
 	
-	join_end(Have,gkstring_of(Have),saw_vowel);
+	join_end(Have,gkstring_of(Have));
+	if (ending_runtime_failed())
+		return;
 
 
 
 	if( (euph_forms = fix_eta((Have)) )) {
 		int i;
 		for(i=0;gkstring_of(euph_forms+i)[0];i++) {
-			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&AvoidGstr);
+			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&no_avoid);
 		}
 		FreeGkString(euph_forms);
 	}
+	if (ending_runtime_failed())
+		return;
 
 
 	if( (euph_forms = do_euph(Have,dialect_of(Avoid)) )) {
 		int i;
 		for(i=0;gkstring_of(euph_forms+i)[0];i++) {
-			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&AvoidGstr);
+			mk_end(gkstring_of(euph_forms+i),euph_forms+i,&no_avoid);
 		}
 		FreeGkString(euph_forms);
 		return;
 	}
+	if (ending_runtime_failed())
+		return;
 /*
  * allow only one contraction per ending for now
  */
-	if( ! (Is_contracted(morphflags_of(Have))) && 
-		(contr_forms = poss_contracts(Have,dialect_of(Avoid)) )) {
+	contr_forms = NULL;
+	if( ! Is_contracted(morphflags_of(Have)) ) {
+		contr_forms = poss_contracts(Have,dialect_of(Avoid));
+		if (ending_runtime_failed())
+			return;
+	}
+	if( contr_forms ) {
 		int i;
 
 		for(i=0;gkstring_of(contr_forms+i)[0];i++) {
-			mk_end(gkstring_of(contr_forms+i),contr_forms+i,&AvoidGstr);
+			mk_end(gkstring_of(contr_forms+i),contr_forms+i,&no_avoid);
 		}
 		FreeGkString(contr_forms);
 		
@@ -88,10 +100,10 @@ printf("no contr in: "); PrntGkStr(Have,stdout);
 			
 			add_numovable(&TmpGstr);
 
-			mk_end(gkstring_of(&TmpGstr),&TmpGstr,&AvoidGstr);
+			mk_end(gkstring_of(&TmpGstr),&TmpGstr,&no_avoid);
 		}
 
-		if( do_dissim(gkstring_of(Have))) {
+		if( do_dissim(gkstring_of(Have),stemtype_of(Have))) {
 			add_morphflag(morphflags_of(Have),DISSIMILATION);
 		}
 		AddNewGstr(Have);
@@ -101,23 +113,26 @@ printf("no contr in: "); PrntGkStr(Have,stdout);
 }
 
 
-static 
+static void
  mk_compend(gk_string *Have, gk_string *Avoid, char *curstr, char *endtype)
 {
 	char fname[BUFSIZ];
 	FILE * f;
-	FILE * MorphFopen();
 	int i;
 	char line[BUFSIZ];
 	char savestem[MAXWORDSIZE];
 	gk_string TmpHave;
 	gk_string TmpAvoid;
 
-	sprintf(line,"endtables/basics/%s.end",  endtype );
+	i = snprintf(line,sizeof line,"endtables/basics/%s.end",endtype);
+	if (i < 0 || (size_t)i >= sizeof line) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return;
+	}
 
 	if( ! (f=MorphFopen(line,"r")) ) {
 		fprintf(stderr,"could not open [%s]\n", endtype );
-		return(-1);
+		return;
 	}
 	while(fgets(line,sizeof line,f)) {
 		char curendstr[MAXWORDSIZE];
@@ -139,7 +154,7 @@ static
 	fclose(f);
 }
 
-static 
+static void
  update_end(gk_string *Have, gk_string *Avoid, char *stem, char *endstr, char *newkeys)
 {
 	char savestem[MAXWORDSIZE];
@@ -160,32 +175,22 @@ static
  */
  		CompStemEnd(Have,gkstring_of(Have),endstr);
 
-		strcat(gkstring_of(Have),endstr);
-		mk_end(gkstring_of(Have),Have,Avoid);
+		if (morpheus_runtime_string_append(
+		    gkstring_of(Have),endstr,MAXWORDSIZE))
+			mk_end(gkstring_of(Have),Have,Avoid);
 	} 
 }
 
-static
- join_end(gk_string *Have, char *stem, int saw_vowel)
+static void
+ join_end(gk_string *Have, char *stem)
 {
-	gk_string SaveGstr;
 	set_gkstring(Have,stem);
-/*
-	set_morphflags(&SaveGstr,morphflags_of(Have));
-*/
-	/* mod 2/21/88 */
-/*
-	if( Is_penult_accent(morphflags_of(Have)) ) {
-		if( saw_vowel) {
-/*
-printf("saw_vowel on [%s]\n", gkstring_of(Have) );
-*
-			zap_morphflag(morphflags_of(Have),STEM_ACC);
-			add_morphflag(morphflags_of(Have),SUFF_ACC);
-		}
-	} else */ /* end mod */
-	
-	
+
+	/*
+	 * A historical 2/21/88 branch moved STEM_ACC to SUFF_ACC for
+	 * penult-accented forms after a vowel; that behavior remains disabled.
+	 */
+
 	if( ! Needs_accent(morphflags_of(Have)) 
 	&& ! has_morphflag(morphflags_of(Have),SUFF_ACC)
 	&& ! has_morphflag(morphflags_of(Have),HAS_AUGMENT)
@@ -206,9 +211,10 @@ printf("saw_vowel on [%s]\n", gkstring_of(Have) );
 	}
 }
 
+void
  CompStemEnd(gk_string *gstr, char *stem, char *endstr)
 {
-	int lastc;
+	char lastc;
 	char * ep = endstr;
 
 	lastc = *(stem+strlen(stem)-1);
@@ -286,6 +292,7 @@ printf("gks [%s] lastc [%c] stem [%s] endstr [%s]\n", gkstring_of(gstr), lastc ,
 	}
 }
 
+void
 zap_extra_lmarks(char *s)
 {
 	while(*s) {
@@ -295,4 +302,3 @@ zap_extra_lmarks(char *s)
 		s++;
 	}
 }
-

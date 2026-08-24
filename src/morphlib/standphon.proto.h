@@ -1,3 +1,3 @@
 
 /* standphon.c */
-int stand_phonetics(gk_word *);
+void stand_phonetics(gk_word *);

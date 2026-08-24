@@ -1,30 +1,31 @@
 #include <gkstring.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <modes.h>
+#include "gener_internal.h"
+#include "../morphlib/runtime_context.h"
+#include "../morphlib/runtime_context_internal.h"
 #define SKIPLINE  100
-static  AddWdEndings( gk_word * , gk_string * , gk_word * , int );
+static int AddWdEndings(gk_word *, gk_string *, gk_word *, int);
+
+static int
+CompareGkForms(const void *left, const void *right)
+{
+	return CompGkForms((gk_word *)left, (gk_word *)right);
+}
 
 #define NextStem(f,stem,stemkeys) NextDictLine(f,stem,stemkeys,":")
 #define NextLemma(f,lemma,lemmakeys) NextDictLine(f,lemma,lemmakeys,":le:")
 
-gk_string * chckendings();
-gk_word * GenStemForms(gk_word *, char *, int);
-gk_word * GenIrregForm(gk_word *, char *, int);
-
-Dialect AndDialect();
-int CompGkForms(gk_word *gkform1, gk_word *gkform2);
-
-gk_string BlankGstr;
-gk_word TmpGkword;
-
-GenDictEntry(Gkword,dentry)
- gk_word *Gkword;
- char * dentry;
+void
+GenDictEntry(gk_word *Gkword, char *dentry)
 {
 	
 	gk_word * gkforms;
-	int formcnt;
+	gk_word TmpGkword;
+	gk_string BlankGstr = { 0 };
+	size_t formcnt;
 	Stemtype stype;
 	char keys[LONGSTRING*4];
 
@@ -37,16 +38,17 @@ GenDictEntry(Gkword,dentry)
 	set_morphflag(morphflags_of(stem_gstr_of(&TmpGkword)),0);
 	set_morphflag(morphflags_of(&TmpGkword),0);
 
-	SprintGkFlags(stem_gstr_of(&TmpGkword),keys,"\t",1);
+	SprintGkFlags(stem_gstr_of(&TmpGkword),keys,sizeof keys,"\t",1);
 	*(ends_gstr_of(&TmpGkword)) = BlankGstr;
 /*printf("endstring: [%s] keys:%s\n", endstring_of(&TmpGkword), keys );*/
 
 	gkforms = GenStemForms(&TmpGkword,keys,0);
 	if( ! gkforms ) return;
 
-	for(formcnt=0;workword_of((gkforms+formcnt))[0];formcnt++) ;
+	for(formcnt=0;workword_of((gkforms+formcnt))[0];formcnt++) {
+	}
 
-        qsort(gkforms,formcnt,sizeof * gkforms,CompGkForms);	
+        qsort(gkforms,formcnt,sizeof * gkforms,CompareGkForms);
 
 	stripmetachars(workword_of(gkforms));
 /*	printf("workword:%s\n", workword_of(gkforms) );*/
@@ -54,10 +56,8 @@ GenDictEntry(Gkword,dentry)
 	FreeGkword(gkforms);
 }
 
- GenNxtWord(f,mode,fout)
-  FILE * f;
-  int mode;
-  FILE * fout;
+int
+GenNxtWord(FILE *f, int mode, FILE *fout)
 {
 	
 	int rval, i;
@@ -71,7 +71,7 @@ GenDictEntry(Gkword,dentry)
 	Gkword = CreatGkword(1 );
 	if( ! Gkword ) {
 		fprintf(stderr,"could not allocate memory for Gkword in GenNxtWord\n");
-		return;
+		return(0);
 	}
 
 	for(;;) {
@@ -113,10 +113,7 @@ GenDictEntry(Gkword,dentry)
 }
 
 gk_word *
- GenStemForms(Gkword,keys,mode)
-  gk_word * Gkword;
-  char * keys;
-  int mode;
+GenStemForms(gk_word *Gkword, char *keys, int mode)
 {
 	gk_string * stem_gstring;
 	gk_string * gstring;
@@ -126,6 +123,15 @@ gk_word *
 	Dialect dial;
 	int nends = 0;
 	int maxforms = 0;
+
+	if (!Gkword || !keys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	if (strlen(keys) >= sizeof stemkeys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 	
 	stemkeys[0] = 0;
 /*
@@ -189,6 +195,11 @@ printf("gstring null with stem [%s] stemkeys [%s]  ending [%s] &tmpGkword dial %
 		return(NULL);
 	}
 
+	if (nends < 0 || nends > (INT_MAX-2)/2) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		FreeGkString(gstring);
+		return(NULL);
+	}
 	maxforms = (nends * 2) + 2;
 	gkforms = CreatGkword(maxforms);
 /*
@@ -206,7 +217,11 @@ printf("maxforms %d stem %s\n", maxforms, NameOfStemtype(stemtype_of(gstring)) )
 	}
 	set_stemtype(&tmpGkword,stemtype_of(gstring));
 
-	AddWdEndings(&tmpGkword,gstring,gkforms,maxforms);
+	if(!AddWdEndings(&tmpGkword,gstring,gkforms,maxforms)) {
+		FreeGkString(gstring);
+		FreeGkword(gkforms);
+		return(NULL);
+	}
 	
 	FreeGkString(gstring);
 	gstring = NULL;
@@ -214,16 +229,22 @@ printf("maxforms %d stem %s\n", maxforms, NameOfStemtype(stemtype_of(gstring)) )
 }
 
 gk_word *
- GenIrregForm(Gkword,keys,mode)
-  gk_word * Gkword;
-  char * keys;
-  int mode;
+GenIrregForm(gk_word *Gkword, char *keys, int mode)
 {
 	gk_string * gstring;
 	gk_word * gkforms;
 	char stemkeys[LONGSTRING];
 	char * preverb;
 	Dialect dial;
+
+	if (!Gkword || !keys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	if (strlen(keys) >= sizeof stemkeys) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
 
 	Xstrncpy(stemkeys,keys,LONGSTRING);
 /*
@@ -244,9 +265,10 @@ gk_word *
 	}
 
 	if( ! ScanAsciiKeys(stemkeys,Gkword,gstring,NULL) ) {
-		char errmess[LONGSTRING];
+		char errmess[LONGSTRING*2];
 		FreeGkString(gstring);
-		sprintf(errmess,"GenIrregForm Error: no stemtype seen in [%s:%s]",workword_of(Gkword),
+		FreeGkword(gkforms);
+		snprintf(errmess,sizeof errmess,"GenIrregForm Error: no stemtype seen in [%s:%s]",workword_of(Gkword),
 		 stemkeys );
 		ErrorMess(errmess);	
 		return(NULL);
@@ -310,7 +332,14 @@ gk_word *
 		return(NULL);
 	}
 
-	BuildAWord(Gkword,gstring,gkforms);
+	if (!BuildAWord(Gkword,gstring,gkforms) ||
+	    morpheus_runtime_context_error(morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE) {
+		analysis_of(gkforms) = NULL;
+		FreeGkword(gkforms);
+		FreeGkString(gstring);
+		return(NULL);
+	}
 	set_morphflag(morphflags_of(stem_gstr_of(Gkword)),0);
 	zap_morphflag(morphflags_of(Gkword),INDECLFORM);
 	FreeGkString(gstring);
@@ -319,11 +348,8 @@ gk_word *
 	return(gkforms);
 }
 
- NextDictLine(f,word,wordkeys,starts)
-  FILE * f;
-  char * word;
-  char * wordkeys;
-  char * starts;
+int
+NextDictLine(FILE *f, char *word, char *wordkeys, char *starts)
 {
 	char tmp[LONGSTRING];
 	register char * s;
@@ -374,19 +400,15 @@ gk_word *
 /*
  * check for blank line 
  */
-		while(isspace(*s)) *s++;
+		while(isspace((unsigned char)*s)) s++;
 		if( ! *s ) return(0);
 		
 	}
 }
 
 #define MAX_FORM_VARIANTS 12
-static 
- AddWdEndings(Gkword,Endings,Forms,maxforms)
-  gk_word * Gkword;
-  gk_string * Endings;
-  gk_word * Forms;
-  int maxforms;
+static int
+AddWdEndings(gk_word *Gkword, gk_string *Endings, gk_word *Forms, int maxforms)
 {
 	int i,j,k;
 	gk_word SaveGkWord;
@@ -398,7 +420,8 @@ static
 	CurBuf = CreatGkword(MAX_FORM_VARIANTS+1);
 	if( ! CurBuf) {
 		fprintf(stderr,"no memory for CurBuf in AddWdEndings: raww [%s]\n", rawword_of(Gkword) );
-		return;
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(0);
 	}
 
 	SaveGkWord = * Gkword;
@@ -454,6 +477,16 @@ static
 */
 
 		if((formvars=BuildAWord(Gkword,&CurEnd,CurBuf )) ) {
+			if(formvars < 0 || formvars > maxforms-j-1) {
+				fprintf(stderr,"too many generated forms for %s\n",
+					lemma_of(Gkword));
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
+				*Gkword = SaveGkWord;
+				analysis_of(CurBuf) = NULL;
+				FreeGkword(CurBuf);
+				return(0);
+			}
 			for(k=0;k<formvars;k++) {
 				*(Forms+j) = *(CurBuf+k);
 				j++;
@@ -464,10 +497,6 @@ static
 		*Gkword = SaveGkWord;
 	}
 	workword_of(Forms+j)[0] = 0;
-	if( j > maxforms ) {
-		fprintf(stderr,"%d > %d for %s\n", j, maxforms,lemma_of(Gkword));
-		exit(1);
-	}
 	
 /*
 	for(k=0;workword_of(Forms+k)[0];k++) {
@@ -478,12 +507,11 @@ static
 	analysis_of(CurBuf) = NULL;
 	FreeGkword(CurBuf);
 	CurBuf = NULL;
+	return(1);
 }
 
- BuildAWord(Gkword,CurEnding,CurForms)
-  gk_word * Gkword;
-  gk_string * CurEnding;
-  gk_word * CurForms;
+int
+BuildAWord(gk_word *Gkword, gk_string *CurEnding, gk_word *CurForms)
 {
 	Dialect dial;
 
@@ -507,10 +535,8 @@ printf("failing on stem [%s] end [%s] [%o] [%o]\n", stem_of(Gkword) ,gkstring_of
 	}
 }
 
- BuildANoun(Gkword,CurEnding,CurForms)
-  gk_word * Gkword;
-  gk_string * CurEnding;
-  gk_word * CurForms;
+int
+BuildANoun(gk_word *Gkword, gk_string *CurEnding, gk_word *CurForms)
 {
 	char tmp[MAXWORDSIZE];
 
@@ -546,10 +572,8 @@ printf("result [%s]\n", workword_of(CurForms) );
 }
 
 
- BuildAVerb(Gkword,CurEnding,CurForms)
-  gk_word * Gkword;
-  gk_string * CurEnding;
-  gk_word * CurForms;
+int
+BuildAVerb(gk_word *Gkword, gk_string *CurEnding, gk_word *CurForms)
 {
 	char tmpstem[MAXWORDSIZE+1];
 	char preverb[MAXWORDSIZE+1];
@@ -741,10 +765,8 @@ printf("result [%s]\n", workword_of(CurForms) );
 }
 
 
-MonoSyllVb(CurForms,winfo,preverb)
-gk_word * CurForms;
-word_form winfo;
-char * preverb;
+void
+MonoSyllVb(gk_word *CurForms, word_form winfo, char *preverb)
 {
 	/*
 	 * Smyth 426 

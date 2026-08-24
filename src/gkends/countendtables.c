@@ -1,15 +1,11 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 #include "endfiles.h"
-#define MAX_END_TABLE	12000
-char ** endlines;
-static int endcount = 0;
-gk_string Gstr;
-static gk_string Blnk;
-static int xstrcmp();
-#define DELIMITER " "
-
 #include "countendtables.proto.h"
+#include "nextsufftab.proto.h"
+#include "../morphlib/morphkeys.proto.h"
 
+void
 countendtables(Stemtype stype, int is_deriv)
 {
 
@@ -18,7 +14,7 @@ countendtables(Stemtype stype, int is_deriv)
 	int nends = 0;
 	int totends = 0;
 	char * curtable, *basen, * dirp;
-	char shortname[LONGSTRING];
+	char shortname[LONGSTRING+MAXPATHNAME];
 	char curderivname[LONGSTRING];
 	char tmp[LONGSTRING*8];
 	char prevtag[LONGSTRING];
@@ -27,18 +23,16 @@ countendtables(Stemtype stype, int is_deriv)
 	char savestr[LONGSTRING];
 	char markedstr[MAXWORDSIZE];
 	gk_string Gstr;
+	const gk_string blank = { 0 };
 	FILE * finput, *foutput;
 	int maxstring = 0;
 	int ntypes = 0;
 	char * typestr;
-	char * NextEndTable(), *NextSuffTable();
 	
 	if( is_deriv ) 
 		dirp = DERIVTABLEDIR;
 	else
 		dirp = ENDTABLEDIR;
-	
-	endlines = (char **) calloc(MAX_END_TABLE,sizeof *endlines);
 	
 /*
 	while( (curtable=NextEndTable(&index,stype))) {
@@ -71,12 +65,16 @@ countendtables(Stemtype stype, int is_deriv)
 	/*
 		printf("about to compile [%s]\n", curtable );
 	*/
-		sprintf(shortname,"%s%cout%c%s.out", dirp, DIRCHAR, DIRCHAR, curtable );
+		if( snprintf(shortname,sizeof shortname,"%s%cout%c%s.out",
+		             dirp, DIRCHAR, DIRCHAR, curtable) >= (int)sizeof shortname ) {
+			fprintf(stderr,"ending-table path is too long: %s\n",curtable);
+			continue;
+		}
 
 		if(! (finput=MorphFopen(shortname,"rb"))) {
 			continue;
 		}
-		Gstr = Blnk;	
+		Gstr = blank;	
 		nends = get_endheader(finput,&maxstring);
 		totends += nends;
 		ntypes++;
@@ -92,14 +90,3 @@ countendtables(Stemtype stype, int is_deriv)
 	printf("grand total: %d types %d endings\n",ntypes, totends );
 }
 
-xstrcmp(char **p1, char **p2)
-{
-	int rval;
-	
-	rval = morphstrcmp(*p1,*p2);
-
-/*
-fprintf(stderr,"rval [%d] for [%s] and [%s]\n", rval  , *p1, *p2 );
-*/
-	return(rval);
-}

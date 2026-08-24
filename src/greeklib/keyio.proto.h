@@ -1,4 +1,5 @@
+#include <endtags.h>
 
 /* keyio.c */
-int WriteKey(char *, int *, FILE *);
-int ReadKey(char *, int *, FILE *);
+int WriteKey(char *, morpheus_stemlib_offset *, FILE *);
+int ReadKey(char *, morpheus_stemlib_offset *, FILE *);

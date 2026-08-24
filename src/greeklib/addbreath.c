@@ -7,8 +7,9 @@
 
 #include "addbreath.proto.h"
 
-addbreath(char *w, int c)
+void addbreath(char *w, int c)
 {
+	if (!w || !*w) return;
 /*
  * this algorithm gives you breathing "iei(s" for "ieis"
  * grc 2/7/87
@@ -21,7 +22,8 @@ addbreath(char *w, int c)
 		case 'a':
 		case 'e':
 		case 'o':
-			if( (*(w+2) != DIAERESIS ) && (*(w+1) == 'i' || *(w+1) == 'u')) {
+			if( (*(w+1) == 'i' || *(w+1) == 'u') &&
+			    *(w+2) != DIAERESIS ) {
 				w +=2;
 			} else {
 				w++; 

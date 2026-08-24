@@ -1,41 +1,62 @@
-#include <gkstring.h>
-#include <gkdict.h>
-#include <endtags.h>
-#define STEMCACHE 0
-FILE * getlemmstart();
-endtags * init_preind(), *init_dict();
-FILE * MorphFopen();
+#include "gkdict_internal.h"
+#include "../morphlib/runtime_context_internal.h"
+static int append_dictionary_keys(char *, const char *);
+#define DICT_CONTEXT (morpheus_runtime_context_current())
+#define VbTags (DICT_CONTEXT->verb_dictionary_tags)
+#define NomTags (DICT_CONTEXT->nominal_dictionary_tags)
+#define LemmTags (DICT_CONTEXT->lemma_dictionary_tags)
+#define num_of_vtags (DICT_CONTEXT->verb_dictionary_tag_count)
+#define num_of_ntags (DICT_CONTEXT->nominal_dictionary_tag_count)
+#define num_of_ltags (DICT_CONTEXT->lemma_dictionary_tag_count)
+#define vbindex (DICT_CONTEXT->dictionary_hq_mode ? STEMLIST : VBINDEX)
+#define nomindex (DICT_CONTEXT->dictionary_hq_mode ? STEMLIST : NOMINDEX)
 
-/*int dictstrcmp(), dictstrncmp(), morphstrcmp(), morphstrncmp();*/
+void
+SetHqDict(int enabled)
+{
+	DICT_CONTEXT->dictionary_hq_mode = enabled != 0;
+}
 
-#include "../morphlib/morphstrcmp.proto.h"
+int
+GetHqDict(void)
+{
+	return(DICT_CONTEXT->dictionary_hq_mode);
+}
 
+static morpheus_runtime_context *
+dictionary_context(void)
+{
+	morpheus_runtime_context *context = morpheus_runtime_context_current();
+	int language = cur_lang();
 
-endtags * VbTags = NULL;
-endtags * NomTags = NULL;
-static int num_of_ntags = 0;
-static int num_of_vtags = 0;
-char * vbindex = VBINDEX;
-char * nomindex = NOMINDEX;
-#include "retrentry.proto.h"
- int Use_hqdict = 0;
-
-#if STEMCACHE
-Stemcache * scache;
-int cacheflag = 1;
-#define CACHESIZE 48
-#endif
-
-#include "dictio.proto.h"
+	if (!context->dictionary_tags_initialized) {
+		context->dictionary_tag_language = language;
+		context->dictionary_tag_hq_mode = context->dictionary_hq_mode;
+		context->dictionary_tags_initialized = 1;
+	} else if (context->dictionary_tag_language != language ||
+		   context->dictionary_tag_hq_mode != context->dictionary_hq_mode) {
+		free(context->verb_dictionary_tags);
+		free(context->nominal_dictionary_tags);
+		free(context->lemma_dictionary_tags);
+		context->verb_dictionary_tags = NULL;
+		context->nominal_dictionary_tags = NULL;
+		context->lemma_dictionary_tags = NULL;
+		context->verb_dictionary_tag_count = 0;
+		context->nominal_dictionary_tag_count = 0;
+		context->lemma_dictionary_tag_count = 0;
+		context->dictionary_tag_language = language;
+		context->dictionary_tag_hq_mode = context->dictionary_hq_mode;
+	}
+	return(context);
+}
 
 
 endtags *
 init_dict(char *fname, int *ntags)
 {
-	if( Use_hqdict ) {
+	dictionary_context();
+	if( GetHqDict() ) {
 		fname = STEMLIST;
-		vbindex = STEMLIST;
-		nomindex = STEMLIST;
 	}
 	return(init_preind(fname,ntags));
 }
@@ -44,11 +65,14 @@ init_dict(char *fname, int *ntags)
 /*
  * check to see if the current string is an irregular verb.
  */
+int
  chckirrverb(char *irregstr, char *lemmas)
 {
 	char workstem[MAXWORDSIZE];
 	int rval;
 	long startoff;
+
+	dictionary_context();
 	
 	workstem[0] = '1';
 	Xstrncpy(workstem+1,irregstr,MAXWORDSIZE);
@@ -60,21 +84,11 @@ init_dict(char *fname, int *ntags)
 	if( ! VbTags ) {
 		VbTags = init_dict(vbindex,&num_of_vtags);
 	}
-#if STEMCACHE
-	if( ! scache ) {
-		init_scache();
-	}
-	if( (rval=is_instemcache(workstem,Xstrlen(workstem),lemmas) ) )
-		return(rval);
-#endif
 
 	startoff = ChckPreIndex(VbTags,workstem,num_of_vtags,YES,morphstrcmp);
 
 	if( startoff < 0 ) return(0);
 	if( ChckFullIndex(workstem,lemmas,vbindex,startoff,morphstrncmp) ) {
-#if STEMCACHE
-		add_stemcache(scache,workstem,lemmas);
-#endif
 		return(1);
 	}
 	return(0);
@@ -87,11 +101,14 @@ init_dict(char *fname, int *ntags)
  * 
  * return 0 if "indeclstring" is not in the indeclinable list.
  */
+int
  chckindecl(char *indeclstr, char *lemmas)
 {
 	long startoff;
 	int rval = 0;
 	char tmpindecl[MAXWORDSIZE];
+
+	dictionary_context();
 	
 	*lemmas = 0;
 	if( ! NomTags ) {
@@ -103,13 +120,6 @@ init_dict(char *fname, int *ntags)
 	stripdiaer(tmpindecl);
 	stripacc(tmpindecl);
 
-#if STEMCACHE
-	if( ! scache ) {
-		init_scache();
-	}
-	if( (rval=is_instemcache(tmpindecl,Xstrlen(tmpindecl),lemmas) ) )
-		return(rval);
-#endif
 
 /*
 	printf("will look for [%s] in indecl\n", tmpindecl );
@@ -120,9 +130,6 @@ printf("startoff [%ld]\n", startoff );
 */
 	if( startoff < 0 ) return(0);
 	if( ChckFullIndex(tmpindecl,lemmas,nomindex,startoff,morphstrncmp) ) {
-#if STEMCACHE
-		add_stemcache(scache,tmpindecl,lemmas);
-#endif
 		return(1);
 	}
 
@@ -135,11 +142,14 @@ printf("startoff [%ld]\n", startoff );
  * 
  * return 0 if "indeclstring" is not in the indeclinable list.
  */
+int
  chckderiv(char *derivstr, char *derivkeys)
 {
 	long startoff;
 	int rval = 0;
 	char tmpderivstr[MAXWORDSIZE];
+
+	dictionary_context();
 	
 /*
 	*derivkeys = 0;
@@ -165,25 +175,24 @@ printf("startoff [%ld]\n", startoff );
 */
 	if( startoff < 0 ) return(0);
 	if( ChckFullIndex(tmpderivstr,derivkeys,vbindex,startoff,morphstrncmp) ) {
-#if STEMCACHE
-		add_stemcache(scache,tmpderivstr,derivkeys);
-#endif
 		return(1);
 	}
 	return(0);
 }
 
 
+int
  chckstem(char *stemstr, char *stemkeys, int is_nom)
 {
 	long startoff;
 	int rval = 0;
 	int rval2 = 0;
-	int taglen;
 	int curntags = 0;
 	char tmpkeys[LONGSTRING];
 	char * indfile;
 	endtags * CurTags = NULL;
+
+	dictionary_context();
 	
 	stripquant(stemstr);
 	stripdiaer(stemstr);
@@ -193,8 +202,7 @@ printf("startoff [%ld]\n", startoff );
 		rval = chcknstem(stemstr,stemkeys);
 		rval2 = checkforderiv(stemstr,tmpkeys);
 		if( rval2 ) {
-			if( rval ) Xstrncat(stemkeys," ",LONGSTRING);
-			Xstrncat(stemkeys,tmpkeys,LONGSTRING);
+			if (!append_dictionary_keys(stemkeys,tmpkeys)) return(rval);
 		}
 	
 		return(rval+rval2);
@@ -204,8 +212,7 @@ printf("startoff [%ld]\n", startoff );
 		rval = chckvstem(stemstr,stemkeys);
 		rval2 = checkforderiv(stemstr,tmpkeys);
 		if( rval2 ) {
-			if( rval ) Xstrncat(stemkeys," ",LONGSTRING);
-			Xstrncat(stemkeys,tmpkeys,LONGSTRING);
+			if (!append_dictionary_keys(stemkeys,tmpkeys)) return(rval);
 		}
 	
 		return(rval+rval2);
@@ -229,27 +236,12 @@ printf("startoff [%ld]\n", startoff );
 		curntags = num_of_vtags;
 	}
 	
-#if STEMCACHE
-	if( ! scache ) {
-		init_scache();
-	}
-#endif
 
-	taglen = Xstrlen(stemstr);
-
-#if STEMCACHE
-	if( (rval=is_instemcache(stemstr,taglen,stemkeys) ) )
-		return(rval);
-#endif
 	startoff = ChckPreIndex(CurTags,stemstr,curntags,is_nom? NO : YES,morphstrcmp);
 
 	if( startoff >= 0 ) 
 		rval = ChckFullIndex(stemstr,stemkeys,indfile,startoff,morphstrncmp);
 
-#if STEMCACHE
-	if(rval)
-		add_stemcache(scache,stemstr,stemkeys);
-#endif
 /*
 	if( ! rval ) {
 		rval = checkforderiv(stemstr,stemkeys);
@@ -259,8 +251,7 @@ printf("startoff [%ld]\n", startoff );
 	if( ! is_nom ) 
 		rval2 = checkforderiv(stemstr,tmpkeys);
 	if( rval2 ) {
-		if( rval ) Xstrncat(stemkeys," ",LONGSTRING);
-		Xstrncat(stemkeys,tmpkeys,LONGSTRING);
+		if (!append_dictionary_keys(stemkeys,tmpkeys)) return(rval);
 	}
 
 	return(rval+rval2);
@@ -268,140 +259,55 @@ printf("startoff [%ld]\n", startoff );
 	return(rval);
 }
 
-#if STEMCACHE
-init_scache(void)
-{
-	char ** pp, *s;
-	int i;
 
-	if( !(scache=(Stemcache *)calloc((size_t)1,(size_t)sizeof * scache))) {
-		char errmess[LONGSTRING];
-		
-		sprintf(errmess,"could not init scache\n");
-		ErrorMess(errmess);
-		cacheflag = 0;
-		return(0);
-	}
-	scache->citem = (char **) calloc((size_t)CACHESIZE, (size_t)sizeof * scache->citem );
-	if( ! scache->citem ) {
-		char errmess[LONGSTRING];
-		
-		sprintf(errmess,"could not init scache->item\n");
-		ErrorMess(errmess);
-		cacheflag = 0;
-		return(0);
-	}	
-		
-	pp = scache->citem;
-	scache->curindex = 0;
-	for(i=0;i<CACHESIZE;i++) {
-		*(pp+i) = (char *) calloc((size_t)MAXWORDSIZE+1,(size_t)sizeof *(*pp) );
-		if( ! *(pp+i) ) {
-			fprintf(stderr,"ran out of memory in cache!\n");
-			return(0);
-		}
-	}
-}
-
-is_instemcache(char *tag, size_t taglen, char *stemkeys)
-{
-	char ** pp, *s;
-	int i;
-	char worktag[MAXWORDSIZE];
-	
-	Xstrncpy(worktag,tag,MAXWORDSIZE);
-	Xstrncat(worktag," ",MAXWORDSIZE);
-	taglen++;
-	
-	pp = scache->citem;
-	for(i=0;i<CACHESIZE;i++) {
-		s = *(pp+i);
-
-		if( ! *s )
-				break;
-		if( !morphstrncmp(worktag,s,taglen) ) {
-			Xstrncpy(stemkeys,s+taglen,MAXWORDSIZE);
-
-			return( 1 );
-		}
-	}
-	return(0);
-}
-		
-add_stemcache(Stemcache *cache, char *stem, char *keys)
-{
-	char *tmp = NULL;
-	char * s = NULL;
-	char ** pp;
-	int slen;
-	
-	tmp = malloc((size_t)LONGSTRING);
-	if( cache->curindex >= CACHESIZE ) {
-		cache->curindex = 0;
-	}
-	Xstrncpy(tmp,stem,LONGSTRING);
-	Xstrncat(tmp," ",LONGSTRING);
-	Xstrncat(tmp,keys,LONGSTRING);
-
-	slen = Xstrlen(tmp);
-	pp = cache->citem+cache->curindex;
-	if( slen > MAXWORDSIZE ) {
-		xFree(*(pp),"pp");
-		*(pp) = NULL;
-		*(pp) = (char *)calloc((size_t)slen+1,(size_t)sizeof * s);
-		if( ! * pp ) {
-			fprintf(stderr,"out of memory in cache routine\n");
-		}
-	}
-
-	s = *(pp);
-	Xstrncpy(s,tmp,LONGSTRING);
-	xFree(tmp,"scache tmp");
-	tmp = NULL;
-	cache->curindex++;
-}
-#endif
-
-endtags * LemmTags = NULL;
-static int num_of_ltags = 0;
-
+int
  prntlemmentry(char *lemma, char *preverb, FILE *f)
 {
 	long startoff = 0;
-	char *lemmfile= NULL;
-	char *line = NULL;
+	char lemmfile[LONGSTRING] = {0};
+	char line[LONGSTRING] = {0};
 	FILE * fword = NULL;
+	int result = 1;
 
+	if (!lemma || !f) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(-1);
+	}
 	if( (fword=getlemmstart(lemma,lemmfile,&startoff)) == NULL ) {
-		sprintf(line,"No Lemma found under [%s]\n", lemma );
+		snprintf(line,sizeof line,"No Lemma found under [%s]\n", lemma );
 		ErrorMess(line);
 		return(-1);
 	}
-	lemmfile = (char *)malloc((size_t)LONGSTRING);
-	line = (char *)malloc((size_t)LONGSTRING);
-	*line = * lemmfile = 0;
-	while(fgets(line,LONGSTRING, fword) ) {
+	while(fgets(line,(int)sizeof line, fword) ) {
 		if( is_blank(line) ) {
-			fprintf(f,"\n\n");
+			if (fprintf(f,"\n\n") < 0) result = -1;
 			break;
 		}
 		trimwhite(line);
-		if( *preverb && !Xstrncmp(line,LEMMTAG,Xstrlen(LEMMTAG)) ) {
+		if( preverb && *preverb &&
+			!Xstrncmp(line,LEMMTAG,Xstrlen(LEMMTAG)) ) {
 			rstprevb(line+Xstrlen(LEMMTAG),preverb,0);
-			fprintf(f,"%s\n", line );
+			if (fprintf(f,"%s\n", line) < 0) {
+				result = -1;
+				break;
+			}
 			continue;
 		}
-		if( preverb && *preverb )
-			fprintf(f,"%s\tpb:%s\n", line , preverb);
-		else
-			fprintf(f,"%s\n", line );
+		if( preverb && *preverb ) {
+			if (fprintf(f,"%s\tpb:%s\n",line,preverb) < 0) {
+				result = -1;
+				break;
+			}
+		} else if (fprintf(f,"%s\n",line) < 0) {
+			result = -1;
+			break;
+		}
 	}
+	if (ferror(fword)) result = -1;
+	if (result < 0)
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 	xFclose(fword);
-	fword = NULL;
-	xFree(line,"line prntlem");
-	xFree(lemmfile,"lemmfile prntlem");
-	line = lemmfile = NULL;
-	return(1);
+	return(result);
 }
 
 /*
@@ -424,17 +330,25 @@ FILE *
 {
 	char curtarget[LONGSTRING];
 	char line[LONGSTRING];
-	char tmp[LONGSTRING];
 	long curoff;
-	long ftell();
 	FILE * f = NULL;
 	long startoff;
 	int comp = 0;
+	int written;
 	char shorttag[MAXWORDSIZE];
+
+	if (lemmoff) *lemmoff = -1;
+	if (lemmfile) *lemmfile = 0;
+	if (!lemma || !lemmfile || !lemmoff) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(NULL);
+	}
+	dictionary_context();
 	
  
- 	if( ! LemmTags ) {
+	if( ! LemmTags ) {
 		LemmTags = init_preind(WORDLIST,&num_of_ltags);
+		if (!LemmTags) return(NULL);
 	}
 
 	Xstrncpy(shorttag,lemma,MAXWORDSIZE);
@@ -442,23 +356,43 @@ FILE *
 	shorttag[6] = 0;
 
 	startoff = ChckPreIndex(LemmTags,shorttag,num_of_ltags,NO,morphstrcmp);
+	if (startoff < 0)
+		return(NULL);
 
 	if( (f=MorphFopen(WORDLIST,"r")) == NULL ) {
-		fprintf(stderr,"getlemmstart: could not find %s\n", line );
+		fprintf(stderr,"getlemmstart: could not open %s\n", WORDLIST);
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return(NULL);
 	}
-	fseek(f,startoff,0);
+	if (fseek(f,startoff,SEEK_SET) != 0) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		xFclose(f);
+		return(NULL);
+	}
 
 	Xstrncpy(shorttag,lemma,MAXWORDSIZE);
 	stripquant(shorttag);
 
-	sprintf(curtarget,":le:%s", shorttag );
+	written = snprintf(curtarget,sizeof curtarget,":le:%s",shorttag);
+	if (written < 0 || written >= (int)sizeof curtarget) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		xFclose(f);
+		return(NULL);
+	}
 
 	while(1) {
 		char curlemm[MAXWORDSIZE];
 
 		curoff = ftell(f);
+		if (curoff < 0) {
+			morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+			xFclose(f);
+			return(NULL);
+		}
 		if( ! fgets(line,(int)sizeof  line , f)) {
+			if (ferror(f))
+				morpheus_runtime_error_record(
+					MORPHEUS_RUNTIME_ERROR_INTERNAL);
 			*lemmoff = -1;
 			break;
 		}
@@ -497,12 +431,19 @@ ErrorMess(errbuf);
 		return(NULL);
 	}
 	
-	Xstrncpy(lemmfile,WORDLIST,MAXWORDSIZE); 
-	fseek(f,*lemmoff,0);
+	Xstrncpy(lemmfile,WORDLIST,LONGSTRING); 
+	if (fseek(f,*lemmoff,SEEK_SET) != 0) {
+		*lemmoff = -1;
+		*lemmfile = 0;
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		xFclose(f);
+		return(NULL);
+	}
 	return(f);
 
 }
 
+int
 lemma_exists(char *lemma)
 {
 	FILE * flemm = NULL;
@@ -513,5 +454,21 @@ lemma_exists(char *lemma)
 		return(0);
 	xFclose(flemm);
 	flemm = NULL;
+	return(1);
+}
+static int
+append_dictionary_keys(char *destination, const char *addition)
+{
+	char merged[LONGSTRING];
+
+	if (!destination || !addition ||
+	    !Xstrncpy(merged,destination,sizeof merged) ||
+	    (*merged && !morpheus_runtime_string_append(
+	        merged," ",sizeof merged)) ||
+	    !morpheus_runtime_string_append(merged,addition,sizeof merged)) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
+	Xstrncpy(destination,merged,LONGSTRING);
 	return(1);
 }

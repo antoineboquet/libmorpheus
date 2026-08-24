@@ -1,32 +1,40 @@
+#include "morphlib_internal.h"
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #include "libfiles.h"
 #define SEGSIZE 100000
-#define MAXDOMAINS 256
 
 #include "beta2rtf.proto.h"
 
-char * domlist[MAXDOMAINS];
-char lastdom[BUFSIZ];
-
-_main(int argc, char *argv[])
+int _main(int argc, char *argv[])
 {
 	 char line[BUFSIZ*6];
-	FILE * f, *MorphFopen();
+	FILE *f;
 	char fname[BUFSIZ];
 	char basename[BUFSIZ];
-	char outfname[BUFSIZ];
+	char outfname[BUFSIZ+5];
 	 char *p;
 	FILE *fout = stdout;
 	long nfile = 0;
-	long ftell();
 	int i = 0;
 	unsigned char result[BUFSIZ*6];
+	int namelen;
 	
-	
-	sprintf(basename,"%s", argv[1]);
-	sprintf(outfname,"%s.rtf", basename );
+	if( argc < 2 ) {
+		fprintf(stderr,"usage: beta2rtf input-file\n");
+		return(1);
+	}
+	namelen = snprintf(basename,sizeof basename,"%s", argv[1]);
+	if( namelen < 0 || namelen >= (int)sizeof basename ) {
+		fprintf(stderr,"input filename is too long\n");
+		return(1);
+	}
+	namelen = snprintf(outfname,sizeof outfname,"%s.rtf", basename );
+	if( namelen < 0 || namelen >= (int)sizeof outfname ) {
+		fprintf(stderr,"output filename is too long\n");
+		return(1);
+	}
 	if( ! (fout=fopen(outfname,"w")) ) {
 		fprintf(stderr,"could not open [%s]\n", outfname );
 		exit(-1);
@@ -47,7 +55,7 @@ _main(int argc, char *argv[])
 		exit(-1);
 	}
 	while(fgets(line,sizeof line,f)) {
-		if( isspace(line[0]) || line[0] == '?' || line[0] == '#' ) {
+		if( isspace((unsigned char)line[0]) || line[0] == '?' || line[0] == '#' ) {
 /*			fprintf(fout,"\\par\n");*/
 			continue;
 		}
@@ -65,9 +73,10 @@ _main(int argc, char *argv[])
 /*
 	fclose(fout);
 */
+	return(0);
 }
 
-conv_defline(char *s, FILE *fout)
+void conv_defline(char *s, FILE *fout)
 {
 	char res1[128], res2[128], result[BUFSIZ*6];
 	char * introp;
@@ -78,8 +87,8 @@ conv_defline(char *s, FILE *fout)
 	
 	if( has_pref(s,":dnum") ) {
 		
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 		
 		
 
@@ -101,16 +110,16 @@ conv_defline(char *s, FILE *fout)
 		}
 		fprintf(fout,"\\pard\\plain{%s {%s",  introp, res2 );
 
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 
 		beta2smk(s,result);
 		fprintf(fout,"%s}\\par\\pard\\plain}\n",  result );
 		return;
 	}
 	if( has_pref(s,":xref") ) {
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 		
 		beta2smk(s,result);
 		fprintf(fout,"\\s6{%s}\\par\\pard\\plain\n", result );
@@ -124,8 +133,8 @@ conv_defline(char *s, FILE *fout)
 		return;
 	}
 	if( has_pref(s,":comm") ) {
-		while(*s&&!isspace(*s)) s++;
-		while(isspace(*s)) s++;
+		while(*s&&!isspace((unsigned char)*s)) s++;
+		while(isspace((unsigned char)*s)) s++;
 		
 		beta2smk(s,result);
 		fprintf(fout,"\\s8{%s}\\par\n", result );
@@ -135,7 +144,7 @@ conv_defline(char *s, FILE *fout)
 	fprintf(fout,"%s\\par\n", s );
 }
 
-check_deflev(char *p, char *res, int len)
+int check_deflev(char *p, char *res, size_t len)
 {
 	char * s;
 	
@@ -153,26 +162,26 @@ check_deflev(char *p, char *res, int len)
 	if( *res ==  '*' ) {
 		res++;
 		if( *res == 'i' || * res == 'v' ) return(2);
-		if( isalpha(*res) ) return(4);
+		if( isalpha((unsigned char)*res) ) return(4);
 		return(0);
 	}
-	if( isdigit(*res) ) return(3);
-	if( isalpha(*res) ) return(5);
+	if( isdigit((unsigned char)*res) ) return(3);
+	if( isalpha((unsigned char)*res) ) return(5);
 	
 	return(0);
 }
 
-has_pref(char *s, char *prefs)
+int has_pref(char *s, char *prefs)
 {
 	return(!strncmp(s,prefs,strlen(prefs)));
 }
 
 
-is_greek(char *s)
+int is_greek(char *s)
 {
 	int n = 0;
 	
-	while(*s&&!isspace(*s)) {
+	while(*s&&!isspace((unsigned char)*s)) {
 		switch(*s) {
 			case '=':
 			case '/':

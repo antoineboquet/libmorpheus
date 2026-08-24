@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 #include <greek.h>
 
 #include "beta_tolower.proto.h"
@@ -12,16 +13,17 @@
  * start with something like "*)/andra"
  * and end with "a)/ndra"
  */
-beta_tolower(char *word)
+int beta_tolower(char *word)
 {
 	register char * s;
-	register char * t;
 
+	if (!word) return(0);
 	if( *word != BETA_UCASE_MARKER ) return(0);
 
 	s = word;
-	while(!isalpha(*s)&&*s) s++;
+	while(!isalpha((unsigned char)*s)&&*s) s++;
+	if (!*s) return(0);
 	*word = *s;
-	Xstrcpy(s,s+1);
-
+	strsqz(s,1);
+	return(1);
 }

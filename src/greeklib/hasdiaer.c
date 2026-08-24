@@ -9,8 +9,9 @@
 #include "hasdiaer.proto.h"
 
 
-has_diaeresis(char *s)
+int has_diaeresis(char *s)
  {
+	if (!s) return(0);
  	while(*s) {
  		if( *s == DIAERESIS )
  			return(1);

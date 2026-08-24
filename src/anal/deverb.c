@@ -95,7 +95,7 @@ testcmpstem(char *needlemma,char *stem,char * stemkeys,char* matchkeys,char * tr
 				char tmp[BUFSIZ];
 				tmp[0] = 0;
 
-				SprintGkFlags(&Gstr,tmp,":",1);
+				SprintGkFlags(&Gstr,tmp,sizeof tmp,":",1);
 				if(testcmpstem2(needlemma,half2, stemkeys, matchkeys,transkeys)) { 
 					strcat(transkeys,":pb:");
 					strcat(transkeys,fullprevb);

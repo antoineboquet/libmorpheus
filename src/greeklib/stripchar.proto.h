@@ -1,3 +1,3 @@
 
 /* stripchar.c */
-int stripchar(char *, int);
+void stripchar(char *, int);

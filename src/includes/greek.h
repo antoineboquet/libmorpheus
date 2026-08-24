@@ -1,8 +1,12 @@
+#ifndef MORPHEUS_GREEK_H
+#define MORPHEUS_GREEK_H
+
 /*	Univ. of Calif. Greek Project	*/
 /*	1985-86				*/
 /*	Joshua Kosman			*/
 /*	David Neel Smith		*/
 #define ANSI 1
+#include <stdint.h>
 /*
 #define LIGHTSPEED 1
 */
@@ -11,12 +15,7 @@
 /*	INCLUDES			*/
 /*======================================*/
 
-#define DECALPHA 1
-#ifdef DECALPHA
-typedef unsigned int int32;
-#else
-typedef unsigned long int32;
-#endif
+typedef uint32_t int32;
 
 #ifdef SYS5
 #include <sys/types.h>
@@ -25,6 +24,7 @@ typedef unsigned long int32;
 #include <sys/file.h>
 #endif
 #include <ctype.h>
+#include <errno.h>
 #include <stdio.h>
 #ifdef ANSI
 #include <string.h>
@@ -280,8 +280,7 @@ typedef struct {
 /*
 #define	COMMON_GNDR	4
 */
-/*
-#define	ADVERB		5 /* NB!! */
+/* #define ADVERB 5 */
 
 /* values for degree field */
 #define NDEGREES	3
@@ -582,34 +581,19 @@ grc 8/21/88 added 'c' (xi) to palatals
 /*	FUNCTION DECLARATIONS		*/
 /*======================================*/
 
-extern int errno;
 
-extern	grkfd fds[MAXFILES];
-extern	filehead fheaders[MAXFILES];
-extern	int openlist[NFILES],nopen;
 
 /*extern lookup_res_type lookup_res;
 extern bool debug,verbose,grkchars;*/
 
-extern char tenses[][MAXWORDSIZE];
-extern char moods[][MAXWORDSIZE];
-extern char voices[][MAXWORDSIZE];
-extern char pernums[][MAXWORDSIZE];
-extern char casenums[][MAXWORDSIZE];
-extern char genders[][MAXWORDSIZE];
-extern char degrees[][MAXWORDSIZE];
-extern char prefl_types[][MAXWORDSIZE];
-
-char *getsyll(), *getsyll2(), *getaccp();
-/*
-char getaccent(),getbreath();
-*/
-bool Is_diphth();
-char *skipwhite();
-char *parse_nounform(),*parse_verbform(),*parse_adjform(), *next_cons();
-ext_type calc_vbext(),calc_adjext(),findhyp();
+char *getsyll(char *, int);
+char *getsyll2(char *, int);
+char *getaccp(char *, int);
+char *next_cons(char *);
 /*#include "binlook.proto.h"*/
 
 /* addaccent.c */
-int addaccent(char *, int, char *);
-int cinsert(int, char *);
+void addaccent(char *, int, char *);
+void cinsert(int, char *);
+
+#endif

@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*	Univ. of Calif. Greek Project	*/
 /*	1985-86				*/
 /*	Joshua Kosman			*/
@@ -9,8 +10,9 @@
 
 int gkstrlen(char *s)
 {
-	register int n;
+	size_t n;
 
+	if (!s) return(0);
 	n = Xstrlen(s);
 	if (*s == GKPRT_OFF) {
 		s++;
@@ -21,5 +23,5 @@ int gkstrlen(char *s)
 		for (;*s;s++)
 			if (Is_diacrit(*s) && !Is_quant(*s))
 				n--;
-	return (n);
+	return ((int)n);
 }

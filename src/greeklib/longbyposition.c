@@ -12,16 +12,19 @@
  *		2 if the vowel could be long by position
  */
  
-longbyposition(char *s)
+int longbyposition(char *s)
 {
-	while(Is_vowel(*s)||(*s && ! isalpha(*s))) s++;
+	if (!s) return(0);
+	while(Is_vowel(*s)||(*s && ! isalpha((unsigned char)*s))) s++;
+	if (!*s) return(0);
 
 /* 'z', 'c', and 'y' make position */
 	if(Is_dblcons(*s)) return(1);
 	
 	if(! Is_cons(*(s+1))) return(0);
 	
-	if( Is_labial(*(s+1) && Is_stop(*s))) return(2);
+	/* A stop followed by a liquid may or may not make position. */
+	if(Is_stop(*s) && Is_liquid(*(s+1))) return(2);
 
 	if( Is_cons(*s) ) return(1);
 	return(0);

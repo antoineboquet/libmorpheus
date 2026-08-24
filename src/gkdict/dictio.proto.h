@@ -1,5 +1,11 @@
+#include <stdio.h>
+
+#include <endtags.h>
+#include <gkdict.h>
 
 /* dictio.c */
+void SetHqDict(int enabled);
+int GetHqDict(void);
 endtags *init_dict(char *fname, int *ntags);
 int chckirrverb(char *irregstr, char *lemmas);
 int chckindecl(char *indeclstr, char *lemmas);

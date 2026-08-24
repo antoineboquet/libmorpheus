@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out sources and stemlib
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           submodules: recursive
 
@@ -27,13 +27,243 @@ jobs:
       - name: Test
         run: ctest --preset dev
 
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure optimized release
+        run: cmake --preset release -DBUILD_TESTING=ON
+
+      - name: Build optimized release
+        run: cmake --build --preset release
+
+      - name: Test optimized release and installed surface
+        run: ctest --preset release
+
+      - name: Package optimized release
+        run: >-
+          cpack --config build/release/CPackConfig.cmake
+          -G TGZ -B build/release/packages
+
+      - name: Verify native package
+        run: >-
+          cmake
+          -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
+          -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
+          -P test/test-release-package.cmake
+
+      - name: Preserve native package
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-native-linux-x86_64
+          path: build/release/packages/libmorpheus-*.tar.gz*
+          if-no-files-found: error
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure sanitizers
+        run: cmake --preset sanitizers
+
+      - name: Build sanitizers
+        run: cmake --build --preset sanitizers
+
+      - name: Test sanitizers
+        env:
+          ASAN_OPTIONS: detect_leaks=0:halt_on_error=1:strict_string_checks=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: ctest --preset sanitizers
+
+  thread-sanitizer:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Configure ThreadSanitizer
+        run: cmake --preset thread-sanitizer
+
+      - name: Build ThreadSanitizer
+        run: cmake --build --preset thread-sanitizer
+
+      - name: Test ThreadSanitizer
+        run: ctest --preset thread-sanitizer
+
+  deno:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Configure library
+        run: cmake --preset dev
+
+      - name: Build library
+        run: cmake --build --preset dev
+
+      - name: Check binding and benchmark runner
+        run: |
+          sh -n bench/release.sh
+          deno check bindings/deno/mod.ts bindings/deno/mod_test.ts \
+            bench/compare.ts bench/compare_test.ts \
+            bench/validate.ts bench/validate_test.ts
+
+      - name: Test binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        run: >-
+          deno test --allow-env --allow-ffi
+          bindings/deno/mod_test.ts bench/compare_test.ts
+          bench/validate_test.ts
+
+      - name: Smoke-test benchmark runner
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+          MORPHEUS_CRUNCHER: ${{ github.workspace }}/build/dev/cruncher
+        run: >-
+          deno run --allow-env --allow-ffi --allow-read --allow-run
+          bench/compare.ts --iterations 1 --warmup 0 --contexts 1
+          --cold-samples 1 --json > /dev/null
+
+  char-signedness:
+    name: Byte conversions (${{ matrix.char_mode }} char)
+    strategy:
+      matrix:
+        char_mode: [signed, unsigned]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v5
+
+      - name: Configure
+        env:
+          CFLAGS: -f${{ matrix.char_mode }}-char
+        run: cmake -S . -B build/char-mode -G Ninja
+
+      - name: Build byte portability tests
+        run: >-
+          cmake --build build/char-mode --target
+          morpheus_byte_conversion_test morpheus_byte_collation_test
+
+      - name: Test byte portability
+        run: |
+          ./build/char-mode/morpheus_byte_conversion_test
+          ./build/char-mode/morpheus_byte_collation_test
+
+  alpine:
+    name: Alpine (${{ matrix.architecture }})
+    strategy:
+      matrix:
+        include:
+          - architecture: x86_64
+            runner: ubuntu-24.04
+          - architecture: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Verify native architecture
+        run: test "$(uname -m)" = "${{ matrix.architecture }}"
+
+      - name: Build and test Alpine runtime image
+        run: docker build --target runtime --tag morpheus:ci .
+
+      - name: Smoke-test cruncher image
+        run: |
+          output="$(printf 'a)/nqrwpos\n' | docker run --rm -i morpheus:ci -S)"
+          test -n "$output"
+
+      - name: Build Alpine Deno base image
+        run: docker build --target deno-runtime --tag morpheus-deno:ci .
+
+      - name: Smoke-test Deno base image
+        run: docker run --rm morpheus-deno:ci --version
+
+  apple-silicon:
+    runs-on: macos-15
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Verify native architecture
+        run: test "$(uname -m)" = arm64
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Configure
+        run: cmake --preset dev
+
+      - name: Build
+        run: cmake --build --preset dev
+
+      - name: Test native runtime
+        run: ctest --preset dev
+
+      - name: Check binding
+        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+
+      - name: Test binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.dylib
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
   legacy-make:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Build runtime with the inherited Makefiles
         run: |
           make -C src clean
-          CFLAGS='-std=gnu89 -fcommon' make -C src libs
-          CFLAGS='-std=gnu89 -fcommon' make -C src/anal cruncher
+          CFLAGS='-std=c17 -fcommon' make -C src libs
+          CFLAGS='-std=c17 -fcommon' make -C src/anal cruncher

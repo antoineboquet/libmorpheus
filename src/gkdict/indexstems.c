@@ -451,7 +451,7 @@ printf("numovable is [%s]\n", gkstring_of(&TmpGstr));
 
 
 	sprintf(tmp,"%s%s %s:%s", prefix , curstem, markedstem , curlemma );
-	SprintGkFlags(gstr,tmp,":",0);
+	SprintGkFlags(gstr,tmp,sizeof tmp,":",0);
 	if( *preverb ) {
 		char tmp2[128];
 		if( has_morphflag(morphflags_of(gstr),ROOT_PREVERB ) ) 
@@ -462,7 +462,7 @@ printf("numovable is [%s]\n", gkstring_of(&TmpGstr));
 		strcat(tmp,tmp2);
 	}
 	notbuf[0] = 0;
-	SprintGkFlags(avoidgstr,notbuf,":",0);
+	SprintGkFlags(avoidgstr,notbuf,sizeof notbuf,":",0);
 	if( notbuf[0] ) {
 		strcat(tmp,":not");
 		strcat(tmp,notbuf);
@@ -491,4 +491,3 @@ huh(void)
 {
 	getchar();
 }
-

@@ -1,3 +1,3 @@
 
 /* stripstemsep.c */
-int stripstemsep(char *);
+void stripstemsep(char *);

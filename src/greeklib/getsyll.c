@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*	Univ. of Calif. Greek Project	*/
 /*	1985-86				*/
 /*	Joshua Kosman			*/
@@ -12,13 +13,16 @@ char *getsyll(char *word, int syll)
 {
 	register char *p;
 	register int syllcount;
+	size_t length;
 
-	if (syll<0 || syll>2)
+	if (!word || syll<0 || syll>2)
 		return (P_ERR);
 	
 
 	syllcount = 0;
-	for (p = lastn(word,1);p>=word;p--) {
+	length = Xstrlen(word);
+	while (length) {
+		p = word + --length;
 		if (Is_vowel(*p)) {
 		/*
 		 * grc 3/3/89:  we had been returning the second vowel of the dipthong.
@@ -54,6 +58,7 @@ char *getsyll2(char *word, int syll)
 {
 	char * p;
 	
+	if (!word) return(P_ERR);
 	if( nsylls(word) == 0 ) return(word);
 	
 	p = getsyll(word,syll);
@@ -64,4 +69,3 @@ char *getsyll2(char *word, int syll)
 		return(p);
 		
 }
-

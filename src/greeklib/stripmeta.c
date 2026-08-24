@@ -1,4 +1,5 @@
 
+#include "greeklib_internal.h"
 #include "stripmeta.proto.h"
 /*
  * gregory crane
@@ -6,7 +7,7 @@
  * november 1987
  */
  
- stripmetachars(char *s)
+void stripmetachars(char *s)
 {
 	stripquant(s);
 	stripzeroend(s);

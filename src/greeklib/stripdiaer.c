@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*
  *	greg crane
  *	
@@ -8,11 +9,16 @@
 
 #include "stripdiaer.proto.h"
 
-stripdiaer(char *word)
+void stripdiaer(char *word)
 {
 	register char *p;
+	size_t length;
 
-	for (p = lastn(word,1);p >= word;p--)
+	if (!word) return;
+	length = Xstrlen(word);
+	while (length) {
+		p = word + --length;
 		if (*p == DIAERESIS )
 			strsqz(p,1);
+	}
 }

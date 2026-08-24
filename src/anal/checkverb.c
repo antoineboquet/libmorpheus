@@ -1,15 +1,21 @@
 #include <stdio.h>
-#include <gkstring.h>
+#include "anal_internal.h"
+#include "../morphlib/runtime_context.h"
 
 #include "checkverb.proto.h"
 
-checkverb(gk_word *Gkword)
+int checkverb(gk_word *Gkword)
 {
 	register char * wp;
 	register char * a1;
 	char workword[MAXWORDSIZE];
 	char half1[MAXWORDSIZE];
 	int rval = 0;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 
 	Xstrncpy(workword,workword_of(Gkword),MAXWORDSIZE);
 /*
@@ -85,7 +91,7 @@ fprintf(stderr,"trying reg stem [%s] [%s] preverb [%s] rval %d\n", stem_of(Gkwor
  *
  * this loop is to get past that little bug
  */
- 		while(*wp&&!isalpha(*wp)&&*wp!='|'&&*wp!='('&&*wp!=')') wp++;
+ 		while(*wp&&!isalpha((unsigned char)*wp)&&*wp!='|'&&*wp!='('&&*wp!=')') wp++;
 
 
 	}
@@ -110,12 +116,17 @@ fprintf(stderr,"trying reg stem [%s] [%s] preverb [%s] rval %d\n", stem_of(Gkwor
 		return(rval);
 }
 
-analyzed_verb(gk_word *Gkword)
+int analyzed_verb(gk_word *Gkword)
 {
 	char tmpendstring[MAXWORDSIZE];
 	char endkeys[LONGSTRING];
 	
 	int rval;
+
+	if (!Gkword) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 
 	*endkeys = 0;
 
@@ -133,7 +144,7 @@ printf("rval %d tmpend %s endkeys %s\n", chckvend(tmpendstring,endkeys),tmpendst
 	    TmpGkword = * Gkword;
 	    stripacc(stem_of(&TmpGkword));
 
-	    if(rval=strippreverb(&TmpGkword,endkeys,0)) {
+	    if ((rval = strippreverb(&TmpGkword,endkeys,0)) != 0) {
 		CpGkAnal(Gkword,&TmpGkword);
 	    }
 	} 

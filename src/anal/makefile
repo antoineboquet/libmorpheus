@@ -2,7 +2,8 @@
 LEXLIB = -lfl
 
 INCLUDE=../includes
-CFLAGS+= -O2 -I${INCLUDE}
+PUBLIC_INCLUDE=../../include
+CFLAGS+= -O2 -I${INCLUDE} -I${PUBLIC_INCLUDE}
 RM=rm
 CC=cc
 CC=gcc
@@ -14,6 +15,7 @@ MORPHLIB=../morphlib/morphlib.a
 GENERLIB=../gener/gener.a
 DICTLIB=../gkdict/gkdict.a
 ANALLIB=anal.a
+APIOBJ=../api/context.o ../api/result.o ../api/analyze.o ../api/compat.o
 LIBS=${GENERLIB} ${ENDLIB} ${DICTLIB} ${MORPHLIB} ${GREEKLIB} 
 
 LSJDIR=/local/text/lsj
@@ -48,8 +50,8 @@ install: all
 lcnt: lcnt.o ${ANALLIB} ${LIBS}
 	${CC} -o lcnt lcnt.o ../gener/genwd.o ${ANALLIB} ${LIBS}
 
-cruncher:stdiomorph.o ${ANALLIB} ${LIBS}
-	${CC} -o cruncher stdiomorph.o ../gener/genwd.o ${ANALLIB} ${LIBS}
+cruncher:stdiomorph.o ${APIOBJ} ${ANALLIB} ${LIBS}
+	${CC} -o cruncher stdiomorph.o ${APIOBJ} ../gener/genwd.o ${ANALLIB} ${LIBS}
 
 morphcheck:morphcheck.o ${LSJDIR}/MDBlib.o ${LSJDIR}/flen.o ${ANALOBJ} ${LIBS}
 	${CC} -o morphcheck morphcheck.o ${LSJDIR}/MDBlib.o ${LSJDIR}/flen.o ../gener/genwd.o ${ANALOBJ} ${LIBS} ${LEXLIB}

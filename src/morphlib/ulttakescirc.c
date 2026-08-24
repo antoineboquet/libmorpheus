@@ -1,11 +1,16 @@
+#include "morphlib_internal.h"
 #include <gkstring.h>
 
 #include "ulttakescirc.proto.h"
 
-ulttakescirc(gk_string *gstring, word_form form_info)
+int ulttakescirc(gk_string *gstring, word_form form_info)
 {
 	Stemtype stemtype;
 
+	if (!gstring) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		return(0);
+	}
 	stemtype = stemtype_of(gstring);
 
 	if( has_morphflag(morphflags_of(gstring),NO_CIRCUMFLEX) )

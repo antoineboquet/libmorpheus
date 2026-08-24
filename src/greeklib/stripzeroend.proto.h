@@ -1,3 +1,3 @@
 
 /* stripzeroend.c */
-int stripzeroend(char *);
+void stripzeroend(char *);

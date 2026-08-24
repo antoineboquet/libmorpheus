@@ -1,7 +1,9 @@
 #include <gkstring.h>
+#include "gkends_internal.h"
 
 #include "checkforbreath.proto.h"
 
+void
 CheckForBreathing(gk_string *gstr)
 {
 	char * s = gkstring_of(gstr);

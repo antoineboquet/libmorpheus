@@ -1,4 +1,5 @@
-
+#ifndef MORPHEUS_PREVERB_H
+#define MORPHEUS_PREVERB_H
 /*	Univ. of Calif. Greek Project	*/
 /*	1985-86				*/
 /*	Joshua Kosman			*/
@@ -7,7 +8,7 @@
 
 
 /* from Smyth #s 1681-1698 */
-char	prevbs [][MAXPRVBSIZE] = {
+static const char prevbs[][MAXPRVBSIZE] = {
 	"a)mf",
 	"a)mfi/",
 	"a)n",
@@ -42,3 +43,5 @@ char	prevbs [][MAXPRVBSIZE] = {
 	};
 
 #define NUMPREVBS ( sizeof prevbs / sizeof prevbs[0] )
+
+#endif

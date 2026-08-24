@@ -1,3 +1,4 @@
+#include "greeklib_internal.h"
 /*	Univ. of Calif. Greek Project	*/
 /*	1985-86				*/
 /*	Joshua Kosman			*/
@@ -53,8 +54,9 @@ int quantprim(char *word, int syll, bool is_ending, bool is_oblique)
 		return (I_ERR);
 }
 
-long_by_isub(char *s)
+int long_by_isub(char *s)
 {
+	if (!s || !*s) return(0);
 	if(*(s+1) == '|' || (Is_breath(*(s+1)) && *(s+2) == '|') ) return(1);
 	return(0);
 }

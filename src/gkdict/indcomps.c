@@ -45,7 +45,7 @@ main()
 		
 		ScanAsciiKeys((char *)s,&GkWord,&Gstr,&AvoidGstr);
 		tmp[0] = 0;
-		SprintGkFlags(&Gstr,tmp," ",0);
+		SprintGkFlags(&Gstr,tmp,sizeof tmp," ",0);
 /*printf("line:%s gkstring:%s\n", line , gkstring_of(&Gstr) );*/
 		s = tailp + 1;
 		while(*s) {

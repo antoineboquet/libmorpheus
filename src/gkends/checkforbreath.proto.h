@@ -1,3 +1,3 @@
 
 /* checkforbreath.c */
-int CheckForBreathing(gk_string *);
+void CheckForBreathing(gk_string *);

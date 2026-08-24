@@ -1,3 +1,4 @@
+#include "morphlib_internal.h"
 /*
  * copyright Gregory Crane
  * February 1987
@@ -6,16 +7,22 @@
 #include <string.h>
 
 #include "nextkey.proto.h"
-nextkey(char *keylist, char *nextkey)
+int nextkey(char *keylist, char *nextkey)
 {
-	register char * a = keylist;
-	register char * b = nextkey;
+	char *a;
+	char *b;
 
-	while(isspace(*a)) a++;
-	if( !*a ) return(0);
-	while(*a && !isspace(*a)) *b++ = *a++;
+	if (!keylist || !nextkey) return(0);
+	a = keylist;
+	b = nextkey;
+	while(isspace((unsigned char)*a)) a++;
+	if( !*a ) {
+		*nextkey = 0;
+		return(0);
+	}
+	while(*a && !isspace((unsigned char)*a)) *b++ = *a++;
 	*b = 0;
-	while(isspace(*a)) a++;
+	while(isspace((unsigned char)*a)) a++;
 	if( *a ) Xstrcpy(keylist,a);
 	else  *keylist = 0;
 	return(1);
