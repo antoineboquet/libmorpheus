@@ -27,6 +27,10 @@ Deno.test("tests one-based morphology flag bits", () => {
     "flag 110 must use bit 5 of byte 13",
   );
   assert(
+    hasMorpheusMorphFlag([{ allMorphFlags }], "group-name"),
+    "arrays of raw analyses must support named flags",
+  );
+  assert(
     !hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.Poetic),
     "unset flags must remain false",
   );
