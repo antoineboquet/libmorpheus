@@ -53,7 +53,14 @@ foreach(expected_changelog_value IN ITEMS
   endif()
 endforeach()
 
-file(READ "${MORPHEUS_SOURCE_DIR}/docs/release-0.1.0.md" release_decision)
+set(release_decision_path
+    "${MORPHEUS_SOURCE_DIR}/docs/release-${MORPHEUS_PROJECT_VERSION}.md")
+if(NOT EXISTS "${release_decision_path}")
+  message(FATAL_ERROR
+    "release decision is missing: docs/release-${MORPHEUS_PROJECT_VERSION}.md"
+  )
+endif()
+file(READ "${release_decision_path}" release_decision)
 foreach(expected_release_value IN ITEMS
         "Project version: **${MORPHEUS_PROJECT_VERSION}**"
         "C ABI: **${MORPHEUS_ABI_VERSION}**"
@@ -62,7 +69,8 @@ foreach(expected_release_value IN ITEMS
               release_value_at)
   if(release_value_at EQUAL -1)
     message(FATAL_ERROR
-      "release-0.1.0.md is missing: ${expected_release_value}"
+      "release-${MORPHEUS_PROJECT_VERSION}.md is missing: "
+      "${expected_release_value}"
     )
   endif()
 endforeach()

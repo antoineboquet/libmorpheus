@@ -7,6 +7,39 @@ the corpus.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-24
+
+Target project version: **0.1.1**. C ABI: **1**. Shared-library SONAME: **0**.
+
+### Added
+
+- Verified native release packages for Linux x86-64 glibc, Linux aarch64
+  glibc, and macOS arm64, each with a SHA-256 integrity file.
+- Extracted-package qualification that compiles and runs independent CMake and
+  `pkg-config` consumers against every native archive.
+
+### Changed
+
+- Ordinary pull requests use the lower-cost Linux validation tier, while
+  manual, weekly, and version-tag runs own the architecture qualification.
+- Weekly platform qualification skips the costly matrix when `main` is
+  unchanged and the preceding scheduled run succeeded; failed and changed
+  revisions are still retried.
+- Native package names state the operating system, architecture, and Linux libc
+  contract explicitly.
+- Linux package checks inspect ELF architecture and runtime dependencies.
+  macOS checks inspect the arm64 Mach-O contract, install name, relocatability,
+  and macOS 11.0 deployment target.
+
+### Compatibility and data notes
+
+- This release changes packaging and qualification only. The public C ABI
+  remains version 1, the shared-library SONAME remains 0, and no runtime source
+  or public symbol changed after 0.1.0.
+- The Alpheios stemlib remains pinned at
+  `4632415fe93c85e9fdca47a0c5a13f31385f0023`; native archives continue to
+  exclude stem data.
+
 ## [0.1.0] - 2026-08-24
 
 Target project version: **0.1.0**. C ABI: **1**. Shared-library SONAME: **0**.

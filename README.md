@@ -98,8 +98,9 @@ cmake -DMORPHEUS_BUILD_DIR="$PWD/build/release" \
   -P test/test-release-package.cmake
 ```
 
-The release CI preserves the verified Linux x86-64 archive as a workflow
-artifact. The checksum detects accidental corruption; it is not a release
+Release-tag CI builds and verifies data-free native archives for Linux x86-64
+glibc, Linux aarch64 glibc, and macOS arm64. Each archive has a SHA-256
+integrity file; the checksum detects accidental corruption and is not a release
 signature.
 
 ## Install and consume from C
