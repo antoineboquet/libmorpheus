@@ -50,6 +50,13 @@ Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Native packages and
 checksums are generated only for version tags and retained as short-lived CI
 artifacts until they are promoted to a GitHub release.
 
+Scheduled runs first compare the current default-branch SHA with the last
+completed weekly run. The architecture jobs are skipped when the SHA is
+unchanged and the previous run succeeded. A changed SHA, a previous failure,
+the first scheduled run, a manual dispatch, or a version tag always runs the
+matrix. Pull requests changing the architecture workflow execute only this
+inexpensive decision job so that its action and expressions are validated.
+
 Before tagging, manually dispatch the architecture workflow for the exact
 candidate commit. The tagged commit must then pass every job triggered by both
 workflow files:
