@@ -36,7 +36,23 @@ The decisions specific to the first candidate are recorded in
 
 ## 3. Required CI
 
-The release commit must pass every job in `.github/workflows/test.yml`:
+The Linux workflow in `.github/workflows/test.yml` deliberately has two
+levels. Pull requests run the native CMake and Deno jobs. Pushes to `main`
+additionally run the optimized build, sanitizers, byte-signedness matrix, and
+inherited Makefile compatibility check. Version tags run the same Linux
+qualification except that the optimized build and package verification are
+owned by the architecture workflow. Superseded runs are cancelled, except for
+immutable version-tag runs.
+
+The expensive architecture workflow in `.github/workflows/platform.yml` runs
+weekly, on explicit manual dispatch, and for every `v*` tag. It covers native
+Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Native packages and
+checksums are generated only for version tags and retained as short-lived CI
+artifacts until they are promoted to a GitHub release.
+
+Before tagging, manually dispatch the architecture workflow for the exact
+candidate commit. The tagged commit must then pass every job triggered by both
+workflow files:
 
 - native CMake build and CTest;
 - ASan/UBSan and ThreadSanitizer;
@@ -45,6 +61,10 @@ The release commit must pass every job in `.github/workflows/test.yml`:
 - Apple Silicon arm64;
 - Deno type checking and FFI tests;
 - inherited Makefile compatibility.
+
+Documentation-only work does not bypass the Linux documentation and release
+metadata checks. Do not broaden path exclusions without checking those
+contracts first.
 
 Do not qualify from a partial rerun that omits a failing job. Both Perseids and
 Alpheios fixture suites must run where their data prerequisites are available.
@@ -101,7 +121,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Verify after the merge that the former branch tip is an ancestor of `main`
   with `git merge-base --is-ancestor <runtime-tip> main`.
 - Tag the exact commit that passed the complete matrix.
-- Build release artifacts from that tag rather than from an uncommitted tree.
+- Build release artifacts from that tag rather than from an uncommitted tree;
+  ordinary pull-request and `main` runs do not preserve publishable packages.
 - Rebuild the native archive from the tag; do not promote an artifact produced
   by an earlier pull-request run.
 - Install the produced native package into a fresh prefix and repeat one CMake

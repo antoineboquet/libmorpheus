@@ -15,6 +15,14 @@ The Alpine jobs build both the minimal `runtime` image and the reusable
 complete CTest suite, and runs the Deno FFI tests against the generated
 `libmorpheus.dylib`.
 
+The architecture matrix is intentionally separate from ordinary pull-request
+CI. It runs weekly, on manual request, and for version tags. Tagged runs use
+optimized builds and additionally preserve verified Linux x86-64, Linux
+aarch64 glibc, and macOS arm64 native packages with SHA-256 integrity files.
+The Apple Silicon build sets a minimum deployment target of macOS 11.0. Alpine
+images remain qualification artifacts only until stemlib redistribution has
+been authorized.
+
 ## Stemlib binary contract
 
 The compiled stemlib is a versioned data dependency, not a native executable.
