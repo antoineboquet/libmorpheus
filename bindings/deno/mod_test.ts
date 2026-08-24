@@ -63,11 +63,7 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   assert(analyses.length === 4, "bi/ou must retain the CLI fixture count");
   assert(analyses[0].raw.length > 0, "raw form must be populated");
   assert(analyses[0].lemma.length > 0, "lemma must be populated");
-  assert(analyses[0].morphFlags.length === 12, "morph flags must be copied");
-  assert(
-    analyses[0].allMorphFlags.length === 14,
-    "complete morph flags must be copied",
-  );
+  assert(Array.isArray(analyses[0].morphFlags), "morph flags must be named");
   assert(
     typeof hasMorpheusMorphFlag(
       analyses[0],
@@ -76,12 +72,29 @@ Deno.test("analyzes Greek through the native ABI", async () => {
     "named morph flags must be testable",
   );
   assert(
-    analyses[0].partOfSpeech !== MorpheusPartOfSpeech.Unknown,
-    "part of speech must use a documented code",
+    analyses[0].partOfSpeech !== "unknown",
+    "part of speech must use a documented name",
   );
   assert(
-    analyses[0].truncatedFields === MorpheusTruncatedField.None,
-    "fixture fields must not be truncated",
+    analyses[0].truncatedFields.length === 0,
+    "fixture fields must expose no truncation names",
+  );
+
+  const rawAnalyses = await context.analyzeRaw(
+    "bi/ou",
+    MorpheusOption.StrictCase,
+  );
+  assert(rawAnalyses.length === analyses.length, "raw analysis count must match");
+  assert(rawAnalyses[0].structSize >= 860, "raw ABI size must be preserved");
+  assert(rawAnalyses[0].morphFlags.length === 12, "raw flags must be copied");
+  assert(rawAnalyses[0].allMorphFlags.length === 14, "all raw flags must be copied");
+  assert(
+    rawAnalyses[0].partOfSpeech !== MorpheusPartOfSpeech.Unknown,
+    "raw part of speech must preserve its numeric code",
+  );
+  assert(
+    rawAnalyses[0].truncatedFields === MorpheusTruncatedField.None,
+    "raw truncation mask must be preserved",
   );
 
   const [first, second] = await Promise.all([
@@ -93,6 +106,21 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   ]);
   assert(first.length === 3, "tou= must retain the CLI fixture count");
   assert(second.length > 0, "breathing fallback must be available through FFI");
+  assert(second[0].partOfSpeech === "noun", "part of speech must be readable");
+  assert(
+    second[0].grammaticalNumber === "singular",
+    "grammatical number must be readable",
+  );
+  assert(
+    second[0].genders.includes("masculine"),
+    "gender masks must be decoded",
+  );
+  assert(
+    second[0].grammaticalCases.includes("nominative"),
+    "case masks must be decoded",
+  );
+  assert(second[0].stemType.code > 0, "opaque stem type code must be retained");
+  assert(second[0].derivationType === null, "absent derivation must be null");
 
   const scoped = await context.analyze(
     "a)/nqrwpos",
@@ -114,7 +142,7 @@ Deno.test("analyzes Greek through the native ABI", async () => {
     MorpheusOption.StrictCase,
   );
   const person = personAnalyses.find((analysis) =>
-    hasMorpheusMorphFlag(analysis, MorpheusMorphFlag.PersonName)
+    hasMorpheusMorphFlag(analysis, "person-name")
   );
   assert(person, "Artaches must preserve the person-name stem flag");
 });

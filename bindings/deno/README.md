@@ -20,6 +20,10 @@ const analyses = await context.analyze(
   "a)/nqrwpos",
   MorpheusOption.StrictCase,
 );
+
+console.log(analyses[0].partOfSpeech);       // "noun"
+console.log(analyses[0].grammaticalNumber); // "singular"
+console.log(analyses[0].grammaticalCases);  // ["nominative"]
 ```
 
 Use the platform's installed library name: typically `libmorpheus.so` on
@@ -34,6 +38,17 @@ main event loop. Calls made through one context are serialized by the wrapper
 because a native context must not be used concurrently. Separate contexts may
 analyze in parallel. Results are copied into TypeScript objects before their
 native allocation is released.
+
+`analyze()` returns the ergonomic TypeScript representation: grammatical
+values are stable English identifiers, combinable masks are arrays, absent
+values are `null` or empty arrays, and morphology flags and truncated fields
+are named. `stemType` and `derivationType` remain opaque stemlib identifiers,
+represented as `{ code: number }` because ABI version 1 does not assign them a
+portable public name.
+
+Use `analyzeRaw()` when inspecting the ABI or maintaining low-level tooling.
+It returns `MorpheusRawAnalysis`, including numeric morphology fields,
+`structSize`, the 12- and 14-byte flag vectors, and the numeric truncation mask.
 
 Close contexts before closing their parent library. `using` and `await using`
 provide deterministic cleanup; `MorpheusLibrary.close()` rejects an early

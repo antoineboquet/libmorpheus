@@ -145,9 +145,10 @@ complete. Zero means that every text field was copied without truncation.
 
 The mask is stored with the opaque result rather than in `morpheus_analysis`,
 so the version-1 structure size and layout remain unchanged. The Deno binding
-performs the query while it owns the native result and exposes the mask as
-`MorpheusAnalysis.truncatedFields`; compare it with the
-`MorpheusTruncatedField` constants.
+performs the query while it owns the native result.
+`MorpheusAnalysis.truncatedFields` is an array of stable field names;
+`MorpheusRawAnalysis.truncatedFields` preserves the numeric mask for ABI-level
+tools and may be compared with the `MorpheusTruncatedField` constants.
 
 ## Per-request options
 
@@ -182,10 +183,12 @@ Unknown option bits are invalid. Dialect restrictions on Latin or Italian
 contexts return `MORPHEUS_INVALID_ARGUMENT`. Request state is restored before
 returning on success or failure.
 
-For compatibility, `MorpheusAnalysis.morphFlags` remains 12 bytes. The binding
-also exposes the complete 14-byte value as `allMorphFlags` and publishes flag
-numbers through `MorpheusMorphFlag`. `hasMorpheusMorphFlag()` performs the
-one-based byte-and-bit lookup safely.
+The ABI structure retains its 12-byte morphology flag field, while the result
+accessor exposes all 14 bytes. The Deno `analyze()` method decodes these bits
+as named `MorpheusAnalysis.morphFlags`. Its `analyzeRaw()` counterpart exposes
+both byte vectors through `MorpheusRawAnalysis.morphFlags` and
+`allMorphFlags`. `hasMorpheusMorphFlag()` accepts either representation and
+performs the one-based byte-and-bit lookup safely for raw values.
 
 ## Compatibility output
 

@@ -166,10 +166,79 @@ export const MorpheusMorphFlag = {
 export type MorpheusMorphFlag =
   typeof MorpheusMorphFlag[keyof typeof MorpheusMorphFlag];
 
+export type MorpheusMorphFlagName =
+  | "syllabic-augment" | "compound-only" | "enclitic" | "iterative"
+  | "suffix-accent" | "stem-accent" | "contracted" | "person-name"
+  | "antepenult-accent" | "irregular-superlative" | "irregular-comparative"
+  | "no-comparison" | "short-penult" | "long-penult" | "recessive-accent"
+  | "accent-optional" | "needs-accent" | "rho-eta-iota-alpha"
+  | "not-in-composition" | "has-preverb" | "unaugmented" | "dissimilation"
+  | "proclitic" | "apocope" | "irregular-form" | "has-augment"
+  | "quantity-metathesis" | "nu-movable" | "intervocalic-s-to-h"
+  | "preverb-augment" | "poetic" | "uncontracted-stem" | "metathesis"
+  | "elided-preverb" | "indeclinable-form" | "root-preverb" | "diminutive"
+  | "late" | "rare" | "raw-preverb" | "early" | "short-subjunctive"
+  | "unaspirated-preverb" | "reduplication" | "uncontracted-ending"
+  | "derivative" | "attic-reduplication" | "no-reduplication" | "n-infix"
+  | "syncope" | "impersonal" | "needs-rough-breathing" | "no-circumflex"
+  | "causal" | "intransitive" | "tmesis" | "raw-sonant" | "prodelision"
+  | "frequentative" | "later" | "double-augment" | "double-reduplication"
+  | "desiderative" | "present-reduplication" | "ends-in-digamma"
+  | "geographic-name" | "doubled-consonant" | "iota-intensive"
+  | "lost-accent" | "sigma-to-ci" | "short-eis" | "pros-to-poti"
+  | "meta-to-peda" | "pros-to-proti" | "upo-to-upai" | "para-to-parai"
+  | "uper-to-upeir" | "en-to-eni" | "alpha-privative" | "alpha-copulative"
+  | "metrically-long" | "delta-preverb" | "tau-preverb" | "group-name";
+
+const MORPH_FLAG_NAMES = new Map<number, MorpheusMorphFlagName>([
+  [1, "syllabic-augment"], [2, "compound-only"], [3, "enclitic"],
+  [4, "iterative"], [5, "suffix-accent"], [6, "stem-accent"],
+  [7, "contracted"], [8, "person-name"], [9, "antepenult-accent"],
+  [10, "irregular-superlative"], [11, "irregular-comparative"],
+  [12, "no-comparison"], [13, "short-penult"], [14, "long-penult"],
+  [15, "recessive-accent"], [16, "accent-optional"], [17, "needs-accent"],
+  [18, "rho-eta-iota-alpha"], [19, "not-in-composition"], [20, "has-preverb"],
+  [21, "unaugmented"], [22, "dissimilation"], [23, "proclitic"],
+  [24, "apocope"], [25, "irregular-form"], [26, "has-augment"],
+  [27, "quantity-metathesis"], [28, "nu-movable"],
+  [29, "intervocalic-s-to-h"], [30, "preverb-augment"], [31, "poetic"],
+  [32, "uncontracted-stem"], [33, "metathesis"], [34, "elided-preverb"],
+  [35, "indeclinable-form"], [36, "root-preverb"], [37, "diminutive"],
+  [38, "late"], [39, "rare"], [40, "raw-preverb"], [41, "early"],
+  [42, "short-subjunctive"], [43, "unaspirated-preverb"],
+  [44, "reduplication"], [45, "uncontracted-ending"], [46, "derivative"],
+  [47, "attic-reduplication"], [48, "no-reduplication"], [49, "n-infix"],
+  [50, "syncope"], [51, "impersonal"], [52, "needs-rough-breathing"],
+  [53, "no-circumflex"], [54, "causal"], [55, "intransitive"],
+  [56, "tmesis"], [57, "raw-sonant"], [58, "prodelision"],
+  [59, "frequentative"], [60, "later"], [61, "double-augment"],
+  [62, "double-reduplication"], [63, "desiderative"],
+  [64, "present-reduplication"], [65, "ends-in-digamma"],
+  [66, "geographic-name"], [67, "doubled-consonant"],
+  [68, "iota-intensive"], [69, "lost-accent"], [70, "sigma-to-ci"],
+  [71, "short-eis"], [72, "pros-to-poti"], [73, "meta-to-peda"],
+  [74, "pros-to-proti"], [75, "upo-to-upai"], [76, "para-to-parai"],
+  [77, "uper-to-upeir"], [78, "en-to-eni"], [79, "alpha-privative"],
+  [80, "alpha-copulative"], [81, "metrically-long"],
+  [82, "delta-preverb"], [83, "tau-preverb"], [110, "group-name"],
+]);
+
 export function hasMorpheusMorphFlag(
-  analysis: Pick<MorpheusAnalysis, "allMorphFlags">,
-  flag: MorpheusMorphFlag,
+  analysis:
+    | Pick<MorpheusRawAnalysis, "allMorphFlags">
+    | Pick<MorpheusAnalysis, "morphFlags">,
+  flag: MorpheusMorphFlag | MorpheusMorphFlagName,
 ): boolean {
+  if (!("allMorphFlags" in analysis)) {
+    const name = typeof flag === "number" ? MORPH_FLAG_NAMES.get(flag) : flag;
+    return name !== undefined && analysis.morphFlags.includes(name);
+  }
+  if (typeof flag !== "number") {
+    for (const [code, name] of MORPH_FLAG_NAMES) {
+      if (name === flag) return hasMorpheusMorphFlag(analysis, code);
+    }
+    return false;
+  }
   if (flag < 1) return false;
   const index = Math.floor((flag - 1) / 8);
   return index < analysis.allMorphFlags.length &&
@@ -305,7 +374,7 @@ export const MorpheusTruncatedField = {
   Domains: 1 << 12,
 } as const;
 
-export interface MorpheusAnalysis {
+export interface MorpheusRawAnalysis {
   readonly structSize: number;
   readonly partOfSpeech: number;
   readonly stemType: number;
@@ -338,6 +407,69 @@ export interface MorpheusAnalysis {
   readonly truncatedFields: number;
 }
 
+export type MorpheusPartOfSpeechName = "unknown" | "noun" | "verb" | "adjective";
+export type MorpheusPersonName = "first" | "second" | "third";
+export type MorpheusNumberName = "singular" | "dual" | "plural";
+export type MorpheusGenderName = "masculine" | "feminine" | "neuter" | "adverbial";
+export type MorpheusCaseName =
+  | "nominative" | "genitive" | "dative" | "accusative" | "vocative" | "ablative";
+export type MorpheusTenseName =
+  | "present" | "imperfect" | "future" | "aorist" | "perfect"
+  | "pluperfect" | "future-perfect" | "past-absolute";
+export type MorpheusMoodName =
+  | "indicative" | "subjunctive" | "optative" | "imperative" | "infinitive"
+  | "participle" | "gerundive" | "supine" | "conditional";
+export type MorpheusVoiceName =
+  | "active" | "middle" | "passive" | "medio-passive" | "deponent";
+export type MorpheusDegreeName = "positive" | "comparative" | "superlative";
+export type MorpheusDialectName =
+  | "attic" | "ionic" | "aeolic" | "lesbian" | "homeric" | "doric"
+  | "paradigm" | "non-homeric-epic" | "epic" | "prose";
+export type MorpheusGeographicRegionName =
+  | "phocis" | "locris" | "elis" | "laconia" | "heraclea" | "megarid"
+  | "argolid" | "rhodes" | "cos" | "thera" | "cyrene" | "crete"
+  | "arcadia" | "cyprus" | "boeotia";
+export type MorpheusTruncatedFieldName =
+  | "raw" | "workword" | "lemma" | "preverb" | "augment" | "stem"
+  | "suffix" | "ending" | "crasis" | "dictionaryForm" | "englishForm"
+  | "rawPreverb" | "domains";
+
+/** A stemlib-specific identifier whose meaning is intentionally opaque in ABI 1. */
+export interface MorpheusOpaqueCode {
+  readonly code: number;
+}
+
+export interface MorpheusAnalysis {
+  readonly partOfSpeech: MorpheusPartOfSpeechName;
+  readonly stemType: MorpheusOpaqueCode;
+  readonly derivationType: MorpheusOpaqueCode | null;
+  readonly dialects: readonly MorpheusDialectName[];
+  readonly geographicRegions: readonly MorpheusGeographicRegionName[];
+  readonly person: MorpheusPersonName | null;
+  readonly grammaticalNumber: MorpheusNumberName | null;
+  readonly genders: readonly MorpheusGenderName[];
+  readonly grammaticalCases: readonly MorpheusCaseName[];
+  readonly tense: MorpheusTenseName | null;
+  readonly mood: MorpheusMoodName | null;
+  readonly voices: readonly MorpheusVoiceName[];
+  readonly degree: MorpheusDegreeName;
+  readonly raw: string;
+  readonly workword: string;
+  readonly lemma: string;
+  readonly preverb: string;
+  readonly augment: string;
+  readonly stem: string;
+  readonly suffix: string;
+  readonly ending: string;
+  readonly crasis: string;
+  readonly dictionaryForm: string;
+  readonly englishForm: string;
+  readonly rawPreverb: string;
+  readonly domains: string;
+  readonly morphFlags: readonly MorpheusMorphFlagName[];
+  readonly truncatedFields: readonly MorpheusTruncatedFieldName[];
+}
+
 export class MorpheusError extends Error {
   constructor(readonly status: number, message: string) {
     super(message);
@@ -365,7 +497,7 @@ function decodeAnalysis(
   bytes: Uint8Array,
   truncatedFields: number,
   allMorphFlags: Uint8Array,
-): MorpheusAnalysis {
+): MorpheusRawAnalysis {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const numbers: number[] = [];
   for (let offset = 0; offset < 56; offset += 4) {
@@ -424,6 +556,75 @@ function decodeAnalysis(
     morphFlags,
     allMorphFlags,
     truncatedFields,
+  };
+}
+
+function exactName<T extends string>(
+  value: number,
+  entries: readonly (readonly [number, T])[],
+): T | null {
+  return entries.find(([code]) => code === value)?.[1] ?? null;
+}
+
+function maskNames<T extends string>(
+  value: number,
+  entries: readonly (readonly [number, T])[],
+  exactEntries: readonly (readonly [number, T])[] = [],
+): readonly T[] {
+  const exact = exactName(value, exactEntries);
+  if (exact !== null) return [exact];
+  return entries.filter(([bit]) => (value & bit) === bit).map(([, name]) => name);
+}
+
+const PART_OF_SPEECH_NAMES = [[0, "unknown"], [1, "noun"], [2, "verb"], [3, "adjective"]] as const;
+const PERSON_NAMES = [[1, "first"], [2, "second"], [4, "third"]] as const;
+const NUMBER_NAMES = [[1, "singular"], [2, "dual"], [4, "plural"]] as const;
+const GENDER_NAMES = [[1, "masculine"], [2, "feminine"], [4, "neuter"], [8, "adverbial"]] as const;
+const CASE_NAMES = [[1, "nominative"], [2, "genitive"], [4, "dative"], [8, "accusative"], [16, "vocative"], [32, "ablative"]] as const;
+const TENSE_NAMES = [[1, "present"], [10, "imperfect"], [3, "future"], [12, "aorist"], [5, "perfect"], [6, "pluperfect"], [15, "future-perfect"], [8, "past-absolute"]] as const;
+const MOOD_NAMES = [[1, "indicative"], [2, "subjunctive"], [3, "optative"], [4, "imperative"], [5, "infinitive"], [6, "participle"], [7, "gerundive"], [8, "supine"], [9, "conditional"]] as const;
+const VOICE_NAMES = [[1, "active"], [2, "middle"], [4, "passive"]] as const;
+const VOICE_EXACT_NAMES = [[6, "medio-passive"], [3, "deponent"]] as const;
+const DEGREE_NAMES = [[0, "positive"], [1, "comparative"], [2, "superlative"]] as const;
+const DIALECT_NAMES = [[2, "attic"], [8, "ionic"], [16, "aeolic"], [32, "lesbian"], [64, "homeric"], [128, "doric"], [256, "paradigm"], [1024, "non-homeric-epic"], [2048, "prose"]] as const;
+const DIALECT_EXACT_NAMES = [[1088, "epic"]] as const;
+const REGION_NAMES = [[1, "phocis"], [2, "locris"], [4, "elis"], [16, "laconia"], [32, "heraclea"], [64, "megarid"], [128, "argolid"], [256, "rhodes"], [512, "cos"], [1024, "thera"], [2048, "cyrene"], [4096, "crete"], [8192, "arcadia"], [16384, "cyprus"], [32768, "boeotia"]] as const;
+const TRUNCATED_FIELD_NAMES = [[1 << 0, "raw"], [1 << 1, "workword"], [1 << 2, "lemma"], [1 << 3, "preverb"], [1 << 4, "augment"], [1 << 5, "stem"], [1 << 6, "suffix"], [1 << 7, "ending"], [1 << 8, "crasis"], [1 << 9, "dictionaryForm"], [1 << 10, "englishForm"], [1 << 11, "rawPreverb"], [1 << 12, "domains"]] as const;
+
+function semanticAnalysis(raw: MorpheusRawAnalysis): MorpheusAnalysis {
+  const morphFlags: MorpheusMorphFlagName[] = [];
+  for (const [code, name] of MORPH_FLAG_NAMES) {
+    if (hasMorpheusMorphFlag(raw, code)) morphFlags.push(name);
+  }
+  return {
+    partOfSpeech: exactName(raw.partOfSpeech, PART_OF_SPEECH_NAMES) ?? "unknown",
+    stemType: { code: raw.stemType },
+    derivationType: raw.derivationType === 0 ? null : { code: raw.derivationType },
+    dialects: maskNames<MorpheusDialectName>(
+      raw.dialect,
+      DIALECT_NAMES,
+      DIALECT_EXACT_NAMES,
+    ),
+    geographicRegions: maskNames(raw.geographicRegion, REGION_NAMES),
+    person: exactName(raw.person, PERSON_NAMES),
+    grammaticalNumber: exactName(raw.number, NUMBER_NAMES),
+    genders: maskNames(raw.gender, GENDER_NAMES),
+    grammaticalCases: maskNames(raw.grammaticalCase, CASE_NAMES),
+    tense: exactName(raw.tense, TENSE_NAMES),
+    mood: exactName(raw.mood, MOOD_NAMES),
+    voices: maskNames<MorpheusVoiceName>(
+      raw.voice,
+      VOICE_NAMES,
+      VOICE_EXACT_NAMES,
+    ),
+    degree: exactName(raw.degree, DEGREE_NAMES) ?? "positive",
+    raw: raw.raw, workword: raw.workword, lemma: raw.lemma,
+    preverb: raw.preverb, augment: raw.augment, stem: raw.stem,
+    suffix: raw.suffix, ending: raw.ending, crasis: raw.crasis,
+    dictionaryForm: raw.dictionaryForm, englishForm: raw.englishForm,
+    rawPreverb: raw.rawPreverb, domains: raw.domains,
+    morphFlags,
+    truncatedFields: maskNames(raw.truncatedFields, TRUNCATED_FIELD_NAMES),
   };
 }
 
@@ -509,6 +710,15 @@ export class MorpheusContext {
     betaCode: string,
     options: bigint = 0n,
   ): Promise<readonly MorpheusAnalysis[]> {
+    return this.analyzeRaw(betaCode, options).then((analyses) =>
+      analyses.map(semanticAnalysis)
+    );
+  }
+
+  analyzeRaw(
+    betaCode: string,
+    options: bigint = 0n,
+  ): Promise<readonly MorpheusRawAnalysis[]> {
     if (this.#closed) return Promise.reject(new Error("Morpheus context is closed"));
     const run = this.#tail.then(() => this.#analyze(betaCode, options));
     this.#tail = run.then(() => undefined, () => undefined);
@@ -530,7 +740,7 @@ export class MorpheusContext {
   async #analyze(
     betaCode: string,
     options: bigint,
-  ): Promise<readonly MorpheusAnalysis[]> {
+  ): Promise<readonly MorpheusRawAnalysis[]> {
     const input = encoder.encode(betaCode);
     const output = new BigUint64Array(1);
     const status = await this.native.symbols.morpheus_analyze(
@@ -544,7 +754,7 @@ export class MorpheusContext {
     const result = pointerFromSlot(output);
     try {
       const count = Number(this.native.symbols.morpheus_result_count(result));
-      const analyses: MorpheusAnalysis[] = [];
+      const analyses: MorpheusRawAnalysis[] = [];
       for (let index = 0; index < count; index++) {
         const bytes = new Uint8Array(this.analysisSize);
         this.#throwOnError(this.native.symbols.morpheus_result_copy(
