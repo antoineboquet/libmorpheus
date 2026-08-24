@@ -6,7 +6,7 @@ header's `extern "C"` block.
 
 ## Versioning and compatibility
 
-The current project version is 0.1.1, the SONAME major is 0, and
+The current project version is 0.1.2, the SONAME major is 0, and
 `MORPHEUS_ABI_VERSION` is 1. Call `morpheus_abi_version()` after dynamically
 loading the library and compare it with the header constant before using any
 layout-dependent operation. `morpheus_analysis_size()` provides the producing
@@ -87,7 +87,7 @@ constant; callers must handle `MORPHEUS_INPUT_TOO_LONG`.
 
 The shared library uses hidden visibility by default and exports only the
 functions declared with `MORPHEUS_API` in `<morpheus/morpheus.h>`. Its current
-project version is 0.1.1 and its pre-1.0 ABI SONAME is 0. Adding an exported
+project version is 0.1.2 and its pre-1.0 ABI SONAME is 0. Adding an exported
 function is compatible within that SONAME; changing or removing one, or
 changing the layout of `morpheus_analysis`, requires an ABI review.
 
