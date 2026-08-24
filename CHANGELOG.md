@@ -7,8 +7,6 @@ the corpus.
 
 ## [Unreleased]
 
-Target project version: **0.1.3**. C ABI: **1**. Shared-library SONAME: **0**.
-
 ### Added
 
 - The Deno binding is now explicitly licensed under
