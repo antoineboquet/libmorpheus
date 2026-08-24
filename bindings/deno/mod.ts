@@ -227,7 +227,7 @@ export function hasMorpheusMorphFlag(
   analysis:
     | Pick<MorpheusRawAnalysis, "allMorphFlags">
     | Pick<MorpheusAnalysis, "morphFlags">,
-  flag: MorpheusMorphFlag | MorpheusMorphFlagName,
+  flag: number | MorpheusMorphFlagName,
 ): boolean {
   if (!("allMorphFlags" in analysis)) {
     const name = typeof flag === "number" ? MORPH_FLAG_NAMES.get(flag) : flag;
