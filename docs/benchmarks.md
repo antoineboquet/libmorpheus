@@ -98,7 +98,7 @@ The runner reports three execution models:
   the compatibility formatter and pipe writes; standard output is discarded
   only after those costs have been paid.
 - `cruncher-cold`: one process is started for each sample. This quantifies the
-  startup cost but does not represent the existing Bailly process pool.
+  startup cost but does not represent a persistent production process pool.
 
 For each model the report includes elapsed time, operations per second, mean
 time per word, and startup time where it can be isolated. FFI measurements also
