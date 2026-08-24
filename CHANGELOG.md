@@ -26,6 +26,11 @@ Target project version: **0.1.0**. C ABI: **1**. Shared-library SONAME: **0**.
 - The Deno `analyze()` result uses named grammatical values, named flag and
   truncation lists, and explicit nullable fields; `analyzeRaw()` preserves the
   numeric ABI representation for low-level consumers.
+- Part-of-speech results now distinguish the stemlib's adverbs, articles,
+  pronouns, numerals, prepositions, conjunctions, particles, and interjections
+  instead of treating all indeclinables as adjectives. The Deno semantic
+  result makes degree contextual, honors irregular degree flags, and
+  canonicalizes epic submasks in combined dialect values.
 - Requests for the optional HQ dictionary now fail once and silently with the
   public stemlib status when its dedicated indices are unavailable, instead of
   repeatedly writing diagnostics and returning an empty successful result.
