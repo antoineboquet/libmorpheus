@@ -31,7 +31,7 @@ foreach(fixture_index RANGE 0 ${fixture_last})
         list(APPEND options "${option}")
       endforeach()
     endif()
-  elseif(NOT options_error MATCHES "member 'opts' not found")
+  elseif(NOT options_error MATCHES "not found$")
     message(FATAL_ERROR
       "fixture ${fixture_index} has an invalid opts member in ${MORPHEUS_FIXTURES}: ${options_error}")
   endif()
