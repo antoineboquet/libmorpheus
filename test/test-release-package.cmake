@@ -95,3 +95,49 @@ foreach(packaged_file IN LISTS packaged_files)
     )
   endif()
 endforeach()
+
+get_filename_component(
+  morpheus_source_dir "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE
+)
+execute_process(
+  COMMAND
+    "${CMAKE_COMMAND}"
+    "-DMORPHEUS_BUILD_DIR=${MORPHEUS_BUILD_DIR}"
+    "-DMORPHEUS_SOURCE_DIR=${morpheus_source_dir}"
+    "-DMORPHEUS_GENERATOR=${MORPHEUS_PACKAGE_GENERATOR}"
+    "-DMORPHEUS_INSTALL_PREFIX=${prefix}"
+    -P "${CMAKE_CURRENT_LIST_DIR}/test-installed-package.cmake"
+  RESULT_VARIABLE cmake_consumer_result
+  OUTPUT_VARIABLE cmake_consumer_output
+  ERROR_VARIABLE cmake_consumer_error
+)
+if(NOT cmake_consumer_result EQUAL 0)
+  message(FATAL_ERROR
+    "packaged CMake consumer failed:\n"
+    "${cmake_consumer_output}\n${cmake_consumer_error}"
+  )
+endif()
+
+find_program(morpheus_package_pkg_config pkg-config REQUIRED)
+execute_process(
+  COMMAND
+    "${CMAKE_COMMAND}"
+    "-DMORPHEUS_BUILD_DIR=${MORPHEUS_BUILD_DIR}"
+    "-DMORPHEUS_SOURCE_DIR=${morpheus_source_dir}"
+    "-DMORPHEUS_INSTALL_LIBDIR=${MORPHEUS_PACKAGE_LIBDIR}"
+    "-DMORPHEUS_PKG_CONFIG=${morpheus_package_pkg_config}"
+    "-DMORPHEUS_VERSION=${MORPHEUS_PACKAGE_VERSION}"
+    "-DMORPHEUS_C_COMPILER=${MORPHEUS_PACKAGE_C_COMPILER}"
+    "-DMORPHEUS_EXECUTABLE_SUFFIX=${MORPHEUS_PACKAGE_EXECUTABLE_SUFFIX}"
+    "-DMORPHEUS_INSTALL_PREFIX=${prefix}"
+    -P "${CMAKE_CURRENT_LIST_DIR}/test-installed-pkgconfig.cmake"
+  RESULT_VARIABLE pkg_config_consumer_result
+  OUTPUT_VARIABLE pkg_config_consumer_output
+  ERROR_VARIABLE pkg_config_consumer_error
+)
+if(NOT pkg_config_consumer_result EQUAL 0)
+  message(FATAL_ERROR
+    "packaged pkg-config consumer failed:\n"
+    "${pkg_config_consumer_output}\n${pkg_config_consumer_error}"
+  )
+endif()
