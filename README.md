@@ -1,8 +1,8 @@
 # libmorpheus
 
 `libmorpheus` modernizes the Morpheus morphological analyzer for Ancient
-Greek and Latin. The code baseline comes from the Perseids fork; the runtime
-data used by Bailly comes from Alpheios.
+Greek and Latin. The code baseline comes from the Perseids fork; the reference runtime data
+used for testing and validation comes from Alpheios.
 
 The runtime now provides:
 
@@ -260,7 +260,7 @@ Two fixture suites, executed by CMake without a scripting-language runtime, inte
 
 - `legacy_fixtures` runs the inherited Greek and Latin expectations against
   the Perseids `stemlib` directory;
-- `alpheios_greek_fixtures` runs Bailly-oriented Greek smoke cases against
+- `alpheios_greek_fixtures` runs Greek smoke cases against the pinned
   `vendor/alpheios-morpheus/dist/stemlib`.
 
 This prevents data-version differences from being mistaken for regressions in
