@@ -107,11 +107,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-
       - name: Set up Deno
         uses: denoland/setup-deno@v2
         with:
@@ -194,11 +189,6 @@ jobs:
 
       - name: Verify native architecture
         run: test "$(uname -m)" = aarch64
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
 
       - name: Set up Deno
         uses: denoland/setup-deno@v2
@@ -306,11 +296,6 @@ jobs:
 
       - name: Verify native architecture
         run: test "$(uname -m)" = arm64
-
-      - name: Set up Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
 
       - name: Set up Deno
         uses: denoland/setup-deno@v2
