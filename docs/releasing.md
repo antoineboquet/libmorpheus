@@ -107,7 +107,7 @@ Alpheios fixture suites must run where their data prerequisites are available.
   embedding the Alpheios stemlib until its redistribution terms have been
   confirmed; this restriction does not apply to data-free native packages.
 - Smoke-test `cruncher` and the Deno wrapper against the stemlib intended for
-  Bailly, not merely the small inherited fixture tree.
+  deployment, not merely the small inherited fixture tree.
 - Inspect the native installation and confirm it contains only the public
   header, shared library, CMake package files, `libmorpheus.pc`, and optional
   `cruncher` executable.
