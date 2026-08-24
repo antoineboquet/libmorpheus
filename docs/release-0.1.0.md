@@ -28,7 +28,7 @@ and pkg-config discovery metadata, and `cruncher`. It does not contain a
 stemlib. The Deno binding remains available from the tagged source tree and
 loads the separately installed native library and caller-selected stemlib.
 
-The Alpheios submodule is pinned for tests and Bailly compatibility. Its data
+The Alpheios submodule is pinned for tests and compatibility validation. Its data
 is not part of the native package. The current container targets copy that
 stemlib into their final images, so they may be built and smoke-tested for
 qualification but must not be published until the right to redistribute the
