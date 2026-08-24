@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Antoine Boquet
+
 const ABI_VERSION = 1;
 const TEXT_CAPACITY = 64;
 const DOMAIN_CAPACITY = 24;
