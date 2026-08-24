@@ -77,7 +77,7 @@ Target project version: **0.1.0**. C ABI: **1**. Shared-library SONAME: **0**.
 - CMake and relocatable `pkg-config` packages, installed-consumer tests, and
   Alpine multiarchitecture runtime images.
 - Native fixture coverage for the inherited Perseids data and the pinned
-  Alpheios Greek stemlib used by Bailly.
+  Alpheios Greek stemlib.
 - Release-comparable JSON benchmarks carrying code, stemlib, compiler, target,
   and runtime metadata.
 
