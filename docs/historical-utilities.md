@@ -1,8 +1,8 @@
 # Historical utility policy
 
 The published project supports one standalone program: `cruncher`, implemented
-by `src/anal/stdiomorph.c`. The shared library and this compatibility client are
-the runtime needed by Bailly. They are the only executable surfaces covered by
+by `src/anal/stdiomorph.c`. The shared library and this compatibility client form the supported runtime.
+They are the only executable surfaces covered by
 the C17, sanitizer, portability, and public-error contracts.
 
 The repository also preserves 56 historical programs. They are not CMake
@@ -51,6 +51,6 @@ A quarantined program can become supported only in a dedicated change that:
 5. moves the entry point from the historical manifest to the supported list
    and updates packaging documentation.
 
-For Bailly, regenerating a data artifact should normally be implemented as a
-new, narrow tool over the public or internal typed APIs instead of reviving a
+For new integrations, regenerating a data artifact should normally use a new,
+narrow tool over the public or internal typed APIs instead of reviving a
 large historical front end unchanged.
