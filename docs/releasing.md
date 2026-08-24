@@ -6,8 +6,8 @@ and the pinned runtime data used by the fixtures. Historical standalone
 utilities are outside the release contract.
 
 Each release records its version and ABI decision in
-`release-<version>.md`. The current candidate is recorded in
-`release-0.1.3.md`; the 0.1.0, 0.1.1, and 0.1.2 decisions remain historical evidence.
+`release-<version>.md`. No release later than 0.1.2 is currently designated as
+a candidate; the 0.1.0, 0.1.1, and 0.1.2 decisions remain historical evidence.
 
 ## 1. Version and ABI decision
 
