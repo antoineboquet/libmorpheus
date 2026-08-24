@@ -148,12 +148,20 @@ typedef uint32_t morpheus_morph_flag;
 #define MORPHEUS_MORPH_FLAG_TAU_PREVERB 83u
 #define MORPHEUS_MORPH_FLAG_GROUP_NAME 110u
 
-/** Coarse part-of-speech classification exposed by ABI version 1. */
+/** Lexical part-of-speech classification exposed by ABI version 1. */
 typedef enum {
   MORPHEUS_PART_OF_SPEECH_UNKNOWN=0,
   MORPHEUS_PART_OF_SPEECH_NOUN=1,
   MORPHEUS_PART_OF_SPEECH_VERB=2,
-  MORPHEUS_PART_OF_SPEECH_ADJECTIVE=3
+  MORPHEUS_PART_OF_SPEECH_ADJECTIVE=3,
+  MORPHEUS_PART_OF_SPEECH_ADVERB=4,
+  MORPHEUS_PART_OF_SPEECH_ARTICLE=5,
+  MORPHEUS_PART_OF_SPEECH_PRONOUN=6,
+  MORPHEUS_PART_OF_SPEECH_NUMERAL=7,
+  MORPHEUS_PART_OF_SPEECH_PREPOSITION=8,
+  MORPHEUS_PART_OF_SPEECH_CONJUNCTION=9,
+  MORPHEUS_PART_OF_SPEECH_PARTICLE=10,
+  MORPHEUS_PART_OF_SPEECH_INTERJECTION=11
 } morpheus_part_of_speech;
 
 /* Morphology codes. Values that are powers of two may be combined. */
