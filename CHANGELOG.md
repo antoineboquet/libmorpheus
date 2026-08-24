@@ -7,16 +7,30 @@ the corpus.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-08-24
+
+Target project version: **0.1.3**. C ABI: **1**. Shared-library SONAME: **0**.
+
 ### Added
 
 - The Deno binding is now explicitly licensed under
   `AGPL-3.0-or-later`, independently of the MPL-2.0 native library.
-- Linux CI now builds and verifies the standalone Deno binding archive.
+- Linux CI now builds and verifies the standalone Deno binding archive,
+  including its license and notice files.
 
 ### Changed
 
 - Behavioral fixture tests now use CMake directly and no longer require Ruby.
 - Obsolete inherited repository metadata and Ruby configuration were removed.
+- Project documentation now describes the library independently of any
+  particular downstream application.
+
+### Fixed
+
+- The CMake fixture runner detects optional JSON members without depending on
+  version-specific diagnostic text.
+- License references in the standalone Deno archive remain valid after
+  extraction.
 
 ## [0.1.2] - 2026-08-24
 
