@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
   libmorpheus
-  VERSION 0.1.3
+  VERSION 0.1.2
   DESCRIPTION "Modernization of the Morpheus morphological analyzer"
   LANGUAGES C
 )
