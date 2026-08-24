@@ -3,6 +3,13 @@
 The binding loads the libmorpheus shared library directly with `Deno.dlopen`.
 It requires Deno 2 on a 64-bit x86 or ARM runtime.
 
+## License
+
+`mod.ts` and `mod_test.ts` are original Deno binding code, licensed under
+[AGPL-3.0-or-later](LICENSE). This license applies only to the binding;
+`libmorpheus` itself remains under its root [MPL-2.0 license](../../LICENSE).
+
+
 ```ts
 import {
   MorpheusLanguage,
