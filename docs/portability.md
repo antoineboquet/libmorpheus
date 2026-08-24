@@ -1,11 +1,12 @@
 # Platform support
 
-The runtime has explicit continuous-integration targets for the two immediate
-64-bit ARM deployments:
+The runtime has explicit continuous-integration targets for its supported
+native-package and container platforms:
 
 | Target | C library and fixtures | Deno FFI | Execution mode |
 | --- | --- | --- | --- |
 | Linux x86_64, glibc | Yes | Yes | Native Ubuntu runner |
+| Linux aarch64, glibc | Yes | Yes | Native Ubuntu ARM64 runner |
 | Linux x86_64, musl | Yes | Image smoke test | Native Alpine container |
 | Linux aarch64, musl | Yes | Image smoke test | Native ARM64 Alpine container |
 | macOS arm64 | Yes | Yes | Native Apple Silicon runner |
