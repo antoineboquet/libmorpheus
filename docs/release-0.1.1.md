@@ -44,8 +44,8 @@ revisions, compiler, platform, corpus identity, and run parameters; its
 comparison against the accepted 0.1.0 baseline is part of the release record.
 
 The Alpheios stemlib remains pinned at
-`4632415fe93c85e9fdca47a0c5a13f31385f0023` for fixtures and Bailly
-compatibility. Container images embedding that data remain qualification-only
+`4632415fe93c85e9fdca47a0c5a13f31385f0023` for fixtures and compatibility
+validation. Container images embedding that data remain qualification-only
 until redistribution is authorized.
 
 ## Completion record
