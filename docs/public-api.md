@@ -205,8 +205,9 @@ The ABI structure retains its 12-byte morphology flag field, while the result
 accessor exposes all 14 bytes. The Deno `analyze()` method decodes these bits
 as named `MorpheusAnalysis.morphFlags`. Its `analyzeRaw()` counterpart exposes
 both byte vectors through `MorpheusRawAnalysis.morphFlags` and
-`allMorphFlags`. `hasMorpheusMorphFlag()` accepts either representation and
-performs the one-based byte-and-bit lookup safely for raw values.
+`allMorphFlags`. `hasMorpheusMorphFlag()` accepts an individual raw or semantic analysis, or a
+readonly array of either representation, and performs the one-based byte-and-bit
+lookup safely for raw values.
 
 ## Compatibility output
 
