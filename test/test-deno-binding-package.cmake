@@ -42,6 +42,12 @@ foreach(required IN ITEMS mod.ts README.md LICENSE NOTICE)
   endif()
 endforeach()
 
+file(READ "${binding_dir}/LICENSE" binding_license)
+string(FIND "${binding_license}" "GNU AFFERO GENERAL PUBLIC LICENSE" agpl_title_at)
+if(agpl_title_at EQUAL -1)
+  message(FATAL_ERROR "Deno binding package does not contain the AGPL license")
+endif()
+
 find_program(deno_program deno REQUIRED)
 execute_process(
   COMMAND "${deno_program}" check mod.ts
