@@ -227,11 +227,17 @@ type MorpheusMorphFlagAnalysis =
   | Pick<MorpheusRawAnalysis, "allMorphFlags">
   | Pick<MorpheusAnalysis, "morphFlags">;
 
+function isMorpheusMorphFlagAnalysisArray(
+  analysis: MorpheusMorphFlagAnalysis | readonly MorpheusMorphFlagAnalysis[],
+): analysis is readonly MorpheusMorphFlagAnalysis[] {
+  return Array.isArray(analysis);
+}
+
 export function hasMorpheusMorphFlag(
   analysis: MorpheusMorphFlagAnalysis | readonly MorpheusMorphFlagAnalysis[],
   flag: number | MorpheusMorphFlagName,
 ): boolean {
-  if (Array.isArray(analysis)) {
+  if (isMorpheusMorphFlagAnalysisArray(analysis)) {
     return analysis.some((item) => hasMorpheusMorphFlag(item, flag));
   }
   if (!("allMorphFlags" in analysis)) {
