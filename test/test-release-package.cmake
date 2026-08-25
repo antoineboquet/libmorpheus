@@ -68,9 +68,20 @@ foreach(required IN ITEMS
     "${pkg_config_file}"
     "${license_directory}/MPL-2.0.txt"
     "${license_directory}/AGPL-3.0-or-later.txt"
-    "${license_directory}/licensing.md")
+    "${license_directory}/licensing.md"
+    "${license_directory}/provenance.md"
+    "${license_directory}/license-inventory.md")
   if(NOT EXISTS "${required}")
     message(FATAL_ERROR "required package file is missing: ${required}")
+  endif()
+endforeach()
+
+file(READ "${license_directory}/licensing.md" packaged_licensing)
+foreach(reference IN ITEMS provenance.md license-inventory.md)
+  string(FIND "${packaged_licensing}" "(${reference})" reference_at)
+  if(reference_at EQUAL -1)
+    message(FATAL_ERROR
+      "Packaged licensing guide omits the ${reference} reference")
   endif()
 endforeach()
 

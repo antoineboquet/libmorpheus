@@ -8,6 +8,7 @@ set(agpl_files
     .github/workflows/platform.yml
     CHANGELOG.md
     CMakeLists.txt
+    bindings/deno/NOTICE
     bindings/deno/README.md
     bindings/deno/mod.ts
     bindings/deno/mod_test.ts

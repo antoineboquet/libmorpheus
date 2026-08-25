@@ -10,8 +10,9 @@ It requires Deno 2 on a 64-bit x86 or ARM runtime.
 The original Deno binding code in this directory is licensed under
 [AGPL-3.0-or-later](LICENSE). This license applies only to the binding.
 The normalized native API it calls is also AGPL-3.0-or-later; the inherited
-engine, translation bridge, and compatibility API remain MPL-2.0. See
-[`docs/licensing.md`](../../docs/licensing.md) for the file boundary.
+engine, translation bridge, and compatibility API remain MPL-2.0. See the
+[archive notice](NOTICE) for the native dependency boundary and links to the
+complete licensing and provenance records.
 
 ```ts
 import {

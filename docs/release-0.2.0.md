@@ -44,7 +44,11 @@ marked AGPL-3.0-or-later. The inherited engine, historical compatibility layer,
 numeric translation bridge, derived internal headers, and fixtures remain
 MPL-2.0. The root MPL license remains the default for unmarked inherited files.
 This release makes no MPL-to-CC change. The complete rationale is recorded in
-`license-inventory.md`.
+[the license inventory](license-inventory.md). Historical evidence supports an
+MPL licensing lineage for the inherited Morpheus sources. Later
+repository-level CC references are recorded as evidence, but are not treated
+as authority to relicense those sources; see
+[the source-provenance record](provenance.md).
 
 ## Distribution contract
 
@@ -56,7 +60,8 @@ and its SHA-256 file.
 The native archives contain the normalized public header, the explicit
 compatibility header, the shared library, CMake and `pkg-config` metadata,
 `cruncher`, and the MPL and AGPL licensing materials. Stem data remains
-excluded. The Alpheios stemlib stays pinned at
+excluded. The licensing materials include the file inventory and source
+provenance record. The Alpheios stemlib stays pinned at
 `4632415fe93c85e9fdca47a0c5a13f31385f0023` for qualification.
 
 ## Benchmark evidence

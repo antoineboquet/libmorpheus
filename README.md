@@ -23,6 +23,10 @@ derived internal code remain under [MPL-2.0](LICENSE), while the normalized
 public API, Deno binding, and marked independently written support files are
 licensed under AGPL-3.0-or-later. The exact file boundary and inventory are in
 [the licensing guide](docs/licensing.md). No MPL-to-CC change is made here.
+Historical evidence supports an MPL licensing lineage for the inherited
+Morpheus sources. Later repository-level CC references are recorded as
+provenance evidence, but are not treated as authority to relicense those
+sources; see [the source-provenance record](docs/provenance.md).
 
 The complete native contract is in [the public API reference](docs/public-api.md);
 [release qualification](docs/releasing.md) defines the checks required before

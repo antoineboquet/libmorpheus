@@ -949,6 +949,8 @@ install(
     LICENSES/MPL-2.0.txt
     LICENSES/AGPL-3.0-or-later.txt
     docs/licensing.md
+    docs/provenance.md
+    docs/license-inventory.md
   DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/libmorpheus
 )
 configure_package_config_file(
