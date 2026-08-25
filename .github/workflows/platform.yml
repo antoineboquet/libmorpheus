@@ -324,8 +324,12 @@ jobs:
         run: |
           library=build/release/libmorpheus.dylib
           test "$(lipo -archs "$library")" = arm64
-          otool -D "$library" | tail -n +2 | \
-            grep -E '^@rpath/libmorpheus(\.0)?\.dylib$'
+          install_name="$(otool -D "$library" | sed -n '2p')"
+          echo "install name: $install_name"
+          [[ "$install_name" =~ ^@rpath/libmorpheus\.[0-9]+\.dylib$ ]]
+          install_name_file="build/release/${install_name#@rpath/}"
+          test -e "$install_name_file"
+          test "$library" -ef "$install_name_file"
           if otool -L "$library" | grep -F '${{ github.workspace }}'; then
             exit 1
           fi

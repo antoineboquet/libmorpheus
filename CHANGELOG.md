@@ -32,6 +32,11 @@ Target project version: **0.2.0**. C ABI: **2**. Shared-library SONAME: **1**.
 - `morpheus_result_all_morph_flags()`, made redundant by the complete public
   trait bitset embedded in every structured analysis.
 
+### Fixed
+
+- Apple Silicon qualification now validates the current versioned Mach-O
+  install name instead of assuming the previous SONAME.
+
 ## [0.1.3] - 2026-08-24
 
 Target project version: **0.1.3**. C ABI: **1**. Shared-library SONAME: **0**.
