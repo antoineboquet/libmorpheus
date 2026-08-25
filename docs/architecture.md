@@ -39,6 +39,10 @@ and per-request options. The library is installable as the CMake target
 formats are provided through an owned memory-buffer compatibility API and
 remain validated by both fixture suites.
 
+The inherited form generator is not yet a public runtime service. Its data
+flow, provenance, concurrency constraints, and proposed additive integration
+are recorded in the [`gener` integration audit](gener-audit.md).
+
 ## Build-only and installed surfaces
 
 The `morpheus_anal`, `morpheus_gener`, `morpheus_gkends`, `morpheus_gkdict`,
