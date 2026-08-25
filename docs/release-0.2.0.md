@@ -2,13 +2,13 @@
 
 # Release decision: 0.2.0
 
-Status: candidate prepared for final qualification and publication.
+Status: published on 2026-08-25.
 
 - Project version: **0.2.0**
 - C ABI: **2**
 - SONAME major: **1**
-- 0.1.3 release tag:
-  `v0.1.3` at `5b88cbec171f4ccade0b08edccbaf1763e1eb90b`
+- Release tag: `v0.2.0` at
+  `5c071548a7ceea05340dffc60591567cff7ca6c5`
 
 ## Version and ABI rationale
 
@@ -20,7 +20,7 @@ project remains pre-1.0, the feature release advances to 0.2.0.
 Consumers must rebuild against `<morpheus/morpheus.h>` ABI 2. Historical
 formatter consumers must additionally include `<morpheus/compat.h>`.
 
-## Candidate scope
+## Released scope
 
 - Publish independently assigned public morphology values instead of the
   historical engine encodings.
@@ -52,16 +52,17 @@ as authority to relicense those sources; see
 
 ## Distribution contract
 
-The release will publish data-free native archives and SHA-256 integrity files
-for Linux x86-64 glibc, Linux aarch64 glibc, and macOS arm64. It will also
-publish the platform-independent `libmorpheus-deno-0.2.0.tar.gz` source archive
+The release publishes data-free native archives and SHA-256 integrity files
+for Linux x86-64 glibc, Linux aarch64 glibc, and macOS arm64. It also publishes
+the platform-independent `libmorpheus-deno-0.2.0.tar.gz` source archive
 and its SHA-256 file.
 
 The native archives contain the normalized public header, the explicit
 compatibility header, the shared library, CMake and `pkg-config` metadata,
 `cruncher`, and the MPL and AGPL licensing materials. Stem data remains
-excluded. The licensing materials include the file inventory and source
-provenance record. The Alpheios stemlib stays pinned at
+excluded. The later addition of the file inventory and source-provenance record
+to release archives is tracked under `Unreleased` in the changelog. The
+Alpheios stemlib stays pinned at
 `4632415fe93c85e9fdca47a0c5a13f31385f0023` for qualification.
 
 ## Benchmark evidence
@@ -73,21 +74,14 @@ approximately +1.9%, +0.7%, and 0.0% for one, two, and four contexts. Persistent
 `cruncher` throughput improves by approximately 1.6%, and cold invocation by
 approximately 4.0%. Peak RSS changes remain near 1%.
 
-Because this decision and changelog finalization create a descendant commit,
-the final archived benchmark must be regenerated from the exact commit selected
-for the `v0.2.0` tag. The preparation report remains valid performance evidence
-but must not be labelled as the tag-exact report.
+The published benchmark report was regenerated and validated for the exact
+commit selected by the `v0.2.0` tag.
 
-## Remaining gates
+## Qualification outcome
 
-1. Run the complete Linux CI for the release-preparation commit.
-2. Manually dispatch the platform workflow with `package_artifacts` enabled
-   and inspect the three native archives, the Deno archive, and all checksums.
-3. Regenerate and validate the 0.2.0 benchmark report from that exact commit on
-   the controlled release host.
-4. Tag the qualified commit as `v0.2.0` and require both tag workflows to pass.
-5. Publish only tag-produced archives, their SHA-256 files, and the validated
-   tag-exact benchmark report.
+The Linux and multiplatform tag workflows passed for the tagged commit. The
+published release contains the tag-produced native and Deno archives, their
+SHA-256 files, and the validated benchmark report.
 
-This document records the current source-tree decision; it is not a statement
-that the 0.2.0 artifacts have already been published or qualified.
+This document records the scope and qualification decision for the published
+0.2.0 artifacts. Changes listed under `Unreleased` are not part of 0.2.0.

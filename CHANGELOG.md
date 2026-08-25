@@ -9,6 +9,11 @@ the corpus.
 
 ## [Unreleased]
 
+### Changed
+
+- Native and Deno release archives now carry self-contained licensing and
+  provenance information without relying on paths outside the archives.
+
 ## [0.2.0] - 2026-08-25
 
 Target project version: **0.2.0**. C ABI: **2**. Shared-library SONAME: **1**.
@@ -36,8 +41,6 @@ Target project version: **0.2.0**. C ABI: **2**. Shared-library SONAME: **1**.
 
 - Apple Silicon qualification now validates the current versioned Mach-O
   install name instead of assuming the previous SONAME.
-- Native and Deno release archives now carry self-contained licensing and
-  provenance information without relying on paths outside the archives.
 
 ## [0.1.3] - 2026-08-24
 
