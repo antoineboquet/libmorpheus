@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Runtime benchmarks
 
 `bench/compare.ts` compares the production-facing Deno FFI path with the

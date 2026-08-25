@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Changelog
 
 This file records user-visible changes to the supported `libmorpheus` runtime.
@@ -19,9 +21,9 @@ Target project version: **0.2.0**. C ABI: **2**. Shared-library SONAME: **1**.
   alphabetically ordered indices instead of exposing historical storage.
 - Historical formatter declarations moved to `<morpheus/compat.h>` and their
   implementation moved to `src/compat/`.
-- The normalized public API and existing Deno binding are explicitly
-  AGPL-3.0-or-later; inherited engine, bridge, and compatibility files remain
-  MPL-2.0.
+- The normalized public API, Deno binding, and independently written project
+  support files are explicitly AGPL-3.0-or-later; inherited engine, bridge,
+  compatibility, fixtures, and derived internal headers remain MPL-2.0.
 
 ### Removed
 

@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Architecture baseline
 
 This document records the architecture inherited from the Perseids version of

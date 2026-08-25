@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 #ifndef MORPHEUS_GENWD_PROTO_H
 #define MORPHEUS_GENWD_PROTO_H
 

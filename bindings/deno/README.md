@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Deno binding
 
 The binding loads the libmorpheus shared library directly with `Deno.dlopen`.

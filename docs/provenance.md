@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Source provenance
 
 The repository preserves the Git history of the Perseids Morpheus fork and uses
@@ -33,5 +35,13 @@ The current repository continues to treat the Perseids-derived implementation
 as MPL-2.0. Independently written normalized API files are identified with
 AGPL-3.0-or-later SPDX headers. Historical numeric translations and formatter
 compatibility remain in explicitly MPL-covered bridge and compatibility files;
-see `docs/licensing.md`. No claim about a CC-licensed PerseusDL baseline is
-applied to this repository.
+see `docs/licensing.md`.
+
+The same conservative review was applied to support files introduced after the
+imported baseline. Independently written build, test, benchmark, release, and
+documentation files carry AGPL notices. New internal headers that extract or
+reorganize inherited declarations remain explicitly MPL, regardless of their
+later creation date. The auditable classification and its exclusions are in
+`docs/license-inventory.md`.
+
+No claim about a CC-licensed PerseusDL baseline is applied to this repository.

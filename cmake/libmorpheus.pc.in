@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 prefix=@MORPHEUS_PC_PREFIX@
 exec_prefix=${prefix}
 libdir=@MORPHEUS_PC_LIBDIR@

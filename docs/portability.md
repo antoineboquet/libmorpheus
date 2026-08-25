@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Platform support
 
 The runtime has explicit continuous-integration targets for its supported

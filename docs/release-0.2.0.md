@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Release decision: 0.2.0
 
 Status: unreleased candidate.
@@ -18,10 +20,13 @@ formatter consumers must additionally include `<morpheus/compat.h>`.
 
 ## Licensing boundary
 
-The independently written normalized API and Deno binding are marked
-AGPL-3.0-or-later. The inherited engine, historical compatibility layer, and
-numeric translation bridge remain MPL-2.0. The root MPL license remains the
-default for unmarked inherited files. This release makes no MPL-to-CC change.
+The independently written normalized API, Deno binding, tests, build and
+release infrastructure, benchmark tooling, and project documentation are
+marked AGPL-3.0-or-later. The inherited engine, historical compatibility layer,
+numeric translation bridge, derived internal headers, and fixtures remain
+MPL-2.0. The root MPL license remains the default for unmarked inherited files.
+This release makes no MPL-to-CC change. The complete rationale is recorded in
+`license-inventory.md`.
 
 ## Qualification required before tagging
 

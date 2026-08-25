@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 #ifndef MORPHEUS_RUNTIME_CONTEXT_H
 #define MORPHEUS_RUNTIME_CONTEXT_H
 

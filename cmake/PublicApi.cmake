@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # Functions exported by ABI version 2. This manifest is shared by the binary
 # symbol check and the documentation-coverage check.
 set(MORPHEUS_PUBLIC_API_SYMBOLS

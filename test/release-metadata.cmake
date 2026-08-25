@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 foreach(required_variable IN ITEMS
         MORPHEUS_SOURCE_DIR
         MORPHEUS_PROJECT_VERSION

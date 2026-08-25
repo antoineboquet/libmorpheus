@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #define _POSIX_C_SOURCE 200809L
 
 #include <assert.h>

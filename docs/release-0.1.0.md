@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Release decision: 0.1.0
 
 Status: candidate accepted for final benchmark and history-preserving merge.

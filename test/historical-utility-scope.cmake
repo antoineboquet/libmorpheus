@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 if(NOT DEFINED MORPHEUS_SOURCE_DIR)
   message(FATAL_ERROR "MORPHEUS_SOURCE_DIR is required")
 endif()

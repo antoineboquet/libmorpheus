@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Public C API
 
 `<morpheus/morpheus.h>` defines the normalized structured API. Historical

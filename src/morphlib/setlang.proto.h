@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 #ifndef MORPHEUS_SETLANG_PROTO_H
 #define MORPHEUS_SETLANG_PROTO_H
 

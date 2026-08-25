@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # Release qualification
 
 This checklist defines a publishable `libmorpheus` release. It applies to the

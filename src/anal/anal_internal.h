@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 #ifndef MORPHEUS_ANAL_INTERNAL_H
 #define MORPHEUS_ANAL_INTERNAL_H
 

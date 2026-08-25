@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 #define _GNU_SOURCE
 #include <assert.h>
 #include <stdio.h>

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # Historical standalone programs retained as source reference only.
 #
 # These files are deliberately absent from the CMake target graph and the
