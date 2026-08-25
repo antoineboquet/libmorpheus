@@ -15,7 +15,8 @@ MORPHLIB=../morphlib/morphlib.a
 GENERLIB=../gener/gener.a
 DICTLIB=../gkdict/gkdict.a
 ANALLIB=anal.a
-APIOBJ=../api/context.o ../api/result.o ../api/analyze.o ../api/compat.o
+APIOBJ=../api/context.o ../api/result.o ../api/analyze.o \
+../bridge/legacy_values.o ../compat/compat.o
 LIBS=${GENERLIB} ${ENDLIB} ${DICTLIB} ${MORPHLIB} ${GREEKLIB} 
 
 LSJDIR=/local/text/lsj

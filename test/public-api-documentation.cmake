@@ -14,6 +14,9 @@ endforeach()
 
 set(header_symbols)
 foreach(declaration IN LISTS api_declarations)
+  if(declaration STREQUAL "")
+    continue()
+  endif()
   string(REGEX MATCH "[A-Za-z_][A-Za-z0-9_]*\\(" function_token
                "${declaration}")
   if(NOT function_token)

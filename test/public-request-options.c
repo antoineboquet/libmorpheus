@@ -55,7 +55,7 @@ int main(void)
   assert(!result);
   assert(morpheus_analyze(
              context,word,sizeof word-1,
-             UINT64_C(1)<<MORPHEUS_OPTION_DIALECT_SHIFT,&result)==
+             UINT64_C(1)<<(MORPHEUS_OPTION_DIALECT_SHIFT+9u),&result)==
          MORPHEUS_INVALID_ARGUMENT);
   assert(!result);
   config.language=MORPHEUS_LANGUAGE_LATIN;

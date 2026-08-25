@@ -102,7 +102,6 @@ Deno.test("analyzes Greek through the native ABI", async () => {
   );
   assert(rawAnalyses.length === analyses.length, "raw analysis count must match");
   assert(rawAnalyses[0].structSize >= 852, "raw ABI size must be preserved");
-  assert(rawAnalyses[0].morphFlags.length === 12, "raw flags must be copied");
   assert(rawAnalyses[0].morphFlags.length === 11, "all public traits must be copied");
   assert(
     rawAnalyses[0].partOfSpeech !== MorpheusPartOfSpeech.Unknown,
