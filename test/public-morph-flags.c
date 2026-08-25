@@ -10,12 +10,12 @@
 #endif
 
 static int flag_is_set(
-    const uint8_t flags[MORPHEUS_ALL_MORPH_FLAG_CAPACITY],
+    const uint8_t flags[MORPHEUS_MORPH_FLAG_CAPACITY],
     morpheus_morph_flag flag)
 {
-  const size_t index=(size_t)(flag-1u)/8u;
-  const uint8_t mask=(uint8_t)(UINT8_C(1)<<((flag-1u)%8u));
-  return(index < MORPHEUS_ALL_MORPH_FLAG_CAPACITY &&
+  const size_t index=(size_t)flag/8u;
+  const uint8_t mask=(uint8_t)(UINT8_C(1)<<(flag%8u));
+  return(index < MORPHEUS_MORPH_FLAG_CAPACITY &&
          (flags[index]&mask) != 0);
 }
 
@@ -38,13 +38,8 @@ int main(void)
                           MORPHEUS_OPTION_STRICT_CASE,&result)==MORPHEUS_OK);
   for(index=0;index<morpheus_result_count(result);index++) {
     morpheus_analysis analysis;
-    uint8_t flags[MORPHEUS_ALL_MORPH_FLAG_CAPACITY];
     assert(morpheus_result_get(result,index,&analysis)==MORPHEUS_OK);
-    assert(morpheus_result_all_morph_flags(
-        result,index,flags,sizeof flags)==MORPHEUS_OK);
-    assert(!memcmp(flags,analysis.morph_flags,
-                   MORPHEUS_MORPH_FLAG_CAPACITY));
-    if(flag_is_set(flags,MORPHEUS_MORPH_FLAG_PERSON_NAME)) {
+    if(flag_is_set(analysis.morph_flags,MORPHEUS_MORPH_FLAG_PERSON_NAME)) {
       assert(!strcmp(analysis.lemma,"*)arta/chs"));
       found=1;
     }

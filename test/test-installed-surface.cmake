@@ -25,6 +25,8 @@ endif()
 
 set(public_header
     "${prefix}/${MORPHEUS_INSTALL_INCLUDEDIR}/morpheus/morpheus.h")
+set(compat_header
+    "${prefix}/${MORPHEUS_INSTALL_INCLUDEDIR}/morpheus/compat.h")
 set(public_library
     "${prefix}/${MORPHEUS_INSTALL_LIBDIR}/${MORPHEUS_LIBRARY_FILE_NAME}")
 set(package_directory
@@ -34,6 +36,7 @@ set(pkg_config_file
 
 foreach(required IN ITEMS
     "${public_header}"
+    "${compat_header}"
     "${public_library}"
     "${package_directory}/MorpheusConfig.cmake"
     "${package_directory}/MorpheusConfigVersion.cmake"
@@ -58,8 +61,11 @@ file(
   "${prefix}/${MORPHEUS_INSTALL_INCLUDEDIR}/*"
 )
 list(LENGTH installed_headers installed_header_count)
-if(NOT installed_header_count EQUAL 1 OR
-   NOT installed_headers STREQUAL public_header)
+list(SORT installed_headers)
+set(expected_headers "${compat_header}" "${public_header}")
+list(SORT expected_headers)
+if(NOT installed_header_count EQUAL 2 OR
+   NOT installed_headers STREQUAL expected_headers)
   message(FATAL_ERROR
     "private headers entered the installation: ${installed_headers}"
   )

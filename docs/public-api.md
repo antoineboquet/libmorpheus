@@ -1,218 +1,147 @@
 # Public C API
 
-`<morpheus/morpheus.h>` is the complete supported C surface. The shared
-library hides every other symbol. The ABI is C-compatible from C++ through the
-header's `extern "C"` block.
+`<morpheus/morpheus.h>` defines the normalized structured API. Historical
+`cruncher` formatting is deliberately isolated in `<morpheus/compat.h>`.
+The shared library hides every other symbol, and both headers are C-compatible
+from C++.
 
-## Versioning and compatibility
+## Versioning
 
-The current project version is 0.1.3, the SONAME major is 0, and
-`MORPHEUS_ABI_VERSION` is 1. Call `morpheus_abi_version()` after dynamically
-loading the library and compare it with the header constant before using any
-layout-dependent operation. `morpheus_analysis_size()` provides the producing
-library's native structure size and is especially useful at an FFI boundary.
+The current project version is 0.2.0, the SONAME major is 1, and
+`MORPHEUS_ABI_VERSION` is 2. This release candidate intentionally breaks ABI 1:
+it removes stemlib-specific codes, assigns independent public morphology
+values, replaces the historical flag storage with normalized public traits,
+and removes the redundant complete-legacy-bitset accessor.
 
-Within ABI version 1, existing function signatures, numeric constants, and the
-layout of `morpheus_analysis` are stable. Adding an exported function is
-compatible. Removing or changing one, reassigning a published constant, or
-changing the structure layout requires an ABI review and normally a new ABI
-version. The binary symbol test rejects unlisted exports.
+Call `morpheus_abi_version()` after dynamically loading the library and compare
+it with the header constant. `morpheus_analysis_size()` returns the producing
+library's native record size for FFI consumers. Within ABI 2, removing or
+changing a function, reassigning a constant, or changing the record layout
+requires another ABI review.
 
 ## Ownership and concurrency
 
-- A successful `morpheus_open()` or `morpheus_open_path()` returns an owned,
-  opaque context. Release it with `morpheus_close()`.
-- A successful `morpheus_analyze()` returns an owned result even when its count
-  is zero. Release it with `morpheus_result_free()`.
-- A successful `morpheus_compat_analyze()` returns an owned formatted output.
-  Release it with `morpheus_compat_output_free()`.
-- Accessor pointers are borrowed and remain valid only while their owner is
-  alive. Never free `morpheus_status_message()` or
-  `morpheus_compat_output_data()`.
-- Distinct contexts may be used concurrently. Calls using the same context,
-  including destruction, must be serialized by the caller. Results are
-  independent of their originating context after a successful call, but must
-  not be freed concurrently with an accessor operation.
-- The `*_free(NULL)` and `morpheus_close(NULL)` operations are no-ops.
+- `morpheus_open()` and `morpheus_open_path()` return owned opaque contexts;
+  release them with `morpheus_close()`.
+- `morpheus_analyze()` returns an owned result, including when its count is
+  zero; release it with `morpheus_result_free()`.
+- `morpheus_compat_analyze()` returns an owned compatibility output; release it
+  with `morpheus_compat_output_free()`.
+- Distinct contexts may be used concurrently. Calls on one context, including
+  destruction, must be serialized.
+- Results remain independent of their context after a successful call.
+- All documented `*_free(NULL)` operations and `morpheus_close(NULL)` are
+  no-ops.
 
 ## Status values
 
 | Status | Meaning |
 | --- | --- |
-| `MORPHEUS_OK` | The operation completed and any documented output ownership was transferred. |
-| `MORPHEUS_INVALID_ARGUMENT` | A pointer, language, option combination, empty path, or embedded-NUL input is invalid. |
-| `MORPHEUS_ABI_MISMATCH` | The requested ABI version or configuration size is incompatible. |
-| `MORPHEUS_NO_MEMORY` | Allocation or compatibility-stream creation failed. |
-| `MORPHEUS_INPUT_TOO_LONG` | A Beta Code input or constructed stemlib path exceeds its runtime capacity. |
-| `MORPHEUS_OUT_OF_RANGE` | A result index is outside `[0, morpheus_result_count())`. |
-| `MORPHEUS_INTERNAL_ERROR` | The runtime rejected an inconsistent or overflowing internal operation. |
-| `MORPHEUS_BUFFER_TOO_SMALL` | Caller-provided result or flag storage is below the documented size. |
-| `MORPHEUS_STEMLIB_ERROR` | Required language data is missing, unreadable, or empty. |
+| `MORPHEUS_OK` | Success and documented ownership transfer. |
+| `MORPHEUS_INVALID_ARGUMENT` | Invalid pointer, input, language, or option combination. |
+| `MORPHEUS_ABI_MISMATCH` | Header ABI or configuration size mismatch. |
+| `MORPHEUS_NO_MEMORY` | Allocation failed. |
+| `MORPHEUS_INPUT_TOO_LONG` | Input or constructed stemlib path exceeds capacity. |
+| `MORPHEUS_OUT_OF_RANGE` | Result index is invalid. |
+| `MORPHEUS_INTERNAL_ERROR` | Internal state or arithmetic failure. |
+| `MORPHEUS_BUFFER_TOO_SMALL` | Caller storage is too small. |
+| `MORPHEUS_STEMLIB_ERROR` | Required language data is absent, unreadable, or empty. |
 
-`morpheus_status_message()` maps any status to static diagnostic text. It is
-for diagnostics rather than program control; callers should branch on the
-numeric status. Fallible calls transfer no ownership unless they return
-`MORPHEUS_OK`.
+`morpheus_status_message()` returns borrowed static diagnostic text. Programs
+should branch on the numeric status.
 
 ## Function reference
 
 | Function | Contract |
 | --- | --- |
-| `morpheus_abi_version()` | Returns the ABI version implemented by the loaded library. |
-| `morpheus_analysis_size()` | Returns the native size required by `morpheus_result_copy()`. |
-| `morpheus_status_message()` | Returns borrowed static text for a status, including unknown values. |
-| `morpheus_open()` | Creates a validated context from a native `morpheus_config`. |
-| `morpheus_open_path()` | Creates a context from an explicit-length path without placing a pointer in an FFI configuration struct. |
-| `morpheus_close()` | Destroys a context and all of its caches. |
-| `morpheus_analyze()` | Analyzes one explicit-length Beta Code form with per-request options. |
-| `morpheus_result_count()` | Returns the analysis count, or zero for `NULL`. |
-| `morpheus_result_copy()` | Copies an analysis into opaque caller storage of at least `morpheus_analysis_size()` bytes. |
-| `morpheus_result_get()` | Copies an analysis into a native `morpheus_analysis`. |
-| `morpheus_result_truncated_fields()` | Returns the fixed-text fields truncated during result construction. |
-| `morpheus_result_all_morph_flags()` | Copies the complete 14-byte morphology bitset. |
-| `morpheus_result_free()` | Destroys an owned structured result. |
-| `morpheus_compat_analyze()` | Produces the historical `cruncher` representation and its counts. |
-| `morpheus_compat_output_data()` | Returns borrowed NUL-terminated formatted bytes, or `NULL` for `NULL`. |
-| `morpheus_compat_output_length()` | Returns the formatted byte count excluding the terminator, or zero for `NULL`. |
-| `morpheus_compat_output_analysis_count()` | Returns the pre-formatting analysis count, or zero for `NULL`. |
-| `morpheus_compat_output_lemma_count()` | Returns the distinct-lemma count, or zero for `NULL`. |
-| `morpheus_compat_output_free()` | Destroys an owned compatibility output. |
+| `morpheus_abi_version()` | Returns the loaded ABI version. |
+| `morpheus_analysis_size()` | Returns the native analysis-record size. |
+| `morpheus_status_message()` | Returns borrowed status text. |
+| `morpheus_open()` | Creates a validated context from `morpheus_config`. |
+| `morpheus_open_path()` | Creates a context from an explicit-length path. |
+| `morpheus_close()` | Destroys a context and its caches. |
+| `morpheus_analyze()` | Produces normalized structured analyses. |
+| `morpheus_result_count()` | Returns the count, or zero for `NULL`. |
+| `morpheus_result_copy()` | Copies a record into caller storage. |
+| `morpheus_result_get()` | Copies a record into `morpheus_analysis`. |
+| `morpheus_result_truncated_fields()` | Reports truncated fixed-text fields. |
+| `morpheus_result_free()` | Destroys a structured result. |
+| `morpheus_compat_analyze()` | Produces historical `cruncher` text and counts. |
+| `morpheus_compat_output_data()` | Returns borrowed formatted bytes. |
+| `morpheus_compat_output_length()` | Returns the formatted byte count. |
+| `morpheus_compat_output_analysis_count()` | Returns the analysis count before formatting. |
+| `morpheus_compat_output_lemma_count()` | Returns the distinct-lemma count. |
+| `morpheus_compat_output_free()` | Destroys compatibility output. |
 
-Inputs to both analysis functions are explicit-length byte sequences. They need
-not be NUL-terminated, but an embedded NUL is invalid. The maximum accepted
-length is intentionally an implementation capacity rather than a public
-constant; callers must handle `MORPHEUS_INPUT_TOO_LONG`.
+Analysis inputs are explicit-length byte sequences. They need not end in NUL,
+but an embedded NUL is invalid.
 
-## Structured analysis values
+## Normalized analysis values
 
-The shared library uses hidden visibility by default and exports only the
-functions declared with `MORPHEUS_API` in `<morpheus/morpheus.h>`. Its current
-project version is 0.1.3 and its pre-1.0 ABI SONAME is 0. Adding an exported
-function is compatible within that SONAME; changing or removing one, or
-changing the layout of `morpheus_analysis`, requires an ABI review.
+ABI 2 exposes only public `uint32_t` values. Person, number, tense, mood, and
+degree are equality-tested enumerations. Gender, case, voice, dialect, and
+geographic region are public masks and may combine values. The bridge converts
+between these values and the engine's historical encodings; equality between a
+public constant and an internal constant is never part of the contract.
 
-ABI version 1 returns morphology values as fixed-width `uint32_t` fields. The
-public constants in `<morpheus/morpheus.h>` are the contract for interpreting
-person, number, gender, case, tense, mood, voice, degree, dialect, and
-geographic region. The Deno binding exports the equivalent `Morpheus*`
-constant objects.
+`MORPHEUS_DEGREE_NONE` distinguishes an inapplicable degree from
+`MORPHEUS_DEGREE_POSITIVE`. Irregular comparative and superlative markers are
+normalized by the native bridge before a result is returned.
 
-The part-of-speech field distinguishes noun, verb, adjective, adverb, article,
-pronoun, numeral, preposition, conjunction, particle, and interjection. These
-values are derived from the canonical stemlib type while the context is
-active. A generic `indecl` type is reported as
-`MORPHEUS_PART_OF_SPEECH_UNKNOWN`: indeclinability alone is not a lexical part
-of speech. The original noun, verb, and adjective numeric values remain
-unchanged; the finer categories are additive ABI-version-1 values.
+The record does not expose stem-type or derivation-type numbers. The public
+part-of-speech classification replaces the useful lexical portion of those
+internal identifiers. No stemlib record number is a supported ABI value.
 
-Person, number, gender, case, voice, dialect, and geographic-region values are
-bit masks. A result may therefore combine several applicable values; test bits
-rather than assuming a single enumeration member. `MORPHEUS_DIALECT_ALL` is
-zero and means that no dialect restriction is recorded. Tense and mood use the
-named historical codes and must be compared for equality.
+## Public traits
 
-The native degree field retains its historical representation, where zero is
-both the positive degree and the empty value used by non-adjectival forms. The
-Deno semantic result resolves that ambiguity: adjectives receive `"positive"`
-unless an irregular-comparative or irregular-superlative flag supplies the
-degree, and categories to which degree does not apply receive `null`.
-`no-comparison` describes the inability to form a regular comparison and does
-not erase the positive degree of the analyzed adjective. The Deno dialect
-decoder similarly canonicalizes the composite epic mask, including when those
-bits occur together with Attic, Doric, or another independent dialect.
+`morph_flags` is an 11-byte public bitset covering
+`MORPHEUS_MORPH_FLAG_COUNT` named traits. Trait values are zero-based,
+alphabetically ordered public indices. For trait `n`, inspect byte `n / 8` and
+bit `1 << (n % 8)`. The bridge translates each selected historical flag into
+this representation; raw engine bytes and sparse historical flag numbers are
+not returned.
 
-`stem_type` and `derivation_type` remain opaque stemlib codes in ABI version 1.
-`morph_flags` remains the historical 96-bit compatibility array so that the
-version-1 structure stays 860 bytes. `morpheus_result_all_morph_flags()` copies
-the complete 112-bit in-memory representation. In particular, flag 110 is
-published as `MORPHEUS_MORPH_FLAG_GROUP_NAME`; ending-table records store that
-flag in a legacy compatibility marker because their on-disk flag field remains
-96 bits. The precompiled Alpheios stem index predates this conversion and omits
-the `is_group` annotations present in its source files. Analyses made from that
-index therefore cannot report `GROUP_NAME` until the stem index is rebuilt from
-those sources with a format that preserves the annotation.
-Flags 1–83 and 110 have named `MORPHEUS_MORPH_FLAG_*` constants. Flag numbers
-are one-based: for flag `n`, inspect byte `(n - 1) / 8` and bit
-`1 << ((n - 1) % 8)`. Values 84–109 and 111–112 are reserved.
-
-## Stemlib validation
-
-Context creation checks that the selected language contains the required rule,
-dictionary, ending, and derivation index files and that each is readable and
-nonempty. A missing or incomplete layout returns `MORPHEUS_STEMLIB_ERROR`
-without creating a context. Excessively long constructed paths return
-`MORPHEUS_INPUT_TOO_LONG`.
-
-The manifest is language-specific. In particular, the Greek principal-part
-table is not required for the historical Latin stemlib, which does not contain
-that file.
-
-The Deno binding exports the same numeric values through `MorpheusStatus` and
-reports them in `MorpheusError.status`.
-
-This check detects deployment and language-selection mistakes; it does not
-fully validate the historical binary formats. The differential fixtures remain
-the integrity check for the contents of a distributed stemlib.
+The Deno binding exposes the same indices through `MorpheusMorphFlag` and
+returns either the public byte vector (`analyzeRaw()`) or stable names
+(`analyze()`). `hasMorpheusMorphFlag()` accepts either representation or a
+readonly array of analyses.
 
 ## Fixed-capacity text
 
-Each analysis text field is always NUL-terminated. The library copies at most
-`capacity - 1` bytes and records every truncated field in a per-analysis mask.
-Call `morpheus_result_truncated_fields()` before treating a copied value as
-complete. Zero means that every text field was copied without truncation.
+Every text field is NUL-terminated. At most `capacity - 1` bytes are copied.
+`morpheus_result_truncated_fields()` reports any truncated field; zero means all
+text was complete. The Deno semantic API returns named truncated fields, while
+the raw API preserves the mask.
 
-The mask is stored with the opaque result rather than in `morpheus_analysis`,
-so the version-1 structure size and layout remain unchanged. The Deno binding
-performs the query while it owns the native result.
-`MorpheusAnalysis.truncatedFields` is an array of stable field names;
-`MorpheusRawAnalysis.truncatedFields` preserves the numeric mask for ABI-level
-tools and may be compared with the `MorpheusTruncatedField` constants.
+## Request options
 
-## Per-request options
-
-In addition to strict case, accent fallback, and verb-only analysis, callers may
-disable crasis expansion, stop after the first successful dictionary class,
-select the HQ dictionary backend, or restrict an analysis to one or more named
-dialects. Dialect options are bit masks, may be combined, and are valid only
-for Greek contexts. Passing one to a Latin or Italian context returns
-`MORPHEUS_INVALID_ARGUMENT`.
-
-All of these settings are scoped to one `morpheus_analyze()` call. The library
-restores the context's previous crasis, quick-search, dictionary, and dialect
-state before returning, including on allocation or input failure. Switching the
-HQ backend may invalidate dictionary caches; repeatedly alternating it is valid
-but more expensive than using a dedicated context for each backend.
-
-The Deno binding exposes the same bits through `MorpheusOption`. They can be
-combined with bigint bitwise OR and remain subject to the binding's per-context
-serial queue.
+Options are scoped to one `morpheus_analyze()` call. State is restored before
+returning on success or failure.
 
 | Option | Effect |
 | --- | --- |
 | `MORPHEUS_OPTION_STRICT_CASE` | Requires the requested capitalization path. |
 | `MORPHEUS_OPTION_IGNORE_ACCENTS` | Enables accent-insensitive fallback. |
-| `MORPHEUS_OPTION_VERBS_ONLY` | Restricts the historical analyzer to verbal results. |
-| `MORPHEUS_OPTION_NO_CRASIS` | Disables crasis expansion for this request. |
+| `MORPHEUS_OPTION_VERBS_ONLY` | Restricts results to verbal forms. |
+| `MORPHEUS_OPTION_NO_CRASIS` | Disables crasis expansion. |
 | `MORPHEUS_OPTION_QUICK` | Stops after the first successful dictionary class. |
-| `MORPHEUS_OPTION_HQ_DICTIONARY` | Selects the optional HQ dictionary backend for this request. The stemlib must provide `hqdict/indices/stindex` and its `.lindex`; otherwise the request returns `MORPHEUS_STEMLIB_ERROR` without starting analysis. |
-| `MORPHEUS_OPTION_DIALECT_*` | Combines one or more Greek dialect restrictions. |
+| `MORPHEUS_OPTION_HQ_DICTIONARY` | Uses the optional HQ dictionary backend. |
+| `MORPHEUS_OPTION_DIALECT_*` | Combines one or more public Greek dialect masks. |
 
-Unknown option bits are invalid. Dialect restrictions on Latin or Italian
-contexts return `MORPHEUS_INVALID_ARGUMENT`. Request state is restored before
-returning on success or failure.
+Dialect options are converted to the internal mask by the bridge and are
+invalid for Latin or Italian contexts. Unknown option bits are invalid.
 
-The ABI structure retains its 12-byte morphology flag field, while the result
-accessor exposes all 14 bytes. The Deno `analyze()` method decodes these bits
-as named `MorpheusAnalysis.morphFlags`. Its `analyzeRaw()` counterpart exposes
-both byte vectors through `MorpheusRawAnalysis.morphFlags` and
-`allMorphFlags`. `hasMorpheusMorphFlag()` accepts an individual raw or semantic analysis, or a
-readonly array of either representation, and performs the one-based byte-and-bit
-lookup safely for raw values.
+## Stemlib validation
 
-## Compatibility output
+Context creation verifies the language-specific rule, dictionary, ending, and
+derivation files before analysis. This catches deployment errors but does not
+fully validate historical binary formats; differential fixtures remain the
+integrity check for distributed data.
+
+## Historical compatibility API
 
 The compatibility API exists for `cruncher` behavior and migration testing.
-Its flags preserve the historical octal bit layout and its text is not a new
-structured interchange format. New integrations should use
-`morpheus_analyze()` and the result accessors. The returned data contains a
-convenience NUL terminator; `morpheus_compat_output_length()` excludes it.
+Include `<morpheus/compat.h>` explicitly. Its formatter flags retain their
+historical octal layout, and the implementation remains on the MPL side of the
+licensing boundary. New integrations should include only
+`<morpheus/morpheus.h>` and use structured results.

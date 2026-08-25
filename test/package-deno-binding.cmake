@@ -27,7 +27,8 @@ file(COPY
 file(WRITE "${package_dir}/NOTICE"
   "This archive contains the Deno binding source for libmorpheus.\n"
   "The binding is licensed under AGPL-3.0-or-later; see LICENSE.\n"
-  "The MPL-2.0 native library and stemlib are separate runtime dependencies.\n"
+  "The normalized native API is AGPL-3.0-or-later.\n"
+  "Its inherited engine, translation bridge, and compatibility API remain MPL-2.0.\n"
   "See README.md for installation and required Deno permissions.\n"
 )
 

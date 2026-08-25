@@ -2,13 +2,13 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
   libmorpheus
-  VERSION 0.1.3
+  VERSION 0.2.0
   DESCRIPTION "Modernization of the Morpheus morphological analyzer"
   LANGUAGES C
 )
 
-set(MORPHEUS_ABI_VERSION 1)
-set(MORPHEUS_SOVERSION 0)
+set(MORPHEUS_ABI_VERSION 2)
+set(MORPHEUS_SOVERSION 1)
 
 include(CTest)
 include(GNUInstallDirs)
@@ -39,6 +39,13 @@ if(BUILD_TESTING)
       "-DMORPHEUS_ABI_VERSION=${MORPHEUS_ABI_VERSION}"
       "-DMORPHEUS_SOVERSION=${MORPHEUS_SOVERSION}"
       -P "${PROJECT_SOURCE_DIR}/test/release-metadata.cmake"
+  )
+  add_test(
+    NAME license_boundary
+    COMMAND
+      "${CMAKE_COMMAND}"
+      "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+      -P "${PROJECT_SOURCE_DIR}/test/license-boundary.cmake"
   )
 endif()
 
@@ -889,7 +896,14 @@ if(BUILD_TESTING)
   endif()
 endif()
 
-add_library(morpheus SHARED src/api/context.c src/api/result.c src/api/analyze.c src/api/compat.c)
+add_library(
+  morpheus SHARED
+  src/api/context.c
+  src/api/result.c
+  src/api/analyze.c
+  src/bridge/legacy_values.c
+  src/compat/compat.c
+)
 add_library(Morpheus::morpheus ALIAS morpheus)
 target_compile_definitions(morpheus PRIVATE MORPHEUS_BUILDING_LIBRARY)
 target_include_directories(
@@ -925,8 +939,15 @@ install(
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 install(
-  FILES include/morpheus/morpheus.h
+  FILES include/morpheus/morpheus.h include/morpheus/compat.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/morpheus
+)
+install(
+  FILES
+    LICENSES/MPL-2.0.txt
+    LICENSES/AGPL-3.0-or-later.txt
+    docs/licensing.md
+  DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/libmorpheus
 )
 configure_package_config_file(
   cmake/MorpheusConfig.cmake.in
@@ -1028,6 +1049,23 @@ if(BUILD_TESTING)
     morpheus_public_values_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_values COMMAND morpheus_public_values_test)
+  add_executable(
+    morpheus_public_bridge_values_test
+    test/public-bridge-values.c
+    src/bridge/legacy_values.c
+  )
+  target_include_directories(
+    morpheus_public_bridge_values_test
+    PRIVATE
+      "${PROJECT_SOURCE_DIR}/include"
+      "${PROJECT_SOURCE_DIR}/src/includes"
+  )
+  target_link_libraries(
+    morpheus_public_bridge_values_test PRIVATE morpheus_build_options
+  )
+  add_test(
+    NAME public_bridge_values COMMAND morpheus_public_bridge_values_test
+  )
   add_executable(
     morpheus_result_truncation_test
     test/result-truncation.c
@@ -1269,7 +1307,7 @@ set(
 set(CPACK_PACKAGE_CHECKSUM SHA256)
 set(CPACK_GENERATOR TGZ)
 set(CPACK_MONOLITHIC_INSTALL ON)
-set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/docs/licensing.md")
 set(CPACK_VERBATIM_VARIABLES ON)
 string(
   CONCAT morpheus_package_layout
@@ -1277,6 +1315,7 @@ string(
   "set(MORPHEUS_PACKAGE_BINDIR \"${CMAKE_INSTALL_BINDIR}\")\n"
   "set(MORPHEUS_PACKAGE_INCLUDEDIR \"${CMAKE_INSTALL_INCLUDEDIR}\")\n"
   "set(MORPHEUS_PACKAGE_LIBDIR \"${CMAKE_INSTALL_LIBDIR}\")\n"
+  "set(MORPHEUS_PACKAGE_DATADIR \"${CMAKE_INSTALL_DATADIR}\")\n"
   "set(MORPHEUS_PACKAGE_LIBRARY_FILE \"$<TARGET_FILE_NAME:morpheus>\")\n"
   "set(MORPHEUS_PACKAGE_CRUNCHER \"${MORPHEUS_BUILD_CRUNCHER}\")\n"
   "set(MORPHEUS_PACKAGE_CRUNCHER_FILE \"cruncher${CMAKE_EXECUTABLE_SUFFIX}\")\n"

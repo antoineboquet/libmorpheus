@@ -9,7 +9,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include <morpheus/morpheus.h>
+#include <morpheus/compat.h>
 
 #define ARGS "ILalmnbckidsxSVpPeTo:"
 #define PATH_SEP '/'

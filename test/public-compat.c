@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#include <morpheus/morpheus.h>
+#include <morpheus/compat.h>
 
 #ifndef MORPHEUS_TEST_STEMLIB
 #error MORPHEUS_TEST_STEMLIB is required

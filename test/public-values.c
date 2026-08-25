@@ -4,84 +4,35 @@
 #include <dialect.h>
 #include <morphflags.h>
 
-_Static_assert(sizeof(morpheus_analysis) == 860,"ABI version 1 analysis size");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_UNKNOWN == 0,"unknown POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_NOUN == 1,"noun POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_VERB == 2,"verb POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_ADJECTIVE == 3,"adjective POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_ADVERB == 4,"adverb POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_ARTICLE == 5,"article POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_PRONOUN == 6,"pronoun POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_NUMERAL == 7,"numeral POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_PREPOSITION == 8,
-               "preposition POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_CONJUNCTION == 9,
-               "conjunction POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_PARTICLE == 10,"particle POS code");
-_Static_assert(MORPHEUS_PART_OF_SPEECH_INTERJECTION == 11,
-               "interjection POS code");
-_Static_assert(MORPHEUS_PERSON_FIRST == PERS1,"first person code");
-_Static_assert(MORPHEUS_PERSON_SECOND == PERS2,"second person code");
-_Static_assert(MORPHEUS_PERSON_THIRD == PERS3,"third person code");
-_Static_assert(MORPHEUS_NUMBER_SINGULAR == SINGULAR,"singular code");
-_Static_assert(MORPHEUS_NUMBER_DUAL == DUAL,"dual code");
-_Static_assert(MORPHEUS_NUMBER_PLURAL == PLURAL,"plural code");
-_Static_assert(MORPHEUS_GENDER_MASCULINE == MASCULINE,"masculine code");
-_Static_assert(MORPHEUS_GENDER_FEMININE == FEMININE,"feminine code");
-_Static_assert(MORPHEUS_GENDER_NEUTER == NEUTER,"neuter code");
-_Static_assert(MORPHEUS_GENDER_ADVERBIAL == ADVERBIAL,"adverbial code");
-_Static_assert(MORPHEUS_CASE_NOMINATIVE == NOMINATIVE,"nominative code");
-_Static_assert(MORPHEUS_CASE_GENITIVE == GENITIVE,"genitive code");
-_Static_assert(MORPHEUS_CASE_DATIVE == DATIVE,"dative code");
-_Static_assert(MORPHEUS_CASE_ACCUSATIVE == ACCUSATIVE,"accusative code");
-_Static_assert(MORPHEUS_CASE_VOCATIVE == VOCATIVE,"vocative code");
-_Static_assert(MORPHEUS_CASE_ABLATIVE == ABLATIVE,"ablative code");
-_Static_assert(MORPHEUS_TENSE_PRESENT == PRESENT,"present code");
-_Static_assert(MORPHEUS_TENSE_IMPERFECT == IMPERF,"imperfect code");
-_Static_assert(MORPHEUS_TENSE_FUTURE == FUTURE,"future code");
-_Static_assert(MORPHEUS_TENSE_AORIST == AORIST,"aorist code");
-_Static_assert(MORPHEUS_TENSE_PERFECT == PERFECT,"perfect code");
-_Static_assert(MORPHEUS_TENSE_PLUPERFECT == PLUPERF,"pluperfect code");
-_Static_assert(MORPHEUS_TENSE_FUTURE_PERFECT == FUTPERF,
-               "future perfect code");
-_Static_assert(MORPHEUS_TENSE_PAST_ABSOLUTE == PASTABSOLUTE,
-               "past absolute code");
-_Static_assert(MORPHEUS_MOOD_INDICATIVE == INDICATIVE,"indicative code");
-_Static_assert(MORPHEUS_MOOD_SUBJUNCTIVE == SUBJUNCTIVE,"subjunctive code");
-_Static_assert(MORPHEUS_MOOD_OPTATIVE == OPTATIVE,"optative code");
-_Static_assert(MORPHEUS_MOOD_IMPERATIVE == IMPERATIVE,"imperative code");
-_Static_assert(MORPHEUS_MOOD_INFINITIVE == INFINITIVE,"infinitive code");
-_Static_assert(MORPHEUS_MOOD_PARTICIPLE == PARTICIPLE,"participle code");
-_Static_assert(MORPHEUS_MOOD_GERUNDIVE == GERUNDIVE,"gerundive code");
-_Static_assert(MORPHEUS_MOOD_SUPINE == SUPINE,"supine code");
-_Static_assert(MORPHEUS_MOOD_CONDITIONAL == CONDITIONAL,"conditional code");
-_Static_assert(MORPHEUS_VOICE_ACTIVE == ACTIVE,"active code");
-_Static_assert(MORPHEUS_VOICE_MIDDLE == MIDDLE,"middle code");
-_Static_assert(MORPHEUS_VOICE_PASSIVE == PASSIVE,"passive code");
-_Static_assert(MORPHEUS_DEGREE_POSITIVE == POSITIVE,"positive code");
-_Static_assert(MORPHEUS_DEGREE_COMPARATIVE == COMPARATIVE,"comparative code");
-_Static_assert(MORPHEUS_DEGREE_SUPERLATIVE == SUPERLATIVE,"superlative code");
-_Static_assert(MORPHEUS_DIALECT_ATTIC == ATTIC,"Attic code");
-_Static_assert(MORPHEUS_DIALECT_EPIC == EPIC,"epic code");
-_Static_assert(MORPHEUS_DIALECT_PROSE == PROSE,"prose code");
-_Static_assert(MORPHEUS_REGION_PHOCIS == PHOCIS,"Phocis code");
-_Static_assert(MORPHEUS_REGION_BOEOTIA == BOEOTIA,"Boeotia code");
-_Static_assert(sizeof(morpheus_morph_flag) == sizeof(uint32_t),
-               "morph flag type width");
-_Static_assert(MORPHEUS_MORPH_FLAG_SYLL_AUGMENT == SYLL_AUGMENT,
-               "syllabic augment flag");
-_Static_assert(MORPHEUS_MORPH_FLAG_SUFFIX_ACCENT == SUFF_ACC,
-               "suffix accent flag");
-_Static_assert(MORPHEUS_MORPH_FLAG_RHO_ETA_IOTA_ALPHA == R_E_I_ALPHA,
-               "rho eta iota alpha flag");
-_Static_assert(MORPHEUS_MORPH_FLAG_INTERVOCALIC_S_TO_H == INTERV_S_TO_H,
-               "intervocalic sigma flag");
-_Static_assert(MORPHEUS_MORPH_FLAG_PRESENT_REDUPLICATION == PRES_REDUPL,
-               "present reduplication flag");
-_Static_assert(MORPHEUS_MORPH_FLAG_TAU_PREVERB == T_PREVB,
-               "tau preverb flag");
-_Static_assert(MORPHEUS_MORPH_FLAG_GROUP_NAME == GROUP_NAME,
-               "group name flag");
+_Static_assert(sizeof(morpheus_analysis) == 852,"ABI version 2 analysis size");
+_Static_assert(MORPHEUS_ABI_VERSION == 2,"ABI version");
+_Static_assert(MORPHEUS_PERSON_THIRD == 3,"normalized person code");
+_Static_assert(MORPHEUS_PERSON_THIRD != PERS3,"person is not a legacy mask");
+_Static_assert(MORPHEUS_NUMBER_PLURAL == 3,"normalized number code");
+_Static_assert(MORPHEUS_NUMBER_PLURAL != PLURAL,"number is not a legacy mask");
+_Static_assert(MORPHEUS_GENDER_MASCULINE != MASCULINE,
+               "gender mask is independently ordered");
+_Static_assert(MORPHEUS_CASE_NOMINATIVE != NOMINATIVE,
+               "case mask is independently ordered");
+_Static_assert(MORPHEUS_TENSE_IMPERFECT != IMPERF,
+               "tense is not a legacy code");
+_Static_assert(MORPHEUS_MOOD_INDICATIVE != INDICATIVE,
+               "mood is independently ordered");
+_Static_assert(MORPHEUS_VOICE_MIDDLE != MIDDLE,
+               "voice mask is independently ordered");
+_Static_assert(MORPHEUS_DEGREE_POSITIVE != POSITIVE,
+               "absence and positive degree are distinct");
+_Static_assert(MORPHEUS_DIALECT_IONIC != IONIC,
+               "dialect mask is independently ordered");
+_Static_assert(MORPHEUS_REGION_PHOCIS != PHOCIS,
+               "region mask is independently ordered");
+_Static_assert(MORPHEUS_MORPH_FLAG_SYLL_AUGMENT != SYLL_AUGMENT,
+               "trait indices do not expose legacy flag numbers");
+_Static_assert(MORPHEUS_MORPH_FLAG_GROUP_NAME != GROUP_NAME,
+               "sparse legacy flag numbers are not exposed");
+_Static_assert(MORPHEUS_MORPH_FLAG_COUNT <=
+               MORPHEUS_MORPH_FLAG_CAPACITY*8u,
+               "public trait capacity covers all traits");
 
 int main(void)
 {

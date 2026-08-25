@@ -7,6 +7,27 @@ the corpus.
 
 ## [Unreleased]
 
+Target project version: **0.2.0**. C ABI: **2**. Shared-library SONAME: **1**.
+
+### Changed
+
+- The structured ABI now uses independently assigned public morphology values;
+  historical encodings are translated in an MPL-covered bridge.
+- Opaque `stem_type` and `derivation_type` values were removed from
+  `morpheus_analysis`.
+- Morphology traits now use a complete 84-trait public bitset with zero-based,
+  alphabetically ordered indices instead of exposing historical storage.
+- Historical formatter declarations moved to `<morpheus/compat.h>` and their
+  implementation moved to `src/compat/`.
+- The normalized public API and existing Deno binding are explicitly
+  AGPL-3.0-or-later; inherited engine, bridge, and compatibility files remain
+  MPL-2.0.
+
+### Removed
+
+- `morpheus_result_all_morph_flags()`, made redundant by the complete public
+  trait bitset embedded in every structured analysis.
+
 ## [0.1.3] - 2026-08-24
 
 Target project version: **0.1.3**. C ABI: **1**. Shared-library SONAME: **0**.

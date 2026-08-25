@@ -46,7 +46,8 @@ main(void)
          MORPHEUS_OK);
   assert(morpheus_result_get(first_result,0,&after) == MORPHEUS_OK);
   assert(before.part_of_speech == after.part_of_speech);
-  assert(before.stem_type == after.stem_type);
+  assert(before.part_of_speech == after.part_of_speech);
+  assert(!strcmp(before.lemma,after.lemma));
   assert(strcmp(before.raw,after.raw) == 0);
   assert(strcmp(before.lemma,after.lemma) == 0);
   assert(strcmp(before.stem,after.stem) == 0);

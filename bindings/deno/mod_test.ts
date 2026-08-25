@@ -17,20 +17,22 @@ function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
 }
 
-Deno.test("tests one-based morphology flag bits", () => {
-  const allMorphFlags = new Uint8Array(14);
-  allMorphFlags[0] = 1;
-  allMorphFlags[13] = 32;
+Deno.test("tests zero-based public morphology trait bits", () => {
+  const morphFlags = new Uint8Array(11);
+  morphFlags[Math.floor(MorpheusMorphFlag.SyllAugment / 8)] |=
+    1 << (MorpheusMorphFlag.SyllAugment % 8);
+  morphFlags[Math.floor(MorpheusMorphFlag.GroupName / 8)] |=
+    1 << (MorpheusMorphFlag.GroupName % 8);
   assert(
-    hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.SyllAugment),
-    "flag 1 must use the low bit of byte 0",
+    hasMorpheusMorphFlag({ morphFlags }, MorpheusMorphFlag.SyllAugment),
+    "the syllabic-augment trait must use its public index",
   );
   assert(
-    hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.GroupName),
-    "flag 110 must use bit 5 of byte 13",
+    hasMorpheusMorphFlag({ morphFlags }, MorpheusMorphFlag.GroupName),
+    "the group-name trait must use its public index",
   );
   assert(
-    hasMorpheusMorphFlag([{ allMorphFlags }], "group-name"),
+    hasMorpheusMorphFlag([{ morphFlags }], "group-name"),
     "arrays of raw analyses must support named flags",
   );
   assert(
@@ -41,7 +43,7 @@ Deno.test("tests one-based morphology flag bits", () => {
     "arrays of semantic analyses must support numeric flags",
   );
   assert(
-    !hasMorpheusMorphFlag({ allMorphFlags }, MorpheusMorphFlag.Poetic),
+    !hasMorpheusMorphFlag({ morphFlags }, MorpheusMorphFlag.Poetic),
     "unset flags must remain false",
   );
 });
@@ -99,9 +101,9 @@ Deno.test("analyzes Greek through the native ABI", async () => {
     MorpheusOption.StrictCase,
   );
   assert(rawAnalyses.length === analyses.length, "raw analysis count must match");
-  assert(rawAnalyses[0].structSize >= 860, "raw ABI size must be preserved");
+  assert(rawAnalyses[0].structSize >= 852, "raw ABI size must be preserved");
   assert(rawAnalyses[0].morphFlags.length === 12, "raw flags must be copied");
-  assert(rawAnalyses[0].allMorphFlags.length === 14, "all raw flags must be copied");
+  assert(rawAnalyses[0].morphFlags.length === 11, "all public traits must be copied");
   assert(
     rawAnalyses[0].partOfSpeech !== MorpheusPartOfSpeech.Unknown,
     "raw part of speech must preserve its numeric code",
@@ -145,8 +147,6 @@ Deno.test("analyzes Greek through the native ABI", async () => {
     second[0].grammaticalCases.includes("nominative"),
     "case masks must be decoded",
   );
-  assert(second[0].stemType.code > 0, "opaque stem type code must be retained");
-  assert(second[0].derivationType === null, "absent derivation must be null");
 
   const numeral = await context.analyze("du/o", MorpheusOption.StrictCase);
   assert(numeral.length === 1, "du/o must retain its single analysis");

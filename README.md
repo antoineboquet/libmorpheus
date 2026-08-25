@@ -18,8 +18,10 @@ See [the architecture baseline](docs/architecture.md),
 [source provenance](docs/provenance.md), and
 [platform support](docs/portability.md) for the implementation boundaries,
 exact upstream revisions, and tested deployment targets.
-The C implementation remains licensed under [MPL-2.0](LICENSE); the original
-Deno binding is separately licensed under [AGPL-3.0-or-later](bindings/deno/LICENSE).
+The repository is mixed-license: inherited engine, bridge, and compatibility
+code remain under [MPL-2.0](LICENSE), while the normalized public API and Deno
+binding are licensed under AGPL-3.0-or-later. The exact file boundary is in
+[the licensing guide](docs/licensing.md). No MPL-to-CC change is made here.
 
 The complete native contract is in [the public API reference](docs/public-api.md);
 [release qualification](docs/releasing.md) defines the checks required before

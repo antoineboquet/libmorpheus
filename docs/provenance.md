@@ -26,3 +26,12 @@ The Alpheios repository's `LICENSE` file notes that its Morpheus fork does not
 carry an explicit independent license and refers to the Perseus Digital Library
 licensing statement. Code and data provenance must therefore remain documented
 separately when this project is distributed.
+
+## Local licensing boundary
+
+The current repository continues to treat the Perseids-derived implementation
+as MPL-2.0. Independently written normalized API files are identified with
+AGPL-3.0-or-later SPDX headers. Historical numeric translations and formatter
+compatibility remain in explicitly MPL-covered bridge and compatibility files;
+see `docs/licensing.md`. No claim about a CC-licensed PerseusDL baseline is
+applied to this repository.

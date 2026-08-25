@@ -1,4 +1,4 @@
-# Functions exported by ABI version 1. This manifest is shared by the binary
+# Functions exported by ABI version 2. This manifest is shared by the binary
 # symbol check and the documentation-coverage check.
 set(MORPHEUS_PUBLIC_API_SYMBOLS
   morpheus_abi_version
@@ -13,7 +13,6 @@ set(MORPHEUS_PUBLIC_API_SYMBOLS
   morpheus_compat_output_length
   morpheus_open
   morpheus_open_path
-  morpheus_result_all_morph_flags
   morpheus_result_copy
   morpheus_result_count
   morpheus_result_free

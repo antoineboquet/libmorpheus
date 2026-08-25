@@ -3,10 +3,14 @@ if(NOT DEFINED MORPHEUS_SOURCE_DIR)
 endif()
 
 include("${MORPHEUS_SOURCE_DIR}/cmake/PublicApi.cmake")
-file(
-  STRINGS "${MORPHEUS_SOURCE_DIR}/include/morpheus/morpheus.h"
-  api_declarations REGEX "^MORPHEUS_API"
-)
+set(api_declarations)
+foreach(public_header IN ITEMS morpheus.h compat.h)
+  file(
+    STRINGS "${MORPHEUS_SOURCE_DIR}/include/morpheus/${public_header}"
+    header_declarations REGEX "^MORPHEUS_API"
+  )
+  list(APPEND api_declarations ${header_declarations})
+endforeach()
 
 set(header_symbols)
 foreach(declaration IN LISTS api_declarations)

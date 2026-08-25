@@ -7,8 +7,9 @@ It requires Deno 2 on a 64-bit x86 or ARM runtime.
 
 The original Deno binding code in this directory is licensed under
 [AGPL-3.0-or-later](LICENSE). This license applies only to the binding.
-The native `libmorpheus` distribution remains under MPL-2.0 and carries its
-own license file separately.
+The normalized native API it calls is also AGPL-3.0-or-later; the inherited
+engine, translation bridge, and compatibility API remain MPL-2.0. See
+[`docs/licensing.md`](../../docs/licensing.md) for the file boundary.
 
 ```ts
 import {
@@ -58,23 +59,23 @@ native allocation is released.
 `analyze()` returns the ergonomic TypeScript representation: grammatical
 values are stable English identifiers, combinable masks are arrays, absent
 values are `null` or empty arrays, and morphology flags and truncated fields
-are named. `stemType` and `derivationType` remain opaque stemlib identifiers,
-represented as `{ code: number }` because ABI version 1 does not assign them a
-portable public name.
+are named. ABI version 2 does not expose stemlib-specific stem-type or
+derivation-type identifiers.
 
 The semantic part-of-speech names distinguish nouns, verbs, adjectives,
 adverbs, articles, pronouns, numerals, prepositions, conjunctions, particles,
 and interjections. A stemlib type named only `indecl` remains `"unknown"`
 because that morphology class does not identify a lexical category. `degree`
-is `null` outside adjectives; irregular comparative and superlative flags are
-used when the historical numeric degree field is zero. An empty `dialects`
+is `null` when degree is inapplicable; the native bridge normalizes irregular
+comparative and superlative markers. An empty `dialects`
 array means that no specific dialect restriction is recorded. The composite
 `"epic"` name consumes its Homeric and non-Homeric epic bits even inside a
 larger dialect mask.
 
 Use `analyzeRaw()` when inspecting the ABI or maintaining low-level tooling.
-It returns `MorpheusRawAnalysis`, including numeric morphology fields,
-`structSize`, the 12- and 14-byte flag vectors, and the numeric truncation mask.
+It returns `MorpheusRawAnalysis`, including normalized numeric morphology
+fields, `structSize`, the complete 11-byte public trait vector, and the numeric
+truncation mask.
 
 `MorpheusOption.HqDictionary` is conditional on the selected stemlib providing
 `hqdict/indices/stindex` and `hqdict/indices/stindex.lindex`. If either file is

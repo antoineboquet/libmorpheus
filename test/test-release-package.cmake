@@ -45,20 +45,28 @@ endif()
 set(prefix "${extract_root}/${MORPHEUS_PACKAGE_BASENAME}")
 set(public_header
     "${prefix}/${MORPHEUS_PACKAGE_INCLUDEDIR}/morpheus/morpheus.h")
+set(compat_header
+    "${prefix}/${MORPHEUS_PACKAGE_INCLUDEDIR}/morpheus/compat.h")
 set(public_library
     "${prefix}/${MORPHEUS_PACKAGE_LIBDIR}/${MORPHEUS_PACKAGE_LIBRARY_FILE}")
 set(cmake_package
     "${prefix}/${MORPHEUS_PACKAGE_LIBDIR}/cmake/Morpheus")
 set(pkg_config_file
     "${prefix}/${MORPHEUS_PACKAGE_LIBDIR}/pkgconfig/libmorpheus.pc")
+set(license_directory
+    "${prefix}/${MORPHEUS_PACKAGE_DATADIR}/doc/libmorpheus")
 
 foreach(required IN ITEMS
     "${public_header}"
+    "${compat_header}"
     "${public_library}"
     "${cmake_package}/MorpheusConfig.cmake"
     "${cmake_package}/MorpheusConfigVersion.cmake"
     "${cmake_package}/MorpheusTargets.cmake"
-    "${pkg_config_file}")
+    "${pkg_config_file}"
+    "${license_directory}/MPL-2.0.txt"
+    "${license_directory}/AGPL-3.0-or-later.txt"
+    "${license_directory}/licensing.md")
   if(NOT EXISTS "${required}")
     message(FATAL_ERROR "required package file is missing: ${required}")
   endif()
@@ -78,8 +86,11 @@ file(
   "${prefix}/${MORPHEUS_PACKAGE_INCLUDEDIR}/*"
 )
 list(LENGTH packaged_headers packaged_header_count)
-if(NOT packaged_header_count EQUAL 1 OR
-   NOT packaged_headers STREQUAL public_header)
+list(SORT packaged_headers)
+set(expected_headers "${compat_header}" "${public_header}")
+list(SORT expected_headers)
+if(NOT packaged_header_count EQUAL 2 OR
+   NOT packaged_headers STREQUAL expected_headers)
   message(FATAL_ERROR "private headers entered the package: ${packaged_headers}")
 endif()
 

@@ -1,8 +1,12 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Antoine Boquet
+
 #include "api_internal.h"
 #include <stdio.h>
 #include <string.h>
 #include <gkdict.h>
 #include "../anal/anal_internal.h"
+#include "../bridge/legacy_values.h"
 #include "../morphlib/runtime_context_internal.h"
 
 typedef struct {
@@ -65,9 +69,9 @@ static void apply_request_options(
   context->analysis_crasis_disabled=!!(options & MORPHEUS_OPTION_NO_CRASIS);
   context->analysis_quick_enabled=!!(options & MORPHEUS_OPTION_QUICK);
   context->dictionary_hq_mode=!!(options & MORPHEUS_OPTION_HQ_DICTIONARY);
-  context->analysis_wanted_dialects=(Dialect)(
-      (options & MORPHEUS_OPTION_DIALECT_MASK) >>
-      MORPHEUS_OPTION_DIALECT_SHIFT);
+  context->analysis_wanted_dialects=(Dialect)morpheus_legacy_dialect(
+      (uint32_t)((options & MORPHEUS_OPTION_DIALECT_MASK) >>
+      MORPHEUS_OPTION_DIALECT_SHIFT));
   context->analysis_wanted_dialects_initialized=1;
 }
 
@@ -149,18 +153,27 @@ static morpheus_truncated_fields copy_analysis(
   memset(destination,0,sizeof *destination);
   destination->struct_size=sizeof *destination;
   destination->part_of_speech=classify_part_of_speech(source);
-  destination->stem_type=(uint32_t)stemtype_of(source);
-  destination->derivation_type=(uint32_t)derivtype_of(source);
-  destination->dialect=(uint32_t)dialect_of(source);
-  destination->geographic_region=(uint32_t)geogregion_of(source);
-  destination->person=(uint32_t)person_of(forminfo_of(source));
-  destination->number=(uint32_t)number_of(forminfo_of(source));
-  destination->gender=(uint32_t)gender_of(forminfo_of(source));
-  destination->grammatical_case=(uint32_t)case_of(forminfo_of(source));
-  destination->tense=(uint32_t)tense_of(forminfo_of(source));
-  destination->mood=(uint32_t)mood_of(forminfo_of(source));
-  destination->voice=(uint32_t)voice_of(forminfo_of(source));
-  destination->degree=(uint32_t)degree_of(forminfo_of(source));
+  destination->dialect=morpheus_public_dialect((uint32_t)dialect_of(source));
+  destination->geographic_region=
+      morpheus_public_region((uint32_t)geogregion_of(source));
+  destination->person=
+      morpheus_public_person((uint32_t)person_of(forminfo_of(source)));
+  destination->number=
+      morpheus_public_number((uint32_t)number_of(forminfo_of(source)));
+  destination->gender=
+      morpheus_public_gender((uint32_t)gender_of(forminfo_of(source)));
+  destination->grammatical_case=
+      morpheus_public_case((uint32_t)case_of(forminfo_of(source)));
+  destination->tense=
+      morpheus_public_tense((uint32_t)tense_of(forminfo_of(source)));
+  destination->mood=
+      morpheus_public_mood((uint32_t)mood_of(forminfo_of(source)));
+  destination->voice=
+      morpheus_public_voice((uint32_t)voice_of(forminfo_of(source)));
+  destination->degree=morpheus_public_degree(
+      (uint32_t)degree_of(forminfo_of(source)),
+      (morpheus_part_of_speech)destination->part_of_speech,
+      morphflags_of(source));
   if(copy_text(destination->raw,sizeof destination->raw,rawword_of(source)))
     truncated|=MORPHEUS_TRUNCATED_RAW;
   if(copy_text(destination->workword,sizeof destination->workword,
@@ -194,7 +207,7 @@ static morpheus_truncated_fields copy_analysis(
   if(copy_text(destination->domains,sizeof destination->domains,
                domains_of(source)))
     truncated|=MORPHEUS_TRUNCATED_DOMAINS;
-  memcpy(destination->morph_flags,morphflags_of(source),sizeof destination->morph_flags);
+  morpheus_public_morph_flags(destination->morph_flags,morphflags_of(source));
   return(truncated);
 }
 
@@ -256,9 +269,6 @@ morpheus_status morpheus_analyze(morpheus_context *context, const uint8_t *beta_
   for(i=0;i<owned->count;i++) {
     owned->truncated_fields[i]=copy_analysis(
         &owned->analyses[i],analysis_of(word)+i);
-    memcpy(owned->all_morph_flags+i*MORPHEUS_ALL_MORPH_FLAG_CAPACITY,
-        morphflags_of(analysis_of(word)+i),
-        MORPHEUS_ALL_MORPH_FLAG_CAPACITY);
   }
   FreeGkword(word);
   restore_request_state(context,&saved);
