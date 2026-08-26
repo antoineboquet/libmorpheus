@@ -17,6 +17,8 @@ the corpus.
 - A deterministic offline builder and documented binary format now prepare
   duplicate-preserving lemma-to-generation-record indexes from expanded stem
   sources.
+- A checksummed manifest now freezes the 49 ordered Alpheios stem-source inputs
+  required to prepare the complete Greek generation corpus.
 
 ### Changed
 

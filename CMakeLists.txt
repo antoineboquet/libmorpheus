@@ -568,6 +568,14 @@ if(BUILD_TESTING)
       -DMORPHEUS_GENER_INDEX_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-index
       -P "${PROJECT_SOURCE_DIR}/test/gener-index.cmake"
   )
+  add_test(
+    NAME gener_corpus_manifest
+    COMMAND
+      "${CMAKE_COMMAND}"
+      -DMORPHEUS_GENER_CORPUS_ROOT=${MORPHEUS_STEMLIB_DIR}/Greek
+      -DMORPHEUS_GENER_CORPUS_MANIFEST=${PROJECT_SOURCE_DIR}/tools/gener-corpus-manifest.tsv
+      -P "${PROJECT_SOURCE_DIR}/test/gener-corpus-manifest.cmake"
+  )
 endif()
 
 add_library(morpheus_gener STATIC src/gener/genwd.c)

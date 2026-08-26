@@ -288,6 +288,12 @@ emits host-independent little-endian tables, and rejects unexpanded derivation
 records. Connecting the complete ordered corpus and a supported derivation
 expander remains the next data-preparation step.
 
+The complete pinned source universe is now recorded in
+[Greek generation corpus](gener-corpus.md) with per-file SHA-256 digests and a
+CI-enforced historical order. It contains both continuation expansion and
+derivation expansion work; the nominal/verb manifest groups cannot be treated
+as strict part-of-speech partitions.
+
 ## Decision
 
 Proceed with integration, beginning with fixtures and the reverse generation

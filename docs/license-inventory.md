@@ -39,7 +39,9 @@ The following remain MPL-2.0 even where the current path was created locally:
 - inherited workflow, container, README, and repository configuration files;
 - `test/fixture.json`, `test/alpheios-fixture.json`,
   `test/gener-fixture.tsv`, the generation-index source fixtures, and the
-  pinned Alpheios data submodule.
+  pinned Alpheios data submodule;
+- `tools/gener-corpus-manifest.tsv`, which records the ordered paths and
+  checksums of derived corpus inputs.
 
 The root `LICENSE` remains the default for every unmarked file. Explicit MPL
 notices on boundary files prevent their accidental inclusion in the AGPL set.
