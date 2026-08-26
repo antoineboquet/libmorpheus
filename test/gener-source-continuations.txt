@@ -1,0 +1,16 @@
+# SPDX-License-Identifier: MPL-2.0
+
+:le:a)gakleh/s
+:aj:a)ga klehs_kleous,suff_acc late
+@ end:kle/a acc sg masc fem epic
+@ ionic
+:def:ignored metadata
+@ end:kle/as acc pl masc fem epic
+
+:le:dupe
+:wd:du/pe indecl
+@
+
+:le:verb
+:vs:lu_ s_aor act
+@ mid epic

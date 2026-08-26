@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+
+:le:orphan
+-:vs:disabled w_stem
+@ inf act

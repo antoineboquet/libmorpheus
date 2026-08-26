@@ -45,6 +45,21 @@ There are consequently two distinct offline transformations:
 2. derivation expansion, which resolves `:de:` plus its `;` and `@` requests
    through the pinned derivation tables and emits explicit `:vs:` records.
 
+The first transformation is now implemented by the bounded offline source
+preparer for active `:no:`, `:aj:`, `:vs:`, `:wd:`, and `:vb:` records. It
+reproduces the historical rule precisely: retain the record tag, stem, and
+first ASCII-key token, then append the text following `@`. Every continuation
+is based on the preceding explicit record rather than on the preceding
+continuation. State is reset at each lemma and input-file boundary, so malformed
+input cannot inherit the old front end's file-scope buffer.
+
+Of the 3,453 continuations in the pinned corpus, 2,011 follow an active explicit
+generation record and 1,441 belong to a `:de:`/`;` derivation sequence. The one
+remaining occurrence follows disabled `-:vs:` and `#:vs:` lines in the
+`ghra/skw` block; it is deliberately rejected as orphaned instead of attaching
+to an unrelated earlier record. The derivation-associated continuations remain
+the next preparation step.
+
 The historical `do_conj` output is useful as a differential oracle, but it is
 not itself the normalized input contract: it preserves control records, marks
 some of them with `-`, and uses global mutable buffers. The supported preparer

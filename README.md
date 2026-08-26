@@ -38,7 +38,7 @@ candidate release contents.
 The Alpheios stemlib is a pinned Git submodule:
 
 ```sh
-git clone --recurse-submodules https://github.com/antoineboquet/libmorpheus.git
+git clone --recurse-submodules https://github.com/defense-humanites/libmorpheus.git
 cd libmorpheus
 ```
 

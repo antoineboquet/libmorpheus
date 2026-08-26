@@ -294,6 +294,12 @@ CI-enforced historical order. It contains both continuation expansion and
 derivation expansion work; the nominal/verb manifest groups cannot be treated
 as strict part-of-speech partitions.
 
+The bounded offline source preparer now expands direct `@` continuations with
+the exact historical base-record concatenation rule. It resets state at lemma
+and file boundaries and rejects the corpus's one orphaned continuation rather
+than reproducing `gensynform.c`'s stale global-buffer behavior. Continuations
+inside `:de:`/`;` sequences remain reserved for the derivation-expansion step.
+
 ## Decision
 
 Proceed with integration, beginning with fixtures and the reverse generation

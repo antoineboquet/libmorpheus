@@ -19,6 +19,9 @@ the corpus.
   sources.
 - A checksummed manifest now freezes the 49 ordered Alpheios stem-source inputs
   required to prepare the complete Greek generation corpus.
+- A bounded offline source preparer now expands direct `@` continuations with
+  the same base-record rule as the historical generator and rejects orphaned
+  or still-derived input.
 
 ### Changed
 

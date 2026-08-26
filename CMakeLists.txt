@@ -548,6 +548,23 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+add_executable(
+  morpheus_gener_source_preparer
+  tools/gener-source-preparer.c
+)
+target_link_libraries(
+  morpheus_gener_source_preparer
+  PRIVATE morpheus_build_options
+)
+target_compile_options(
+  morpheus_gener_source_preparer
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
+)
+
 if(BUILD_TESTING)
   add_executable(
     morpheus_gener_index_inspector_test
@@ -567,6 +584,19 @@ if(BUILD_TESTING)
       -DMORPHEUS_GENER_INDEX_UNEXPANDED_SOURCE=${PROJECT_SOURCE_DIR}/test/gener-index-unexpanded.txt
       -DMORPHEUS_GENER_INDEX_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-index
       -P "${PROJECT_SOURCE_DIR}/test/gener-index.cmake"
+  )
+  add_test(
+    NAME gener_source_preparer
+    COMMAND
+      "${CMAKE_COMMAND}"
+      -DMORPHEUS_GENER_SOURCE_PREPARER=$<TARGET_FILE:morpheus_gener_source_preparer>
+      -DMORPHEUS_GENER_INDEX_BUILDER=$<TARGET_FILE:morpheus_gener_index_builder>
+      -DMORPHEUS_GENER_SOURCE_INPUT=${PROJECT_SOURCE_DIR}/test/gener-source-continuations.txt
+      -DMORPHEUS_GENER_SOURCE_EXPECTED=${PROJECT_SOURCE_DIR}/test/gener-source-continuations.expected
+      -DMORPHEUS_GENER_SOURCE_ORPHAN=${PROJECT_SOURCE_DIR}/test/gener-source-orphan-continuation.txt
+      -DMORPHEUS_GENER_SOURCE_DERIVED=${PROJECT_SOURCE_DIR}/test/gener-index-unexpanded.txt
+      -DMORPHEUS_GENER_SOURCE_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-source-preparer
+      -P "${PROJECT_SOURCE_DIR}/test/gener-source-preparer.cmake"
   )
   add_test(
     NAME gener_corpus_manifest

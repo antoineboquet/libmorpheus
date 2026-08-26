@@ -36,10 +36,12 @@ The following remain MPL-2.0 even where the current path was created locally:
 - internal headers that extract declarations or state from the inherited
   engine;
 - the legacy-value bridge and compatibility formatter;
+- the offline generation-source preparer, whose continuation semantics are
+  adapted from the inherited generator;
 - inherited workflow, container, README, and repository configuration files;
 - `test/fixture.json`, `test/alpheios-fixture.json`,
-  `test/gener-fixture.tsv`, the generation-index source fixtures, and the
-  pinned Alpheios data submodule;
+  `test/gener-fixture.tsv`, the generation-index and generation-source
+  fixtures, and the pinned Alpheios data submodule;
 - `tools/gener-corpus-manifest.tsv`, which records the ordered paths and
   checksums of derived corpus inputs.
 

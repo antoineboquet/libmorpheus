@@ -22,9 +22,13 @@ order supplied on the command line. It recognizes lemma blocks beginning with
 | `:wd:` | 4 |
 | `:vb:` | 5 |
 
-Inputs must already have passed the historical derivation-expansion stage.
-The builder rejects `:de:`, `;`, and `@` records rather than producing a
-partial index. Comments, definitions, cross-references, and other
+Inputs must already have passed the offline source-preparation stage. The
+preparer expands `@` continuations attached to active explicit records using
+the historical base-record rule. Derivation-associated continuations are not
+accepted until their enclosing `:de:`/`;` sequence has been expanded to
+explicit `:vs:` records. The builder therefore continues to reject `:de:`,
+`;`, and `@` records rather than producing a partial index. Comments,
+definitions, cross-references, and other
 non-generation metadata are ignored. A generation record before its lemma and
 a record without both a stem and an ASCII-key string are errors.
 
