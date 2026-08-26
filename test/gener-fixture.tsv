@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+# name	kind	lemma	stem	keys	count	unique surfaces	non-dual count	non-dual unique surfaces	fingerprint
+regular_noun	regular	lo/gos	log	os_ou masc	18	17	15	15	bf6c20106dd493f9
+regular_adjective	regular	a)/bolos	a)bol	os_on	117	98	104	90	0eb9058d30a4680c
+explicit_verb_stem	regular	lu/w	lu	w_stem	252	215	215	188	448a0156add8c6fd
+indeclinable	indeclinable	korba=n	korba=n	indecl	1	1	1	1	ce89f06fbaeb1bac
+irregular_verb	irregular	ei)mi/	ei)mi	irreg_mi pres ind act sg 1st enclitic	1	1	1	1	c046189842a45a79

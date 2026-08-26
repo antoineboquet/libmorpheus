@@ -9,6 +9,12 @@ the corpus.
 
 ## [Unreleased]
 
+### Added
+
+- A differential fixture test now freezes representative regular and irregular
+  Greek generation behavior, including the dual forms omitted by the historical
+  text formatter.
+
 ### Changed
 
 - Native and Deno release archives now carry self-contained licensing and

@@ -564,13 +564,40 @@ if(BUILD_TESTING)
     NAME dictionary_entry_workspace
     COMMAND morpheus_dictionary_entry_workspace_test
   )
+  add_executable(
+    morpheus_gener_core_fixtures_test
+    test/gener-core-fixtures.c
+  )
+  target_link_libraries(
+    morpheus_gener_core_fixtures_test
+    PRIVATE
+      morpheus_gener
+      morpheus_gkends
+      morpheus_morphlib
+      morpheus_greeklib
+      morpheus_build_options
+  )
+  add_test(
+    NAME gener_core_fixtures
+    COMMAND morpheus_gener_core_fixtures_test
+            "${PROJECT_SOURCE_DIR}/test/gener-fixture.tsv"
+  )
   set_tests_properties(
     dictionary_entry_workspace
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
+  set_tests_properties(
+    gener_core_fixtures
+    PROPERTIES ENVIRONMENT "MORPHLIB=${MORPHEUS_STEMLIB_DIR}"
+  )
   if(MORPHEUS_ENABLE_SANITIZERS)
     set_property(
       TEST dictionary_entry_workspace APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+    set_property(
+      TEST gener_core_fixtures APPEND PROPERTY ENVIRONMENT
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )

@@ -266,10 +266,24 @@ become accidental generation promises.
    memory use, cold index loading, warm lookups, and concurrent contexts on the
    qualified platforms.
 
+## Initial fixture baseline
+
+The first executable baseline covers a regular noun, a regular adjective, an
+explicit verb stem, an indeclinable, and an irregular verb record. Each case
+pins the total row count, distinct surface count, non-dual equivalents from the
+Perseids `FULL_DUMP` output, and a deterministic fingerprint of the complete
+internal result sequence against the pinned Alpheios stemlib. The regular cases
+confirm that the core produces the dual rows suppressed by the historical
+formatter.
+
+This baseline deliberately exercises source records directly. Derived verbs,
+preverbs, augments, duplicate lemma blocks, and maximal paradigms will be added
+when the offline expansion and reverse-index formats can be tested without
+making the unsupported historical front ends part of the runtime build.
+
 ## Decision
 
 Proceed with integration, beginning with fixtures and the reverse generation
 index. Do not port the historical `gener` and `do_conj` command-line programs
 wholesale, do not expose their text format as the primary API, and do not make
 raw stem sources a runtime dependency.
-
