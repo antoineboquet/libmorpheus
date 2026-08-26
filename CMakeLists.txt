@@ -606,6 +606,17 @@ if(BUILD_TESTING)
       -DMORPHEUS_GENER_CORPUS_MANIFEST=${PROJECT_SOURCE_DIR}/tools/gener-corpus-manifest.tsv
       -P "${PROJECT_SOURCE_DIR}/test/gener-corpus-manifest.cmake"
   )
+  add_test(
+    NAME gener_derivation_manifest
+    COMMAND
+      "${CMAKE_COMMAND}"
+      -DMORPHEUS_GENER_DERIVATION_ROOT=${PROJECT_SOURCE_DIR}/vendor/alpheios-morpheus/stemlib/Greek
+      -DMORPHEUS_GENER_DERIVATION_MANIFEST=${PROJECT_SOURCE_DIR}/tools/gener-derivation-manifest.tsv
+      -DMORPHEUS_GENER_CORPUS_MANIFEST=${PROJECT_SOURCE_DIR}/tools/gener-corpus-manifest.tsv
+      -DMORPHEUS_GENER_DERIVATION_SOURCE=${PROJECT_SOURCE_DIR}/test/gener-derivation-source.txt
+      -DMORPHEUS_GENER_DERIVATION_ORACLE=${PROJECT_SOURCE_DIR}/test/gener-derivation-oracle.expected
+      -P "${PROJECT_SOURCE_DIR}/test/gener-derivation-manifest.cmake"
+  )
 endif()
 
 add_library(morpheus_gener STATIC src/gener/genwd.c)

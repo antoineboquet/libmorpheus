@@ -22,6 +22,9 @@ the corpus.
 - A bounded offline source preparer now expands direct `@` continuations with
   the same base-record rule as the historical generator and rejects orphaned
   or still-derived input.
+- A checksummed derivation-rule manifest and `do_conj full` differential
+  fixture now freeze the inputs and representative behavior required to expand
+  `:de:`/`;` records safely.
 
 ### Changed
 

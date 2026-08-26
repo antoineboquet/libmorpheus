@@ -60,12 +60,14 @@ foreach(mpl_file IN ITEMS
         src/morphlib/runtime_context_internal.h
         src/morphlib/setlang.proto.h
         test/gener-fixture.tsv
+        test/gener-derivation-source.txt
         test/gener-index-source.txt
         test/gener-index-unexpanded.txt
         test/gener-source-continuations.txt
         test/gener-source-orphan-continuation.txt
         tools/gener-source-preparer.c
-        tools/gener-corpus-manifest.tsv)
+        tools/gener-corpus-manifest.tsv
+        tools/gener-derivation-manifest.tsv)
   file(READ "${MORPHEUS_SOURCE_DIR}/${mpl_file}" contents)
   string(FIND "${contents}" "SPDX-License-Identifier: MPL-2.0" spdx_at)
   if(spdx_at EQUAL -1)

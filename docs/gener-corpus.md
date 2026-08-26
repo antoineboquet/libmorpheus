@@ -60,6 +60,13 @@ remaining occurrence follows disabled `-:vs:` and `#:vs:` lines in the
 to an unrelated earlier record. The derivation-associated continuations remain
 the next preparation step.
 
+The rule inputs and reference expansion behavior for that step are frozen in
+[Greek generation derivations](gener-derivations.md). The historical registry
+contains 39 entries for 38 unique active rule files, declares `illw` twice, and
+leaves five rule files unreferenced. Seven source records also fail its own
+derivation-type grammar. These cases are explicit validation errors pending a
+separately justified data correction; the preparer will not guess repairs.
+
 The historical `do_conj` output is useful as a differential oracle, but it is
 not itself the normalized input contract: it preserves control records, marks
 some of them with `-`, and uses global mutable buffers. The supported preparer

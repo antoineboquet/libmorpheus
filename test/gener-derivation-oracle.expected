@@ -1,0 +1,13 @@
+:le:lu/w
+:vs:lu  w_stem reg_conj
+:vs:lu  w_stem reg_conj mid
+:vs:lus  reg_fut reg_conj
+:vs:lus  aor1 reg_conj
+:vs:lus  aor1 reg_conj inf act
+:le:a)gaqopoie/w
+:vs:a)gaqopoi  ew_pr ew_denom
+:le:summaxe/w
+:vs:max  ew_pr ew_denom pb:su/n
+:vs:maxhs  aor1 ew_denom pb:su/n
+:le:pres-reduplicate
+:vs:bibaz  w_stem azw pres_redupl

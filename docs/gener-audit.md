@@ -300,6 +300,13 @@ and file boundaries and rejects the corpus's one orphaned continuation rather
 than reproducing `gensynform.c`'s stale global-buffer behavior. Continuations
 inside `:de:`/`;` sequences remain reserved for the derivation-expansion step.
 
+The derivation registry, all 43 rule-source files, and a representative
+`do_conj full` oracle are now frozen in
+[Greek generation derivations](gener-derivations.md). This qualification also
+records the duplicate `illw` registry entry, five unreferenced rule files, and
+seven malformed or unresolved `:de:` records. The supported implementation
+will report those records rather than applying undocumented corrections.
+
 ## Decision
 
 Proceed with integration, beginning with fixtures and the reverse generation

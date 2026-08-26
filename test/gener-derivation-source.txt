@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: MPL-2.0
+
+:le:lu/w
+:de:lu reg_conj
+;pr
+@ mid
+;fu
+;ao
+@ aor1 inf act
+
+:le:a)gaqopoie/w
+:de:a)gaqopoi ew_denom
+
+:le:summaxe/w
+:de:max ew_denom pb:su/n
+;pr
+;ao,-hs aor1
+
+:le:pres-reduplicate
+:de:b azw pres_redupl
+;pr

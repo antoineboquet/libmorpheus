@@ -43,7 +43,9 @@ The following remain MPL-2.0 even where the current path was created locally:
   `test/gener-fixture.tsv`, the generation-index and generation-source
   fixtures, and the pinned Alpheios data submodule;
 - `tools/gener-corpus-manifest.tsv`, which records the ordered paths and
-  checksums of derived corpus inputs.
+  checksums of derived corpus inputs;
+- `tools/gener-derivation-manifest.tsv` and the generation-derivation fixtures,
+  which record and exercise inherited rule data and behavior.
 
 The root `LICENSE` remains the default for every unmarked file. Explicit MPL
 notices on boundary files prevent their accidental inclusion in the AGPL set.
