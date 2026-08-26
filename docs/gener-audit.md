@@ -285,8 +285,10 @@ The version 1 reverse-index format and its offline builder are now specified in
 [Generation index format](gener-index-format.md). The initial builder preserves
 duplicate lemma blocks, canonicalizes keys like the historical formatter,
 emits host-independent little-endian tables, and rejects unexpanded derivation
-records. Connecting the complete ordered corpus and a supported derivation
-expander remains the next data-preparation step.
+records. The supported derivation expander is now connected to the preparer;
+assembling the complete ordered corpus remains blocked only by the seven
+explicitly unresolved source records, the disabled-record orphan, and the
+duplicate policy described below.
 
 The complete pinned source universe is now recorded in
 [Greek generation corpus](gener-corpus.md) with per-file SHA-256 digests and a
@@ -294,18 +296,19 @@ CI-enforced historical order. It contains both continuation expansion and
 derivation expansion work; the nominal/verb manifest groups cannot be treated
 as strict part-of-speech partitions.
 
-The bounded offline source preparer now expands direct `@` continuations with
+The bounded offline source preparer expands direct `@` continuations with
 the exact historical base-record concatenation rule. It resets state at lemma
 and file boundaries and rejects the corpus's one orphaned continuation rather
-than reproducing `gensynform.c`'s stale global-buffer behavior. Continuations
-inside `:de:`/`;` sequences remain reserved for the derivation-expansion step.
+than reproducing `gensynform.c`'s stale global-buffer behavior.
 
 The derivation registry, all 43 rule-source files, and a representative
-`do_conj full` oracle are now frozen in
+`do_conj full` oracle are frozen in
 [Greek generation derivations](gener-derivations.md). This qualification also
 records the duplicate `illw` registry entry, five unreferenced rule files, and
-seven malformed or unresolved `:de:` records. The supported implementation
-will report those records rather than applying undocumented corrections.
+seven malformed or unresolved `:de:` records. The supported offline
+implementation now expands `:de:`, `;`, and their `@` continuations through a
+call-local MPL interface, matches the frozen oracle exactly, and reports
+unknown derivation types rather than applying undocumented corrections.
 
 ## Decision
 

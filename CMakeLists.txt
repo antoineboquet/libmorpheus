@@ -548,13 +548,31 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+add_library(
+  morpheus_gener_derivation STATIC
+  src/gener/derivation.c
+)
+target_link_libraries(
+  morpheus_gener_derivation
+  PUBLIC morpheus_build_options
+  PRIVATE morpheus_gkends morpheus_morphlib morpheus_greeklib
+)
+target_compile_options(
+  morpheus_gener_derivation
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
+)
+
 add_executable(
   morpheus_gener_source_preparer
   tools/gener-source-preparer.c
 )
 target_link_libraries(
   morpheus_gener_source_preparer
-  PRIVATE morpheus_build_options
+  PRIVATE morpheus_gener_derivation morpheus_build_options
 )
 target_compile_options(
   morpheus_gener_source_preparer
@@ -594,9 +612,15 @@ if(BUILD_TESTING)
       -DMORPHEUS_GENER_SOURCE_INPUT=${PROJECT_SOURCE_DIR}/test/gener-source-continuations.txt
       -DMORPHEUS_GENER_SOURCE_EXPECTED=${PROJECT_SOURCE_DIR}/test/gener-source-continuations.expected
       -DMORPHEUS_GENER_SOURCE_ORPHAN=${PROJECT_SOURCE_DIR}/test/gener-source-orphan-continuation.txt
-      -DMORPHEUS_GENER_SOURCE_DERIVED=${PROJECT_SOURCE_DIR}/test/gener-index-unexpanded.txt
+      -DMORPHEUS_GENER_DERIVATION_SOURCE=${PROJECT_SOURCE_DIR}/test/gener-derivation-source.txt
+      -DMORPHEUS_GENER_DERIVATION_EXPECTED=${PROJECT_SOURCE_DIR}/test/gener-derivation-oracle.expected
+      -DMORPHEUS_GENER_DERIVATION_INVALID=${PROJECT_SOURCE_DIR}/test/gener-derivation-invalid.txt
       -DMORPHEUS_GENER_SOURCE_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-source-preparer
       -P "${PROJECT_SOURCE_DIR}/test/gener-source-preparer.cmake"
+  )
+  set_tests_properties(
+    gener_source_preparer
+    PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
   add_test(
     NAME gener_corpus_manifest

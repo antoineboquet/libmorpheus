@@ -48,6 +48,8 @@ foreach(mpl_file IN ITEMS
         src/bridge/legacy_values.c
         src/bridge/legacy_values.h
         src/compat/compat.c
+        src/gener/derivation.c
+        src/gener/derivation.h
         src/gener/gener_internal.h
         src/gener/genwd.proto.h
         src/gkdict/compnoun.proto.h
@@ -61,6 +63,7 @@ foreach(mpl_file IN ITEMS
         src/morphlib/setlang.proto.h
         test/gener-fixture.tsv
         test/gener-derivation-source.txt
+        test/gener-derivation-invalid.txt
         test/gener-index-source.txt
         test/gener-index-unexpanded.txt
         test/gener-source-continuations.txt

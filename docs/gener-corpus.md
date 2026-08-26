@@ -57,20 +57,22 @@ Of the 3,453 continuations in the pinned corpus, 2,011 follow an active explicit
 generation record and 1,441 belong to a `:de:`/`;` derivation sequence. The one
 remaining occurrence follows disabled `-:vs:` and `#:vs:` lines in the
 `ghra/skw` block; it is deliberately rejected as orphaned instead of attaching
-to an unrelated earlier record. The derivation-associated continuations remain
-the next preparation step.
+to an unrelated earlier record. The same preparer now expands the 1,441
+derivation-associated continuations together with their `:de:` and `;`
+requests.
 
 The rule inputs and reference expansion behavior for that step are frozen in
 [Greek generation derivations](gener-derivations.md). The historical registry
 contains 39 entries for 38 unique active rule files, declares `illw` twice, and
 leaves five rule files unreferenced. Seven source records also fail its own
 derivation-type grammar. These cases are explicit validation errors pending a
-separately justified data correction; the preparer will not guess repairs.
+separately justified data correction; the preparer rejects them and does not
+guess repairs.
 
 The historical `do_conj` output is useful as a differential oracle, but it is
 not itself the normalized input contract: it preserves control records, marks
 some of them with `-`, and uses global mutable buffers. The supported preparer
-will emit only lemma and explicit generation records accepted by the version 1
+emits only lemma and explicit generation records accepted by the version 1
 index builder.
 
 ## Duplicate policy still to qualify

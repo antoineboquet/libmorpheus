@@ -44,8 +44,8 @@ is an analysis-index optimization: it suppresses records considered redundant
 and can leave regular `:de:` controls active for later analysis tooling. Such
 controls are not accepted by the generation index.
 
-The future preparer must match the oracle's record semantics and stable order;
-it need not reproduce diagnostic text, disabled `-` control lines, blank-line
+The supported preparer matches the oracle's record semantics and stable order;
+it does not reproduce diagnostic text, disabled `-` control lines, blank-line
 placement, or file-scope state.
 
 ## Invalid source records
@@ -73,7 +73,13 @@ patch with its own provenance and differential evidence.
 
 The legacy `conjsys.c` and `combconj.c` front ends use file-scope mutable
 buffers and can create diagnostic side files. They remain provenance and oracle
-code, not runtime dependencies. The supported implementation will keep parser
-state per invocation, use bounded owned storage, load only manifest-approved
-rules, and call the inherited morphology primitives through an internal MPL
-boundary.
+code, not runtime dependencies. `src/gener/derivation.c` provides the internal
+MPL boundary used by the offline preparer: its request state is call-local, its
+storage is bounded and owned, and it reads the normalized ASCII rule tables
+already distributed in `stemlib/Greek/derivs/ascii`. The preparer emits only
+explicit generation records; the runtime library does not load derivation
+rules.
+
+`test/gener-source-preparer.cmake` compares the supported output byte for byte
+with the frozen `full` oracle. It also requires an unknown derivation type to
+fail without leaving a partial output file.
