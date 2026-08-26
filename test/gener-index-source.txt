@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MPL-2.0
+
+:le:zeta
+:no:zet os_ou masc
+
+:le:lo/-_^+gos
+:no:log os_ou masc
+:aj:logik os_h_on
+
+:le:dupe
+:wd:du/pe indecl
+
+:le:dupe
+:vb:du/pe w_stem pres ind act 1st sg
+
+:le:empty
+:def:metadata only

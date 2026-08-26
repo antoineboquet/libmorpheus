@@ -14,6 +14,9 @@ the corpus.
 - A differential fixture test now freezes representative regular and irregular
   Greek generation behavior, including the dual forms omitted by the historical
   text formatter.
+- A deterministic offline builder and documented binary format now prepare
+  duplicate-preserving lemma-to-generation-record indexes from expanded stem
+  sources.
 
 ### Changed
 

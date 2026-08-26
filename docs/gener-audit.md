@@ -281,6 +281,13 @@ preverbs, augments, duplicate lemma blocks, and maximal paradigms will be added
 when the offline expansion and reverse-index formats can be tested without
 making the unsupported historical front ends part of the runtime build.
 
+The version 1 reverse-index format and its offline builder are now specified in
+[Generation index format](gener-index-format.md). The initial builder preserves
+duplicate lemma blocks, canonicalizes keys like the historical formatter,
+emits host-independent little-endian tables, and rejects unexpanded derivation
+records. Connecting the complete ordered corpus and a supported derivation
+expander remains the next data-preparation step.
+
 ## Decision
 
 Proceed with integration, beginning with fixtures and the reverse generation

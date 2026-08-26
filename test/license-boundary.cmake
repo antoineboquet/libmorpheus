@@ -16,7 +16,8 @@ set(agpl_files
     src/api/api_internal.h
     src/api/analyze.c
     src/api/context.c
-    src/api/result.c)
+    src/api/result.c
+    tools/gener-index-builder.c)
 file(GLOB agpl_support_files
      RELATIVE "${MORPHEUS_SOURCE_DIR}"
      "${MORPHEUS_SOURCE_DIR}/bench/*.sh"
@@ -58,7 +59,9 @@ foreach(mpl_file IN ITEMS
         src/morphlib/runtime_context.h
         src/morphlib/runtime_context_internal.h
         src/morphlib/setlang.proto.h
-        test/gener-fixture.tsv)
+        test/gener-fixture.tsv
+        test/gener-index-source.txt
+        test/gener-index-unexpanded.txt)
   file(READ "${MORPHEUS_SOURCE_DIR}/${mpl_file}" contents)
   string(FIND "${contents}" "SPDX-License-Identifier: MPL-2.0" spdx_at)
   if(spdx_at EQUAL -1)

@@ -531,6 +531,45 @@ if(BUILD_TESTING)
   endif()
 endif()
 
+add_executable(
+  morpheus_gener_index_builder
+  tools/gener-index-builder.c
+)
+target_link_libraries(
+  morpheus_gener_index_builder
+  PRIVATE morpheus_build_options
+)
+target_compile_options(
+  morpheus_gener_index_builder
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
+)
+
+if(BUILD_TESTING)
+  add_executable(
+    morpheus_gener_index_inspector_test
+    test/gener-index.c
+  )
+  target_link_libraries(
+    morpheus_gener_index_inspector_test
+    PRIVATE morpheus_build_options
+  )
+  add_test(
+    NAME gener_index
+    COMMAND
+      "${CMAKE_COMMAND}"
+      -DMORPHEUS_GENER_INDEX_BUILDER=$<TARGET_FILE:morpheus_gener_index_builder>
+      -DMORPHEUS_GENER_INDEX_INSPECTOR=$<TARGET_FILE:morpheus_gener_index_inspector_test>
+      -DMORPHEUS_GENER_INDEX_SOURCE=${PROJECT_SOURCE_DIR}/test/gener-index-source.txt
+      -DMORPHEUS_GENER_INDEX_UNEXPANDED_SOURCE=${PROJECT_SOURCE_DIR}/test/gener-index-unexpanded.txt
+      -DMORPHEUS_GENER_INDEX_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-index
+      -P "${PROJECT_SOURCE_DIR}/test/gener-index.cmake"
+  )
+endif()
+
 add_library(morpheus_gener STATIC src/gener/genwd.c)
 target_link_libraries(
   morpheus_gener

@@ -1,0 +1,5 @@
+# SPDX-License-Identifier: MPL-2.0
+
+:le:lu/w
+:de:lu w_stem
+;pr 1

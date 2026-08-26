@@ -16,6 +16,7 @@ have no counterpart at the same path in either audited upstream tree:
 - the CMake build, package metadata, benchmark tooling, and platform-release
   workflow identified by AGPL SPDX notices;
 - the C and CMake tests introduced by the modernization work;
+- the deterministic generation-index builder under `tools/`;
 - the project changelog and the documents under `docs/`.
 
 `CMakePresets.json` cannot contain comments, so its license is recorded in the
@@ -37,7 +38,8 @@ The following remain MPL-2.0 even where the current path was created locally:
 - the legacy-value bridge and compatibility formatter;
 - inherited workflow, container, README, and repository configuration files;
 - `test/fixture.json`, `test/alpheios-fixture.json`,
-  `test/gener-fixture.tsv`, and the pinned Alpheios data submodule.
+  `test/gener-fixture.tsv`, the generation-index source fixtures, and the
+  pinned Alpheios data submodule.
 
 The root `LICENSE` remains the default for every unmarked file. Explicit MPL
 notices on boundary files prevent their accidental inclusion in the AGPL set.
