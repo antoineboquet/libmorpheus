@@ -5,6 +5,8 @@
 
 #include <morpheus/morpheus.h>
 
+morpheus_part_of_speech morpheus_public_part_of_speech(
+    uint32_t legacy_stemtype);
 uint32_t morpheus_public_dialect(uint32_t legacy);
 uint32_t morpheus_legacy_dialect(uint32_t public_value);
 uint32_t morpheus_public_region(uint32_t legacy);

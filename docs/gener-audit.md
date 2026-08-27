@@ -263,7 +263,13 @@ become accidental generation promises.
    and sanitizer execution.
 4. **Normalize results at the bridge.** Reuse the ABI 2 value translators,
    remove stem and derivation codes, define stable ordering, and enforce result
-   limits.
+   limits. Implemented by the internal MPL-2.0 generation normalizer. It owns
+   every normalized record, retains duplicate interpretations and duals,
+   translates traits through the shared ABI 2 value bridge, and exposes no
+   historical stem or derivation code. Its comparator is a total order over
+   normalized grammar, surface text, flags, and original sequence; its
+   per-request limit is enforced during collection under a hard ceiling of
+   65,536 records, with no partial result returned when exceeded.
 5. **Publish the additive C API.** Add installed-consumer, symbol-surface,
    ownership, invalid-input, and package tests.
 6. **Extend the Deno binding.** Keep generation nonblocking, expose typed

@@ -49,6 +49,8 @@ foreach(mpl_file IN ITEMS
         src/anal/cruncher_internal.h
         src/bridge/legacy_values.c
         src/bridge/legacy_values.h
+        src/bridge/generation_normalizer.c
+        src/bridge/generation_normalizer.h
         src/compat/compat.c
         src/gener/derivation.c
         src/gener/derivation.h

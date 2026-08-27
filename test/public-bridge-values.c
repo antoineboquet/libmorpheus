@@ -6,6 +6,7 @@
 #include <greek.h>
 #include <dialect.h>
 #include <morphflags.h>
+#include <stemtype.h>
 
 #include "../src/bridge/legacy_values.h"
 
@@ -26,6 +27,12 @@ int main(void)
   unsigned char legacy_flags[MORPHFLAG_STORAGE_BYTES];
   uint8_t public_flags[MORPHEUS_MORPH_FLAG_CAPACITY];
 
+  assert(morpheus_public_part_of_speech(NOUNSTEM)==
+      MORPHEUS_PART_OF_SPEECH_NOUN);
+  assert(morpheus_public_part_of_speech(ADJSTEM)==
+      MORPHEUS_PART_OF_SPEECH_ADJECTIVE);
+  assert(morpheus_public_part_of_speech(PPARTMASK)==
+      MORPHEUS_PART_OF_SPEECH_VERB);
   assert(morpheus_public_person(PERS3)==MORPHEUS_PERSON_THIRD);
   assert(morpheus_public_number(PLURAL)==MORPHEUS_NUMBER_PLURAL);
   assert(morpheus_public_tense(IMPERF)==MORPHEUS_TENSE_IMPERFECT);

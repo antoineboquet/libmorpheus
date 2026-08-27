@@ -11,6 +11,7 @@
 #include <modes.h>
 
 #include "../src/api/gener_index.h"
+#include "../src/bridge/generation_normalizer.h"
 #include "../src/gener/generation_service.h"
 
 typedef struct {
@@ -261,6 +262,79 @@ run_failure(const morpheus_gener_index *index)
 	morpheus_generation_service_destroy(service);
 }
 
+static void
+run_normalization(const morpheus_gener_index *index)
+{
+	morpheus_generation_service *service = NULL;
+	morpheus_normalized_generation_result *result = NULL;
+	const morpheus_normalized_generation *record;
+	size_t count;
+	size_t duals = 0;
+	size_t dialects = 0;
+	size_t duplicates = 0;
+	size_t current;
+	size_t previous;
+
+	assert(morpheus_generation_service_create(index,&service) ==
+	       MORPHEUS_GENERATION_OK);
+	assert(morpheus_generation_normalize(service,"lo/gos",18,&result) ==
+	       MORPHEUS_GENERATION_NORMALIZE_OK);
+	assert(result);
+	count = morpheus_normalized_generation_result_count(result);
+	assert(count == 18);
+	morpheus_generation_service_destroy(service);
+	service = NULL;
+	for (current = 0; current != count; current++) {
+		record = morpheus_normalized_generation_result_at(result,current);
+		assert(record);
+		assert(record->part_of_speech == MORPHEUS_PART_OF_SPEECH_NOUN);
+		assert(!strcmp(record->lemma,"lo/gos"));
+		assert(!record->truncated_fields);
+		if (record->number == MORPHEUS_NUMBER_DUAL)
+			duals++;
+		if (record->dialect != MORPHEUS_DIALECT_ALL)
+			dialects++;
+		if (current)
+			assert(morpheus_normalized_generation_compare(
+			           morpheus_normalized_generation_result_at(
+			               result,current - 1),record) < 0);
+		for (previous = 0; previous != current; previous++) {
+			if (!strcmp(morpheus_normalized_generation_result_at(
+			                result,previous)->surface,record->surface)) {
+				duplicates++;
+				break;
+			}
+		}
+	}
+	assert(duals == 3);
+	assert(dialects);
+	assert(duplicates);
+	assert(!morpheus_normalized_generation_result_at(result,count));
+	morpheus_normalized_generation_result_free(result);
+	result = NULL;
+
+	assert(morpheus_generation_service_create(index,&service) ==
+	       MORPHEUS_GENERATION_OK);
+	assert(morpheus_generation_normalize(service,"lo/gos",17,&result) ==
+	       MORPHEUS_GENERATION_NORMALIZE_LIMIT);
+	assert(!result);
+	assert(morpheus_generation_normalize(service,"missing",18,&result) ==
+	       MORPHEUS_GENERATION_NORMALIZE_NOT_FOUND);
+	assert(!result);
+	assert(morpheus_generation_normalize(service,"lo/gos",0,&result) ==
+	       MORPHEUS_GENERATION_NORMALIZE_INVALID);
+	assert(!result);
+	assert(morpheus_generation_normalize(
+	           service,"lo/gos",MORPHEUS_GENERATION_RESULT_HARD_LIMIT + 1,
+	           &result) == MORPHEUS_GENERATION_NORMALIZE_INVALID);
+	assert(!result);
+	assert(morpheus_generation_normalize(service,"multiple",2,&result) ==
+	       MORPHEUS_GENERATION_NORMALIZE_OK);
+	assert(morpheus_normalized_generation_result_count(result) == 2);
+	morpheus_normalized_generation_result_free(result);
+	morpheus_generation_service_destroy(service);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -278,6 +352,9 @@ main(int argc, char **argv)
 	} else if (!strcmp(argv[1],"failure")) {
 		assert(argc == 3);
 		run_failure(index);
+	} else if (!strcmp(argv[1],"normalization")) {
+		assert(argc == 3);
+		run_normalization(index);
 	} else {
 		assert(0);
 	}

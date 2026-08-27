@@ -4,8 +4,10 @@
 
 #include <string.h>
 #include <greek.h>
+#include <gkstring.h>
 #include <dialect.h>
 #include <morphflags.h>
+#include "../morphlib/morphkeys.proto.h"
 
 static int legacy_flag_is_set(const unsigned char *flags, int number)
 {
@@ -17,6 +19,57 @@ static int legacy_flag_is_set(const unsigned char *flags, int number)
 
 #define MAP_BIT(legacy_bit,public_bit) \
   if((legacy & (uint32_t)(legacy_bit)) != 0) result|=(public_bit)
+
+static int stem_type_name_is(const char *name, const char *candidate)
+{
+  return(name && strcmp(name,candidate)==0);
+}
+
+morpheus_part_of_speech morpheus_public_part_of_speech(
+    uint32_t legacy_stemtype)
+{
+  const char *name;
+  const Stemtype stemtype=(Stemtype)legacy_stemtype;
+  if(stemtype & PPARTMASK) return(MORPHEUS_PART_OF_SPEECH_VERB);
+  name=NameOfStemtype(stemtype);
+  if(stem_type_name_is(name,"adverb"))
+    return(MORPHEUS_PART_OF_SPEECH_ADVERB);
+  if(stem_type_name_is(name,"article"))
+    return(MORPHEUS_PART_OF_SPEECH_ARTICLE);
+  if(stem_type_name_is(name,"demonstr") ||
+     stem_type_name_is(name,"indef") ||
+     stem_type_name_is(name,"indef_pron") ||
+     stem_type_name_is(name,"indef_rel_pron") ||
+     stem_type_name_is(name,"interrog") ||
+     stem_type_name_is(name,"pers_pron") ||
+     stem_type_name_is(name,"pron1") ||
+     stem_type_name_is(name,"pron3") ||
+     stem_type_name_is(name,"pron_adj1") ||
+     stem_type_name_is(name,"pron_adj3") ||
+     stem_type_name_is(name,"relative") ||
+     stem_type_name_is(name,"rel_pron"))
+    return(MORPHEUS_PART_OF_SPEECH_PRONOUN);
+  if(stem_type_name_is(name,"numeral"))
+    return(MORPHEUS_PART_OF_SPEECH_NUMERAL);
+  if(stem_type_name_is(name,"prep"))
+    return(MORPHEUS_PART_OF_SPEECH_PREPOSITION);
+  if(stem_type_name_is(name,"conj") || stem_type_name_is(name,"connect"))
+    return(MORPHEUS_PART_OF_SPEECH_CONJUNCTION);
+  if(stem_type_name_is(name,"particle") ||
+     stem_type_name_is(name,"expletive"))
+    return(MORPHEUS_PART_OF_SPEECH_PARTICLE);
+  if(stem_type_name_is(name,"exclam"))
+    return(MORPHEUS_PART_OF_SPEECH_INTERJECTION);
+  if(stem_type_name_is(name,"alphabetic") ||
+     stem_type_name_is(name,"indecl_noun") ||
+     stem_type_name_is(name,"irreg_decl3"))
+    return(MORPHEUS_PART_OF_SPEECH_NOUN);
+  if(stem_type_name_is(name,"indecl"))
+    return(MORPHEUS_PART_OF_SPEECH_UNKNOWN);
+  if(stemtype & NOUNSTEM) return(MORPHEUS_PART_OF_SPEECH_NOUN);
+  if(stemtype & ADJSTEM) return(MORPHEUS_PART_OF_SPEECH_ADJECTIVE);
+  return(MORPHEUS_PART_OF_SPEECH_UNKNOWN);
+}
 
 uint32_t morpheus_public_dialect(uint32_t legacy)
 {

@@ -728,6 +728,21 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+add_library(
+  morpheus_generation_normalizer STATIC
+  src/bridge/generation_normalizer.c
+  src/bridge/legacy_values.c
+)
+target_include_directories(
+  morpheus_generation_normalizer
+  PRIVATE "${PROJECT_SOURCE_DIR}/include"
+)
+target_link_libraries(
+  morpheus_generation_normalizer
+  PUBLIC morpheus_build_options
+  PRIVATE morpheus_generation_service morpheus_morphlib
+)
+
 if(BUILD_TESTING)
   add_executable(
     morpheus_dictionary_entry_workspace_test
@@ -772,6 +787,7 @@ if(BUILD_TESTING)
     morpheus_generation_service_test
     PRIVATE
       morpheus_generation_service
+      morpheus_generation_normalizer
       morpheus_gener_index
       morpheus_gener
       morpheus_gkends
@@ -780,7 +796,7 @@ if(BUILD_TESTING)
       morpheus_build_options
       Threads::Threads
   )
-  foreach(service_mode IN ITEMS differential isolation failure)
+  foreach(service_mode IN ITEMS differential isolation failure normalization)
     set(service_source "${PROJECT_SOURCE_DIR}/test/generation-service-source.txt")
     if(service_mode STREQUAL "failure")
       set(service_source
@@ -809,6 +825,7 @@ if(BUILD_TESTING)
   )
   set_tests_properties(
     gener_service_differential gener_service_isolation gener_service_failure
+    gener_service_normalization
     PROPERTIES ENVIRONMENT "MORPHLIB=${MORPHEUS_STEMLIB_DIR}"
   )
   if(MORPHEUS_ENABLE_SANITIZERS)
@@ -824,7 +841,7 @@ if(BUILD_TESTING)
     )
     foreach(service_test IN ITEMS
             gener_service_differential gener_service_isolation
-            gener_service_failure)
+            gener_service_failure gener_service_normalization)
       set_property(
         TEST ${service_test} APPEND PROPERTY ENVIRONMENT
           "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
@@ -1322,7 +1339,8 @@ if(BUILD_TESTING)
       "${PROJECT_SOURCE_DIR}/src/includes"
   )
   target_link_libraries(
-    morpheus_public_bridge_values_test PRIVATE morpheus_build_options
+    morpheus_public_bridge_values_test
+    PRIVATE morpheus_morphlib morpheus_build_options
   )
   add_test(
     NAME public_bridge_values COMMAND morpheus_public_bridge_values_test

@@ -42,6 +42,8 @@ The following remain MPL-2.0 even where the current path was created locally:
 - the internal generation service under `src/gener/`, whose construction of
   historical `gk_word` values and generator ownership rules adapt the inherited
   engine;
+- the internal generation normalizer under `src/bridge/`, which translates
+  inherited generator records and preserves their historical distinctions;
 - inherited workflow, container, README, and repository configuration files;
 - `test/fixture.json`, `test/alpheios-fixture.json`,
   `test/gener-fixture.tsv`, the generation-index and generation-source

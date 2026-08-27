@@ -95,64 +95,14 @@ static int copy_text(char *destination, size_t capacity, const char *source)
   return(length >= capacity);
 }
 
-static int stem_type_name_is(const char *name, const char *candidate)
-{
-  return(name && strcmp(name,candidate)==0);
-}
-
-static morpheus_part_of_speech classify_part_of_speech(
-    const gk_analysis *source)
-{
-  const char *name;
-
-  if(Is_verbform(source)) return(MORPHEUS_PART_OF_SPEECH_VERB);
-  name=NameOfStemtype(stemtype_of(source));
-  if(stem_type_name_is(name,"adverb"))
-    return(MORPHEUS_PART_OF_SPEECH_ADVERB);
-  if(stem_type_name_is(name,"article"))
-    return(MORPHEUS_PART_OF_SPEECH_ARTICLE);
-  if(stem_type_name_is(name,"demonstr") ||
-     stem_type_name_is(name,"indef") ||
-     stem_type_name_is(name,"indef_pron") ||
-     stem_type_name_is(name,"indef_rel_pron") ||
-     stem_type_name_is(name,"interrog") ||
-     stem_type_name_is(name,"pers_pron") ||
-     stem_type_name_is(name,"pron1") ||
-     stem_type_name_is(name,"pron3") ||
-     stem_type_name_is(name,"pron_adj1") ||
-     stem_type_name_is(name,"pron_adj3") ||
-     stem_type_name_is(name,"relative") ||
-     stem_type_name_is(name,"rel_pron"))
-    return(MORPHEUS_PART_OF_SPEECH_PRONOUN);
-  if(stem_type_name_is(name,"numeral"))
-    return(MORPHEUS_PART_OF_SPEECH_NUMERAL);
-  if(stem_type_name_is(name,"prep"))
-    return(MORPHEUS_PART_OF_SPEECH_PREPOSITION);
-  if(stem_type_name_is(name,"conj") || stem_type_name_is(name,"connect"))
-    return(MORPHEUS_PART_OF_SPEECH_CONJUNCTION);
-  if(stem_type_name_is(name,"particle") ||
-     stem_type_name_is(name,"expletive"))
-    return(MORPHEUS_PART_OF_SPEECH_PARTICLE);
-  if(stem_type_name_is(name,"exclam"))
-    return(MORPHEUS_PART_OF_SPEECH_INTERJECTION);
-  if(stem_type_name_is(name,"alphabetic") ||
-     stem_type_name_is(name,"indecl_noun") ||
-     stem_type_name_is(name,"irreg_decl3"))
-    return(MORPHEUS_PART_OF_SPEECH_NOUN);
-  if(stem_type_name_is(name,"indecl"))
-    return(MORPHEUS_PART_OF_SPEECH_UNKNOWN);
-  if(Is_nounform(source)) return(MORPHEUS_PART_OF_SPEECH_NOUN);
-  if(Is_adjform(source)) return(MORPHEUS_PART_OF_SPEECH_ADJECTIVE);
-  return(MORPHEUS_PART_OF_SPEECH_UNKNOWN);
-}
-
 static morpheus_truncated_fields copy_analysis(
     morpheus_analysis *destination, const gk_analysis *source)
 {
   morpheus_truncated_fields truncated=0;
   memset(destination,0,sizeof *destination);
   destination->struct_size=sizeof *destination;
-  destination->part_of_speech=classify_part_of_speech(source);
+  destination->part_of_speech=
+      morpheus_public_part_of_speech((uint32_t)stemtype_of(source));
   destination->dialect=morpheus_public_dialect((uint32_t)dialect_of(source));
   destination->geographic_region=
       morpheus_public_region((uint32_t)geogregion_of(source));
