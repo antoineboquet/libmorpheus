@@ -80,6 +80,11 @@ warmup=${MORPHEUS_BENCHMARK_WARMUP:-2}
 contexts=${MORPHEUS_BENCHMARK_CONTEXTS:-1,2,4}
 cold_samples=${MORPHEUS_BENCHMARK_COLD_SAMPLES:-10}
 
+case "${stemlib}" in
+  /*) ;;
+  *) stemlib="${project_dir}/${stemlib}" ;;
+esac
+
 case "$(uname -s)" in
   Darwin) library="${build_dir}/libmorpheus.dylib" ;;
   Linux) library="${build_dir}/libmorpheus.so" ;;
@@ -97,6 +102,16 @@ cmake --preset release -DBUILD_TESTING=ON
 cmake --build --preset release
 ctest --preset release
 
+generation_index="${build_dir}/test-gener-corpus/first.mgi"
+[ -f "${generation_index}" ] || {
+  echo "qualified generation index was not produced by CTest" >&2
+  exit 1
+}
+generation_stemlib=$(mktemp -d "${TMPDIR:-/tmp}/morpheus-benchmark.XXXXXX")
+ln -s "${stemlib}/Greek" "${generation_stemlib}/Greek"
+cp "${generation_index}" "${generation_stemlib}/gener.index"
+stemlib=${generation_stemlib}
+
 compiler_command=$(sed -n \
   's/^CMAKE_C_COMPILER:[^=]*=//p' "${build_dir}/CMakeCache.txt")
 [ -n "${compiler_command}" ] || {
@@ -106,29 +121,36 @@ compiler_command=$(sed -n \
 compiler=$("${compiler_command}" --version | sed -n '1p')
 
 temporary="${output}.tmp.$$"
-trap 'rm -f "${temporary}"' 0 HUP INT TERM
+cleanup()
+{
+  rm -f "${temporary}"
+  rm -rf "${generation_stemlib}"
+}
+trap cleanup 0 HUP INT TERM
 
 if [ -n "${baseline}" ]; then
   MORPHEUS_LIBRARY="${library}" \
   MORPHEUS_STEMLIB="${stemlib}" \
   MORPHEUS_CRUNCHER="${cruncher}" \
-    deno run --allow-env --allow-ffi --allow-read --allow-run \
+    deno run --allow-env --allow-ffi="${library}" --allow-read --allow-run \
       bench/compare.ts --json --baseline "${baseline}" \
       --label "${label}" --revision "${revision}" \
       --stemlib-revision "${stemlib_revision}" --compiler "${compiler}" \
       --iterations "${iterations}" --warmup "${warmup}" \
       --contexts "${contexts}" --cold-samples "${cold_samples}" \
+      --generation-small "lo/gos" --generation-maximal "i(/hmi" \
       > "${temporary}"
 else
   MORPHEUS_LIBRARY="${library}" \
   MORPHEUS_STEMLIB="${stemlib}" \
   MORPHEUS_CRUNCHER="${cruncher}" \
-    deno run --allow-env --allow-ffi --allow-read --allow-run \
+    deno run --allow-env --allow-ffi="${library}" --allow-read --allow-run \
       bench/compare.ts --json \
       --label "${label}" --revision "${revision}" \
       --stemlib-revision "${stemlib_revision}" --compiler "${compiler}" \
       --iterations "${iterations}" --warmup "${warmup}" \
       --contexts "${contexts}" --cold-samples "${cold_samples}" \
+      --generation-small "lo/gos" --generation-maximal "i(/hmi" \
       > "${temporary}"
 fi
 
@@ -137,5 +159,6 @@ deno run --allow-read bench/validate.ts "${temporary}" \
   --stemlib-revision "${stemlib_revision}" --compiler "${compiler}"
 
 mv "${temporary}" "${output}"
+rm -rf "${generation_stemlib}"
 trap - 0 HUP INT TERM
 echo "release benchmark written to ${output}"

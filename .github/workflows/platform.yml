@@ -165,6 +165,18 @@ jobs:
           -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
           -P test/test-deno-binding-package.cmake
 
+      - name: Smoke-test generation qualification
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+          MORPHEUS_CRUNCHER: ${{ github.workspace }}/build/release/cruncher
+        run: |
+          cp build/release/test-gener-corpus/first.mgi stemlib/gener.index
+          deno run --allow-env --allow-ffi --allow-read --allow-run \
+            bench/compare.ts --iterations 1 --warmup 0 --contexts 1,2 \
+            --cold-samples 1 --generation-small 'lo/gos' \
+            --generation-maximal 'i(/hmi' --json > /dev/null
+
       - name: Preserve native package
         uses: actions/upload-artifact@v4
         with:
@@ -234,6 +246,18 @@ jobs:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
+      - name: Smoke-test generation qualification
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+          MORPHEUS_CRUNCHER: ${{ github.workspace }}/build/release/cruncher
+        run: |
+          cp build/release/test-gener-corpus/first.mgi stemlib/gener.index
+          deno run --allow-env --allow-ffi --allow-read --allow-run \
+            bench/compare.ts --iterations 1 --warmup 0 --contexts 1,2 \
+            --cold-samples 1 --generation-small 'lo/gos' \
+            --generation-maximal 'i(/hmi' --json > /dev/null
 
       - name: Package release candidate
         if: needs.activity.outputs.package-artifacts == 'true'
@@ -363,6 +387,18 @@ jobs:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.dylib
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+
+      - name: Smoke-test generation qualification
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.dylib
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+          MORPHEUS_CRUNCHER: ${{ github.workspace }}/build/release/cruncher
+        run: |
+          cp build/release/test-gener-corpus/first.mgi stemlib/gener.index
+          deno run --allow-env --allow-ffi --allow-read --allow-run \
+            bench/compare.ts --iterations 1 --warmup 0 --contexts 1,2 \
+            --cold-samples 1 --generation-small 'lo/gos' \
+            --generation-maximal 'i(/hmi' --json > /dev/null
 
       - name: Package release candidate
         if: needs.activity.outputs.package-artifacts == 'true'

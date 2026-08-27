@@ -14,6 +14,9 @@ the corpus.
 - The Deno binding now exposes nonblocking `generate()` and `generateRaw()`
   methods with typed morphology filters, owned results, stable failures, and
   parallel execution through distinct contexts.
+- Benchmark schema 2 now qualifies small and maximal generation paradigms,
+  cold and warm index use, context scaling, returned records, and process RSS
+  against a checksummed complete generation index.
 - A differential fixture test now freezes representative regular and irregular
   Greek generation behavior, including the dual forms omitted by the historical
   text formatter.

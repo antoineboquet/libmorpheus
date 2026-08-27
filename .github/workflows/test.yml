@@ -158,10 +158,12 @@ jobs:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
           MORPHEUS_CRUNCHER: ${{ github.workspace }}/build/dev/cruncher
-        run: >-
-          deno run --allow-env --allow-ffi --allow-read --allow-run
-          bench/compare.ts --iterations 1 --warmup 0 --contexts 1
-          --cold-samples 1 --json > /dev/null
+        run: |
+          cp build/dev/test-gener-corpus/first.mgi stemlib/gener.index
+          deno run --allow-env --allow-ffi --allow-read --allow-run \
+            bench/compare.ts --iterations 1 --warmup 0 --contexts 1 \
+            --cold-samples 1 --generation-small 'lo/gos' \
+            --generation-maximal 'i(/hmi' --json > /dev/null
 
   char-signedness:
     if: github.event_name == 'push'

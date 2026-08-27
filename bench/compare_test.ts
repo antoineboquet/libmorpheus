@@ -15,13 +15,15 @@ function measurement(
 ): Measurement {
   return {
     engine,
+    workload: "analysis",
+    lemma: null,
     contexts,
     operations: 10,
     durationMs: 1,
     operationsPerSecond,
     meanMicroseconds,
     startupMs: null,
-    analyses: null,
+    results: null,
     peakRssBytes,
     rssGrowthBytes: peakRssBytes,
   };
@@ -29,7 +31,7 @@ function measurement(
 
 function report(measurements: readonly Measurement[]): BenchmarkReport {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: "2026-01-01T00:00:00.000Z",
     label: null,
     platform: Deno.build,
@@ -43,6 +45,9 @@ function report(measurements: readonly Measurement[]): BenchmarkReport {
     uniqueWords: 1,
     iterations: 1,
     warmupIterations: 0,
+    generationSmallLemma: null,
+    generationMaximalLemma: null,
+    generationIndexSha256: null,
     measurements,
   };
 }
@@ -74,6 +79,23 @@ Deno.test("benchmark comparison rejects a different corpus", () => {
     rejected = true;
   }
   if (!rejected) throw new Error("different corpus was accepted");
+});
+
+Deno.test("benchmark comparison rejects a different generation index", () => {
+  const baseline = {
+    ...report([measurement("ffi", 1, 100, 10)]),
+    generationSmallLemma: "lo/gos",
+    generationMaximalLemma: "i(/hmi",
+    generationIndexSha256: "a".repeat(64),
+  };
+  const current = { ...baseline, generationIndexSha256: "b".repeat(64) };
+  let rejected = false;
+  try {
+    compareReports(baseline, current);
+  } catch {
+    rejected = true;
+  }
+  if (!rejected) throw new Error("different generation index was accepted");
 });
 
 Deno.test("benchmark comparison requires matching engine configurations", () => {

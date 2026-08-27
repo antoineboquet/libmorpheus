@@ -23,23 +23,27 @@ interface Configuration {
   readonly sourceRevision: string | null;
   readonly stemlibRevision: string | null;
   readonly compiler: string | null;
+  readonly generationSmallLemma: string | null;
+  readonly generationMaximalLemma: string | null;
 }
 
 export interface Measurement {
   readonly engine: string;
+  readonly workload: "analysis" | "generation";
+  readonly lemma: string | null;
   readonly contexts: number;
   readonly operations: number;
   readonly durationMs: number;
   readonly operationsPerSecond: number;
   readonly meanMicroseconds: number;
   readonly startupMs: number | null;
-  readonly analyses: number | null;
+  readonly results: number | null;
   readonly peakRssBytes: number | null;
   readonly rssGrowthBytes: number | null;
 }
 
 export interface BenchmarkReport {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly generatedAt: string;
   readonly label: string | null;
   readonly platform: typeof Deno.build;
@@ -53,6 +57,9 @@ export interface BenchmarkReport {
   readonly uniqueWords: number;
   readonly iterations: number;
   readonly warmupIterations: number;
+  readonly generationSmallLemma: string | null;
+  readonly generationMaximalLemma: string | null;
+  readonly generationIndexSha256: string | null;
   readonly measurements: readonly Measurement[];
 }
 
@@ -87,6 +94,8 @@ function parseArguments(arguments_: readonly string[]): Configuration {
   let sourceRevision: string | null = null;
   let stemlibRevision: string | null = null;
   let compiler: string | null = null;
+  let generationSmallLemma: string | null = null;
+  let generationMaximalLemma: string | null = null;
 
   for (let index = 0; index < arguments_.length; index++) {
     const argument = arguments_[index];
@@ -116,9 +125,16 @@ function parseArguments(arguments_: readonly string[]): Configuration {
       case "--revision": sourceRevision = next(); break;
       case "--stemlib-revision": stemlibRevision = next(); break;
       case "--compiler": compiler = next(); break;
+      case "--generation-small": generationSmallLemma = next(); break;
+      case "--generation-maximal": generationMaximalLemma = next(); break;
       case "--json": json = true; break;
       default: throw new Error(`unknown argument: ${argument}`);
     }
+  }
+  if ((generationSmallLemma === null) !== (generationMaximalLemma === null)) {
+    throw new Error(
+      "--generation-small and --generation-maximal must be provided together",
+    );
   }
   return {
     fixturePath,
@@ -132,6 +148,8 @@ function parseArguments(arguments_: readonly string[]): Configuration {
     sourceRevision,
     stemlibRevision,
     compiler,
+    generationSmallLemma,
+    generationMaximalLemma,
   };
 }
 
@@ -159,6 +177,14 @@ async function corpusSha256(words: readonly string[]): Promise<string> {
   return [...digest].map((value) => value.toString(16).padStart(2, "0")).join("");
 }
 
+async function fileSha256(path: string): Promise<string> {
+  const digest = new Uint8Array(await crypto.subtle.digest(
+    "SHA-256",
+    await Deno.readFile(path),
+  ));
+  return [...digest].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
 function percentageChange(current: number, baseline: number): number {
   if (!Number.isFinite(current) || !Number.isFinite(baseline) || baseline === 0) {
     throw new Error("benchmark values must be finite and baseline values nonzero");
@@ -170,20 +196,30 @@ export function compareReports(
   baseline: BenchmarkReport,
   current: BenchmarkReport,
 ): readonly BenchmarkComparison[] {
-  if (baseline.schemaVersion !== 1 || current.schemaVersion !== 1) {
+  if (baseline.schemaVersion !== 2 || current.schemaVersion !== 2) {
     throw new Error("unsupported benchmark report schema");
   }
   if (baseline.corpusSha256 !== current.corpusSha256) {
     throw new Error("benchmark corpus differs from baseline");
   }
+  if (
+    baseline.generationIndexSha256 !== current.generationIndexSha256 ||
+    baseline.generationSmallLemma !== current.generationSmallLemma ||
+    baseline.generationMaximalLemma !== current.generationMaximalLemma
+  ) {
+    throw new Error("generation benchmark inputs differ from baseline");
+  }
   const baselineMeasurements = new Map(
     baseline.measurements.map((measurement) =>
-      [`${measurement.engine}:${measurement.contexts}`, measurement] as const
+      [
+        `${measurement.engine}:${measurement.contexts}:${measurement.lemma ?? ""}`,
+        measurement,
+      ] as const
     ),
   );
   return current.measurements.map((measurement) => {
     const previous = baselineMeasurements.get(
-      `${measurement.engine}:${measurement.contexts}`,
+      `${measurement.engine}:${measurement.contexts}:${measurement.lemma ?? ""}`,
     );
     if (!previous) {
       throw new Error(
@@ -223,23 +259,27 @@ export function compareReports(
 
 function summarize(
   engine: string,
+  workload: "analysis" | "generation",
+  lemma: string | null,
   contexts: number,
   operations: number,
   durationMs: number,
   startupMs: number | null,
-  analyses: number | null,
+  results: number | null,
   peakRssBytes: number | null,
   baselineRssBytes: number | null,
 ): Measurement {
   return {
     engine,
+    workload,
+    lemma,
     contexts,
     operations,
     durationMs,
     operationsPerSecond: operations * 1000 / durationMs,
     meanMicroseconds: durationMs * 1000 / operations,
     startupMs,
-    analyses,
+    results,
     peakRssBytes,
     rssGrowthBytes: peakRssBytes === null || baselineRssBytes === null
       ? null
@@ -295,6 +335,8 @@ async function benchmarkFfi(
     peakRss = Math.max(peakRss, Deno.memoryUsage().rss);
     return summarize(
       "ffi",
+      "analysis",
+      null,
       contextCount,
       operations,
       durationMs,
@@ -348,6 +390,8 @@ async function benchmarkPersistentCruncher(
   const durationMs = performance.now() - start;
   return summarize(
     "cruncher-persistent",
+    "analysis",
+    null,
     1,
     measuredWords.length,
     durationMs,
@@ -372,6 +416,8 @@ async function benchmarkColdCruncher(
   const durationMs = performance.now() - start;
   return summarize(
     "cruncher-cold",
+    "analysis",
+    null,
     0,
     samples,
     durationMs,
@@ -382,9 +428,130 @@ async function benchmarkColdCruncher(
   );
 }
 
+async function benchmarkWarmGeneration(
+  libraryPath: string,
+  stemlibPath: string,
+  lemma: string,
+  label: "small" | "maximal",
+  configuration: Configuration,
+  contextCount: number,
+): Promise<Measurement> {
+  const baselineRss = Deno.memoryUsage().rss;
+  const startupStart = performance.now();
+  const library = new MorpheusLibrary(libraryPath);
+  const contexts = Array.from(
+    { length: contextCount },
+    () => library.createContext(stemlibPath, MorpheusLanguage.Greek),
+  );
+  const startupMs = performance.now() - startupStart;
+  try {
+    await Promise.all(contexts.map((context) =>
+      context.generate(lemma, { resultLimit: 65_536 })
+    ));
+    for (
+      let iteration = 0;
+      iteration < configuration.warmupIterations;
+      iteration++
+    ) {
+      await Promise.all(contexts.map((context) =>
+        context.generate(lemma, { resultLimit: 65_536 })
+      ));
+    }
+
+    let peakRss = Deno.memoryUsage().rss;
+    const sampler = setInterval(() => {
+      peakRss = Math.max(peakRss, Deno.memoryUsage().rss);
+    }, 5);
+    const operations = configuration.iterations * contextCount;
+    const start = performance.now();
+    let counts: readonly number[];
+    try {
+      counts = await Promise.all(contexts.map(async (context) => {
+        let results = 0;
+        for (
+          let iteration = 0;
+          iteration < configuration.iterations;
+          iteration++
+        ) {
+          results += (await context.generate(
+            lemma,
+            { resultLimit: 65_536 },
+          )).length;
+        }
+        return results;
+      }));
+    } finally {
+      clearInterval(sampler);
+    }
+    const durationMs = performance.now() - start;
+    peakRss = Math.max(peakRss, Deno.memoryUsage().rss);
+    return summarize(
+      `generation-${label}-warm`,
+      "generation",
+      lemma,
+      contextCount,
+      operations,
+      durationMs,
+      startupMs,
+      counts.reduce((sum, count) => sum + count, 0),
+      peakRss,
+      baselineRss,
+    );
+  } finally {
+    await Promise.all(contexts.map((context) => context.close()));
+    library.close();
+  }
+}
+
+async function benchmarkColdGeneration(
+  libraryPath: string,
+  stemlibPath: string,
+  lemma: string,
+  label: "small" | "maximal",
+  samples: number,
+): Promise<Measurement | null> {
+  if (!samples) return null;
+  const baselineRss = Deno.memoryUsage().rss;
+  const library = new MorpheusLibrary(libraryPath);
+  let peakRss = baselineRss;
+  let results = 0;
+  const start = performance.now();
+  try {
+    for (let sample = 0; sample < samples; sample++) {
+      const context = library.createContext(stemlibPath, MorpheusLanguage.Greek);
+      try {
+        results += (await context.generate(
+          lemma,
+          { resultLimit: 65_536 },
+        )).length;
+        peakRss = Math.max(peakRss, Deno.memoryUsage().rss);
+      } finally {
+        await context.close();
+      }
+    }
+  } finally {
+    library.close();
+  }
+  const durationMs = performance.now() - start;
+  return summarize(
+    `generation-${label}-cold`,
+    "generation",
+    lemma,
+    0,
+    samples,
+    durationMs,
+    durationMs / samples,
+    results,
+    peakRss,
+    baselineRss,
+  );
+}
+
 function printable(measurement: Measurement) {
   return {
     engine: measurement.engine,
+    workload: measurement.workload,
+    lemma: measurement.lemma ?? "n/a",
     contexts: measurement.contexts,
     operations: measurement.operations,
     duration_ms: measurement.durationMs.toFixed(2),
@@ -393,7 +560,7 @@ function printable(measurement: Measurement) {
     startup_ms: measurement.startupMs === null
       ? "n/a"
       : measurement.startupMs.toFixed(2),
-    analyses: measurement.analyses ?? "n/a",
+    results: measurement.results ?? "n/a",
     peak_rss_mib: measurement.peakRssBytes === null
       ? "n/a"
       : (measurement.peakRssBytes / 1024 / 1024).toFixed(2),
@@ -448,8 +615,45 @@ if (import.meta.main) {
   );
   if (cold) measurements.push(cold);
 
+  if (
+    configuration.generationSmallLemma !== null &&
+    configuration.generationMaximalLemma !== null
+  ) {
+    for (const contextCount of configuration.contextCounts) {
+      measurements.push(await benchmarkWarmGeneration(
+        libraryPath,
+        stemlibPath,
+        configuration.generationSmallLemma,
+        "small",
+        configuration,
+        contextCount,
+      ));
+      measurements.push(await benchmarkWarmGeneration(
+        libraryPath,
+        stemlibPath,
+        configuration.generationMaximalLemma,
+        "maximal",
+        configuration,
+        contextCount,
+      ));
+    }
+    for (const [lemma, label] of [
+      [configuration.generationSmallLemma, "small"],
+      [configuration.generationMaximalLemma, "maximal"],
+    ] as const) {
+      const generationCold = await benchmarkColdGeneration(
+        libraryPath,
+        stemlibPath,
+        lemma,
+        label,
+        configuration.coldSamples,
+      );
+      if (generationCold) measurements.push(generationCold);
+    }
+  }
+
   const report: BenchmarkReport = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: new Date().toISOString(),
     label: configuration.label,
     platform: Deno.build,
@@ -466,6 +670,11 @@ if (import.meta.main) {
     uniqueWords: words.length,
     iterations: configuration.iterations,
     warmupIterations: configuration.warmupIterations,
+    generationSmallLemma: configuration.generationSmallLemma,
+    generationMaximalLemma: configuration.generationMaximalLemma,
+    generationIndexSha256: configuration.generationSmallLemma === null
+      ? null
+      : await fileSha256(`${stemlibPath}/gener.index`),
     measurements,
   };
   const comparison = configuration.baselinePath

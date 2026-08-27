@@ -15,16 +15,24 @@ const expected: ReleaseBenchmarkExpectations = {
   compiler: "cc 1.0",
 };
 
-function measurement(engine: string, contexts: number): Measurement {
+function measurement(
+  engine: string,
+  contexts: number,
+  workload: "analysis" | "generation" = "analysis",
+): Measurement {
   return {
     engine,
+    workload,
+    lemma: workload === "generation"
+      ? (engine.includes("maximal") ? "i(/hmi" : "lo/gos")
+      : null,
     contexts,
     operations: 10,
     durationMs: 1,
     operationsPerSecond: 10_000,
     meanMicroseconds: 100,
     startupMs: engine === "ffi" ? 0.5 : null,
-    analyses: engine === "ffi" ? 10 : null,
+    results: workload === "generation" || engine === "ffi" ? 10 : null,
     peakRssBytes: engine === "ffi" ? 1024 : null,
     rssGrowthBytes: engine === "ffi" ? 128 : null,
   };
@@ -32,7 +40,7 @@ function measurement(engine: string, contexts: number): Measurement {
 
 function report(): BenchmarkReport {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     generatedAt: "2026-08-23T00:00:00.000Z",
     label: expected.label,
     platform: Deno.build,
@@ -46,12 +54,23 @@ function report(): BenchmarkReport {
     uniqueWords: 10,
     iterations: 20,
     warmupIterations: 2,
+    generationSmallLemma: "lo/gos",
+    generationMaximalLemma: "i(/hmi",
+    generationIndexSha256: "b".repeat(64),
     measurements: [
       measurement("ffi", 1),
       measurement("ffi", 2),
       measurement("ffi", 4),
       measurement("cruncher-persistent", 1),
       measurement("cruncher-cold", 0),
+      measurement("generation-small-warm", 1, "generation"),
+      measurement("generation-small-warm", 2, "generation"),
+      measurement("generation-small-warm", 4, "generation"),
+      measurement("generation-maximal-warm", 1, "generation"),
+      measurement("generation-maximal-warm", 2, "generation"),
+      measurement("generation-maximal-warm", 4, "generation"),
+      measurement("generation-small-cold", 0, "generation"),
+      measurement("generation-maximal-cold", 0, "generation"),
     ],
   };
 }

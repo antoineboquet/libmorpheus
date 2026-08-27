@@ -2,10 +2,11 @@
 
 # Runtime benchmarks
 
-`bench/compare.ts` compares the production-facing Deno FFI path with the
-compatibility `cruncher` client on the same Beta Code corpus. It is a manual
-benchmark rather than a CI performance gate: shared runners are used only for
-a one-iteration smoke test.
+`bench/compare.ts` measures the production-facing Deno FFI path for analysis
+and generation and compares analysis with the compatibility `cruncher` client
+on the same Beta Code corpus. It is a manual benchmark rather than a CI
+performance gate: shared runners execute only one-iteration protocol smoke
+tests.
 
 Build the normal runtime first, then run:
 
@@ -21,7 +22,9 @@ deno run --allow-env --allow-ffi --allow-read --allow-run \
   --iterations 20 \
   --warmup 2 \
   --contexts 1,2,4 \
-  --cold-samples 10
+  --cold-samples 10 \
+  --generation-small 'lo/gos' \
+  --generation-maximal 'i(/hmi'
 ```
 
 Use `libmorpheus.dylib` on macOS. Pass `--json` to produce a machine-readable
@@ -47,13 +50,17 @@ complete configure, build, CTest, benchmark, and validation sequence is wrapped
 by:
 
 ```sh
-sh bench/release.sh benchmark-0.1.0.json
+sh bench/release.sh benchmark-0.3.0.json
 ```
+
+The wrapper uses the checksummed complete index produced by the `gener_corpus`
+CTest and exposes it through a temporary stemlib root. It never writes
+`gener.index` into the tracked stemlib or the pinned Alpheios submodule.
 
 Pass a previous report as the second argument to add the normalized comparison:
 
 ```sh
-sh bench/release.sh benchmark-0.1.0.json benchmark-previous.json
+sh bench/release.sh benchmark-0.3.0.json benchmark-previous.json
 ```
 
 The wrapper refuses a dirty tracked worktree or submodule, an uninitialized or
@@ -74,21 +81,22 @@ deno run --allow-read bench/validate.ts benchmark.json \
 ```
 
 The validator requires full 40-character Git object IDs, compiler and platform
-metadata, a SHA-256 corpus identity, and measurements for FFI with 1, 2, and 4
-contexts plus persistent and cold `cruncher`. It does not impose timing
-thresholds; accepting or rejecting a measured regression remains an explicit
-release decision.
+metadata, SHA-256 identities for both the analysis corpus and complete
+generation index, analysis FFI with 1, 2, and 4 contexts, persistent and cold
+`cruncher`, and both generation workloads with 1, 2, and 4 warm contexts plus
+cold samples. It does not impose timing thresholds; accepting or rejecting a
+measured regression remains an explicit release decision.
 
-The JSON schema is versioned. It records the Deno runtime, target platform,
-hardware concurrency, corpus path and SHA-256 digest, source and stemlib
-revisions, compiler label, run parameters, and raw measurements. The revision
-and compiler values may instead be supplied through
+Benchmark schema 2 records the Deno runtime, target platform, hardware
+concurrency, corpus path and SHA-256 digest, generation lemmas and index digest,
+source and stemlib revisions, compiler label, run parameters, and raw
+measurements. The revision and compiler values may instead be supplied through
 `MORPHEUS_BENCHMARK_REVISION`, `MORPHEUS_STEMLIB_REVISION`, and
 `MORPHEUS_BENCHMARK_COMPILER`.
 
 ## Measurements
 
-The runner reports three execution models:
+The runner reports seven execution models:
 
 - `ffi`: structured analysis through the Deno binding, including native result
   copying into TypeScript objects. Each configured context count is measured;
@@ -101,11 +109,22 @@ The runner reports three execution models:
   only after those costs have been paid.
 - `cruncher-cold`: one process is started for each sample. This quantifies the
   startup cost but does not represent a persistent production process pool.
+- `generation-small-warm` and `generation-maximal-warm`: the complete index is
+  loaded before timing, then one lemma is generated repeatedly through each
+  configured context count. `lo/gos` is the representative small paradigm;
+  `i(/hmi`, whose qualified source block contains 544 explicit records, is the
+  maximal workload.
+- `generation-small-cold` and `generation-maximal-cold`: every sample creates a
+  new context and performs its first generation lookup. This includes index
+  validation and per-context service initialization. Operating-system file
+  caches are not flushed, so it is a cold-context measurement, not a cold-disk
+  benchmark.
 
 For each model the report includes elapsed time, operations per second, mean
-time per word, and startup time where it can be isolated. FFI measurements also
-sample the Deno process RSS, which includes the loaded native library, contexts,
-caches, native results, and copied TypeScript objects.
+time per operation, returned result records where available, and startup time
+where it can be isolated. FFI measurements also sample the Deno process RSS,
+which includes the loaded native library, contexts, caches, native results, and
+copied TypeScript objects.
 
 The persistent-process startup is included in its elapsed time and amortized
 over every measured word; it is not reported separately. The cold-process
@@ -126,10 +145,11 @@ Run benchmarks on otherwise idle native hardware, use a release build for
 deployment decisions, and retain the JSON report with compiler, Deno, stemlib,
 CPU, and operating-system metadata. Compare at least:
 
-1. single-context FFI latency against persistent-`cruncher` throughput;
-2. FFI scaling across context counts;
-3. RSS growth per additional warmed context;
-4. cold process startup only as a diagnostic baseline.
+1. single-context analysis FFI latency against persistent-`cruncher` throughput;
+2. analysis and warm generation scaling across context counts;
+3. small versus maximal generation latency and returned record counts;
+4. RSS growth per additional warmed context and workload;
+5. cold context/index initialization and cold process startup as diagnostics.
 
 Do not infer a production context count from shared CI results. Increase the
 context count only while throughput improves without unacceptable RSS growth or
@@ -147,8 +167,9 @@ deno run --allow-env --allow-ffi --allow-read --allow-run \
 
 The output adds percentage changes for throughput, mean latency, peak RSS, and
 RSS growth. Positive throughput is an improvement; positive latency or memory
-is an increase. Reports with different corpus digests or missing engine/context
-pairs are rejected rather than producing a misleading comparison.
+is an increase. Reports with different corpus or generation-index digests,
+different generation lemmas, or missing engine/context pairs are rejected
+rather than producing a misleading comparison.
 
 No timing threshold is enforced in CI because shared-runner variance would make
 it unstable. CI type-checks the runner, tests report comparison and corpus

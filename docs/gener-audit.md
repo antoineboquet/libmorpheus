@@ -288,7 +288,14 @@ become accidental generation promises.
    limits, failures, and raw-record decoding on `x86_64` and `aarch64` CI.
 7. **Qualify 0.3.0.** Benchmark representative small and maximal paradigms,
    memory use, cold index loading, warm lookups, and concurrent contexts on the
-   qualified platforms.
+   qualified platforms. Implemented in benchmark schema 2 with `lo/gos` as the
+   small paradigm and the 544-record `i(/hmi` block as the maximal workload.
+   Reports pin the complete generation-index SHA-256 and record cold
+   per-context index initialization, warm throughput, returned record counts,
+   peak RSS, and RSS growth. Release validation requires both workloads at
+   one, two, and four warm contexts plus cold samples. Linux `x86_64`, Linux
+   `aarch64`, and macOS `arm64` qualification jobs smoke-test the same protocol;
+   release decisions retain repeated measurements from controlled hardware.
 
 ## Initial fixture baseline
 

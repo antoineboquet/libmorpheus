@@ -40,6 +40,15 @@ function requireFinite(value: unknown, name: string, minimum: number): void {
 
 function validateMeasurement(measurement: Measurement, index: number): void {
   requireString(measurement.engine, `measurements[${index}].engine`);
+  if (!["analysis", "generation"].includes(measurement.workload)) {
+    throw new Error(`measurements[${index}].workload is invalid`);
+  }
+  if (measurement.workload === "generation") {
+    requireString(measurement.lemma, `measurements[${index}].lemma`);
+    requireFinite(measurement.results, `measurements[${index}].results`, 1);
+  } else if (measurement.lemma !== null) {
+    throw new Error(`measurements[${index}].lemma must be null for analysis`);
+  }
   requireInteger(measurement.contexts, `measurements[${index}].contexts`, 0);
   requireInteger(measurement.operations, `measurements[${index}].operations`, 1);
   requireFinite(measurement.durationMs, `measurements[${index}].durationMs`, 0);
@@ -55,7 +64,7 @@ function validateMeasurement(measurement: Measurement, index: number): void {
   );
   for (const [name, value] of [
     ["startupMs", measurement.startupMs],
-    ["analyses", measurement.analyses],
+    ["results", measurement.results],
     ["peakRssBytes", measurement.peakRssBytes],
   ] as const) {
     if (value !== null) requireFinite(value, `measurements[${index}].${name}`, 0);
@@ -73,7 +82,7 @@ export function validateReleaseBenchmark(
   report: BenchmarkReport,
   expected: ReleaseBenchmarkExpectations,
 ): void {
-  if (report.schemaVersion !== 1) {
+  if (report.schemaVersion !== 2) {
     throw new Error("unsupported benchmark schema");
   }
   requireString(report.generatedAt, "generatedAt");
@@ -117,6 +126,11 @@ export function validateReleaseBenchmark(
   requireInteger(report.uniqueWords, "uniqueWords", 1);
   requireInteger(report.iterations, "iterations", 1);
   requireInteger(report.warmupIterations, "warmupIterations", 0);
+  requireString(report.generationSmallLemma, "generationSmallLemma");
+  requireString(report.generationMaximalLemma, "generationMaximalLemma");
+  if (!sha256.test(report.generationIndexSha256!)) {
+    throw new Error("generationIndexSha256 must be a SHA-256 digest");
+  }
   if (!Array.isArray(report.measurements)) {
     throw new Error("measurements must be an array");
   }
@@ -131,6 +145,14 @@ export function validateReleaseBenchmark(
     "ffi:4",
     "cruncher-persistent:1",
     "cruncher-cold:0",
+    "generation-small-warm:1",
+    "generation-small-warm:2",
+    "generation-small-warm:4",
+    "generation-maximal-warm:1",
+    "generation-maximal-warm:2",
+    "generation-maximal-warm:4",
+    "generation-small-cold:0",
+    "generation-maximal-cold:0",
   ]) {
     if (!configurations.has(required)) {
       throw new Error(`release report lacks ${required}`);
