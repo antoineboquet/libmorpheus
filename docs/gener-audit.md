@@ -279,7 +279,13 @@ become accidental generation promises.
    contexts remain usable without it. Public, installed-consumer, symbol,
    ownership, invalid-input, filtering, and sanitizer tests cover the surface.
 6. **Extend the Deno binding.** Keep generation nonblocking, expose typed
-   filters, and test concurrent use through distinct contexts.
+   filters, and test concurrent use through distinct contexts. Implemented
+   with semantic `generate()` and numeric `generateRaw()` methods over the
+   additive C ABI. One context queue serializes analysis and generation while
+   distinct contexts remain concurrent; copied TypeScript results own their
+   data after the native result is freed. Differential binding tests preserve
+   duplicate interpretations, dialects, and duals and cover typed filters,
+   limits, failures, and raw-record decoding on `x86_64` and `aarch64` CI.
 7. **Qualify 0.3.0.** Benchmark representative small and maximal paradigms,
    memory use, cold index loading, warm lookups, and concurrent contexts on the
    qualified platforms.

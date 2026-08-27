@@ -5,10 +5,13 @@ const ABI_VERSION = 2;
 const TEXT_CAPACITY = 64;
 const DOMAIN_CAPACITY = 24;
 const MORPH_FLAG_CAPACITY = 11;
+const GENERATION_OPTIONS_VERSION = 1;
+const GENERATION_OPTIONS_SIZE = 64;
 
 const SYMBOLS = {
   morpheus_abi_version: { parameters: [], result: "u32" },
   morpheus_analysis_size: { parameters: [], result: "usize" },
+  morpheus_generation_size: { parameters: [], result: "usize" },
   morpheus_status_message: { parameters: ["u32"], result: "pointer" },
   morpheus_open_path: {
     parameters: ["u32", "buffer", "usize", "u32", "buffer"],
@@ -30,6 +33,27 @@ const SYMBOLS = {
     result: "u32",
   },
   morpheus_result_free: { parameters: ["pointer"], result: "void" },
+  morpheus_generate: {
+    parameters: ["pointer", "buffer", "usize", "buffer", "buffer"],
+    result: "u32",
+    nonblocking: true,
+  },
+  morpheus_generation_result_count: {
+    parameters: ["pointer"],
+    result: "usize",
+  },
+  morpheus_generation_result_copy: {
+    parameters: ["pointer", "usize", "buffer", "usize"],
+    result: "u32",
+  },
+  morpheus_generation_result_truncated_fields: {
+    parameters: ["pointer", "usize", "buffer"],
+    result: "u32",
+  },
+  morpheus_generation_result_free: {
+    parameters: ["pointer"],
+    result: "void",
+  },
 } as const;
 
 type NativeLibrary = Deno.DynamicLibrary<typeof SYMBOLS>;
@@ -52,6 +76,7 @@ export const MorpheusStatus = {
   InternalError: 6,
   BufferTooSmall: 7,
   StemlibError: 8,
+  ResultLimitExceeded: 9,
 } as const;
 export type MorpheusStatus =
   typeof MorpheusStatus[keyof typeof MorpheusStatus];
@@ -223,7 +248,9 @@ const MORPH_FLAG_NAMES = new Map<number, MorpheusMorphFlagName>([
 
 type MorpheusMorphFlagAnalysis =
   | Pick<MorpheusRawAnalysis, "morphFlags">
-  | Pick<MorpheusAnalysis, "morphFlags">;
+  | Pick<MorpheusAnalysis, "morphFlags">
+  | Pick<MorpheusRawGeneration, "morphFlags">
+  | Pick<MorpheusGeneration, "morphFlags">;
 
 function isMorpheusMorphFlagAnalysisArray(
   analysis: MorpheusMorphFlagAnalysis | readonly MorpheusMorphFlagAnalysis[],
@@ -268,6 +295,8 @@ export const MorpheusPartOfSpeech = {
   Particle: 10,
   Interjection: 11,
 } as const;
+export type MorpheusPartOfSpeech =
+  typeof MorpheusPartOfSpeech[keyof typeof MorpheusPartOfSpeech];
 
 export const MorpheusPerson = {
   None: 0,
@@ -275,6 +304,8 @@ export const MorpheusPerson = {
   Second: 2,
   Third: 3,
 } as const;
+export type MorpheusPerson =
+  typeof MorpheusPerson[keyof typeof MorpheusPerson];
 
 export const MorpheusNumber = {
   None: 0,
@@ -282,6 +313,8 @@ export const MorpheusNumber = {
   Dual: 2,
   Plural: 3,
 } as const;
+export type MorpheusNumber =
+  typeof MorpheusNumber[keyof typeof MorpheusNumber];
 
 export const MorpheusGender = {
   None: 0,
@@ -290,6 +323,8 @@ export const MorpheusGender = {
   Masculine: 4,
   Neuter: 8,
 } as const;
+export type MorpheusGender =
+  typeof MorpheusGender[keyof typeof MorpheusGender];
 
 export const MorpheusCase = {
   None: 0,
@@ -300,6 +335,8 @@ export const MorpheusCase = {
   Nominative: 16,
   Vocative: 32,
 } as const;
+export type MorpheusCase =
+  typeof MorpheusCase[keyof typeof MorpheusCase];
 
 export const MorpheusTense = {
   None: 0,
@@ -312,6 +349,8 @@ export const MorpheusTense = {
   FuturePerfect: 7,
   PastAbsolute: 8,
 } as const;
+export type MorpheusTense =
+  typeof MorpheusTense[keyof typeof MorpheusTense];
 
 export const MorpheusMood = {
   None: 0,
@@ -325,6 +364,8 @@ export const MorpheusMood = {
   Subjunctive: 8,
   Supine: 9,
 } as const;
+export type MorpheusMood =
+  typeof MorpheusMood[keyof typeof MorpheusMood];
 
 export const MorpheusVoice = {
   None: 0,
@@ -334,6 +375,8 @@ export const MorpheusVoice = {
   MedioPassive: 6,
   Deponent: 5,
 } as const;
+export type MorpheusVoice =
+  typeof MorpheusVoice[keyof typeof MorpheusVoice];
 
 export const MorpheusDegree = {
   None: 0,
@@ -341,6 +384,8 @@ export const MorpheusDegree = {
   Comparative: 2,
   Superlative: 3,
 } as const;
+export type MorpheusDegree =
+  typeof MorpheusDegree[keyof typeof MorpheusDegree];
 
 export const MorpheusDialect = {
   All: 0,
@@ -355,6 +400,8 @@ export const MorpheusDialect = {
   Epic: 72,
   Prose: 256,
 } as const;
+export type MorpheusDialect =
+  typeof MorpheusDialect[keyof typeof MorpheusDialect];
 
 export const MorpheusGeographicRegion = {
   None: 0,
@@ -374,6 +421,24 @@ export const MorpheusGeographicRegion = {
   Rhodes: 8192,
   Thera: 16384,
 } as const;
+export type MorpheusGeographicRegion =
+  typeof MorpheusGeographicRegion[keyof typeof MorpheusGeographicRegion];
+
+export interface MorpheusGenerationOptions {
+  readonly resultLimit?: number;
+  readonly excludeDuals?: boolean;
+  readonly partOfSpeech?: MorpheusPartOfSpeech;
+  readonly dialect?: MorpheusDialect;
+  readonly geographicRegion?: MorpheusGeographicRegion;
+  readonly person?: MorpheusPerson;
+  readonly number?: MorpheusNumber;
+  readonly gender?: MorpheusGender;
+  readonly grammaticalCase?: MorpheusCase;
+  readonly tense?: MorpheusTense;
+  readonly mood?: MorpheusMood;
+  readonly voice?: MorpheusVoice;
+  readonly degree?: MorpheusDegree;
+}
 
 export const MorpheusTruncatedField = {
   None: 0,
@@ -422,6 +487,25 @@ export interface MorpheusRawAnalysis {
   readonly truncatedFields: number;
 }
 
+export interface MorpheusRawGeneration {
+  readonly structSize: number;
+  readonly partOfSpeech: number;
+  readonly dialect: number;
+  readonly geographicRegion: number;
+  readonly person: number;
+  readonly number: number;
+  readonly gender: number;
+  readonly grammaticalCase: number;
+  readonly tense: number;
+  readonly mood: number;
+  readonly voice: number;
+  readonly degree: number;
+  readonly surface: string;
+  readonly lemma: string;
+  readonly morphFlags: Uint8Array;
+  readonly truncatedFields: number;
+}
+
 export type MorpheusPartOfSpeechName =
   | "unknown" | "noun" | "verb" | "adjective" | "adverb" | "article"
   | "pronoun" | "numeral" | "preposition" | "conjunction" | "particle"
@@ -451,6 +535,7 @@ export type MorpheusTruncatedFieldName =
   | "raw" | "workword" | "lemma" | "preverb" | "augment" | "stem"
   | "suffix" | "ending" | "crasis" | "dictionaryForm" | "englishForm"
   | "rawPreverb" | "domains";
+export type MorpheusGenerationTruncatedFieldName = "surface" | "lemma";
 
 export interface MorpheusAnalysis {
   readonly partOfSpeech: MorpheusPartOfSpeechName;
@@ -479,6 +564,24 @@ export interface MorpheusAnalysis {
   readonly domains: string;
   readonly morphFlags: readonly MorpheusMorphFlagName[];
   readonly truncatedFields: readonly MorpheusTruncatedFieldName[];
+}
+
+export interface MorpheusGeneration {
+  readonly partOfSpeech: MorpheusPartOfSpeechName;
+  readonly dialects: readonly MorpheusDialectName[];
+  readonly geographicRegions: readonly MorpheusGeographicRegionName[];
+  readonly person: MorpheusPersonName | null;
+  readonly grammaticalNumber: MorpheusNumberName | null;
+  readonly genders: readonly MorpheusGenderName[];
+  readonly grammaticalCases: readonly MorpheusCaseName[];
+  readonly tense: MorpheusTenseName | null;
+  readonly mood: MorpheusMoodName | null;
+  readonly voices: readonly MorpheusVoiceName[];
+  readonly degree: MorpheusDegreeName | null;
+  readonly surface: string;
+  readonly lemma: string;
+  readonly morphFlags: readonly MorpheusMorphFlagName[];
+  readonly truncatedFields: readonly MorpheusGenerationTruncatedFieldName[];
 }
 
 export class MorpheusError extends Error {
@@ -562,6 +665,69 @@ function decodeAnalysis(
     rawPreverb,
     domains,
     morphFlags,
+    truncatedFields,
+  };
+}
+
+function encodeGenerationOptions(
+  options: MorpheusGenerationOptions,
+): Uint8Array {
+  const resultLimit = options.resultLimit ?? 0;
+  if (!Number.isSafeInteger(resultLimit) || resultLimit < 0 ||
+    resultLimit > 65_536) {
+    throw new RangeError("resultLimit must be an integer from 0 to 65536");
+  }
+  const bytes = new Uint8Array(GENERATION_OPTIONS_SIZE);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(0, GENERATION_OPTIONS_VERSION, littleEndian);
+  view.setUint32(4, GENERATION_OPTIONS_SIZE, littleEndian);
+  view.setBigUint64(8, BigInt(resultLimit), littleEndian);
+  view.setUint32(16, options.excludeDuals ? 1 : 0, littleEndian);
+  view.setUint32(20, options.partOfSpeech ?? 0, littleEndian);
+  view.setUint32(24, options.dialect ?? 0, littleEndian);
+  view.setUint32(28, options.geographicRegion ?? 0, littleEndian);
+  view.setUint32(32, options.person ?? 0, littleEndian);
+  view.setUint32(36, options.number ?? 0, littleEndian);
+  view.setUint32(40, options.gender ?? 0, littleEndian);
+  view.setUint32(44, options.grammaticalCase ?? 0, littleEndian);
+  view.setUint32(48, options.tense ?? 0, littleEndian);
+  view.setUint32(52, options.mood ?? 0, littleEndian);
+  view.setUint32(56, options.voice ?? 0, littleEndian);
+  view.setUint32(60, options.degree ?? 0, littleEndian);
+  return bytes;
+}
+
+function decodeGeneration(
+  bytes: Uint8Array,
+  truncatedFields: number,
+): MorpheusRawGeneration {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const numbers: number[] = [];
+  for (let offset = 0; offset < 48; offset += 4) {
+    numbers.push(view.getUint32(offset, littleEndian));
+  }
+  const surface = cString(bytes, 48, TEXT_CAPACITY);
+  const lemma = cString(bytes, 48 + TEXT_CAPACITY, TEXT_CAPACITY);
+  const morphFlagOffset = 48 + 2 * TEXT_CAPACITY;
+  return {
+    structSize: numbers[0],
+    partOfSpeech: numbers[1],
+    dialect: numbers[2],
+    geographicRegion: numbers[3],
+    person: numbers[4],
+    number: numbers[5],
+    gender: numbers[6],
+    grammaticalCase: numbers[7],
+    tense: numbers[8],
+    mood: numbers[9],
+    voice: numbers[10],
+    degree: numbers[11],
+    surface,
+    lemma,
+    morphFlags: bytes.slice(
+      morphFlagOffset,
+      morphFlagOffset + MORPH_FLAG_CAPACITY,
+    ),
     truncatedFields,
   };
 }
@@ -656,9 +822,46 @@ function semanticAnalysis(raw: MorpheusRawAnalysis): MorpheusAnalysis {
   };
 }
 
+function semanticGeneration(raw: MorpheusRawGeneration): MorpheusGeneration {
+  const morphFlags: MorpheusMorphFlagName[] = [];
+  const truncatedFields: MorpheusGenerationTruncatedFieldName[] = [];
+  for (const [code, name] of MORPH_FLAG_NAMES) {
+    if (hasMorpheusMorphFlag(raw, code)) morphFlags.push(name);
+  }
+  if (raw.truncatedFields & MorpheusTruncatedField.Workword) {
+    truncatedFields.push("surface");
+  }
+  if (raw.truncatedFields & MorpheusTruncatedField.Lemma) {
+    truncatedFields.push("lemma");
+  }
+  return {
+    partOfSpeech:
+      exactName(raw.partOfSpeech, PART_OF_SPEECH_NAMES) ?? "unknown",
+    dialects: dialectNames(raw.dialect),
+    geographicRegions: maskNames(raw.geographicRegion, REGION_NAMES),
+    person: exactName(raw.person, PERSON_NAMES),
+    grammaticalNumber: exactName(raw.number, NUMBER_NAMES),
+    genders: maskNames(raw.gender, GENDER_NAMES),
+    grammaticalCases: maskNames(raw.grammaticalCase, CASE_NAMES),
+    tense: exactName(raw.tense, TENSE_NAMES),
+    mood: exactName(raw.mood, MOOD_NAMES),
+    voices: maskNames<MorpheusVoiceName>(
+      raw.voice,
+      VOICE_NAMES,
+      VOICE_EXACT_NAMES,
+    ),
+    degree: exactName(raw.degree, DEGREE_NAMES),
+    surface: raw.surface,
+    lemma: raw.lemma,
+    morphFlags,
+    truncatedFields,
+  };
+}
+
 export class MorpheusLibrary {
   readonly #native: NativeLibrary;
   readonly #analysisSize: number;
+  readonly #generationSize: number;
   #contexts = 0;
   #closed = false;
 
@@ -676,6 +879,12 @@ export class MorpheusLibrary {
     if (this.#analysisSize < 852) {
       this.#native.close();
       throw new Error("libmorpheus analysis record is smaller than ABI version 2");
+    }
+    this.#generationSize =
+      Number(this.#native.symbols.morpheus_generation_size());
+    if (this.#generationSize < 188) {
+      this.#native.close();
+      throw new Error("libmorpheus generation record is smaller than ABI version 2");
     }
   }
 
@@ -696,6 +905,7 @@ export class MorpheusLibrary {
       this.#native,
       pointerFromSlot(output),
       this.#analysisSize,
+      this.#generationSize,
       () => this.#contexts--,
     );
   }
@@ -731,6 +941,7 @@ export class MorpheusContext {
     private readonly native: NativeLibrary,
     private readonly pointer: Deno.PointerObject,
     private readonly analysisSize: number,
+    private readonly generationSize: number,
     private readonly onClose: () => void,
   ) {}
 
@@ -747,10 +958,24 @@ export class MorpheusContext {
     betaCode: string,
     options: bigint = 0n,
   ): Promise<readonly MorpheusRawAnalysis[]> {
-    if (this.#closed) return Promise.reject(new Error("Morpheus context is closed"));
-    const run = this.#tail.then(() => this.#analyze(betaCode, options));
-    this.#tail = run.then(() => undefined, () => undefined);
-    return run;
+    return this.#enqueue(() => this.#analyze(betaCode, options));
+  }
+
+  generate(
+    lemma: string,
+    options: MorpheusGenerationOptions = {},
+  ): Promise<readonly MorpheusGeneration[]> {
+    return this.generateRaw(lemma, options).then((generations) =>
+      generations.map(semanticGeneration)
+    );
+  }
+
+  generateRaw(
+    lemma: string,
+    options: MorpheusGenerationOptions = {},
+  ): Promise<readonly MorpheusRawGeneration[]> {
+    const encodedOptions = encodeGenerationOptions(options);
+    return this.#enqueue(() => this.#generate(lemma, encodedOptions));
   }
 
   async close(): Promise<void> {
@@ -763,6 +988,15 @@ export class MorpheusContext {
 
   async [Symbol.asyncDispose](): Promise<void> {
     await this.close();
+  }
+
+  #enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    if (this.#closed) {
+      return Promise.reject(new Error("Morpheus context is closed"));
+    }
+    const run = this.#tail.then(operation);
+    this.#tail = run.then(() => undefined, () => undefined);
+    return run;
   }
 
   async #analyze(
@@ -805,6 +1039,52 @@ export class MorpheusContext {
       return analyses;
     } finally {
       this.native.symbols.morpheus_result_free(result);
+    }
+  }
+
+  async #generate(
+    lemma: string,
+    options: Uint8Array,
+  ): Promise<readonly MorpheusRawGeneration[]> {
+    const input = encoder.encode(lemma);
+    const output = new BigUint64Array(1);
+    const status = await this.native.symbols.morpheus_generate(
+      this.pointer,
+      input,
+      BigInt(input.byteLength),
+      options,
+      output,
+    );
+    this.#throwOnError(status);
+    const result = pointerFromSlot(output);
+    try {
+      const count = Number(
+        this.native.symbols.morpheus_generation_result_count(result),
+      );
+      const generations: MorpheusRawGeneration[] = [];
+      for (let index = 0; index < count; index++) {
+        const bytes = new Uint8Array(this.generationSize);
+        this.#throwOnError(
+          this.native.symbols.morpheus_generation_result_copy(
+            result,
+            BigInt(index),
+            bytes,
+            BigInt(bytes.byteLength),
+          ),
+        );
+        const truncatedFields = new Uint32Array(1);
+        this.#throwOnError(
+          this.native.symbols.morpheus_generation_result_truncated_fields(
+            result,
+            BigInt(index),
+            truncatedFields,
+          ),
+        );
+        generations.push(decodeGeneration(bytes, truncatedFields[0]));
+      }
+      return generations;
+    } finally {
+      this.native.symbols.morpheus_generation_result_free(result);
     }
   }
 

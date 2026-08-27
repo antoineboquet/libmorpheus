@@ -2,98 +2,186 @@
 
 # Deno binding
 
-The binding loads the libmorpheus shared library directly with `Deno.dlopen`.
-It requires Deno 2 on a 64-bit x86 or ARM runtime.
+> [!WARNING]
+> This binding and the normalized native API it calls are
+> AGPL-3.0-or-later. The inherited engine, translation bridge, compatibility
+> API, and generated index reader remain MPL-2.0. Read the
+> [archive notice](NOTICE) before distributing an application or archive.
 
-## License
+## Purpose
 
-The original Deno binding code in this directory is licensed under
-[AGPL-3.0-or-later](LICENSE). This license applies only to the binding.
-The normalized native API it calls is also AGPL-3.0-or-later; the inherited
-engine, translation bridge, and compatibility API remain MPL-2.0. See the
-[archive notice](NOTICE) for the native dependency boundary and links to the
-complete licensing and provenance records.
+This module loads the `libmorpheus` shared library with `Deno.dlopen` and
+exposes normalized Greek analysis and lemma generation. Native results are
+copied into owned TypeScript objects before their C allocations are released.
+
+## Requirements and constraints
+
+- Deno 2 on a 64-bit `x86_64` or `aarch64` runtime.
+- A matching ABI 2 `libmorpheus` shared library.
+- An Alpheios stemlib tree. Generation additionally requires a validated
+  `gener.index` at the stemlib root; analysis remains available without it.
+- Greek contexts for generation. Analysis retains the native language support.
+- Serialized calls within one context. Distinct contexts may run concurrently.
+
+## Installation
+
+### Standalone release archive
+
+Each GitHub release provides `libmorpheus-deno-<version>.tar.gz` and a companion
+SHA-256 file. Extract it beside the matching native archive, import `mod.ts`
+from the extracted directory, and pass the installed shared-library path to
+`MorpheusLibrary`. The binding archive contains neither native binaries nor
+stem data.
+
+### Future JSR package
+
+JSR publication is planned but is not available yet. Until a package name and
+release are announced, use the standalone archive or a pinned source checkout;
+do not depend on an unversioned repository URL.
+
+## FFI permission
+
+Grant access only to the selected shared library when possible:
+
+```sh
+deno run --allow-ffi=/absolute/path/libmorpheus.so app.ts
+```
+
+Use the installed platform name, normally `libmorpheus.so` on Linux and
+`libmorpheus.dylib` on macOS. A `deno.json` task can retain the same restricted
+command for both `x86_64` and `aarch64` deployments; only the library path needs
+to change. Environment and file permissions are not required by the binding
+itself.
+
+## Analyze a form
 
 ```ts
 import {
+  MorpheusError,
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
 } from "./mod.ts";
 
+try {
+  using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
+  await using context = library.createContext(
+    "/path/to/stemlib",
+    MorpheusLanguage.Greek,
+  );
+
+  const analyses = await context.analyze(
+    "a)/nqrwpos",
+    MorpheusOption.StrictCase,
+  );
+  console.log(analyses[0].partOfSpeech);       // "noun"
+  console.log(analyses[0].grammaticalNumber); // "singular"
+  console.log(analyses[0].grammaticalCases);  // ["nominative"]
+} catch (error) {
+  if (error instanceof MorpheusError) {
+    console.error(`Morpheus status ${error.status}: ${error.message}`);
+  } else {
+    throw error;
+  }
+}
+```
+
+`analyze()` returns stable English identifiers, arrays for combinable masks,
+and `null` for inapplicable scalar values. It preserves all analyses. A generic
+stemlib `indecl` class remains `"unknown"` because it does not identify a
+lexical category. An empty dialect array means no recorded restriction.
+
+`MorpheusOption.HqDictionary` requires both HQ index files. If they are absent,
+the promise rejects with `MorpheusStatus.StemlibError` before native analysis.
+
+## Generate forms from a lemma
+
+```ts
+import {
+  MorpheusDialect,
+  MorpheusError,
+  MorpheusLanguage,
+  MorpheusLibrary,
+  MorpheusNumber,
+  MorpheusStatus,
+} from "./mod.ts";
+
+try {
+  using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
+  await using context = library.createContext(
+    "/path/to/stemlib",
+    MorpheusLanguage.Greek,
+  );
+
+  const duals = await context.generate("lo/gos", {
+    number: MorpheusNumber.Dual,
+    dialect: MorpheusDialect.Attic,
+    resultLimit: 256,
+  });
+  for (const form of duals) console.log(form.surface, form.grammaticalCases);
+} catch (error) {
+  if (
+    error instanceof MorpheusError &&
+    error.status === MorpheusStatus.ResultLimitExceeded
+  ) {
+    console.error("Increase the explicit result limit for this paradigm");
+  } else {
+    throw error;
+  }
+}
+```
+
+`generate()` is nonblocking and accepts typed filters for part of speech,
+dialect, region, person, number, gender, case, tense, mood, voice, and degree.
+It preserves dialect masks, duals, duplicate surfaces, and multiple indexed
+interpretations unless filters remove them. `excludeDuals` is available when
+dual forms are unwanted. The default native limit is 4,096 and the explicit
+hard maximum is 65,536.
+
+## Parallel contexts
+
+One context deliberately queues analysis and generation calls because the
+native context is stateful. Create separate contexts to perform independent
+work in parallel:
+
+```ts
 using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
-await using context = library.createContext(
-  "/path/to/stemlib",
-  MorpheusLanguage.Greek,
-);
+await using first = library.createContext(stemlib, MorpheusLanguage.Greek);
+await using second = library.createContext(stemlib, MorpheusLanguage.Greek);
 
-const analyses = await context.analyze(
-  "a)/nqrwpos",
-  MorpheusOption.StrictCase,
-);
-
-console.log(analyses[0].partOfSpeech);       // "noun"
-console.log(analyses[0].grammaticalNumber); // "singular"
-console.log(analyses[0].grammaticalCases);  // ["nominative"]
+const [analyses, forms] = await Promise.all([
+  first.analyze("a)/nqrwpos"),
+  second.generate("lo/gos"),
+]);
 ```
 
-Use the platform's installed library name: typically `libmorpheus.so` on
-Linux and `libmorpheus.dylib` on macOS. Run applications with FFI permission:
+The actual speedup depends on the workload and machine. Reuse warm contexts;
+the generation index is loaded lazily once per context.
+
+## Raw access and cleanup
+
+Use `analyzeRaw()` and `generateRaw()` for ABI inspection and low-level tools.
+They return numeric normalized traits, `structSize`, the complete 11-byte
+public morphology vector, and a numeric truncation mask. The semantic methods
+return named morphology flags and truncated fields.
+
+Close contexts before their parent library. `using` and `await using` provide
+deterministic cleanup, including when a promise rejects. `MorpheusLibrary.close`
+rejects while any child context remains open.
+
+## Local checks
+
+Build the library and prepare the small differential generation index before
+running the binding tests:
 
 ```sh
-deno run --allow-ffi app.ts
-```
-
-## Standalone release archive
-
-Each GitHub release provides one platform-independent binding archive named
-`libmorpheus-deno-<version>.tar.gz`, with a companion SHA-256 file. Extract it
-alongside a matching native `libmorpheus` archive, then import `mod.ts` from
-the extracted binding directory and pass the installed shared-library path to
-`MorpheusLibrary`. The binding archive does not contain a native library or
-stem data.
-
-Analysis is declared as a nonblocking FFI call and executes away from Deno's
-main event loop. Calls made through one context are serialized by the wrapper
-because a native context must not be used concurrently. Separate contexts may
-analyze in parallel. Results are copied into TypeScript objects before their
-native allocation is released.
-
-`analyze()` returns the ergonomic TypeScript representation: grammatical
-values are stable English identifiers, combinable masks are arrays, absent
-values are `null` or empty arrays, and morphology flags and truncated fields
-are named. ABI version 2 does not expose stemlib-specific stem-type or
-derivation-type identifiers.
-
-The semantic part-of-speech names distinguish nouns, verbs, adjectives,
-adverbs, articles, pronouns, numerals, prepositions, conjunctions, particles,
-and interjections. A stemlib type named only `indecl` remains `"unknown"`
-because that morphology class does not identify a lexical category. `degree`
-is `null` when degree is inapplicable; the native bridge normalizes irregular
-comparative and superlative markers. An empty `dialects`
-array means that no specific dialect restriction is recorded. The composite
-`"epic"` name consumes its Homeric and non-Homeric epic bits even inside a
-larger dialect mask.
-
-Use `analyzeRaw()` when inspecting the ABI or maintaining low-level tooling.
-It returns `MorpheusRawAnalysis`, including normalized numeric morphology
-fields, `structSize`, the complete 11-byte public trait vector, and the numeric
-truncation mask.
-
-`MorpheusOption.HqDictionary` is conditional on the selected stemlib providing
-`hqdict/indices/stindex` and `hqdict/indices/stindex.lindex`. If either file is
-missing or empty, `analyze()` and `analyzeRaw()` reject with a `MorpheusError`
-whose status is `MorpheusStatus.StemlibError`; the native analyzer is not run.
-
-Close contexts before closing their parent library. `using` and `await using`
-provide deterministic cleanup; `MorpheusLibrary.close()` rejects an early
-close while contexts remain active.
-
-To check and run the binding tests against a local build:
-
-```sh
+cmake --preset dev
+cmake --build --preset dev
+build/dev/morpheus_gener_index_builder \
+  stemlib/gener.index test/generation-service-source.txt
 deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
 MORPHEUS_LIBRARY="$PWD/build/dev/libmorpheus.so" \
 MORPHEUS_STEMLIB="$PWD/stemlib" \
-deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+deno test --allow-env --allow-ffi="$PWD/build/dev/libmorpheus.so" \
+  bindings/deno/mod_test.ts
 ```

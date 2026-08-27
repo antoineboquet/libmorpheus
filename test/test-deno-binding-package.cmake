@@ -79,6 +79,18 @@ string(FIND "${binding_readme}" "[archive notice](NOTICE)" notice_link_at)
 if(notice_link_at EQUAL -1)
   message(FATAL_ERROR "Packaged Deno README does not link to its notice")
 endif()
+foreach(required_text IN ITEMS
+    "> [!WARNING]"
+    "Standalone release archive"
+    "Future JSR package"
+    "generate()"
+    "--allow-ffi=/absolute/path/libmorpheus.so")
+  string(FIND "${binding_readme}" "${required_text}" required_text_at)
+  if(required_text_at EQUAL -1)
+    message(FATAL_ERROR
+      "Packaged Deno README omits required text: ${required_text}")
+  endif()
+endforeach()
 string(FIND "${binding_readme}" "../../docs/licensing.md" broken_link_at)
 if(NOT broken_link_at EQUAL -1)
   message(FATAL_ERROR "Packaged Deno README contains an out-of-archive link")

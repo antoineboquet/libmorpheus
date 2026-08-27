@@ -11,6 +11,9 @@ the corpus.
 
 ### Added
 
+- The Deno binding now exposes nonblocking `generate()` and `generateRaw()`
+  methods with typed morphology filters, owned results, stable failures, and
+  parallel execution through distinct contexts.
 - A differential fixture test now freezes representative regular and irregular
   Greek generation behavior, including the dual forms omitted by the historical
   text formatter.

@@ -138,9 +138,9 @@ this representation; raw engine bytes and sparse historical flag numbers are
 not returned.
 
 The Deno binding exposes the same indices through `MorpheusMorphFlag` and
-returns either the public byte vector (`analyzeRaw()`) or stable names
-(`analyze()`). `hasMorpheusMorphFlag()` accepts either representation or a
-readonly array of analyses.
+returns either the public byte vector (`analyzeRaw()` and `generateRaw()`) or
+stable names (`analyze()` and `generate()`). `hasMorpheusMorphFlag()` accepts
+either representation or a readonly array of analyses or generations.
 
 ## Fixed-capacity text
 

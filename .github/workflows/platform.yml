@@ -223,6 +223,12 @@ jobs:
       - name: Check binding
         run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
 
+      - name: Prepare Deno generation fixture
+        run: >-
+          build/release/morpheus_gener_index_builder
+          stemlib/gener.index
+          test/generation-service-source.txt
+
       - name: Test binding
         env:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
@@ -345,6 +351,12 @@ jobs:
 
       - name: Check binding
         run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+
+      - name: Prepare Deno generation fixture
+        run: >-
+          build/release/morpheus_gener_index_builder
+          stemlib/gener.index
+          test/generation-service-source.txt
 
       - name: Test binding
         env:

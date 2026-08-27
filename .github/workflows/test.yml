@@ -116,6 +116,12 @@ jobs:
       - name: Build library
         run: cmake --build --preset dev
 
+      - name: Prepare Deno generation fixture
+        run: >-
+          build/dev/morpheus_gener_index_builder
+          stemlib/gener.index
+          test/generation-service-source.txt
+
       - name: Package Deno binding
         run: >-
           cmake

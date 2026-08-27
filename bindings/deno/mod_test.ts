@@ -3,11 +3,13 @@
 
 import {
   hasMorpheusMorphFlag,
+  MorpheusDialect,
   MorpheusError,
   MorpheusLanguage,
   MorpheusLibrary,
-  MorpheusOption,
   MorpheusMorphFlag,
+  MorpheusNumber,
+  MorpheusOption,
   MorpheusPartOfSpeech,
   MorpheusStatus,
   MorpheusTruncatedField,
@@ -283,6 +285,130 @@ Deno.test("analyzes Greek through the native ABI", async () => {
     MorpheusOption.StrictCase,
   );
   assert(afterScoped.length > 0, "request options must not leak to later calls");
+
+  const generations = await context.generate("lo/gos");
+  assert(generations.length === 18, "lo/gos must retain the core fixture count");
+  assert(
+    generations.filter((generation) =>
+      generation.grammaticalNumber === "dual"
+    ).length === 3,
+    "generation must preserve dual forms by default",
+  );
+  assert(
+    new Set(generations.map((generation) => generation.surface)).size === 17,
+    "generation must preserve duplicate morphological interpretations",
+  );
+  assert(
+    generations.every((generation) =>
+      generation.partOfSpeech === "noun" && generation.lemma === "lo/gos" &&
+      generation.truncatedFields.length === 0
+    ),
+    "semantic generations must preserve normalized grammar and owned text",
+  );
+
+  const rawGenerations = await context.generateRaw("lo/gos");
+  assert(
+    rawGenerations.length === generations.length,
+    "raw generation count must match",
+  );
+  assert(
+    rawGenerations[0].structSize >= 188,
+    "raw generation ABI size must be preserved",
+  );
+  assert(
+    rawGenerations[0].morphFlags.length === 11,
+    "raw generations must copy the complete public trait vector",
+  );
+  assert(
+    rawGenerations[0].truncatedFields === MorpheusTruncatedField.None,
+    "raw generation truncation mask must be preserved",
+  );
+
+  const withoutDuals = await context.generate("lo/gos", {
+    excludeDuals: true,
+  });
+  assert(withoutDuals.length === 15, "excludeDuals must match the fixture");
+  const onlyDuals = await context.generate("lo/gos", {
+    number: MorpheusNumber.Dual,
+  });
+  assert(onlyDuals.length === 3, "the typed number filter must retain duals");
+
+  const attic = await context.generate("multiple", {
+    dialect: MorpheusDialect.Attic,
+    resultLimit: 1,
+  });
+  assert(
+    attic.length === 1 && attic[0].surface === "prw=ton" &&
+      attic[0].dialects.join(",") === "attic",
+    "the Attic filter must select its indexed interpretation",
+  );
+  const ionic = await context.generate("multiple", {
+    dialect: MorpheusDialect.Ionic,
+    resultLimit: 1,
+  });
+  assert(
+    ionic.length === 1 && ionic[0].surface === "deu/teron" &&
+      ionic[0].dialects.join(",") === "ionic",
+    "the Ionic filter must select its indexed interpretation",
+  );
+  assert(
+    (await context.generate("multiple")).length === 2,
+    "multiple index blocks must remain separate analyses",
+  );
+  assert(
+    (await context.generate("lo/gos", {
+      partOfSpeech: MorpheusPartOfSpeech.Verb,
+    })).length === 0,
+    "typed part-of-speech filters must allow an empty owned result",
+  );
+
+  let rejectedLimit = false;
+  try {
+    await context.generate("lo/gos", { resultLimit: 17 });
+  } catch (error) {
+    assert(error instanceof MorpheusError, "limit failure must be typed");
+    assert(
+      error.status === MorpheusStatus.ResultLimitExceeded,
+      "limit failure must expose its stable status",
+    );
+    rejectedLimit = true;
+  }
+  assert(rejectedLimit, "generation must reject an exceeded result limit");
+
+  let rejectedInvalidLimit = false;
+  try {
+    await context.generate("lo/gos", { resultLimit: 65_537 });
+  } catch (error) {
+    assert(error instanceof RangeError, "invalid limits must fail in TypeScript");
+    rejectedInvalidLimit = true;
+  }
+  assert(rejectedInvalidLimit, "an invalid limit must not reach native code");
+
+  const [queuedAnalysis, queuedGeneration] = await Promise.all([
+    context.analyze("du/o", MorpheusOption.StrictCase),
+    context.generate("multiple"),
+  ]);
+  assert(
+    queuedAnalysis.length === 1 && queuedGeneration.length === 2,
+    "analysis and generation must share one context queue",
+  );
+
+  await using parallelContext = library.createContext(
+    stemlibPath,
+    MorpheusLanguage.Greek,
+  );
+  const [parallelRegular, parallelMultiple] = await Promise.all([
+    context.generate("lo/gos", { excludeDuals: true }),
+    parallelContext.generate("multiple"),
+  ]);
+  assert(
+    parallelRegular.length === 15 && parallelMultiple.length === 2,
+    "distinct contexts must support concurrent generation",
+  );
+  assert(
+    generations.length === 18 && generations[0].surface.length > 0,
+    "copied generations must outlive their native result allocation",
+  );
 
   const personAnalyses = await context.analyze(
     "*)arta/chs",
