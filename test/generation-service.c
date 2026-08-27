@@ -127,7 +127,6 @@ summarize_multiple(const gk_word *form, void *state)
 		summary->saw_first = 1;
 	if (!strcmp(workword_of(form),"deu/teron"))
 		summary->saw_second = 1;
-	assert(dialect_of(form));
 	return 1;
 }
 

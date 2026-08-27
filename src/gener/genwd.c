@@ -153,6 +153,8 @@ printf("stem [%s] stemkeys [%s]\n", stem_of(Gkword), stemkeys);
 	if( ! ScanAsciiKeys(stemkeys,&tmpGkword,stem_gstring,(gk_string *)NULL) ) {
 		fprintf(stderr,"stem [%s] lemma [%s]: Something wrong with stemkeys [%s]\n",gkstring_of(stem_gstring), lemma_of(&tmpGkword), stemkeys );
 		fprintf(stderr,"stemtype:%d\n", stemtype_of(&tmpGkword) );
+		if (oddkeys_of(&tmpGkword) != oddkeys_of(Gkword))
+			free(oddkeys_of(&tmpGkword));
 		return(NULL);
 	}
 
