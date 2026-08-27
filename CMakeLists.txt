@@ -807,6 +807,10 @@ if(BUILD_TESTING)
     gener_core_fixtures
     PROPERTIES ENVIRONMENT "MORPHLIB=${MORPHEUS_STEMLIB_DIR}"
   )
+  set_tests_properties(
+    gener_service_differential gener_service_isolation gener_service_failure
+    PROPERTIES ENVIRONMENT "MORPHLIB=${MORPHEUS_STEMLIB_DIR}"
+  )
   if(MORPHEUS_ENABLE_SANITIZERS)
     set_property(
       TEST dictionary_entry_workspace APPEND PROPERTY ENVIRONMENT
@@ -818,12 +822,15 @@ if(BUILD_TESTING)
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )
-    set_tests_properties(
-      gener_service_differential gener_service_isolation gener_service_failure
-      PROPERTIES ENVIRONMENT
-        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
-        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
-    )
+    foreach(service_test IN ITEMS
+            gener_service_differential gener_service_isolation
+            gener_service_failure)
+      set_property(
+        TEST ${service_test} APPEND PROPERTY ENVIRONMENT
+          "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+          "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+      )
+    endforeach()
   endif()
 endif()
 
