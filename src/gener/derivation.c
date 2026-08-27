@@ -369,10 +369,9 @@ morpheus_gener_expand_derivation(FILE *output, const char *stem,
 		}
 		result = ScanAsciiKeys(line,word,&rule,NULL);
 		FreeGkword(word);
-		if (result <= 0) {
-			fclose(table);
-			return -1;
-		}
+		/* Historical binary tables retain non-generating rule rows. */
+		if (result <= 0)
+			continue;
 		set_gkstring(&rule,suffix);
 		if (!rule_matches(&request,&rule))
 			continue;

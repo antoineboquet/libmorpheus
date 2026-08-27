@@ -37,9 +37,11 @@ follows the historical `gener` canonicalization by removing an initial `!`,
 hyphens, hard quantity markers (`_` and `^`), and diaeresis markers (`+`).
 Accents, breathings, case, and homonym digits are otherwise preserved.
 
-Empty lemma blocks are omitted. Blocks with the same canonical key remain
-separate and retain command-line input order. Lemma groups are sorted by their
-unsigned byte representation; records retain source order within each block.
+Empty lemma blocks are omitted. After canonicalisation, blocks with identical
+ordered records are deduplicated while retaining their first command-line
+occurrence. All distinct blocks with the same canonical key remain separate
+and retain command-line input order. Lemma groups are sorted by their unsigned
+byte representation; records retain source order within each block.
 
 ## Integer and offset rules
 

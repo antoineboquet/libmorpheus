@@ -70,6 +70,7 @@ foreach(mpl_file IN ITEMS
         test/gener-source-orphan-continuation.txt
         tools/gener-source-preparer.c
         tools/gener-corpus-manifest.tsv
+        tools/gener-corpus-exceptions.tsv
         tools/gener-derivation-manifest.tsv)
   file(READ "${MORPHEUS_SOURCE_DIR}/${mpl_file}" contents)
   string(FIND "${contents}" "SPDX-License-Identifier: MPL-2.0" spdx_at)

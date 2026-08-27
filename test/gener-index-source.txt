@@ -13,5 +13,8 @@
 :le:dupe
 :vb:du/pe w_stem pres ind act 1st sg
 
+:le:dupe
+:wd:du/pe indecl
+
 :le:empty
 :def:metadata only

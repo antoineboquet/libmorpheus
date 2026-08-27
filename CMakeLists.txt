@@ -628,7 +628,24 @@ if(BUILD_TESTING)
       "${CMAKE_COMMAND}"
       -DMORPHEUS_GENER_CORPUS_ROOT=${MORPHEUS_STEMLIB_DIR}/Greek
       -DMORPHEUS_GENER_CORPUS_MANIFEST=${PROJECT_SOURCE_DIR}/tools/gener-corpus-manifest.tsv
+      -DMORPHEUS_GENER_CORPUS_EXCEPTIONS=${PROJECT_SOURCE_DIR}/tools/gener-corpus-exceptions.tsv
       -P "${PROJECT_SOURCE_DIR}/test/gener-corpus-manifest.cmake"
+  )
+  add_test(
+    NAME gener_corpus
+    COMMAND
+      "${CMAKE_COMMAND}"
+      -DMORPHEUS_GENER_SOURCE_PREPARER=$<TARGET_FILE:morpheus_gener_source_preparer>
+      -DMORPHEUS_GENER_INDEX_BUILDER=$<TARGET_FILE:morpheus_gener_index_builder>
+      -DMORPHEUS_GENER_CORPUS_ROOT=${MORPHEUS_STEMLIB_DIR}/Greek
+      -DMORPHEUS_GENER_CORPUS_MANIFEST=${PROJECT_SOURCE_DIR}/tools/gener-corpus-manifest.tsv
+      -DMORPHEUS_GENER_CORPUS_EXCEPTIONS=${PROJECT_SOURCE_DIR}/tools/gener-corpus-exceptions.tsv
+      -DMORPHEUS_GENER_CORPUS_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-corpus
+      -P "${PROJECT_SOURCE_DIR}/test/gener-corpus.cmake"
+  )
+  set_tests_properties(
+    gener_corpus
+    PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
   )
   add_test(
     NAME gener_derivation_manifest

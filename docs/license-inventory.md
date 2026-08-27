@@ -45,6 +45,8 @@ The following remain MPL-2.0 even where the current path was created locally:
   fixtures, and the pinned Alpheios data submodule;
 - `tools/gener-corpus-manifest.tsv`, which records the ordered paths and
   checksums of derived corpus inputs;
+- `tools/gener-corpus-exceptions.tsv`, which records qualified anomalies in
+  those inherited inputs;
 - `tools/gener-derivation-manifest.tsv` and the generation-derivation fixtures,
   which record and exercise inherited rule data and behavior.
 

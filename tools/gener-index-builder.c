@@ -73,21 +73,26 @@ duplicate_string(const char *value)
 }
 
 static void
+free_block(source_block *block)
+{
+	size_t record;
+
+	free(block->lemma);
+	for (record = 0; record != block->record_count; record++) {
+		free(block->records[record].stem);
+		free(block->records[record].keys);
+	}
+	free(block->records);
+	*block = (source_block){ 0 };
+}
+
+static void
 free_index(source_index *index)
 {
 	size_t block;
 
 	for (block = 0; block != index->block_count; block++) {
-		size_t record;
-
-		free(index->blocks[block].lemma);
-		for (record = 0;
-		     record != index->blocks[block].record_count;
-		     record++) {
-			free(index->blocks[block].records[record].stem);
-			free(index->blocks[block].records[record].keys);
-		}
-		free(index->blocks[block].records);
+		free_block(index->blocks + block);
 	}
 	free(index->blocks);
 	*index = (source_index){ 0 };
@@ -322,6 +327,59 @@ compare_blocks(const void *left_value, const void *right_value)
 	return left->ordinal < right->ordinal ? -1 : left->ordinal != right->ordinal;
 }
 
+static int
+same_block(const source_block *left, const source_block *right)
+{
+	size_t record;
+
+	if (strcmp(left->lemma,right->lemma) ||
+	    left->record_count != right->record_count)
+		return 0;
+	for (record = 0; record != left->record_count; record++) {
+		const source_record *left_record = left->records + record;
+		const source_record *right_record = right->records + record;
+
+		if (left_record->kind != right_record->kind ||
+		    strcmp(left_record->stem,right_record->stem) ||
+		    strcmp(left_record->keys,right_record->keys))
+			return 0;
+	}
+	return 1;
+}
+
+static void
+discard_duplicate_blocks(source_index *index)
+{
+	size_t input;
+	size_t output = 0;
+
+	for (input = 0; input != index->block_count; input++) {
+		size_t previous;
+		int duplicate = 0;
+
+		for (previous = output; previous; previous--) {
+			if (strcmp(index->blocks[previous - 1].lemma,
+			           index->blocks[input].lemma))
+				break;
+			if (same_block(index->blocks + previous - 1,
+			               index->blocks + input)) {
+				duplicate = 1;
+				break;
+			}
+		}
+		if (duplicate) {
+			free_block(index->blocks + input);
+			continue;
+		}
+		if (output != input) {
+			index->blocks[output] = index->blocks[input];
+			index->blocks[input] = (source_block){ 0 };
+		}
+		output++;
+	}
+	index->block_count = output;
+}
+
 static void
 put_u32(unsigned char *output, uint32_t value)
 {
@@ -410,6 +468,7 @@ write_index(source_index *index, const char *path)
 
 	discard_empty_blocks(index);
 	qsort(index->blocks,index->block_count,sizeof *index->blocks,compare_blocks);
+	discard_duplicate_blocks(index);
 	for (block = 0; block != index->block_count; block++) {
 		if (!index->blocks[block].record_count)
 			continue;

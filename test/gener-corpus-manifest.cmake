@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 foreach(required IN ITEMS MORPHEUS_GENER_CORPUS_ROOT
-                          MORPHEUS_GENER_CORPUS_MANIFEST)
+                          MORPHEUS_GENER_CORPUS_MANIFEST
+                          MORPHEUS_GENER_CORPUS_EXCEPTIONS)
   if(NOT DEFINED ${required})
     message(FATAL_ERROR "${required} is required")
   endif()
@@ -89,4 +90,80 @@ list(LENGTH manifest_verbs verb_count)
 if(NOT nominal_count EQUAL 45 OR NOT verb_count EQUAL 4)
   message(FATAL_ERROR
     "unexpected generation-corpus size: ${nominal_count} nominal, ${verb_count} verb")
+endif()
+
+file(STRINGS "${MORPHEUS_GENER_CORPUS_EXCEPTIONS}" exception_lines)
+set(exception_locations)
+set(previous_exception_path "")
+set(previous_exception_line 0)
+set(invalid_derivation_count 0)
+set(invalid_record_count 0)
+set(orphan_continuation_count 0)
+set(orphan_request_count 0)
+set(zero_continuation_count 0)
+set(zero_request_count 0)
+
+foreach(line IN LISTS exception_lines)
+  if(line STREQUAL "" OR line MATCHES "^#")
+    continue()
+  endif()
+  string(REPLACE "\t" ";" fields "${line}")
+  list(LENGTH fields field_count)
+  if(NOT field_count EQUAL 4)
+    message(FATAL_ERROR "invalid generation-corpus exception line: ${line}")
+  endif()
+  list(GET fields 0 category)
+  list(GET fields 1 relative_path)
+  list(GET fields 2 source_line)
+  list(GET fields 3 source_sha256)
+  if(NOT category MATCHES
+     "^(invalid_derivation|invalid_record|orphan_continuation|orphan_request|zero_continuation|zero_request)$")
+    message(FATAL_ERROR "invalid generation-corpus exception category: ${category}")
+  endif()
+  list(FIND manifest_paths "${relative_path}" manifest_at)
+  if(manifest_at EQUAL -1)
+    message(FATAL_ERROR
+      "generation-corpus exception references an unselected file: ${relative_path}")
+  endif()
+  if(NOT source_line MATCHES "^[1-9][0-9]*$")
+    message(FATAL_ERROR
+      "invalid generation-corpus exception line number: ${source_line}")
+  endif()
+  string(LENGTH "${source_sha256}" sha256_length)
+  if(NOT sha256_length EQUAL 64 OR NOT source_sha256 MATCHES "^[0-9a-f]+$")
+    message(FATAL_ERROR
+      "invalid generation-corpus exception SHA-256: ${relative_path}:${source_line}")
+  endif()
+  set(location "${relative_path}:${source_line}")
+  list(FIND exception_locations "${location}" duplicate_at)
+  if(NOT duplicate_at EQUAL -1)
+    message(FATAL_ERROR "duplicate generation-corpus exception: ${location}")
+  endif()
+  if(relative_path STRLESS previous_exception_path OR
+     (relative_path STREQUAL previous_exception_path AND
+      source_line LESS_EQUAL previous_exception_line))
+    message(FATAL_ERROR "generation-corpus exceptions are not in source order")
+  endif()
+  list(APPEND exception_locations "${location}")
+  set(previous_exception_path "${relative_path}")
+  set(previous_exception_line "${source_line}")
+  math(EXPR ${category}_count "${${category}_count} + 1")
+endforeach()
+
+list(LENGTH exception_locations exception_count)
+if(NOT exception_count EQUAL 99 OR
+   NOT invalid_derivation_count EQUAL 7 OR
+   NOT invalid_record_count EQUAL 3 OR
+   NOT orphan_continuation_count EQUAL 1 OR
+   NOT orphan_request_count EQUAL 15 OR
+   NOT zero_continuation_count EQUAL 18 OR
+   NOT zero_request_count EQUAL 55)
+  message(FATAL_ERROR
+    "unexpected generation-corpus exceptions: ${exception_count} total; "
+    "${invalid_derivation_count} invalid derivations, "
+    "${invalid_record_count} invalid records, "
+    "${orphan_continuation_count} orphan continuations, "
+    "${orphan_request_count} orphan requests, "
+    "${zero_continuation_count} zero-output continuations, "
+    "${zero_request_count} zero-output requests")
 endif()

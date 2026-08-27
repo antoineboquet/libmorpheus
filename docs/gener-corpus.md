@@ -75,18 +75,53 @@ some of them with `-`, and uses global mutable buffers. The supported preparer
 emits only lemma and explicit generation records accepted by the version 1
 index builder.
 
-## Duplicate policy still to qualify
+## Qualified source exceptions
+
+Running the complete ordered corpus through the pinned historical
+`do_conj full` program exposes 88 control records for which that program emits no
+generation record. Source-state analysis separates those records from the
+previously identified grammar failures and disabled base:
+
+| Category | Count | Meaning |
+| --- | ---: | --- |
+| `invalid_derivation` | 7 | `:de:` cannot name one active derivation rule under the historical grammar. |
+| `invalid_record` | 3 | An explicit `:wd:`/`:no:` record has an empty stem because whitespace follows the prefix. |
+| `orphan_request` | 15 | `;` follows an explicit record rather than an active `:de:` record. |
+| `orphan_continuation` | 1 | `@` follows only disabled/commented base records. |
+| `zero_request` | 55 | An attached `;` request makes `do_conj full` emit no record. |
+| `zero_continuation` | 18 | An attached `@` request makes `do_conj full` emit no record. |
+
+The 99 locations are frozen in `tools/gener-corpus-exceptions.tsv`. Each entry
+records its category, source path, one-based line number, and the SHA-256 of
+the trimmed source line. The file-level corpus manifest simultaneously pins
+the complete source contents, so a line insertion, removal, or replacement
+cannot silently preserve an exception at a stale location. CI enforces the
+category counts, source order, selected paths, and uniqueness of locations.
+
+These entries are observations, not corrections. The corpus preparer's explicit
+exception-aware mode omits them only after verifying every path, line number,
+category, and source-line fingerprint; it also rejects every unlisted failure
+and any unmatched manifest entry. In particular, it preserves
+successful derivations and explicit records in the same lemma block; excluding
+an entire lemma because one request fails would discard qualified data.
+
+## Qualified duplicate policy
 
 The historical analysis build concatenates overlapping author files and LSJ
 files before sorting and indexing. A generation lookup must avoid multiplying
 identical paradigms while retaining genuinely distinct blocks for the same
-lemma. Exact raw-block identity is insufficient because continuations and
-derivations change the semantic record set.
+lemma. Raw source identity is insufficient because continuations and
+derivations change the semantic record set. Deduplication therefore occurs only
+after expansion and canonicalisation. Two blocks are duplicates only when
+their canonical lemma and complete ordered sequences of structured records are
+identical. The first occurrence is retained; distinct blocks for the same key
+and repeated records within one block are preserved.
 
-The final deduplication rule will therefore be fixed after expansion by
-comparison with the historical generator. Until then, the source manifest
-preserves every ordered input and the index format continues to support
-multiple blocks for one canonical key.
+The qualified corpus contains 108,650 non-empty blocks before this rule and
+108,215 afterward, so 435 redundant blocks are removed. The resulting index
+contains 106,422 canonical lemmas and 129,097 records. CI prepares and indexes
+the 49 sources twice, requires byte-for-byte reproducibility, and freezes the
+SHA-256 of both the 238,250-line prepared corpus and the final index.
 
 ## Licensing
 

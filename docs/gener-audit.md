@@ -285,10 +285,18 @@ The version 1 reverse-index format and its offline builder are now specified in
 [Generation index format](gener-index-format.md). The initial builder preserves
 duplicate lemma blocks, canonicalizes keys like the historical formatter,
 emits host-independent little-endian tables, and rejects unexpanded derivation
-records. The supported derivation expander is now connected to the preparer;
-assembling the complete ordered corpus remains blocked only by the seven
-explicitly unresolved source records, the disabled-record orphan, and the
-duplicate policy described below.
+records. The supported derivation expander is now connected to the preparer. A
+complete historical-oracle pass plus structural index validation has classified
+99 source exceptions: seven
+invalid derivations, 15 orphan principal-part requests, one continuation whose
+base is disabled, 55 attached requests with no output, and 18 attached
+continuations with no output, plus three explicit records with empty stems.
+Their exact locations and source-line
+fingerprints are frozen in `tools/gener-corpus-exceptions.tsv`. The
+exception-aware preparer now consumes the complete ordered corpus, rejects
+unlisted or stale exceptions, and produces a reproducible full index. Exact
+post-expansion duplicate blocks are removed while every distinct block for the
+same canonical lemma remains represented.
 
 The complete pinned source universe is now recorded in
 [Greek generation corpus](gener-corpus.md) with per-file SHA-256 digests and a
@@ -307,8 +315,11 @@ The derivation registry, all 43 rule-source files, and a representative
 records the duplicate `illw` registry entry, five unreferenced rule files, and
 seven malformed or unresolved `:de:` records. The supported offline
 implementation now expands `:de:`, `;`, and their `@` continuations through a
-call-local MPL interface, matches the frozen oracle exactly, and reports
-unknown derivation types rather than applying undocumented corrections.
+call-local MPL interface, matches the frozen fixture oracle exactly, and
+reports unknown derivation types rather than applying undocumented
+corrections. The corpus-wide oracle additionally proves that 88 syntactically
+processed requests produce no record; those no-output observations are
+retained separately from the seven invalid derivation names.
 
 ## Decision
 
