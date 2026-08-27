@@ -783,6 +783,10 @@ if(BUILD_TESTING)
     morpheus_generation_service_test
     test/generation-service.c
   )
+  target_include_directories(
+    morpheus_generation_service_test
+    PRIVATE "${PROJECT_SOURCE_DIR}/include"
+  )
   target_link_libraries(
     morpheus_generation_service_test
     PRIVATE
