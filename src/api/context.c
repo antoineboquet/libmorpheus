@@ -150,6 +150,7 @@ morpheus_status morpheus_open_path(uint32_t abi_version, const uint8_t *stemlib_
 void morpheus_close(morpheus_context *context)
 {
   if(!context) return;
-  morpheus_generation_context_cleanup(context);
+  if(context->public_generation_cleanup)
+    context->public_generation_cleanup(context);
   morpheus_runtime_context_destroy(context);
 }

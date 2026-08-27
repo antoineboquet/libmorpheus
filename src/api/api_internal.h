@@ -16,7 +16,6 @@ struct morpheus_generation_result {
   morpheus_truncated_fields *truncated_fields;
 };
 morpheus_result *morpheus_result_create(size_t count);
-void morpheus_generation_context_cleanup(morpheus_context *context);
 static inline morpheus_status morpheus_runtime_status(
     const morpheus_runtime_context *context)
 {

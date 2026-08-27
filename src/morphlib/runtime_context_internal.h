@@ -24,6 +24,7 @@ struct morpheus_runtime_context {
 	char *stemlib_path;
 	void *public_generation_index;
 	void *public_generation_service;
+	void (*public_generation_cleanup)(struct morpheus_runtime_context *);
 	unsigned char comparison_table[MORPHEUS_BYTE_TABLE_SIZE];
 	unsigned char beta_table[MORPHEUS_BYTE_TABLE_SIZE];
 	int comparison_table_initialized;

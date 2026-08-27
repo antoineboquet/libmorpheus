@@ -21,6 +21,8 @@
    MORPHEUS_REGION_LOCRIS|MORPHEUS_REGION_MEGARID|                     \
    MORPHEUS_REGION_PHOCIS|MORPHEUS_REGION_RHODES|MORPHEUS_REGION_THERA)
 
+static void generation_context_cleanup(morpheus_context *context);
+
 static morpheus_generation_result *generation_result_create(size_t count)
 {
   morpheus_generation_result *result=calloc(1,sizeof *result);
@@ -169,6 +171,7 @@ static morpheus_status ensure_generation_service(morpheus_context *context)
   }
   context->public_generation_index=index;
   context->public_generation_service=service;
+  context->public_generation_cleanup=generation_context_cleanup;
   return(MORPHEUS_OK);
 }
 
@@ -306,11 +309,12 @@ void morpheus_generation_result_free(morpheus_generation_result *result)
   free(result);
 }
 
-void morpheus_generation_context_cleanup(morpheus_context *context)
+static void generation_context_cleanup(morpheus_context *context)
 {
   if(!context) return;
   morpheus_generation_service_destroy(context->public_generation_service);
   morpheus_gener_index_close(context->public_generation_index);
   context->public_generation_service=NULL;
   context->public_generation_index=NULL;
+  context->public_generation_cleanup=NULL;
 }

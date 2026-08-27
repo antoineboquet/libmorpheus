@@ -86,7 +86,7 @@ int main(int argc, char **argv)
   context=open_context(argv[1]);
   options=default_options();
   options.flags=MORPHEUS_GENERATION_EXCLUDE_DUALS;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_OK);
   assert(morpheus_generation_result_count(result)==15);
   morpheus_generation_result_free(result);
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
 
   options=default_options();
   options.number=MORPHEUS_NUMBER_DUAL;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_OK);
   assert(morpheus_generation_result_count(result)==3);
   morpheus_generation_result_free(result);
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
   result=NULL;
 
   options.part_of_speech=MORPHEUS_PART_OF_SPEECH_VERB;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_OK);
   assert(result && !morpheus_generation_result_count(result));
   morpheus_generation_result_free(result);
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 
   options=default_options();
   options.result_limit=17;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_RESULT_LIMIT_EXCEEDED);
   assert(!result);
   assert(!strcmp(morpheus_status_message(MORPHEUS_RESULT_LIMIT_EXCEEDED),
@@ -157,23 +157,23 @@ int main(int argc, char **argv)
          MORPHEUS_INVALID_ARGUMENT);
   options=default_options();
   options.version++;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_ABI_MISMATCH);
   options=default_options();
   options.struct_size--;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_ABI_MISMATCH);
   options=default_options();
   options.voice=UINT32_C(8);
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_INVALID_ARGUMENT);
   options=default_options();
   options.dialect=UINT32_C(1)<<31;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_INVALID_ARGUMENT);
   options=default_options();
   options.result_limit=MORPHEUS_GENERATION_MAX_LIMIT+1;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_INVALID_ARGUMENT);
   memset(long_lemma,'a',sizeof long_lemma);
   assert(morpheus_generate(context,(const uint8_t *)long_lemma,
@@ -182,12 +182,12 @@ int main(int argc, char **argv)
   options=default_options();
   options.number=MORPHEUS_NUMBER_DUAL;
   options.flags=MORPHEUS_GENERATION_EXCLUDE_DUALS;
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,&options,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,&options,
                            &result)==MORPHEUS_INVALID_ARGUMENT);
   morpheus_close(context);
 
   context=open_context(argv[2]);
-  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",7,NULL,
+  assert(morpheus_generate(context,(const uint8_t *)"lo/gos",6,NULL,
                            &result)==MORPHEUS_STEMLIB_ERROR);
   assert(!result);
   morpheus_close(context);
