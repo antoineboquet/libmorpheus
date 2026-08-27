@@ -37,6 +37,12 @@ the corpus.
 - Native and Deno release archives now carry self-contained licensing and
   provenance information without relying on paths outside the archives.
 
+### Fixed
+
+- The internal generation service now applies the historical first-key comma
+  expansion to call-local input, allowing qualified corpus records such as
+  `aor_pass,syll_augment` without changing the immutable index.
+
 ## [0.2.0] - 2026-08-25
 
 Target project version: **0.2.0**. C ABI: **2**. Shared-library SONAME: **1**.

@@ -15,6 +15,9 @@
 :le:ei)mi/
 :vb:ei)mi irreg_mi pres ind act sg 1st enclitic
 
+:le:comma
+:vs:lu w_stem,poetic
+
 :le:multiple
 :wd:prw=ton indecl attic
 

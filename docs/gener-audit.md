@@ -260,7 +260,9 @@ become accidental generation promises.
    generated forms only to a synchronous internal visitor. Differential tests
    cover the frozen core fixtures and multiple indexed blocks; separate tests
    cover concurrent context isolation, invalid records, early termination,
-   and sanitizer execution.
+   and sanitizer execution. The call-local parser also reproduces the legacy
+   first-key comma expansion required by complete-corpus records while leaving
+   the validated index immutable.
 4. **Normalize results at the bridge.** Reuse the ABI 2 value translators,
    remove stem and derivation codes, define stable ordering, and enforce result
    limits. Implemented by the internal MPL-2.0 generation normalizer. It owns

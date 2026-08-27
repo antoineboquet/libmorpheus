@@ -194,6 +194,20 @@ run_differential(const morpheus_gener_index *index, const char *fixture_path)
 		assert(summary.saw_first && summary.saw_second);
 		morpheus_generation_service_destroy(service);
 	}
+	/* The historical front end expands commas in the stem-type glob. */
+	{
+		morpheus_generation_service *service = NULL;
+		form_summary summary = { UINT64_C(14695981039346656037), 0 };
+		size_t count = 0;
+
+		assert(morpheus_generation_service_create(index,&service) ==
+		       MORPHEUS_GENERATION_OK);
+		assert(morpheus_generation_service_generate(
+		           service,"comma",summarize,&summary,&count) ==
+		       MORPHEUS_GENERATION_OK);
+		assert(count > 0);
+		morpheus_generation_service_destroy(service);
+	}
 }
 
 static void *

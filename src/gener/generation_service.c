@@ -2,6 +2,7 @@
 
 #include "generation_service.h"
 
+#include <ctype.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -52,6 +53,28 @@ release_forms(gk_word *forms)
 	FreeGkword(forms);
 }
 
+static char *
+record_keys(const char *source)
+{
+	char *copy;
+	char *cursor;
+	size_t length = strlen(source);
+
+	copy = malloc(length + 1);
+	if (!copy)
+		return NULL;
+	memcpy(copy,source,length + 1);
+	cursor = copy;
+	while (isspace((unsigned char)*cursor))
+		cursor++;
+	while (*cursor && !isspace((unsigned char)*cursor)) {
+		if (*cursor == ',')
+			*cursor = ' ';
+		cursor++;
+	}
+	return copy;
+}
+
 static morpheus_generation_status
 generate_record(morpheus_generation_service *service, const char *lemma,
                 const morpheus_gener_record_view *record,
@@ -60,18 +83,23 @@ generate_record(morpheus_generation_service *service, const char *lemma,
 {
 	gk_word input = { 0 };
 	gk_word *forms;
+	char *keys;
 	size_t form;
 	int irregular;
 	int mode;
 
 	set_lemma(&input,lemma);
 	set_stem(&input,record->stem);
+	keys = record_keys(record->keys);
+	if (!keys)
+		return MORPHEUS_GENERATION_NO_MEMORY;
 	irregular = record->kind == MORPHEUS_GENER_RECORD_INDECLINABLE ||
 	            record->kind == MORPHEUS_GENER_RECORD_IRREGULAR_VERB;
 	mode = record->kind == MORPHEUS_GENER_RECORD_INDECLINABLE ? INDECL : 0;
 	forms = irregular
-	            ? GenIrregForm(&input,(char *)record->keys,mode)
-	            : GenStemForms(&input,(char *)record->keys,0);
+	            ? GenIrregForm(&input,keys,mode)
+	            : GenStemForms(&input,keys,0);
+	free(keys);
 	if (!forms) {
 		morpheus_generation_status status = runtime_status(service->context);
 		release_input(&input);
