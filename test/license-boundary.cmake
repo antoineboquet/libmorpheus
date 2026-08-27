@@ -53,6 +53,8 @@ foreach(mpl_file IN ITEMS
         src/gener/derivation.c
         src/gener/derivation.h
         src/gener/gener_internal.h
+        src/gener/generation_service.c
+        src/gener/generation_service.h
         src/gener/genwd.proto.h
         src/gkdict/compnoun.proto.h
         src/gkdict/gkdict_internal.h
@@ -68,6 +70,8 @@ foreach(mpl_file IN ITEMS
         test/gener-derivation-invalid.txt
         test/gener-index-source.txt
         test/gener-index-unexpanded.txt
+        test/generation-service-invalid-source.txt
+        test/generation-service-source.txt
         test/gener-source-continuations.txt
         test/gener-source-orphan-continuation.txt
         tools/gener-source-preparer.c

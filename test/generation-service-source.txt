@@ -1,0 +1,22 @@
+# SPDX-License-Identifier: MPL-2.0
+
+:le:lo/gos
+:no:log os_ou masc
+
+:le:a)/bolos
+:aj:a)bol os_on
+
+:le:lu/w
+:vs:lu w_stem
+
+:le:korba=n
+:wd:korba=n indecl
+
+:le:ei)mi/
+:vb:ei)mi irreg_mi pres ind act sg 1st enclitic
+
+:le:multiple
+:wd:prw=ton indecl attic
+
+:le:multiple
+:wd:deu/teron indecl ionic

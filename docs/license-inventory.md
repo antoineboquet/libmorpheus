@@ -39,6 +39,9 @@ The following remain MPL-2.0 even where the current path was created locally:
 - the offline generation-source preparer and its internal derivation engine,
   whose continuation and morphology semantics are adapted from the inherited
   generator;
+- the internal generation service under `src/gener/`, whose construction of
+  historical `gk_word` values and generator ownership rules adapt the inherited
+  engine;
 - inherited workflow, container, README, and repository configuration files;
 - `test/fixture.json`, `test/alpheios-fixture.json`,
   `test/gener-fixture.tsv`, the generation-index and generation-source

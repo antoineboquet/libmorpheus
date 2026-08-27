@@ -255,6 +255,12 @@ become accidental generation promises.
 3. **Add an internal generation service.** Parse indexed records into
    call-local `gk_word` values and invoke only `GenStemForms()` and
    `GenIrregForm()`. Add context isolation, failure, and sanitizer tests.
+   Implemented by the internal MPL-2.0 `morpheus_generation_service`: it owns
+   one runtime context, borrows one validated immutable index, and exposes
+   generated forms only to a synchronous internal visitor. Differential tests
+   cover the frozen core fixtures and multiple indexed blocks; separate tests
+   cover concurrent context isolation, invalid records, early termination,
+   and sanitizer execution.
 4. **Normalize results at the bridge.** Reuse the ABI 2 value translators,
    remove stem and derivation codes, define stable ordering, and enforce result
    limits.

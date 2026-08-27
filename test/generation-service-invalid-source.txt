@@ -1,0 +1,7 @@
+# SPDX-License-Identifier: MPL-2.0
+
+:le:broken
+:no:broken codex_unknown
+
+:le:stop
+:wd:stop indecl

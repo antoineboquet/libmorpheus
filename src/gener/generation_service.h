@@ -1,0 +1,34 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
+#ifndef MORPHEUS_GENERATION_SERVICE_H
+#define MORPHEUS_GENERATION_SERVICE_H
+
+#include <stddef.h>
+
+#include <gkstring.h>
+
+#include "../api/gener_index.h"
+
+typedef struct morpheus_generation_service morpheus_generation_service;
+
+typedef enum {
+	MORPHEUS_GENERATION_OK = 0,
+	MORPHEUS_GENERATION_INVALID = 1,
+	MORPHEUS_GENERATION_NOT_FOUND = 2,
+	MORPHEUS_GENERATION_NO_MEMORY = 3,
+	MORPHEUS_GENERATION_ENGINE_ERROR = 4,
+	MORPHEUS_GENERATION_STOPPED = 5
+} morpheus_generation_status;
+
+/* The form is borrowed and remains valid only for the duration of the call. */
+typedef int (*morpheus_generation_visitor)(const gk_word *form, void *state);
+
+morpheus_generation_status morpheus_generation_service_create(
+    const morpheus_gener_index *index, morpheus_generation_service **service);
+void morpheus_generation_service_destroy(morpheus_generation_service *service);
+
+morpheus_generation_status morpheus_generation_service_generate(
+    morpheus_generation_service *service, const char *canonical_lemma,
+    morpheus_generation_visitor visitor, void *state, size_t *form_count);
+
+#endif

@@ -710,6 +710,24 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+add_library(
+  morpheus_generation_service STATIC
+  src/gener/generation_service.c
+)
+target_link_libraries(
+  morpheus_generation_service
+  PUBLIC morpheus_build_options
+  PRIVATE morpheus_gener_index morpheus_gener morpheus_morphlib
+)
+target_compile_options(
+  morpheus_generation_service
+  PRIVATE
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
+    $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
+)
+
 if(BUILD_TESTING)
   add_executable(
     morpheus_dictionary_entry_workspace_test
@@ -746,6 +764,41 @@ if(BUILD_TESTING)
     COMMAND morpheus_gener_core_fixtures_test
             "${PROJECT_SOURCE_DIR}/test/gener-fixture.tsv"
   )
+  add_executable(
+    morpheus_generation_service_test
+    test/generation-service.c
+  )
+  target_link_libraries(
+    morpheus_generation_service_test
+    PRIVATE
+      morpheus_generation_service
+      morpheus_gener_index
+      morpheus_gener
+      morpheus_gkends
+      morpheus_morphlib
+      morpheus_greeklib
+      morpheus_build_options
+      Threads::Threads
+  )
+  foreach(service_mode IN ITEMS differential isolation failure)
+    set(service_source "${PROJECT_SOURCE_DIR}/test/generation-service-source.txt")
+    if(service_mode STREQUAL "failure")
+      set(service_source
+          "${PROJECT_SOURCE_DIR}/test/generation-service-invalid-source.txt")
+    endif()
+    add_test(
+      NAME gener_service_${service_mode}
+      COMMAND
+        "${CMAKE_COMMAND}"
+        -DMORPHEUS_GENER_INDEX_BUILDER=$<TARGET_FILE:morpheus_gener_index_builder>
+        -DMORPHEUS_GENERATION_SERVICE_TEST=$<TARGET_FILE:morpheus_generation_service_test>
+        -DMORPHEUS_GENERATION_SERVICE_SOURCE=${service_source}
+        -DMORPHEUS_GENERATION_SERVICE_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-service-${service_mode}
+        -DMORPHEUS_GENERATION_SERVICE_MODE=${service_mode}
+        -DMORPHEUS_GENERATION_FIXTURES=${PROJECT_SOURCE_DIR}/test/gener-fixture.tsv
+        -P "${PROJECT_SOURCE_DIR}/test/generation-service.cmake"
+    )
+  endforeach()
   set_tests_properties(
     dictionary_entry_workspace
     PROPERTIES ENVIRONMENT "MORPHLIB=${PROJECT_SOURCE_DIR}/stemlib"
@@ -762,6 +815,12 @@ if(BUILD_TESTING)
     )
     set_property(
       TEST gener_core_fixtures APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+    set_tests_properties(
+      gener_service_differential gener_service_isolation gener_service_failure
+      PROPERTIES ENVIRONMENT
         "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
         "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
     )
