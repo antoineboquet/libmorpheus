@@ -20,6 +20,27 @@ typedef struct {
 	int no_memory;
 } collector;
 
+static uint32_t
+effective_dialect(const gk_word *form)
+{
+	uint32_t augment = (uint32_t)(unsigned short)dialect_of(aug1_gstr_of(form));
+	uint32_t ending = (uint32_t)(unsigned short)dialect_of(ends_gstr_of(form));
+	uint32_t stem = (uint32_t)(unsigned short)dialect_of(stem_gstr_of(form));
+	uint32_t dialect = stem & ending;
+	uint32_t constraint = (uint32_t)(unsigned short)dialect_of(form);
+
+	/* Match the effective-dialect calculation used by the legacy renderer. */
+	if (!dialect)
+		dialect =
+		    (uint32_t)(unsigned short)dialect_of(prvb_gstr_of(form)) |
+		    augment | stem | ending;
+	if (augment)
+		dialect &= augment;
+	if (constraint)
+		dialect &= constraint;
+	return dialect;
+}
+
 static int
 copy_text(char *destination, size_t capacity, const char *source)
 {
@@ -75,7 +96,7 @@ collect_form(const gk_word *form, void *state)
 		record->truncated_fields |= MORPHEUS_TRUNCATED_LEMMA;
 	record->part_of_speech =
 	    morpheus_public_part_of_speech((uint32_t)stemtype_of(form));
-	record->dialect = morpheus_public_dialect((uint32_t)dialect_of(form));
+	record->dialect = morpheus_public_dialect(effective_dialect(form));
 	record->geographic_region =
 	    morpheus_public_region((uint32_t)geogregion_of(form));
 	record->person = morpheus_public_person((uint32_t)person_of(info));
