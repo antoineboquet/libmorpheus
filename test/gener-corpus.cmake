@@ -2,6 +2,7 @@
 
 foreach(required IN ITEMS MORPHEUS_GENER_SOURCE_PREPARER
                           MORPHEUS_GENER_INDEX_BUILDER
+                          MORPHEUS_GENER_INDEX_READER_TEST
                           MORPHEUS_GENER_CORPUS_ROOT
                           MORPHEUS_GENER_CORPUS_MANIFEST
                           MORPHEUS_GENER_CORPUS_EXCEPTIONS
@@ -77,4 +78,17 @@ execute_process(
 )
 if(NOT source_compare EQUAL 0 OR NOT index_compare EQUAL 0)
   message(FATAL_ERROR "complete generation corpus is not reproducible")
+endif()
+
+execute_process(
+  COMMAND "${MORPHEUS_GENER_INDEX_READER_TEST}"
+          "${first_index}" 106422 108215 129097
+  RESULT_VARIABLE reader_result
+  OUTPUT_VARIABLE reader_output
+  ERROR_VARIABLE reader_error
+)
+if(NOT reader_result EQUAL 0)
+  message(FATAL_ERROR
+    "complete generation-index reader failed (${reader_result}):\n"
+    "${reader_output}${reader_error}")
 endif()

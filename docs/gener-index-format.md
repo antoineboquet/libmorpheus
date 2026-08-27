@@ -121,6 +121,21 @@ FNV-1a detects accidental corruption but is not a cryptographic authenticity
 mechanism. Release tooling must additionally publish the existing SHA-256
 checksums for distributed artifacts.
 
+## Runtime reader
+
+The internal `morpheus_gener_index` reader loads one file into immutable owned
+memory and validates it completely before returning a handle. Validation covers
+the magic, version, language, exact section sizes, checksum, reserved fields,
+all string offsets and terminators, contiguous block and record ranges, record
+kinds, and strict byte ordering of canonical lemma keys. A failed validation
+never exposes a partial handle.
+
+Lookup is a binary search over canonical keys. Successful lookups return
+zero-copy block and record views whose strings remain valid until the reader is
+closed. The reader has no mutable lookup state, so one validated handle can be
+shared by concurrent read-only callers. Lemma canonicalisation and public
+generation results deliberately remain outside this format-level component.
+
 ## Licensing boundary
 
 The builder and this format specification are independently written project

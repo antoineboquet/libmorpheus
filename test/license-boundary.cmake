@@ -13,6 +13,8 @@ set(agpl_files
     bindings/deno/mod.ts
     bindings/deno/mod_test.ts
     include/morpheus/morpheus.h
+    src/api/gener_index.c
+    src/api/gener_index.h
     src/api/api_internal.h
     src/api/analyze.c
     src/api/context.c

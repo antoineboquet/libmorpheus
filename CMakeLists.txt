@@ -549,6 +549,15 @@ target_compile_options(
 )
 
 add_library(
+  morpheus_gener_index STATIC
+  src/api/gener_index.c
+)
+target_link_libraries(
+  morpheus_gener_index
+  PUBLIC morpheus_build_options
+)
+
+add_library(
   morpheus_gener_derivation STATIC
   src/gener/derivation.c
 )
@@ -584,6 +593,31 @@ target_compile_options(
 )
 
 if(BUILD_TESTING)
+  add_executable(
+    morpheus_gener_index_reader_test
+    test/gener-index-reader.c
+  )
+  target_link_libraries(
+    morpheus_gener_index_reader_test
+    PRIVATE morpheus_gener_index morpheus_build_options
+  )
+  add_test(
+    NAME gener_index_reader
+    COMMAND
+      "${CMAKE_COMMAND}"
+      -DMORPHEUS_GENER_INDEX_BUILDER=$<TARGET_FILE:morpheus_gener_index_builder>
+      -DMORPHEUS_GENER_INDEX_READER_TEST=$<TARGET_FILE:morpheus_gener_index_reader_test>
+      -DMORPHEUS_GENER_INDEX_SOURCE=${PROJECT_SOURCE_DIR}/test/gener-index-source.txt
+      -DMORPHEUS_GENER_INDEX_READER_WORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/test-gener-index-reader
+      -P "${PROJECT_SOURCE_DIR}/test/gener-index-reader.cmake"
+  )
+  if(MORPHEUS_ENABLE_SANITIZERS)
+    set_property(
+      TEST gener_index_reader APPEND PROPERTY ENVIRONMENT
+        "ASAN_OPTIONS=detect_leaks=1:halt_on_error=1"
+        "UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1"
+    )
+  endif()
   add_executable(
     morpheus_gener_index_inspector_test
     test/gener-index.c
@@ -637,6 +671,7 @@ if(BUILD_TESTING)
       "${CMAKE_COMMAND}"
       -DMORPHEUS_GENER_SOURCE_PREPARER=$<TARGET_FILE:morpheus_gener_source_preparer>
       -DMORPHEUS_GENER_INDEX_BUILDER=$<TARGET_FILE:morpheus_gener_index_builder>
+      -DMORPHEUS_GENER_INDEX_READER_TEST=$<TARGET_FILE:morpheus_gener_index_reader_test>
       -DMORPHEUS_GENER_CORPUS_ROOT=${MORPHEUS_STEMLIB_DIR}/Greek
       -DMORPHEUS_GENER_CORPUS_MANIFEST=${PROJECT_SOURCE_DIR}/tools/gener-corpus-manifest.tsv
       -DMORPHEUS_GENER_CORPUS_EXCEPTIONS=${PROJECT_SOURCE_DIR}/tools/gener-corpus-exceptions.tsv

@@ -298,6 +298,13 @@ unlisted or stale exceptions, and produces a reproducible full index. Exact
 post-expansion duplicate blocks are removed while every distinct block for the
 same canonical lemma remains represented.
 
+The internal version 1 reader now validates the complete file before exposing
+it, including its checksum, table ranges, reserved fields, strings, and sort
+order. It performs binary lemma lookup and returns immutable zero-copy views of
+the owned index data. The same reader is tested against both the compact format
+fixture and the complete generated corpus, completing step 2 above without
+adding a public ABI surface.
+
 The complete pinned source universe is now recorded in
 [Greek generation corpus](gener-corpus.md) with per-file SHA-256 digests and a
 CI-enforced historical order. It contains both continuation expansion and
