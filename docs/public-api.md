@@ -9,11 +9,11 @@ from C++.
 
 ## Versioning
 
-The current project version is 0.2.0, the SONAME major is 1, and
-`MORPHEUS_ABI_VERSION` is 2. This release candidate intentionally breaks ABI 1:
-it removes stemlib-specific codes, assigns independent public morphology
-values, replaces the historical flag storage with normalized public traits,
-and removes the redundant complete-legacy-bitset accessor.
+The current project version is 0.3.0, the SONAME major is 1, and
+`MORPHEUS_ABI_VERSION` is 2. Version 0.3.0 adds generation functions, result
+types, options, and one status without removing or changing the ABI 2 analysis
+surface published by 0.2.0. The generation surface remains experimental, but
+its additions are covered by the same ABI 2 compatibility contract.
 
 Call `morpheus_abi_version()` after dynamically loading the library and compare
 it with the header constant. `morpheus_analysis_size()` returns the producing

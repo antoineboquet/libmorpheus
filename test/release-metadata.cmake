@@ -76,3 +76,27 @@ foreach(expected_release_value IN ITEMS
     )
   endif()
 endforeach()
+
+file(READ "${MORPHEUS_SOURCE_DIR}/docs/releasing.md" releasing_guide)
+string(FIND "${releasing_guide}"
+  "release-${MORPHEUS_PROJECT_VERSION}.md" current_release_at)
+if(current_release_at EQUAL -1)
+  message(FATAL_ERROR
+    "releasing.md does not identify release-${MORPHEUS_PROJECT_VERSION}.md")
+endif()
+
+if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.0")
+  string(FIND "${release_decision}"
+    "@humanities/libmorpheus" jsr_package_at)
+  if(jsr_package_at EQUAL -1)
+    message(FATAL_ERROR
+      "release-0.3.0.md does not identify the reserved JSR package")
+  endif()
+  string(FIND "${release_decision}"
+    "generation surface and Deno `generate()`/`generateRaw()` methods are\nexperimental"
+    experimental_at)
+  if(experimental_at EQUAL -1)
+    message(FATAL_ERROR
+      "release-0.3.0.md does not retain experimental generation status")
+  endif()
+endif()

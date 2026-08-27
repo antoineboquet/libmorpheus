@@ -2,7 +2,7 @@
 
 # `gener` integration audit
 
-Date: 2026-08-25
+Audit date: 2026-08-25. Implementation status updated: 2026-08-27.
 
 ## Scope and baselines
 
@@ -259,9 +259,15 @@ become accidental generation promises.
    adjectives, explicit verb stems, derived verbs, preverbs, augments,
    indeclinables, irregular verbs, duplicate lemmas, dialects, duals, and very
    large paradigms. Compare Perseids and current core behavior.
+   Implemented with direct-core, prepared-corpus, public-API, and Deno
+   differential fixtures that retain duplicate interpretations, dialects, and
+   duals.
 2. **Specify and build the reverse index.** Implement a deterministic offline
    stemlib tool, validate its format, and pin fixture checksums. Keep verb
    derivation expansion offline.
+   Implemented as the version 1 little-endian `gener.index` format, its strict
+   reader, the exception-aware source preparer, and the deterministic index
+   builder over the pinned complete corpus.
 3. **Add an internal generation service.** Parse indexed records into
    call-local `gk_word` values and invoke only `GenStemForms()` and
    `GenIrregForm()`. Add context isolation, failure, and sanitizer tests.
@@ -319,10 +325,11 @@ internal result sequence against the pinned Alpheios stemlib. The regular cases
 confirm that the core produces the dual rows suppressed by the historical
 formatter.
 
-This baseline deliberately exercises source records directly. Derived verbs,
-preverbs, augments, duplicate lemma blocks, and maximal paradigms will be added
-when the offline expansion and reverse-index formats can be tested without
-making the unsupported historical front ends part of the runtime build.
+The initial direct-core baseline was subsequently extended through the offline
+preparer, complete reverse index, service, public API, Deno binding, and
+benchmark corpus. Derived verbs, preverbs, augments, duplicate lemma blocks,
+and the maximal paradigm are now covered without making the unsupported
+historical front ends part of the runtime build.
 
 The version 1 reverse-index format and its offline builder are now specified in
 [Generation index format](gener-index-format.md). The initial builder preserves
@@ -373,7 +380,9 @@ retained separately from the seven invalid derivation names.
 
 ## Decision
 
-Proceed with integration, beginning with fixtures and the reverse generation
-index. Do not port the historical `gener` and `do_conj` command-line programs
-wholesale, do not expose their text format as the primary API, and do not make
-raw stem sources a runtime dependency.
+The seven-stage integration is implemented and mechanically qualified for the
+0.3.0 candidate. The historical `gener` and `do_conj` command-line programs
+remain quarantined, their text format is not the primary API, and raw stem
+sources are not a runtime dependency. Generation remains experimental until
+representative real-world use complements the automated evidence recorded by
+this audit.

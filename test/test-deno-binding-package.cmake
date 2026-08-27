@@ -88,6 +88,7 @@ foreach(required_text IN ITEMS
     "Standalone release archive"
     "Docker image"
     "Future JSR package"
+    "@humanities/libmorpheus"
     "Language and stemlib support"
     "MorpheusOption.StrictCase"
     "https://github.com/defense-humanites/libmorpheus"

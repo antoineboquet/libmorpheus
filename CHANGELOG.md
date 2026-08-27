@@ -9,6 +9,8 @@ the corpus.
 
 ## [Unreleased]
 
+Target project version: **0.3.0**. C ABI: **2**. Shared-library SONAME: **1**.
+
 ### Added
 
 - The Deno binding now exposes nonblocking `generate()` and `generateRaw()`

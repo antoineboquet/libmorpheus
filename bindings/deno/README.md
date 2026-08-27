@@ -72,8 +72,9 @@ container paths. Applications still need Deno's `--allow-ffi` permission.
 
 ### Future JSR package
 
-JSR publication is planned but is not available yet. When the package is
-published, replace this section with its exact `deno add jsr:...` command,
+The package name `@humanities/libmorpheus` is reserved, but its first JSR
+version is not published yet. When that version is available, replace this
+section with its exact `deno add jsr:@humanities/libmorpheus@...` command,
 versioned import, and package page. Until then, use the standalone archive,
 Docker image, or a pinned source checkout; do not depend on an unversioned
 repository URL.
