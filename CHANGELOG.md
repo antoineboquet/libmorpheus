@@ -34,6 +34,9 @@ the corpus.
 
 ### Changed
 
+- Greek generation in the C API and Deno binding is now explicitly documented
+  as experimental until representative real-world use complements its current
+  automated qualification.
 - Native and Deno release archives now carry self-contained licensing and
   provenance information without relying on paths outside the archives.
 

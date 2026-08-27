@@ -961,6 +961,13 @@ export class MorpheusContext {
     return this.#enqueue(() => this.#analyze(betaCode, options));
   }
 
+  /**
+   * Generate normalized Greek forms for one Beta Code lemma.
+   *
+   * @experimental Pending sufficient real-world validation in addition to the
+   * automated differential, isolation, failure, portability, and sanitizer
+   * coverage.
+   */
   generate(
     lemma: string,
     options: MorpheusGenerationOptions = {},
@@ -970,6 +977,13 @@ export class MorpheusContext {
     );
   }
 
+  /**
+   * Generate numeric ABI records for one Greek Beta Code lemma.
+   *
+   * @experimental Pending sufficient real-world validation in addition to the
+   * automated differential, isolation, failure, portability, and sanitizer
+   * coverage.
+   */
   generateRaw(
     lemma: string,
     options: MorpheusGenerationOptions = {},

@@ -2,10 +2,10 @@
 
 # Historical utility policy
 
-The published project supports one standalone program: `cruncher`, implemented
-by `src/anal/stdiomorph.c`. The shared library and this compatibility client form the supported runtime.
-They are the only executable surfaces covered by
-the C17, sanitizer, portability, and public-error contracts.
+The published project installs one standalone program: `cruncher`, implemented
+by `src/anal/stdiomorph.c`. The shared library and this compatibility client
+form the supported runtime. They are the only installed executable surfaces
+covered by the C17, sanitizer, portability, and public-error contracts.
 
 The repository also preserves 56 historical programs. They are not CMake
 targets, are not installed, and are not part of release qualification. The
@@ -26,6 +26,30 @@ The low-level ending and dictionary routines used by the runtime are not in
 this quarantine. Their CMake-linked implementations remain covered by the
 strict compiler flags and runtime tests even when an old standalone driver for
 the same subsystem is excluded.
+
+## Generation integration
+
+The experimental lemma-generation feature does not reintroduce the historical
+`gener` or `do_conj` executables. The request path reads a deterministic reverse
+index through an internal service, constructs call-local `gk_word` values, and
+invokes only the reusable `GenStemForms()` and `GenIrregForm()` core. An
+internal normalizer then removes historical stem and derivation codes before
+the public C API or Deno binding receives a result.
+
+Two purpose-built CMake tools prepare that data outside the runtime request
+path:
+
+- `morpheus_gener_source_preparer` expands derivations and continuations from
+  the pinned source corpus;
+- `morpheus_gener_index_builder` writes and validates `gener.index`.
+
+These tools are build-time infrastructure, are not installed, and do not make
+the quarantined front ends supported. In particular, `genermain.c`,
+`gensynform.c`, `conjsys.c`, and the remaining historical generation drivers
+retain their provenance-only status. The new implementation and its Deno
+`generate()` surface remain experimental until real-world use, in addition to
+the current differential, isolation, failure, portability, and sanitizer
+tests, provides sufficient operational validation.
 
 ## Safety findings
 

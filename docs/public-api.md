@@ -90,6 +90,12 @@ but an embedded NUL is invalid.
 
 ## Greek lemma generation
 
+> [!CAUTION]
+> The generation implementation and its public generation functions are
+> experimental. Their contracts are tested, but the qualification remains
+> until sufficient real-world use complements the automated differential,
+> isolation, failure, portability, and sanitizer coverage.
+
 `morpheus_generate()` accepts an explicit-length Greek Beta Code lemma. It
 applies the generation-index canonicalisation rules (initial `!`, hyphens,
 quantity marks, and diaeresis marks are removed), preserves duplicate

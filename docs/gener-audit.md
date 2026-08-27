@@ -45,6 +45,16 @@ then look up one lemma, parse its already-expanded records, and call the typed
 generation core. Porting the stateful `do_conj` and `gener` text front ends
 into every runtime process is neither necessary nor desirable.
 
+## Maturity status
+
+The implemented generation service, public C surface, and Deno `generate()`
+and `generateRaw()` methods are experimental. The differential fixtures,
+failure injection, context isolation, sanitizers, portability checks, and
+benchmark protocol qualify the current implementation mechanically, but they
+do not replace representative real-world use. The experimental label may be
+removed once enough such use has validated behavior outside the automated test
+corpus.
+
 ## What the historical programs actually do
 
 Generation is a two-stage pipeline:

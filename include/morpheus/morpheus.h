@@ -473,6 +473,9 @@ MORPHEUS_API morpheus_status morpheus_analyze(
 /**
  * Generate Greek Beta Code forms for one lemma.
  *
+ * @warning This generation surface is experimental pending sufficient
+ * real-world validation in addition to its automated test coverage.
+ *
  * Input need not be NUL-terminated and must not contain an embedded NUL.
  * options may be NULL for defaults. The generation index is loaded lazily
  * from <stemlib_path>/gener.index. On success, the caller owns *result,

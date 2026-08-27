@@ -47,3 +47,20 @@ foreach(source IN LISTS MORPHEUS_HISTORICAL_ENTRY_POINTS)
     )
   endif()
 endforeach()
+
+file(READ
+  "${MORPHEUS_SOURCE_DIR}/docs/historical-utilities.md"
+  historical_policy)
+foreach(required_text IN ITEMS
+    "experimental lemma-generation feature"
+    "GenStemForms()"
+    "GenIrregForm()"
+    "morpheus_gener_source_preparer"
+    "morpheus_gener_index_builder"
+    "are not installed")
+  string(FIND "${historical_policy}" "${required_text}" required_at)
+  if(required_at EQUAL -1)
+    message(FATAL_ERROR
+      "Historical utility policy omits generation boundary: ${required_text}")
+  endif()
+endforeach()

@@ -10,7 +10,7 @@ The runtime now provides:
 - a C17 shared library with a versioned, opaque C ABI;
 - structured, caller-owned analysis results;
 - per-request analysis options;
-- indexed Greek lemma generation;
+- experimental indexed Greek lemma generation;
 - a Deno 2 FFI binding;
 - `cruncher` as a compatibility client of the public library;
 - CMake and `pkg-config` installation metadata.
@@ -245,8 +245,10 @@ Current Deno therefore requires the unscoped FFI permission; a path-scoped
 rejects those pointer reads. Keep the library path explicit in application code
 and grant no unrelated Deno permissions unless the application needs them.
 
-`analyze()` supports Greek and Latin contexts. The first generation integration
-deliberately focuses on Greek and requires a `gener.index` beside its stemlib.
+`analyze()` supports Greek and Latin contexts. The experimental first
+generation integration deliberately focuses on Greek and requires a
+`gener.index` beside its stemlib. Its experimental qualification can be removed
+after sufficient real-world use complements the current automated coverage.
 The wrapper dispatches analysis and generation as nonblocking FFI operations,
 serializes requests made through one context, and copies native results into
 TypeScript objects before releasing native memory. See

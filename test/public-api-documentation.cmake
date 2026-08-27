@@ -44,3 +44,16 @@ foreach(symbol IN LISTS MORPHEUS_PUBLIC_API_SYMBOLS)
     message(FATAL_ERROR "public function ${symbol}() is undocumented")
   endif()
 endforeach()
+
+string(FIND "${api_documentation}"
+  "generation functions are\n> experimental" experimental_at)
+if(experimental_at EQUAL -1)
+  message(FATAL_ERROR "Public generation API is not marked experimental")
+endif()
+
+file(READ "${MORPHEUS_SOURCE_DIR}/include/morpheus/morpheus.h" public_header)
+string(FIND "${public_header}"
+  "generation surface is experimental" header_experimental_at)
+if(header_experimental_at EQUAL -1)
+  message(FATAL_ERROR "Installed generation declaration is not experimental")
+endif()

@@ -47,6 +47,10 @@ owns its internal generation service, and releases both at close. The data
 flow, provenance, concurrency constraints, and staged qualification are
 recorded in the [`gener` integration audit](gener-audit.md).
 
+This integration is experimental despite its automated qualification. The
+label remains until real-world consumers have exercised enough representative
+generation workloads to validate the implementation operationally.
+
 ## Build-only and installed surfaces
 
 The `morpheus_anal`, `morpheus_gener`, `morpheus_gkends`, `morpheus_gkdict`,

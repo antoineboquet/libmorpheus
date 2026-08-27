@@ -56,6 +56,10 @@ string(FIND "${binding_source}"
 if(agpl_spdx_at EQUAL -1)
   message(FATAL_ERROR "Packaged Deno source is missing its AGPL SPDX identifier")
 endif()
+string(FIND "${binding_source}" "@experimental" experimental_api_at)
+if(experimental_api_at EQUAL -1)
+  message(FATAL_ERROR "Packaged Deno generation API is not experimental")
+endif()
 
 file(READ "${binding_dir}/NOTICE" binding_notice)
 string(FIND "${binding_notice}" "AGPL-3.0-or-later" agpl_notice_at)
@@ -87,6 +91,7 @@ foreach(required_text IN ITEMS
     "Language and stemlib support"
     "MorpheusOption.StrictCase"
     "https://github.com/defense-humanites/libmorpheus"
+    "`generate()` and `generateRaw()` are experimental"
     "generate()"
     "--allow-ffi app.ts")
   string(FIND "${binding_readme}" "${required_text}" required_text_at)

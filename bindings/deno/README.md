@@ -29,8 +29,8 @@
 
 This module loads the [`libmorpheus`](https://github.com/defense-humanites/libmorpheus)
 shared library with `Deno.dlopen`. It exposes normalized Greek and Latin
-analysis plus Greek lemma generation. Native results are copied into owned
-TypeScript objects before their C allocations are released.
+analysis plus experimental Greek lemma generation. Native results are copied
+into owned TypeScript objects before their C allocations are released.
 
 ## Requirements and constraints
 
@@ -166,6 +166,12 @@ before enabling specialized modes.
 the promise rejects with `MorpheusStatus.StemlibError` before native analysis.
 
 ## Generate forms from a lemma
+
+> [!CAUTION]
+> `generate()` and `generateRaw()` are experimental. Their automated
+> differential, isolation, failure, portability, and sanitizer coverage is
+> extensive, but sufficient real-world use is still required before this
+> qualification can be removed.
 
 ```ts
 import {
