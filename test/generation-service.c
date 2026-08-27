@@ -270,10 +270,11 @@ run_normalization(const morpheus_gener_index *index)
 	const morpheus_normalized_generation *record;
 	size_t count;
 	size_t duals = 0;
-	size_t dialects = 0;
 	size_t duplicates = 0;
 	size_t current;
 	size_t previous;
+	int saw_attic = 0;
+	int saw_ionic = 0;
 
 	assert(morpheus_generation_service_create(index,&service) ==
 	       MORPHEUS_GENERATION_OK);
@@ -292,8 +293,6 @@ run_normalization(const morpheus_gener_index *index)
 		assert(!record->truncated_fields);
 		if (record->number == MORPHEUS_NUMBER_DUAL)
 			duals++;
-		if (record->dialect != MORPHEUS_DIALECT_ALL)
-			dialects++;
 		if (current)
 			assert(morpheus_normalized_generation_compare(
 			           morpheus_normalized_generation_result_at(
@@ -307,7 +306,6 @@ run_normalization(const morpheus_gener_index *index)
 		}
 	}
 	assert(duals == 3);
-	assert(dialects);
 	assert(duplicates);
 	assert(!morpheus_normalized_generation_result_at(result,count));
 	morpheus_normalized_generation_result_free(result);
@@ -331,6 +329,15 @@ run_normalization(const morpheus_gener_index *index)
 	assert(morpheus_generation_normalize(service,"multiple",2,&result) ==
 	       MORPHEUS_GENERATION_NORMALIZE_OK);
 	assert(morpheus_normalized_generation_result_count(result) == 2);
+	for (current = 0; current != 2; current++) {
+		record = morpheus_normalized_generation_result_at(result,current);
+		assert(record);
+		if (record->dialect == MORPHEUS_DIALECT_ATTIC)
+			saw_attic = 1;
+		if (record->dialect == MORPHEUS_DIALECT_IONIC)
+			saw_ionic = 1;
+	}
+	assert(saw_attic && saw_ionic);
 	morpheus_normalized_generation_result_free(result);
 	morpheus_generation_service_destroy(service);
 }
