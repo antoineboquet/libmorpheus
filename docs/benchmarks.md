@@ -63,6 +63,15 @@ Pass a previous report as the second argument to add the normalized comparison:
 sh bench/release.sh benchmark-0.3.0.json benchmark-previous.json
 ```
 
+The accepted 0.2.0 baseline is
+[`benchmark-0.2.0.json`](https://github.com/defense-humanites/libmorpheus/releases/download/v0.2.0/benchmark-0.2.0.json)
+with SHA-256
+`d877dadd080a31ae75c8f970fb179a6638b54a2db0afd11c336eb9b2e33cf977`.
+It uses schema 1 and therefore compares only the five historical analysis
+configurations. Generation was introduced in schema 2; the first accepted
+0.3.0 report establishes its performance baseline instead of fabricating a
+comparison with 0.2.0.
+
 The wrapper refuses a dirty tracked worktree or submodule, an uninitialized or
 displaced Alpheios submodule, and an existing output path. Its label, stemlib
 path, iteration counts, warmup, context list, and cold-sample count can be
@@ -167,9 +176,11 @@ deno run --allow-env --allow-ffi --allow-read --allow-run \
 
 The output adds percentage changes for throughput, mean latency, peak RSS, and
 RSS growth. Positive throughput is an improvement; positive latency or memory
-is an increase. Reports with different corpus or generation-index digests,
-different generation lemmas, or missing engine/context pairs are rejected
-rather than producing a misleading comparison.
+is an increase. Schema 2 baselines require matching corpus and generation-index
+digests, generation lemmas, and every engine/context pair. A schema 1 baseline
+must use the same corpus and contain only historical analysis configurations;
+each must exist in the current report. New schema 2 generation measurements are
+deliberately omitted from that legacy comparison.
 
 No timing threshold is enforced in CI because shared-runner variance would make
 it unstable. CI type-checks the runner, tests report comparison and corpus

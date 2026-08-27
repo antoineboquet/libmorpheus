@@ -63,6 +63,23 @@ export interface BenchmarkReport {
   readonly measurements: readonly Measurement[];
 }
 
+interface LegacyMeasurement {
+  readonly engine: string;
+  readonly contexts: number;
+  readonly operationsPerSecond: number;
+  readonly meanMicroseconds: number;
+  readonly peakRssBytes: number | null;
+  readonly rssGrowthBytes: number | null;
+}
+
+export interface LegacyBenchmarkReport {
+  readonly schemaVersion: 1;
+  readonly corpusSha256: string;
+  readonly measurements: readonly LegacyMeasurement[];
+}
+
+export type BenchmarkBaseline = BenchmarkReport | LegacyBenchmarkReport;
+
 export interface BenchmarkComparison {
   readonly engine: string;
   readonly contexts: number;
@@ -193,39 +210,61 @@ function percentageChange(current: number, baseline: number): number {
 }
 
 export function compareReports(
-  baseline: BenchmarkReport,
+  baseline: BenchmarkBaseline,
   current: BenchmarkReport,
 ): readonly BenchmarkComparison[] {
-  if (baseline.schemaVersion !== 2 || current.schemaVersion !== 2) {
+  if (![1, 2].includes(baseline.schemaVersion) || current.schemaVersion !== 2) {
     throw new Error("unsupported benchmark report schema");
   }
   if (baseline.corpusSha256 !== current.corpusSha256) {
     throw new Error("benchmark corpus differs from baseline");
   }
-  if (
+  if (baseline.schemaVersion === 2 && (
     baseline.generationIndexSha256 !== current.generationIndexSha256 ||
     baseline.generationSmallLemma !== current.generationSmallLemma ||
     baseline.generationMaximalLemma !== current.generationMaximalLemma
-  ) {
+  )) {
     throw new Error("generation benchmark inputs differ from baseline");
   }
-  const baselineMeasurements = new Map(
-    baseline.measurements.map((measurement) =>
-      [
-        `${measurement.engine}:${measurement.contexts}:${measurement.lemma ?? ""}`,
-        measurement,
-      ] as const
-    ),
+
+  const key = (measurement: {
+    readonly engine: string;
+    readonly contexts: number;
+    readonly lemma?: string | null;
+  }) => `${measurement.engine}:${measurement.contexts}:${measurement.lemma ?? ""}`;
+  const currentMeasurements = new Map(
+    current.measurements.map((measurement) => [key(measurement), measurement]),
   );
-  return current.measurements.map((measurement) => {
-    const previous = baselineMeasurements.get(
-      `${measurement.engine}:${measurement.contexts}:${measurement.lemma ?? ""}`,
-    );
-    if (!previous) {
-      throw new Error(
-        `baseline lacks ${measurement.engine} with ${measurement.contexts} contexts`,
-      );
+  const baselineMeasurements = new Map<string, LegacyMeasurement | Measurement>();
+  for (const measurement of baseline.measurements) {
+    const measurementKey = key(measurement);
+    if (baselineMeasurements.has(measurementKey)) {
+      throw new Error(`baseline contains duplicate ${measurementKey}`);
     }
+    baselineMeasurements.set(measurementKey, measurement);
+  }
+
+  const comparisons = baseline.schemaVersion === 1
+    ? baseline.measurements.map((previous) => {
+      const measurement = currentMeasurements.get(key(previous));
+      if (!measurement || measurement.workload !== "analysis") {
+        throw new Error(
+          `current report lacks historical ${previous.engine} with ${previous.contexts} contexts`,
+        );
+      }
+      return [measurement, previous] as const;
+    })
+    : current.measurements.map((measurement) => {
+      const previous = baselineMeasurements.get(key(measurement));
+      if (!previous) {
+        throw new Error(
+          `baseline lacks ${measurement.engine} with ${measurement.contexts} contexts`,
+        );
+      }
+      return [measurement, previous] as const;
+    });
+
+  return comparisons.map(([measurement, previous]) => {
     const optionalChange = (
       value: number | null,
       baselineValue: number | null,
@@ -679,7 +718,9 @@ if (import.meta.main) {
   };
   const comparison = configuration.baselinePath
     ? compareReports(
-      JSON.parse(await Deno.readTextFile(configuration.baselinePath)) as BenchmarkReport,
+      JSON.parse(
+        await Deno.readTextFile(configuration.baselinePath),
+      ) as BenchmarkBaseline,
       report,
     )
     : null;

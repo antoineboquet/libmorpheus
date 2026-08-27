@@ -68,7 +68,10 @@ have been confirmed.
 ## Remaining gates
 
 1. Produce and validate the 0.3.0 benchmark report on the controlled release
-   host against the previous accepted report.
+   host against the accepted 0.2.0 schema 1 report (SHA-256
+   `d877dadd080a31ae75c8f970fb179a6638b54a2db0afd11c336eb9b2e33cf977`).
+   Compare its historical analysis measurements; treat the schema 2 generation
+   measurements as the initial accepted generation baseline.
 2. Manually dispatch the architecture workflow for the exact candidate commit
    with package artifacts enabled and inspect every archive and checksum.
 3. Confirm Linux x86-64, Linux aarch64, Alpine x86-64/aarch64, macOS arm64,

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import {
+  type LegacyBenchmarkReport,
   type BenchmarkReport,
   compareReports,
   type Measurement,
@@ -26,6 +27,16 @@ function measurement(
     results: null,
     peakRssBytes,
     rssGrowthBytes: peakRssBytes,
+  };
+}
+
+function legacyReport(
+  measurements: readonly Measurement[],
+): LegacyBenchmarkReport {
+  return {
+    schemaVersion: 1,
+    corpusSha256: "same-corpus",
+    measurements,
   };
 }
 
@@ -109,4 +120,37 @@ Deno.test("benchmark comparison requires matching engine configurations", () => 
     rejected = true;
   }
   if (!rejected) throw new Error("missing baseline measurement was accepted");
+});
+
+Deno.test("schema 1 baseline compares historical analysis only", () => {
+  const analysis = measurement("ffi", 1, 100, 10, 1000);
+  const generation = {
+    ...measurement("generation-small-warm", 1, 50, 20, 1200),
+    workload: "generation" as const,
+    lemma: "lo/gos",
+    results: 18,
+  };
+  const current = {
+    ...report([analysis, generation]),
+    generationSmallLemma: "lo/gos",
+    generationMaximalLemma: "i(/hmi",
+    generationIndexSha256: "a".repeat(64),
+  };
+  const comparison = compareReports(legacyReport([analysis]), current);
+  if (comparison.length !== 1 || comparison[0].engine !== "ffi") {
+    throw new Error("legacy comparison included non-historical measurements");
+  }
+});
+
+Deno.test("schema 1 baseline requires every historical configuration", () => {
+  let rejected = false;
+  try {
+    compareReports(
+      legacyReport([measurement("ffi", 4, 100, 10)]),
+      report([measurement("ffi", 1, 100, 10)]),
+    );
+  } catch {
+    rejected = true;
+  }
+  if (!rejected) throw new Error("missing historical configuration was accepted");
 });
