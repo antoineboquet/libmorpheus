@@ -159,6 +159,7 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
           MORPHEUS_CRUNCHER: ${{ github.workspace }}/build/dev/cruncher
         run: |
+          ctest --test-dir build/dev --output-on-failure -R '^gener_corpus$'
           cp build/dev/test-gener-corpus/first.mgi stemlib/gener.index
           deno run --allow-env --allow-ffi --allow-read --allow-run \
             bench/compare.ts --iterations 1 --warmup 0 --contexts 1 \
