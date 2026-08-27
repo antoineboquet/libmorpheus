@@ -54,11 +54,12 @@ for Linux x86-64 glibc, Linux aarch64 glibc, and macOS arm64, plus the
 platform-independent `libmorpheus-deno-0.3.0.tar.gz` source archive. Native
 binaries and stem data are not embedded in the Deno archive.
 
-The Deno source package is also intended for JSR under the reserved name
-`@humanities/libmorpheus`. Its publication metadata and exact import command
-must be qualified before the package is published. The JSR package must retain
-the AGPL notice and the documented MPL boundary to the separately distributed
-native runtime.
+The Deno source package is configured for JSR under the reserved name
+`@humanities/libmorpheus` at candidate version 0.3.0. Its metadata, exact
+source-only contents, import command, and strict registry dry-run are covered
+by the ordinary Linux CI. The dry-run contains only `jsr.json`, `mod.ts`,
+`README.md`, `LICENSE`, and `NOTICE`. The JSR package retains the AGPL notice
+and the documented MPL boundary to the separately distributed native runtime.
 
 Container builds remain qualification artifacts. An image embedding the pinned
 Alpheios stemlib must not be published until that dataset's redistribution terms
@@ -66,16 +67,14 @@ have been confirmed.
 
 ## Remaining gates
 
-1. Configure and dry-run the `@humanities/libmorpheus` JSR package, then verify
-   its exported surface, README, license, notice, and source-only contents.
-2. Produce and validate the 0.3.0 benchmark report on the controlled release
+1. Produce and validate the 0.3.0 benchmark report on the controlled release
    host against the previous accepted report.
-3. Manually dispatch the architecture workflow for the exact candidate commit
+2. Manually dispatch the architecture workflow for the exact candidate commit
    with package artifacts enabled and inspect every archive and checksum.
-4. Confirm Linux x86-64, Linux aarch64, Alpine x86-64/aarch64, macOS arm64,
+3. Confirm Linux x86-64, Linux aarch64, Alpine x86-64/aarch64, macOS arm64,
    ASan/UBSan, ThreadSanitizer, signedness, Deno FFI, and inherited Makefile
    qualification.
-5. Move the changelog contents from `Unreleased` to a dated `0.3.0` heading,
+4. Move the changelog contents from `Unreleased` to a dated `0.3.0` heading,
    tag the qualified commit as `v0.3.0`, and require both tag workflows to pass.
-6. Publish only tag-produced archives and the validated benchmark evidence;
+5. Publish only tag-produced archives and the validated benchmark evidence;
    publish the JSR package from the same qualified source revision.

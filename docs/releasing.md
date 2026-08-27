@@ -143,6 +143,12 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Install the produced native package into a fresh prefix and repeat one CMake
   and one `pkg-config` consumer smoke test.
 - Verify the container by digest on both architectures.
+- From `bindings/deno`, run `deno publish --dry-run` and inspect the exact file
+  list before tagging. Require the configured JSR name and version to match
+  `@humanities/libmorpheus` and the CMake project version, respectively.
+- Publish the JSR package only from the same qualified tagged source revision
+  as the native archives. Its source-only contents must retain `README.md`,
+  `LICENSE`, and `NOTICE`; it must not embed a native library or stem data.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact

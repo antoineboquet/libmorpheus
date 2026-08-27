@@ -97,6 +97,15 @@ if(presets_spdx_at EQUAL -1)
           "AGPL SPDX sidecar missing for CMakePresets.json")
 endif()
 
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json.license"
+     jsr_license)
+string(FIND "${jsr_license}"
+       "SPDX-License-Identifier: AGPL-3.0-or-later" jsr_spdx_at)
+if(jsr_spdx_at EQUAL -1)
+  message(FATAL_ERROR
+          "AGPL SPDX sidecar missing for bindings/deno/jsr.json")
+endif()
+
 foreach(license_file IN ITEMS
         LICENSES/MPL-2.0.txt
         LICENSES/AGPL-3.0-or-later.txt

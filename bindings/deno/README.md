@@ -72,12 +72,29 @@ container paths. Applications still need Deno's `--allow-ffi` permission.
 
 ### Future JSR package
 
-The package name `@humanities/libmorpheus` is reserved, but its first JSR
-version is not published yet. When that version is available, replace this
-section with its exact `deno add jsr:@humanities/libmorpheus@...` command,
-versioned import, and package page. Until then, use the standalone archive,
-Docker image, or a pinned source checkout; do not depend on an unversioned
-repository URL.
+The source package is configured as `@humanities/libmorpheus@0.3.0`, but that
+version is not published yet. After publication, install the qualified version
+from [JSR](https://jsr.io/@humanities/libmorpheus):
+
+```sh
+deno add jsr:@humanities/libmorpheus@0.3.0
+```
+
+Then import from the dependency name recorded in `deno.json`:
+
+```ts
+import {
+  MorpheusLanguage,
+  MorpheusLibrary,
+  MorpheusOption,
+} from "@humanities/libmorpheus";
+```
+
+The JSR package contains only the TypeScript binding and its licensing and
+usage documentation. It does not contain the native library or stem data.
+Until version 0.3.0 is actually published, use the standalone archive, Docker
+image, or a pinned source checkout; do not depend on an unversioned repository
+URL.
 
 ## Language and stemlib support
 

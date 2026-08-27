@@ -1,0 +1,14 @@
+{
+  "name": "@humanities/libmorpheus",
+  "version": "0.3.0",
+  "license": "AGPL-3.0-or-later",
+  "exports": "./mod.ts",
+  "publish": {
+    "include": [
+      "LICENSE",
+      "NOTICE",
+      "README.md",
+      "mod.ts"
+    ]
+  }
+}

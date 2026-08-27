@@ -49,6 +49,14 @@ if(BUILD_TESTING)
       "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
       -P "${PROJECT_SOURCE_DIR}/test/license-boundary.cmake"
   )
+  add_test(
+    NAME jsr_package_metadata
+    COMMAND
+      "${CMAKE_COMMAND}"
+      "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+      "-DMORPHEUS_PROJECT_VERSION=${PROJECT_VERSION}"
+      -P "${PROJECT_SOURCE_DIR}/test/jsr-package-metadata.cmake"
+  )
 endif()
 
 option(MORPHEUS_BUILD_CRUNCHER "Build the legacy-compatible cruncher CLI" ON)

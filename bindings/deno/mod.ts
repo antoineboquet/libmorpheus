@@ -1,6 +1,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Antoine Boquet
 
+/**
+ * Deno FFI binding for libmorpheus Greek and Latin analysis and experimental
+ * Greek lemma generation.
+ *
+ * The separately distributed native library and stem data must be supplied at
+ * runtime. Applications need Deno's `--allow-ffi` permission.
+ *
+ * @module
+ */
+
 const ABI_VERSION = 2;
 const TEXT_CAPACITY = 64;
 const DOMAIN_CAPACITY = 24;
@@ -888,7 +898,10 @@ export class MorpheusLibrary {
     }
   }
 
-  createContext(stemlibPath: string, language: MorpheusLanguage) {
+  createContext(
+    stemlibPath: string,
+    language: MorpheusLanguage,
+  ): MorpheusContext {
     if (this.#closed) throw new Error("Morpheus library is closed");
     const path = encoder.encode(stemlibPath);
     const output = new BigUint64Array(1);

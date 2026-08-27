@@ -25,6 +25,7 @@ file(COPY
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/README.md"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSE"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/NOTICE"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json"
   DESTINATION "${package_dir}"
 )
 
