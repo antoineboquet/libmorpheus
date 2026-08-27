@@ -8,50 +8,108 @@
 > API, and generated index reader remain MPL-2.0. Read the
 > [archive notice](NOTICE) before distributing an application or archive.
 
+## Summary
+
+1. [Purpose](#purpose)
+2. [Requirements and constraints](#requirements-and-constraints)
+3. [Installation](#installation)
+   1. [Standalone release archive](#standalone-release-archive)
+   2. [Docker image](#docker-image)
+   3. [Future JSR package](#future-jsr-package)
+4. [Language and stemlib support](#language-and-stemlib-support)
+5. [FFI permission](#ffi-permission)
+6. [Analyze a form](#analyze-a-form)
+7. [Generate forms from a lemma](#generate-forms-from-a-lemma)
+8. [Parallel contexts](#parallel-contexts)
+9. [Raw access and cleanup](#raw-access-and-cleanup)
+10. [Documentation](#documentation)
+11. [Local checks](#local-checks)
+
 ## Purpose
 
-This module loads the `libmorpheus` shared library with `Deno.dlopen` and
-exposes normalized Greek analysis and lemma generation. Native results are
-copied into owned TypeScript objects before their C allocations are released.
+This module loads the [`libmorpheus`](https://github.com/defense-humanites/libmorpheus)
+shared library with `Deno.dlopen`. It exposes normalized Greek and Latin
+analysis plus Greek lemma generation. Native results are copied into owned
+TypeScript objects before their C allocations are released.
 
 ## Requirements and constraints
 
 - Deno 2 on a 64-bit `x86_64` or `aarch64` runtime.
 - A matching ABI 2 `libmorpheus` shared library.
-- An Alpheios stemlib tree. Generation additionally requires a validated
+- A compatible stemlib tree. Generation additionally requires a validated
   `gener.index` at the stemlib root; analysis remains available without it.
-- Greek contexts for generation. Analysis retains the native language support.
+- Greek contexts for generation. Greek and Latin contexts are supported for
+  analysis.
 - Serialized calls within one context. Distinct contexts may run concurrently.
 
 ## Installation
 
 ### Standalone release archive
 
-Each GitHub release provides `libmorpheus-deno-<version>.tar.gz` and a companion
-SHA-256 file. Extract it beside the matching native archive, import `mod.ts`
-from the extracted directory, and pass the installed shared-library path to
+Each [GitHub release](https://github.com/defense-humanites/libmorpheus/releases)
+provides `libmorpheus-deno-<version>.tar.gz` and a companion SHA-256 file.
+Extract it beside the matching native archive, import `mod.ts` from the
+extracted directory, and pass the installed shared-library path to
 `MorpheusLibrary`. The binding archive contains neither native binaries nor
 stem data.
 
+### Docker image
+
+The repository's
+[`deno-runtime` image target](https://github.com/defense-humanites/libmorpheus/blob/main/Dockerfile)
+bundles Deno, the native library, this binding, and the pinned Alpheios stemlib:
+
+```sh
+git clone --recurse-submodules \
+  https://github.com/defense-humanites/libmorpheus.git
+cd libmorpheus
+docker build --target deno-runtime -t morpheus-deno .
+```
+
+Inside the image, import `/opt/morpheus/share/morpheus/deno/mod.ts`.
+`MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` already contain the corresponding
+container paths. Applications still need Deno's `--allow-ffi` permission.
+
 ### Future JSR package
 
-JSR publication is planned but is not available yet. Until a package name and
-release are announced, use the standalone archive or a pinned source checkout;
-do not depend on an unversioned repository URL.
+JSR publication is planned but is not available yet. When the package is
+published, replace this section with its exact `deno add jsr:...` command,
+versioned import, and package page. Until then, use the standalone archive,
+Docker image, or a pinned source checkout; do not depend on an unversioned
+repository URL.
+
+## Language and stemlib support
+
+The operation and selected data source both determine language coverage:
+
+| Operation or dataset | Ancient Greek | Latin | Notes |
+| --- | --- | --- | --- |
+| `analyze()` | Yes | Yes | Select `MorpheusLanguage.Greek` or `MorpheusLanguage.Latin` when creating the context. |
+| `generate()` | Yes | No | The first `gener` integration deliberately focuses on Greek. |
+| Bundled Perseids-Tools `stemlib/` | Yes | Yes | Baseline analysis fixtures. |
+| Pinned Alpheios `vendor/alpheios-morpheus/dist/stemlib` | Yes | No | Reference fixtures and default Docker dataset. |
+
+The [stem-library inventory](https://github.com/defense-humanites/libmorpheus/blob/main/docs/stem-libraries.md)
+links the original projects and records where each dataset appears in the
+repository. A stemlib does not need `gener.index` for analysis; the current
+generation service does.
 
 ## FFI permission
 
-Grant access only to the selected shared library when possible:
+Run applications with Deno's FFI permission:
 
 ```sh
-deno run --allow-ffi=/absolute/path/libmorpheus.so app.ts
+deno run --allow-ffi app.ts
 ```
 
 Use the installed platform name, normally `libmorpheus.so` on Linux and
-`libmorpheus.dylib` on macOS. A `deno.json` task can retain the same restricted
-command for both `x86_64` and `aarch64` deployments; only the library path needs
-to change. Environment and file permissions are not required by the binding
-itself.
+`libmorpheus.dylib` on macOS. The binding reads returned pointers with
+`Deno.UnsafePointerView`; current Deno releases reject those reads under a
+path-scoped grant such as `--allow-ffi=/absolute/path/libmorpheus.so`. Keep the
+library path explicit in code, but use the unscoped permission shown above.
+A `deno.json` task can retain the same command for both `x86_64` and `aarch64`
+deployments; only the library path needs to change. Environment and file
+permissions are not required by the binding itself.
 
 ## Analyze a form
 
@@ -90,6 +148,19 @@ try {
 and `null` for inapplicable scalar values. It preserves all analyses. A generic
 stemlib `indecl` class remains `"unknown"` because it does not identify a
 lexical category. An empty dialect array means no recorded restriction.
+
+Options are bit flags and may be combined with `|`. For example, strict case
+plus accent-insensitive fallback is:
+
+```ts
+const options = MorpheusOption.StrictCase |
+  MorpheusOption.IgnoreAccents;
+const analyses = await context.analyze("a)/nqrwpos", options);
+```
+
+Passing no option uses the binding's default analysis behavior. See the
+[native option table](https://github.com/defense-humanites/libmorpheus/blob/main/docs/public-api.md#request-options)
+before enabling specialized modes.
 
 `MorpheusOption.HqDictionary` requires both HQ index files. If they are absent,
 the promise rejects with `MorpheusStatus.StemlibError` before native analysis.
@@ -169,6 +240,17 @@ Close contexts before their parent library. `using` and `await using` provide
 deterministic cleanup, including when a promise rejects. `MorpheusLibrary.close`
 rejects while any child context remains open.
 
+## Documentation
+
+| Topic | Document |
+| --- | --- |
+| Native ABI, ownership, and options | [Public API](https://github.com/defense-humanites/libmorpheus/blob/main/docs/public-api.md) |
+| AGPL/MPL file boundary | [Licensing guide](https://github.com/defense-humanites/libmorpheus/blob/main/docs/licensing.md) |
+| Source and dataset lineage | [Provenance](https://github.com/defense-humanites/libmorpheus/blob/main/docs/provenance.md) |
+| Available stem libraries | [Stem libraries](https://github.com/defense-humanites/libmorpheus/blob/main/docs/stem-libraries.md) |
+| Supported platforms | [Portability](https://github.com/defense-humanites/libmorpheus/blob/main/docs/portability.md) |
+| Release archives and qualification | [Releasing](https://github.com/defense-humanites/libmorpheus/blob/main/docs/releasing.md) |
+
 ## Local checks
 
 Build the library and prepare the small differential generation index before
@@ -182,6 +264,6 @@ build/dev/morpheus_gener_index_builder \
 deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
 MORPHEUS_LIBRARY="$PWD/build/dev/libmorpheus.so" \
 MORPHEUS_STEMLIB="$PWD/stemlib" \
-deno test --allow-env --allow-ffi="$PWD/build/dev/libmorpheus.so" \
+deno test --allow-env --allow-ffi \
   bindings/deno/mod_test.ts
 ```

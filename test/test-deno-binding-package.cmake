@@ -82,9 +82,13 @@ endif()
 foreach(required_text IN ITEMS
     "> [!WARNING]"
     "Standalone release archive"
+    "Docker image"
     "Future JSR package"
+    "Language and stemlib support"
+    "MorpheusOption.StrictCase"
+    "https://github.com/defense-humanites/libmorpheus"
     "generate()"
-    "--allow-ffi=/absolute/path/libmorpheus.so")
+    "--allow-ffi app.ts")
   string(FIND "${binding_readme}" "${required_text}" required_text_at)
   if(required_text_at EQUAL -1)
     message(FATAL_ERROR

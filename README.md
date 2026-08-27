@@ -1,21 +1,24 @@
 # libmorpheus
 
-`libmorpheus` modernizes the Morpheus morphological analyzer for Ancient
-Greek and Latin. The code baseline comes from the Perseids fork; the reference runtime data
-used for testing and validation comes from Alpheios.
+`libmorpheus` modernizes the Morpheus morphological analyzer for Ancient Greek
+and Latin. The code baseline and bundled Greek/Latin stemlib come from the
+Perseids-Tools fork; a pinned Greek-only Alpheios stemlib provides an additional
+reference dataset for testing and validation.
 
 The runtime now provides:
 
 - a C17 shared library with a versioned, opaque C ABI;
 - structured, caller-owned analysis results;
 - per-request analysis options;
+- indexed Greek lemma generation;
 - a Deno 2 FFI binding;
 - `cruncher` as a compatibility client of the public library;
 - CMake and `pkg-config` installation metadata.
 
 See [the architecture baseline](docs/architecture.md),
 [the C17 port notes](docs/c17-port.md), and
-[source provenance](docs/provenance.md), and
+[source provenance](docs/provenance.md),
+[available stem libraries](docs/stem-libraries.md), and
 [platform support](docs/portability.md) for the implementation boundaries,
 exact upstream revisions, and tested deployment targets.
 The repository is mixed-license: inherited engine, bridge, compatibility, and
@@ -32,6 +35,17 @@ The complete native contract is in [the public API reference](docs/public-api.md
 [release qualification](docs/releasing.md) defines the checks required before
 tagging a publishable version, and the [changelog](CHANGELOG.md) records the
 candidate release contents.
+
+## Summary
+
+1. [Clone](#clone)
+2. [Build and test](#build-and-test)
+3. [Install and consume from C](#install-and-consume-from-c)
+4. [Deno FFI](#deno-ffi)
+5. [`cruncher` compatibility client](#cruncher-compatibility-client)
+6. [Alpine container images](#alpine-container-images)
+7. [Behavioral baselines](#behavioral-baselines)
+8. [Historical build](#historical-build)
 
 ## Clone
 
@@ -187,32 +201,57 @@ contracts, compatibility formatter, and ownership rules.
 ## Deno FFI
 
 The typed Deno 2 wrapper is in [`bindings/deno/mod.ts`](bindings/deno/mod.ts).
-It loads an explicit library path and accepts an explicit stemlib path:
+It loads explicit library and stemlib paths, keeps native resources scoped with
+`using`/`await using`, and reports native failures as `MorpheusError` values:
 
 ```ts
 import {
+  MorpheusError,
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
 } from "./bindings/deno/mod.ts";
 
-using library = new MorpheusLibrary("/chosen/prefix/lib/libmorpheus.so");
-await using context = library.createContext(
-  "/path/to/stemlib",
-  MorpheusLanguage.Greek,
-);
+try {
+  using library = new MorpheusLibrary("/chosen/prefix/lib/libmorpheus.so");
+  await using context = library.createContext(
+    "/path/to/stemlib",
+    MorpheusLanguage.Greek,
+  );
 
-const analyses = await context.analyze(
-  "a)/nqrwpos",
-  MorpheusOption.StrictCase,
-);
+  const analyses = await context.analyze(
+    "a)/nqrwpos",
+    MorpheusOption.StrictCase,
+  );
+  console.log(analyses);
+} catch (error) {
+  if (error instanceof MorpheusError) {
+    console.error(`Morpheus status ${error.status}: ${error.message}`);
+  } else {
+    throw error;
+  }
+}
 ```
 
-Run applications with `--allow-ffi`. The wrapper dispatches analysis as a
-nonblocking FFI operation, serializes requests made through one context, and
-copies native results into TypeScript objects before releasing native memory.
-See [the binding guide](bindings/deno/README.md) for test commands and platform
-library names.
+Run the application with Deno's FFI permission:
+
+```sh
+deno run --allow-ffi app.ts
+```
+
+The wrapper reads returned native pointers with `Deno.UnsafePointerView`.
+Current Deno therefore requires the unscoped FFI permission; a path-scoped
+`--allow-ffi=/chosen/prefix/lib/libmorpheus.so` grant lets the library load but
+rejects those pointer reads. Keep the library path explicit in application code
+and grant no unrelated Deno permissions unless the application needs them.
+
+`analyze()` supports Greek and Latin contexts. The first generation integration
+deliberately focuses on Greek and requires a `gener.index` beside its stemlib.
+The wrapper dispatches analysis and generation as nonblocking FFI operations,
+serializes requests made through one context, and copies native results into
+TypeScript objects before releasing native memory. See
+[the standalone binding guide](bindings/deno/README.md) for installation,
+language scope, all examples, test commands, and platform library names.
 
 ## cruncher compatibility client
 
@@ -263,7 +302,8 @@ container paths. Application code can import the bundled binding from
 
 ## Behavioral baselines
 
-Two fixture suites, executed by CMake without a scripting-language runtime, intentionally remain separate:
+Two fixture suites, executed by CMake without a scripting-language runtime,
+intentionally remain separate:
 
 - `legacy_fixtures` runs the inherited Greek and Latin expectations against
   the Perseids `stemlib` directory;
