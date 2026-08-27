@@ -7,6 +7,10 @@
 #include <morphflags.h>
 
 _Static_assert(sizeof(morpheus_analysis) == 852,"ABI version 2 analysis size");
+_Static_assert(sizeof(morpheus_generation) == 188,
+               "ABI version 2 generation size");
+_Static_assert(sizeof(morpheus_generation_options) == 64,
+               "generation options version 1 size");
 _Static_assert(MORPHEUS_ABI_VERSION == 2,"ABI version");
 _Static_assert(MORPHEUS_PERSON_THIRD == 3,"normalized person code");
 _Static_assert(MORPHEUS_PERSON_THIRD != PERS3,"person is not a legacy mask");

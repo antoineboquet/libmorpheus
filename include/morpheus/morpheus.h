@@ -25,10 +25,10 @@ extern "C" {
 
 /**
  * @file morpheus.h
- * @brief Stable C ABI for the Morpheus morphological analyzer.
+ * @brief Stable C ABI for Morpheus analysis and generation.
  *
- * Contexts and results are opaque. An analysis call owns its returned result
- * until morpheus_result_free() is called. Distinct contexts may be used
+ * Contexts and results are opaque. Analysis and generation calls return owned
+ * results with dedicated free functions. Distinct contexts may be used
  * concurrently, but callers must serialize operations on any one context.
  */
 
@@ -37,6 +37,7 @@ extern "C" {
 
 typedef struct morpheus_runtime_context morpheus_context;
 typedef struct morpheus_result morpheus_result;
+typedef struct morpheus_generation_result morpheus_generation_result;
 
 /** Status returned by fallible public operations. */
 typedef enum {
@@ -48,7 +49,8 @@ typedef enum {
   MORPHEUS_OUT_OF_RANGE=5,
   MORPHEUS_INTERNAL_ERROR=6,
   MORPHEUS_BUFFER_TOO_SMALL=7,
-  MORPHEUS_STEMLIB_ERROR=8
+  MORPHEUS_STEMLIB_ERROR=8,
+  MORPHEUS_RESULT_LIMIT_EXCEEDED=9
 } morpheus_status;
 
 /** Runtime language selected when a context is created. */
@@ -304,6 +306,25 @@ typedef struct {
   uint8_t morph_flags[MORPHEUS_MORPH_FLAG_CAPACITY];
 } morpheus_analysis;
 
+/** One normalized generated form and morphological interpretation. */
+typedef struct {
+  uint32_t struct_size;
+  uint32_t part_of_speech;
+  morpheus_dialect dialect;
+  morpheus_geographic_region geographic_region;
+  morpheus_person person;
+  morpheus_number number;
+  morpheus_gender gender;
+  morpheus_case grammatical_case;
+  morpheus_tense tense;
+  morpheus_mood mood;
+  morpheus_voice voice;
+  morpheus_degree degree;
+  char surface[MORPHEUS_TEXT_CAPACITY];
+  char lemma[MORPHEUS_TEXT_CAPACITY];
+  uint8_t morph_flags[MORPHEUS_MORPH_FLAG_CAPACITY];
+} morpheus_generation;
+
 /** Bit mask returned by morpheus_result_truncated_fields(). */
 typedef uint32_t morpheus_truncated_fields;
 #define MORPHEUS_TRUNCATED_RAW (UINT32_C(1) << 0)
@@ -372,11 +393,41 @@ typedef struct {
   uint32_t language;
 } morpheus_config;
 
+/** Current version of morpheus_generation_options. */
+#define MORPHEUS_GENERATION_OPTIONS_VERSION 1u
+#define MORPHEUS_GENERATION_DEFAULT_LIMIT UINT64_C(4096)
+#define MORPHEUS_GENERATION_MAX_LIMIT UINT64_C(65536)
+
+typedef uint32_t morpheus_generation_flags;
+#define MORPHEUS_GENERATION_EXCLUDE_DUALS (UINT32_C(1) << 0)
+
+/** Per-request filters for morpheus_generate(). Zero traits match all. */
+typedef struct {
+  uint32_t version;
+  uint32_t struct_size;
+  uint64_t result_limit;
+  morpheus_generation_flags flags;
+  uint32_t part_of_speech;
+  morpheus_dialect dialect;
+  morpheus_geographic_region geographic_region;
+  morpheus_person person;
+  morpheus_number number;
+  morpheus_gender gender;
+  morpheus_case grammatical_case;
+  morpheus_tense tense;
+  morpheus_mood mood;
+  morpheus_voice voice;
+  morpheus_degree degree;
+} morpheus_generation_options;
+
 /** Return the ABI version implemented by the loaded library. */
 MORPHEUS_API uint32_t morpheus_abi_version(void);
 
 /** Return the native size of morpheus_analysis for FFI callers. */
 MORPHEUS_API size_t morpheus_analysis_size(void);
+
+/** Return the native size of morpheus_generation for FFI callers. */
+MORPHEUS_API size_t morpheus_generation_size(void);
 
 /** Return a static, NUL-terminated description of @p status. */
 MORPHEUS_API const char *morpheus_status_message(morpheus_status status);
@@ -419,6 +470,19 @@ MORPHEUS_API morpheus_status morpheus_analyze(
     morpheus_context *context, const uint8_t *beta_code, size_t length,
     morpheus_options options, morpheus_result **result);
 
+/**
+ * Generate Greek Beta Code forms for one lemma.
+ *
+ * Input need not be NUL-terminated and must not contain an embedded NUL.
+ * options may be NULL for defaults. The generation index is loaded lazily
+ * from <stemlib_path>/gener.index. On success, the caller owns *result,
+ * including when the lemma is absent and the result contains zero records.
+ */
+MORPHEUS_API morpheus_status morpheus_generate(
+    morpheus_context *context, const uint8_t *lemma, size_t length,
+    const morpheus_generation_options *options,
+    morpheus_generation_result **result);
+
 /** Return the number of analyses in a result, or zero for NULL. */
 MORPHEUS_API size_t morpheus_result_count(const morpheus_result *result);
 
@@ -447,6 +511,29 @@ MORPHEUS_API morpheus_status morpheus_result_truncated_fields(
 
 /** Destroy an owned result. Passing NULL is allowed. */
 MORPHEUS_API void morpheus_result_free(morpheus_result *result);
+
+/** Return the number of generated interpretations, or zero for NULL. */
+MORPHEUS_API size_t morpheus_generation_result_count(
+    const morpheus_generation_result *result);
+
+/** Copy one generated interpretation into caller-owned storage. */
+MORPHEUS_API morpheus_status morpheus_generation_result_copy(
+    const morpheus_generation_result *result, size_t index, void *buffer,
+    size_t buffer_size);
+
+/** Copy one generated interpretation into a native structure. */
+MORPHEUS_API morpheus_status morpheus_generation_result_get(
+    const morpheus_generation_result *result, size_t index,
+    morpheus_generation *generation);
+
+/** Report truncated generated text fields for one interpretation. */
+MORPHEUS_API morpheus_status morpheus_generation_result_truncated_fields(
+    const morpheus_generation_result *result, size_t index,
+    morpheus_truncated_fields *fields);
+
+/** Destroy an owned generation result. Passing NULL is allowed. */
+MORPHEUS_API void morpheus_generation_result_free(
+    morpheus_generation_result *result);
 
 #ifdef __cplusplus
 }

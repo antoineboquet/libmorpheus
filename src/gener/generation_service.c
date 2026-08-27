@@ -4,12 +4,13 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <modes.h>
 
 #include "gener_internal.h"
 #include "../morphlib/gkstring.proto.h"
-#include "../morphlib/runtime_context.h"
+#include "../morphlib/runtime_context_internal.h"
 
 struct morpheus_generation_service {
 	const morpheus_gener_index *index;
@@ -105,7 +106,16 @@ morpheus_generation_status
 morpheus_generation_service_create(const morpheus_gener_index *index,
                                    morpheus_generation_service **service)
 {
+	return morpheus_generation_service_create_at_path(index,NULL,service);
+}
+
+morpheus_generation_status
+morpheus_generation_service_create_at_path(
+    const morpheus_gener_index *index, const char *stemlib_path,
+    morpheus_generation_service **service)
+{
 	morpheus_generation_service *created;
+	size_t path_length;
 
 	if (!index || !service)
 		return MORPHEUS_GENERATION_INVALID;
@@ -117,6 +127,16 @@ morpheus_generation_service_create(const morpheus_gener_index *index,
 	if (!created->context) {
 		free(created);
 		return MORPHEUS_GENERATION_NO_MEMORY;
+	}
+	if (stemlib_path) {
+		path_length = strlen(stemlib_path);
+		created->context->stemlib_path = malloc(path_length + 1);
+		if (!created->context->stemlib_path) {
+			morpheus_runtime_context_destroy(created->context);
+			free(created);
+			return MORPHEUS_GENERATION_NO_MEMORY;
+		}
+		memcpy(created->context->stemlib_path,stemlib_path,path_length + 1);
 	}
 	created->index = index;
 	*service = created;

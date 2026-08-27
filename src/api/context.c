@@ -2,6 +2,7 @@
 // Copyright (C) 2026 Antoine Boquet
 
 #include <morpheus/morpheus.h>
+#include "api_internal.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,6 +27,7 @@ const char *morpheus_status_message(morpheus_status status)
   case MORPHEUS_INTERNAL_ERROR: return("internal error");
   case MORPHEUS_BUFFER_TOO_SMALL: return("output buffer is too small");
   case MORPHEUS_STEMLIB_ERROR: return("stemlib is unavailable or incomplete");
+  case MORPHEUS_RESULT_LIMIT_EXCEEDED: return("generation result limit exceeded");
   default: return("unknown status");
   }
 }
@@ -145,4 +147,9 @@ morpheus_status morpheus_open_path(uint32_t abi_version, const uint8_t *stemlib_
   return(morpheus_open(&config,context));
 }
 
-void morpheus_close(morpheus_context *context) { morpheus_runtime_context_destroy(context); }
+void morpheus_close(morpheus_context *context)
+{
+  if(!context) return;
+  morpheus_generation_context_cleanup(context);
+  morpheus_runtime_context_destroy(context);
+}

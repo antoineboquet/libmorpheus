@@ -13,6 +13,13 @@ set(MORPHEUS_PUBLIC_API_SYMBOLS
   morpheus_compat_output_free
   morpheus_compat_output_lemma_count
   morpheus_compat_output_length
+  morpheus_generate
+  morpheus_generation_result_copy
+  morpheus_generation_result_count
+  morpheus_generation_result_free
+  morpheus_generation_result_get
+  morpheus_generation_result_truncated_fields
+  morpheus_generation_size
   morpheus_open
   morpheus_open_path
   morpheus_result_copy

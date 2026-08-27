@@ -25,6 +25,9 @@ typedef int (*morpheus_generation_visitor)(const gk_word *form, void *state);
 
 morpheus_generation_status morpheus_generation_service_create(
     const morpheus_gener_index *index, morpheus_generation_service **service);
+morpheus_generation_status morpheus_generation_service_create_at_path(
+    const morpheus_gener_index *index, const char *stemlib_path,
+    morpheus_generation_service **service);
 void morpheus_generation_service_destroy(morpheus_generation_service *service);
 
 morpheus_generation_status morpheus_generation_service_generate(

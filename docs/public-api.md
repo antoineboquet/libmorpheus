@@ -27,6 +27,8 @@ requires another ABI review.
   release them with `morpheus_close()`.
 - `morpheus_analyze()` returns an owned result, including when its count is
   zero; release it with `morpheus_result_free()`.
+- `morpheus_generate()` returns an owned generation result, including when its
+  count is zero; release it with `morpheus_generation_result_free()`.
 - `morpheus_compat_analyze()` returns an owned compatibility output; release it
   with `morpheus_compat_output_free()`.
 - Distinct contexts may be used concurrently. Calls on one context, including
@@ -48,6 +50,7 @@ requires another ABI review.
 | `MORPHEUS_INTERNAL_ERROR` | Internal state or arithmetic failure. |
 | `MORPHEUS_BUFFER_TOO_SMALL` | Caller storage is too small. |
 | `MORPHEUS_STEMLIB_ERROR` | Required language data is absent, unreadable, or empty. |
+| `MORPHEUS_RESULT_LIMIT_EXCEEDED` | A generation request matched more records than its configured limit. |
 
 `morpheus_status_message()` returns borrowed static diagnostic text. Programs
 should branch on the numeric status.
@@ -58,16 +61,23 @@ should branch on the numeric status.
 | --- | --- |
 | `morpheus_abi_version()` | Returns the loaded ABI version. |
 | `morpheus_analysis_size()` | Returns the native analysis-record size. |
+| `morpheus_generation_size()` | Returns the native generation-record size. |
 | `morpheus_status_message()` | Returns borrowed status text. |
 | `morpheus_open()` | Creates a validated context from `morpheus_config`. |
 | `morpheus_open_path()` | Creates a context from an explicit-length path. |
 | `morpheus_close()` | Destroys a context and its caches. |
 | `morpheus_analyze()` | Produces normalized structured analyses. |
+| `morpheus_generate()` | Produces normalized forms for one Greek lemma. |
 | `morpheus_result_count()` | Returns the count, or zero for `NULL`. |
 | `morpheus_result_copy()` | Copies a record into caller storage. |
 | `morpheus_result_get()` | Copies a record into `morpheus_analysis`. |
 | `morpheus_result_truncated_fields()` | Reports truncated fixed-text fields. |
 | `morpheus_result_free()` | Destroys a structured result. |
+| `morpheus_generation_result_count()` | Returns the generated interpretation count. |
+| `morpheus_generation_result_copy()` | Copies a generated record into caller storage. |
+| `morpheus_generation_result_get()` | Copies a generated record into `morpheus_generation`. |
+| `morpheus_generation_result_truncated_fields()` | Reports truncated generated text fields. |
+| `morpheus_generation_result_free()` | Destroys a generation result. |
 | `morpheus_compat_analyze()` | Produces historical `cruncher` text and counts. |
 | `morpheus_compat_output_data()` | Returns borrowed formatted bytes. |
 | `morpheus_compat_output_length()` | Returns the formatted byte count. |
@@ -77,6 +87,30 @@ should branch on the numeric status.
 
 Analysis inputs are explicit-length byte sequences. They need not end in NUL,
 but an embedded NUL is invalid.
+
+## Greek lemma generation
+
+`morpheus_generate()` accepts an explicit-length Greek Beta Code lemma. It
+applies the generation-index canonicalisation rules (initial `!`, hyphens,
+quantity marks, and diaeresis marks are removed), preserves duplicate
+morphological interpretations and dual forms by default, and returns records
+in a deterministic total order. Results own all text and remain valid after
+their context is closed.
+
+Pass `NULL` options for defaults, including a 4,096-record limit. A non-NULL
+`morpheus_generation_options` must set
+`MORPHEUS_GENERATION_OPTIONS_VERSION`, its complete `struct_size`, and may set
+a limit up to `MORPHEUS_GENERATION_MAX_LIMIT` (65,536). Zero trait fields mean
+no filter. Equality-valued traits select one value; dialect, region, gender,
+case, and voice fields accept their documented masks. Dialect-neutral forms
+match any requested dialect. `MORPHEUS_GENERATION_EXCLUDE_DUALS` removes dual
+records and conflicts with an explicit dual-number filter.
+
+Generation is currently Greek-only. The context loads and validates
+`<stemlib_path>/gener.index` on its first generation call and retains it for
+warm lookups. The index is derived stem data and is not part of the installed
+C ABI package. Its absence does not affect analysis calls; generation reports
+`MORPHEUS_STEMLIB_ERROR` until a valid index is deployed.
 
 ## Normalized analysis values
 

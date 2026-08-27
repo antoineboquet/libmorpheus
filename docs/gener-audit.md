@@ -271,7 +271,13 @@ become accidental generation promises.
    per-request limit is enforced during collection under a hard ceiling of
    65,536 records, with no partial result returned when exceeded.
 5. **Publish the additive C API.** Add installed-consumer, symbol-surface,
-   ownership, invalid-input, and package tests.
+   ownership, invalid-input, and package tests. Implemented as an ABI 2
+   additive surface with a versioned options structure, explicit-length Greek
+   Beta Code lemma input, typed filters, an owned opaque result, deterministic
+   records, and a distinct limit-exceeded status. The validated generation
+   index is loaded lazily from `<stemlib_path>/gener.index`, so analysis-only
+   contexts remain usable without it. Public, installed-consumer, symbol,
+   ownership, invalid-input, filtering, and sanitizer tests cover the surface.
 6. **Extend the Deno binding.** Keep generation nonblocking, expose typed
    filters, and test concurrent use through distinct contexts.
 7. **Qualify 0.3.0.** Benchmark representative small and maximal paradigms,

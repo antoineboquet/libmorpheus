@@ -1181,6 +1181,7 @@ add_library(
   src/api/context.c
   src/api/result.c
   src/api/analyze.c
+  src/api/generation.c
   src/bridge/legacy_values.c
   src/compat/compat.c
 )
@@ -1197,6 +1198,9 @@ target_link_libraries(
   morpheus
   PRIVATE
     morpheus_anal
+    morpheus_generation_normalizer
+    morpheus_generation_service
+    morpheus_gener_index
     morpheus_gener
     morpheus_gkends
     morpheus_gkdict
@@ -1299,6 +1303,24 @@ if(BUILD_TESTING)
     morpheus_public_result_test PRIVATE morpheus morpheus_build_options
   )
   add_test(NAME public_result COMMAND morpheus_public_result_test)
+  add_executable(
+    morpheus_public_generation_test
+    test/public-generation.c
+  )
+  target_link_libraries(
+    morpheus_public_generation_test PRIVATE morpheus morpheus_build_options
+  )
+  add_test(
+    NAME public_generation
+    COMMAND
+      "${CMAKE_COMMAND}"
+      -DMORPHEUS_GENER_INDEX_BUILDER=$<TARGET_FILE:morpheus_gener_index_builder>
+      -DMORPHEUS_PUBLIC_GENERATION_TEST=$<TARGET_FILE:morpheus_public_generation_test>
+      -DMORPHEUS_GENERATION_SOURCE=${PROJECT_SOURCE_DIR}/test/generation-service-source.txt
+      -DMORPHEUS_STEMLIB=${PROJECT_SOURCE_DIR}/stemlib
+      -DMORPHEUS_PUBLIC_GENERATION_WORK_DIR=${PROJECT_BINARY_DIR}/test-public-generation
+      -P "${PROJECT_SOURCE_DIR}/test/public-generation.cmake"
+  )
   add_executable(morpheus_runtime_error_test test/runtime-error.c)
   target_include_directories(
     morpheus_runtime_error_test

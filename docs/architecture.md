@@ -39,9 +39,13 @@ and per-request options. The library is installable as the CMake target
 formats are provided through an owned memory-buffer compatibility API and
 remain validated by both fixture suites.
 
-The inherited form generator is not yet a public runtime service. Its data
-flow, provenance, concurrency constraints, and proposed additive integration
-are recorded in the [`gener` integration audit](gener-audit.md).
+The inherited form generator is reached only through the normalized public
+generation API. A deterministic offline reverse index maps Greek lemmas to
+call-local generator records; the MPL service and normalizer remain behind the
+AGPL ABI bridge. Each public context loads `<stemlib_path>/gener.index` lazily,
+owns its internal generation service, and releases both at close. The data
+flow, provenance, concurrency constraints, and staged qualification are
+recorded in the [`gener` integration audit](gener-audit.md).
 
 ## Build-only and installed surfaces
 

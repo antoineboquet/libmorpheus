@@ -18,6 +18,7 @@ set(agpl_files
     src/api/api_internal.h
     src/api/analyze.c
     src/api/context.c
+    src/api/generation.c
     src/api/result.c
     tools/gener-index-builder.c)
 file(GLOB agpl_support_files
