@@ -110,6 +110,12 @@ jobs:
         with:
           deno-version: v2.9.5
 
+      - name: Dry-run JSR package
+        working-directory: bindings/deno
+        run: |
+          deno lint --rules-include=no-slow-types mod.ts
+          deno publish --dry-run
+
       - name: Configure library
         run: cmake --preset dev
 
@@ -143,12 +149,6 @@ jobs:
           deno check bindings/deno/mod.ts bindings/deno/mod_test.ts \
             bench/compare.ts bench/compare_test.ts \
             bench/validate.ts bench/validate_test.ts
-
-      - name: Dry-run JSR package
-        working-directory: bindings/deno
-        run: |
-          deno lint --rules-include=no-slow-types mod.ts
-          deno publish --dry-run
 
       - name: Test binding
         env:
