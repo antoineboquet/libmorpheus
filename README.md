@@ -332,7 +332,8 @@ verbs only.
 
 The default multi-stage image builds and tests the C17 runtime on musl, then
 ships only the installed library, `cruncher`, its runtime dependencies, and the
-pinned Alpheios stemlib:
+pinned Alpheios stemlib prepared with the validated experimental Greek
+`gener.index`:
 
 ```sh
 docker build --target runtime -t morpheus .
@@ -350,7 +351,7 @@ docker buildx build \
 ```
 
 A separate `deno-runtime` target contains Deno, the shared library, the typed
-binding, and the stemlib for use as an application base:
+binding, and the prepared stemlib for use as an application base:
 
 ```sh
 docker build --target deno-runtime -t morpheus-deno .
@@ -358,7 +359,13 @@ docker build --target deno-runtime -t morpheus-deno .
 
 Its `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` variables already point to the
 container paths. Application code can import the bundled binding from
-`/opt/morpheus/share/morpheus/deno/mod.ts`.
+`/opt/morpheus/share/morpheus/deno/mod.ts`. Both `analyze()` and experimental
+Greek `generate()` are ready to use; generation is smoke-tested against the
+full prepared Alpheios index on Alpine x86-64 and aarch64.
+
+These images remain local qualification and application-build targets. Do not
+publish them while the Alpheios stemlib and derived-index redistribution terms
+remain unresolved.
 
 ## Behavioral baselines
 

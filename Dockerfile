@@ -15,7 +15,9 @@ RUN cmake -S . -B build -G Ninja \
       -DMORPHEUS_STEMLIB_DIR=/src/vendor/alpheios-morpheus/dist/stemlib \
  && cmake --build build \
  && ctest --test-dir build --output-on-failure \
- && cmake --install build --prefix /opt/morpheus
+ && cmake --install build --prefix /opt/morpheus \
+ && MORPHEUS_RUNTIME_DATA_BUILD_DIR=/src/build \
+      sh tools/prepare-runtime-data.sh /opt/morpheus-runtime-data
 
 FROM alpine:${ALPINE_VERSION} AS runtime-base
 
@@ -23,7 +25,7 @@ RUN apk add --no-cache libgcc
 
 COPY --from=build /opt/morpheus /opt/morpheus
 COPY --from=build \
-  /src/vendor/alpheios-morpheus/dist/stemlib \
+  /opt/morpheus-runtime-data \
   /opt/morpheus/share/morpheus/stemlib
 
 ENV LD_LIBRARY_PATH=/opt/morpheus/lib
@@ -34,7 +36,7 @@ FROM ${DENO_IMAGE} AS deno-runtime
 USER root
 COPY --from=build /opt/morpheus /opt/morpheus
 COPY --from=build \
-  /src/vendor/alpheios-morpheus/dist/stemlib \
+  /opt/morpheus-runtime-data \
   /opt/morpheus/share/morpheus/stemlib
 COPY --from=build \
   /src/bindings/deno \

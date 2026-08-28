@@ -60,7 +60,8 @@ data.
 
 The repository's locally built
 [`deno-runtime` image target](https://github.com/defense-humanites/libmorpheus/blob/main/Dockerfile)
-bundles Deno, the native library, this binding, and the pinned Alpheios stemlib:
+bundles Deno, the native library, this binding, and the pinned Alpheios stemlib
+prepared with its validated `gener.index`:
 
 ```sh
 git clone --recurse-submodules \
@@ -71,9 +72,11 @@ docker build --target deno-runtime -t morpheus-deno .
 
 Inside the image, import `/opt/morpheus/share/morpheus/deno/mod.ts`.
 `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` already contain the corresponding
-container paths. Applications still need Deno's `--allow-ffi` permission. The
-image is a qualification and application-build target, not a published registry
-image, while the Alpheios redistribution terms remain unresolved.
+container paths. Applications still need Deno's `--allow-ffi` permission.
+Greek `analyze()` and experimental `generate()` are both qualified in the image;
+CI also checks that generation preserves dual forms. The image is a
+qualification and application-build target, not a published registry image,
+while the Alpheios and derived-index redistribution terms remain unresolved.
 
 ### JSR package
 

@@ -312,12 +312,36 @@ jobs:
         run: |
           output="$(printf 'a)/nqrwpos\n' | docker run --rm -i morpheus:ci -S)"
           test -n "$output"
+          docker run --rm --entrypoint sh morpheus:ci -c \
+            'echo "5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6  /opt/morpheus/share/morpheus/stemlib/gener.index" | sha256sum -c -'
 
       - name: Build Alpine Deno base image
         run: docker build --target deno-runtime --tag morpheus-deno:ci .
 
-      - name: Smoke-test Deno base image
-        run: docker run --rm morpheus-deno:ci --version
+      - name: Smoke-test Deno analysis and generation
+        run: |
+          docker run --rm --entrypoint sh morpheus-deno:ci -c \
+            'echo "5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6  /opt/morpheus/share/morpheus/stemlib/gener.index" | sha256sum -c -'
+          docker run --rm morpheus-deno:ci eval --allow-env --allow-ffi '
+            import {
+              MorpheusLanguage,
+              MorpheusLibrary,
+            } from "/opt/morpheus/share/morpheus/deno/mod.ts";
+            using library = new MorpheusLibrary(
+              Deno.env.get("MORPHEUS_LIBRARY")!,
+            );
+            await using context = library.createContext(
+              Deno.env.get("MORPHEUS_STEMLIB")!,
+              MorpheusLanguage.Greek,
+            );
+            const analyses = await context.analyze("a)/nqrwpos");
+            if (analyses.length === 0) throw new Error("analysis smoke failed");
+            const forms = await context.generate("lo/gos");
+            if (forms.length === 0) throw new Error("generation smoke failed");
+            if (!forms.some((form) => form.grammaticalNumber === "dual")) {
+              throw new Error("generation lost dual forms");
+            }
+          '
 
   apple-silicon:
     needs: activity

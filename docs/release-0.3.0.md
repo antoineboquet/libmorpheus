@@ -62,9 +62,10 @@ package retains the AGPL notice and the documented MPL boundary to the
 separately distributed native runtime. The `/native` command verifies and
 extracts the matching release asset without a C toolchain.
 
-Container builds remain qualification artifacts. An image embedding the pinned
-Alpheios stemlib must not be published until that dataset's redistribution terms
-have been confirmed.
+Container builds remain qualification artifacts. They embed the pinned Alpheios
+stemlib and its validated derived `gener.index` so Docker qualification covers
+real experimental generation. Such an image must not be published until the
+dataset and derived-index redistribution terms have been confirmed.
 
 ## Remaining gates
 

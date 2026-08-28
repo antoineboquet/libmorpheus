@@ -105,6 +105,20 @@ foreach(expected_workflow_value IN ITEMS
   endif()
 endforeach()
 
+file(READ "${MORPHEUS_SOURCE_DIR}/Dockerfile" dockerfile)
+foreach(expected_container_value IN ITEMS
+        "tools/prepare-runtime-data.sh /opt/morpheus-runtime-data"
+        "/opt/morpheus-runtime-data"
+        "5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6"
+        "generation lost dual forms")
+  string(FIND "${dockerfile}${platform_workflow}"
+              "${expected_container_value}" container_value_at)
+  if(container_value_at EQUAL -1)
+    message(FATAL_ERROR
+      "Docker generation qualification is missing: ${expected_container_value}")
+  endif()
+endforeach()
+
 if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.0")
   string(FIND "${release_decision}"
     "@humanities/libmorpheus" jsr_package_at)

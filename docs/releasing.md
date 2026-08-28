@@ -112,8 +112,10 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Treat container builds as qualification only. Do not publish an image
   embedding the Alpheios stemlib until its redistribution terms have been
   confirmed; this restriction does not apply to data-free native packages.
-- Smoke-test `cruncher` and the Deno wrapper against the stemlib intended for
-  deployment, not merely the small inherited fixture tree.
+- Require both images to contain the canonical Alpheios `gener.index` digest.
+  Smoke-test `cruncher`, then run real Deno analysis and experimental generation
+  against the prepared stemlib, including a dual-form assertion, rather than
+  merely checking that Deno starts.
 - Inspect the native installation and confirm it contains only the public
   header, shared library, CMake package files, `libmorpheus.pc`, and optional
   `cruncher` executable.
