@@ -39,13 +39,14 @@ candidate release contents.
 ## Summary
 
 1. [Clone](#clone)
-2. [Build and test](#build-and-test)
-3. [Install and consume from C](#install-and-consume-from-c)
-4. [Deno FFI](#deno-ffi)
-5. [`cruncher` compatibility client](#cruncher-compatibility-client)
-6. [Alpine container images](#alpine-container-images)
-7. [Behavioral baselines](#behavioral-baselines)
-8. [Historical build](#historical-build)
+2. [Runtime data](#runtime-data)
+3. [Build and test](#build-and-test)
+4. [Install and consume from C](#install-and-consume-from-c)
+5. [Deno FFI](#deno-ffi)
+6. [`cruncher` compatibility client](#cruncher-compatibility-client)
+7. [Alpine container images](#alpine-container-images)
+8. [Behavioral baselines](#behavioral-baselines)
+9. [Historical build](#historical-build)
 
 ## Clone
 
@@ -61,6 +62,23 @@ For an existing clone:
 ```sh
 git submodule update --init --recursive
 ```
+
+## Runtime data
+
+Native archives and the JSR package contain no linguistic data. The repository
+`stemlib/` supports Greek and Latin analysis; the pinned Alpheios submodule is
+the Greek reference dataset. Experimental Greek generation also needs a
+validated `gener.index`. From a recursive versioned checkout, prepare a
+standalone Greek runtime-data directory with:
+
+```sh
+sh tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"
+```
+
+The command validates the pinned sources and builds the index locally without
+publishing upstream data or derived data in a release asset. See
+[acquiring runtime data](docs/runtime-data.md) for exact version-pinned paths,
+requirements, language coverage, expected digest, and redistribution caveats.
 
 ## Build and test
 
@@ -244,6 +262,13 @@ Current Deno therefore requires the unscoped FFI permission; a path-scoped
 `--allow-ffi=/chosen/prefix/lib/libmorpheus.so` grant lets the library load but
 rejects those pointer reads. Keep the library path explicit in application code
 and grant no unrelated Deno permissions unless the application needs them.
+
+Install the source binding from JSR with
+`deno add jsr:@humanities/libmorpheus@0.3.0`. Native archives, the JSR package,
+and release assets intentionally contain no stem data. The
+[runtime-data guide](docs/runtime-data.md) documents the version-pinned Greek
+and Latin analysis datasets and provides one local command to prepare the
+Alpheios Greek stemlib with its reproducible `gener.index`.
 
 `analyze()` supports Greek and Latin contexts. The experimental first
 generation integration deliberately focuses on Greek and requires a

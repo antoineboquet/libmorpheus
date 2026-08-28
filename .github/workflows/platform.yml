@@ -16,6 +16,7 @@ on:
       - 'test/package-deno-binding.cmake'
       - 'test/test-deno-binding-package.cmake'
       - 'bindings/deno/**'
+      - 'tools/prepare-runtime-data.sh'
   push:
     tags:
       - 'v*'
@@ -422,3 +423,75 @@ jobs:
           path: build/release/packages/libmorpheus-*.tar.gz*
           if-no-files-found: error
           retention-days: 14
+
+  publish-jsr:
+    name: Publish JSR package
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs:
+      - activity
+      - linux-x86_64-package
+      - linux-aarch64
+      - alpine
+      - apple-silicon
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      actions: read
+      contents: read
+      id-token: write
+    steps:
+      - name: Wait for tagged Linux qualification
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const deadline = Date.now() + 10 * 60 * 1000
+            while (Date.now() < deadline) {
+              const result = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'test.yml',
+                event: 'push',
+                head_sha: context.sha,
+                per_page: 10,
+              })
+              const run = result.data.workflow_runs.find((candidate) =>
+                candidate.head_sha === context.sha
+              )
+              if (run?.status === 'completed') {
+                if (run.conclusion !== 'success') {
+                  throw new Error(
+                    `Linux CI ${run.html_url} concluded ${run.conclusion}`,
+                  )
+                }
+                core.info(`Linux CI passed: ${run.html_url}`)
+                return
+              }
+              core.info(
+                run === undefined
+                  ? 'Waiting for the tagged Linux CI run to appear.'
+                  : `Waiting for Linux CI ${run.html_url}: ${run.status}.`,
+              )
+              await new Promise((resolve) => setTimeout(resolve, 15000))
+            }
+            throw new Error('Timed out waiting for tagged Linux CI')
+
+      - name: Check out the qualified tag
+        uses: actions/checkout@v5
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+
+      - name: Verify tag and package contents
+        working-directory: bindings/deno
+        run: |
+          package_version="$(deno eval \
+            'console.log(JSON.parse(await Deno.readTextFile("jsr.json")).version)')"
+          test "$GITHUB_REF_NAME" = "v$package_version"
+          deno lint --rules-include=no-slow-types mod.ts
+          deno publish --dry-run
+
+      - name: Publish JSR package
+        working-directory: bindings/deno
+        run: deno publish

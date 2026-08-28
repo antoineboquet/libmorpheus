@@ -31,6 +31,8 @@ Each release records its version and ABI decision in
 - Start from a clean checkout with recursive submodules initialized.
 - Record the Perseids code baseline and Alpheios stemlib commit documented in
   `provenance.md`.
+- Exercise `tools/prepare-runtime-data.sh` from a recursive checkout and verify
+  the generated index digest documented in `runtime-data.md`.
 - Confirm that intended release archives or container contexts include the
   pinned Alpheios submodule content; the native install intentionally does not
   install stem data.
@@ -146,9 +148,14 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - From `bindings/deno`, run `deno publish --dry-run` and inspect the exact file
   list before tagging. Require the configured JSR name and version to match
   `@humanities/libmorpheus` and the CMake project version, respectively.
-- Publish the JSR package only from the same qualified tagged source revision
-  as the native archives. Its source-only contents must retain `README.md`,
-  `LICENSE`, and `NOTICE`; it must not embed a native library or stem data.
+- Before the first publication, link `@humanities/libmorpheus` to
+  `defense-humanites/libmorpheus` in the package's JSR settings. This one-time
+  association authorizes tokenless GitHub Actions publication through OIDC.
+- Pushing the matching `v<version>` tag automatically publishes the JSR package
+  only after every platform job and the separate tagged Linux workflow pass.
+  Its source-only contents retain `README.md`, `LICENSE`, and `NOTICE`; they do
+  not embed a native library or stem data. A missing JSR repository association
+  makes the publication job fail without weakening the preceding qualification.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact

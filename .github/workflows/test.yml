@@ -34,6 +34,16 @@ jobs:
       - name: Test
         run: ctest --preset dev
 
+      - name: Test runtime-data preparation helper
+        env:
+          MORPHEUS_RUNTIME_DATA_BUILD_DIR: build/dev
+        run: |
+          sh tools/prepare-runtime-data.sh build/runtime-data-test
+          test -d build/runtime-data-test/Greek
+          test -f build/runtime-data-test/MORPHEUS-DATA.txt
+          cmake -E sha256sum build/runtime-data-test/gener.index | \
+            grep -F '5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6'
+
   release:
     if: >-
       github.event_name == 'push' &&

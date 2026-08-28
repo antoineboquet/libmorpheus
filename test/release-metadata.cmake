@@ -85,6 +85,22 @@ if(current_release_at EQUAL -1)
     "releasing.md does not identify release-${MORPHEUS_PROJECT_VERSION}.md")
 endif()
 
+file(READ "${MORPHEUS_SOURCE_DIR}/.github/workflows/platform.yml"
+     platform_workflow)
+foreach(expected_workflow_value IN ITEMS
+        "publish-jsr:"
+        "id-token: write"
+        "workflow_id: 'test.yml'"
+        "deno publish --dry-run"
+        "run: deno publish")
+  string(FIND "${platform_workflow}" "${expected_workflow_value}"
+              workflow_value_at)
+  if(workflow_value_at EQUAL -1)
+    message(FATAL_ERROR
+      "platform workflow is missing: ${expected_workflow_value}")
+  endif()
+endforeach()
+
 if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.0")
   string(FIND "${release_decision}"
     "@humanities/libmorpheus" jsr_package_at)

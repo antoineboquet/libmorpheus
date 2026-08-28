@@ -51,6 +51,12 @@ retain their provenance-only status. The new implementation and its Deno
 the current differential, isolation, failure, portability, and sanitizer
 tests, provides sufficient operational validation.
 
+The supported local data-preparation recipe in
+[`runtime-data.md`](runtime-data.md) invokes those two narrow targets through
+`tools/prepare-runtime-data.sh`. This convenience workflow does not install or
+expose either executable, does not revive a historical driver, and keeps the
+derived index outside release and JSR artifacts.
+
 ## Safety findings
 
 The quarantined programs still contain unbounded input and formatting calls,

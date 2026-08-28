@@ -15,15 +15,16 @@
 3. [Installation](#installation)
    1. [Standalone release archive](#standalone-release-archive)
    2. [Docker image](#docker-image)
-   3. [Future JSR package](#future-jsr-package)
-4. [Language and stemlib support](#language-and-stemlib-support)
-5. [FFI permission](#ffi-permission)
-6. [Analyze a form](#analyze-a-form)
-7. [Generate forms from a lemma](#generate-forms-from-a-lemma)
-8. [Parallel contexts](#parallel-contexts)
-9. [Raw access and cleanup](#raw-access-and-cleanup)
-10. [Documentation](#documentation)
-11. [Local checks](#local-checks)
+   3. [JSR package](#jsr-package)
+4. [Acquire stem data](#acquire-stem-data)
+5. [Language and stemlib support](#language-and-stemlib-support)
+6. [FFI permission](#ffi-permission)
+7. [Analyze a form](#analyze-a-form)
+8. [Generate forms from a lemma](#generate-forms-from-a-lemma)
+9. [Parallel contexts](#parallel-contexts)
+10. [Raw access and cleanup](#raw-access-and-cleanup)
+11. [Documentation](#documentation)
+12. [Local checks](#local-checks)
 
 ## Purpose
 
@@ -55,7 +56,7 @@ stem data.
 
 ### Docker image
 
-The repository's
+The repository's locally built
 [`deno-runtime` image target](https://github.com/defense-humanites/libmorpheus/blob/main/Dockerfile)
 bundles Deno, the native library, this binding, and the pinned Alpheios stemlib:
 
@@ -69,12 +70,13 @@ docker build --target deno-runtime -t morpheus-deno .
 Inside the image, import `/opt/morpheus/share/morpheus/deno/mod.ts`.
 `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` already contain the corresponding
 container paths. Applications still need Deno's `--allow-ffi` permission.
+The image is a qualification and application-build target, not a published
+registry image, while the Alpheios redistribution terms remain unresolved.
 
-### Future JSR package
+### JSR package
 
-The source package is configured as `@humanities/libmorpheus@0.3.0`, but that
-version is not published yet. After publication, install the qualified version
-from [JSR](https://jsr.io/@humanities/libmorpheus):
+Install the qualified source binding from
+[JSR](https://jsr.io/@humanities/libmorpheus):
 
 ```sh
 deno add jsr:@humanities/libmorpheus@0.3.0
@@ -92,9 +94,40 @@ import {
 
 The JSR package contains only the TypeScript binding and its licensing and
 usage documentation. It does not contain the native library or stem data.
-Until version 0.3.0 is actually published, use the standalone archive, Docker
-image, or a pinned source checkout; do not depend on an unversioned repository
-URL.
+Publication is tied to the matching `v0.3.0` Git tag and occurs only after the
+tagged Linux and platform qualification workflows succeed.
+
+## Acquire stem data
+
+Clone the same release as the binding, including its pinned Alpheios
+submodule:
+
+```sh
+git clone --depth 1 --branch v0.3.0 --recurse-submodules \
+  --shallow-submodules \
+  https://github.com/defense-humanites/libmorpheus.git libmorpheus-data
+```
+
+For Greek and Latin analysis, pass the absolute
+`libmorpheus-data/stemlib` path to `createContext()`. For the Greek-only
+Alpheios reference data, use
+`libmorpheus-data/vendor/alpheios-morpheus/dist/stemlib`.
+
+Experimental Greek generation needs a complete Alpheios stemlib plus its
+locally built index. CMake, Ninja, and a C compiler are required:
+
+```sh
+sh libmorpheus-data/tools/prepare-runtime-data.sh \
+  "$PWD/morpheus-greek-data"
+```
+
+Pass the resulting absolute `morpheus-greek-data` path to `createContext()`.
+The script validates the pinned source corpus and reproducibly creates
+`gener.index`; it refuses to overwrite an existing directory. The package does
+not redistribute Alpheios data or the derived index because their distribution
+terms require separate review. See the complete
+[runtime-data guide](https://github.com/defense-humanites/libmorpheus/blob/main/docs/runtime-data.md)
+and [provenance evidence](https://github.com/defense-humanites/libmorpheus/blob/main/docs/provenance.md).
 
 ## Language and stemlib support
 

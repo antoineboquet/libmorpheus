@@ -20,6 +20,7 @@ set(agpl_files
     src/api/context.c
     src/api/generation.c
     src/api/result.c
+    tools/prepare-runtime-data.sh
     tools/gener-index-builder.c)
 file(GLOB agpl_support_files
      RELATIVE "${MORPHEUS_SOURCE_DIR}"

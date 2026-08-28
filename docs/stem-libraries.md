@@ -16,3 +16,6 @@ Generation and analysis do not have identical data requirements. Analysis can
 read a compiled stemlib directly. The current generation implementation is
 Greek-only and additionally reads the validated `gener.index` built at the
 stemlib root.
+The [runtime-data guide](runtime-data.md) gives version-pinned acquisition
+paths for analysis and a local, reproducible preparation command for
+generation.

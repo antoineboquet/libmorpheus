@@ -80,4 +80,6 @@ have been confirmed.
 4. Move the changelog contents from `Unreleased` to a dated `0.3.0` heading,
    tag the qualified commit as `v0.3.0`, and require both tag workflows to pass.
 5. Publish only tag-produced archives and the validated benchmark evidence;
-   publish the JSR package from the same qualified source revision.
+   let the tagged platform workflow publish the JSR package from the same
+   qualified source revision after tagged Linux CI succeeds. The JSR package
+   must first be linked to this GitHub repository in its JSR settings.
