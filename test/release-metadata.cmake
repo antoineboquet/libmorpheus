@@ -154,7 +154,7 @@ endif()
 if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.1")
   foreach(expected_patch_release_value IN ITEMS
           "@humanities/libmorpheus@0.3.1"
-          "Benchmark evidence: **pending**"
+          "Benchmark evidence: **accepted**"
           "generation surface and Deno `generate()`/`generateRaw()` methods remain\nexperimental"
           "Tag that qualified commit as `v0.3.1` only after explicit authorization")
     string(FIND "${release_decision}" "${expected_patch_release_value}"
@@ -164,4 +164,19 @@ if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.1")
         "release-0.3.1.md is missing: ${expected_patch_release_value}")
     endif()
   endforeach()
+  set(benchmark_path
+      "${MORPHEUS_SOURCE_DIR}/bench/release-evidence/benchmark-0.3.1.json")
+  set(benchmark_checksum
+      "336db599db9f87ba06cedb7c2e0435125fc9918a62215ddc6988b5612c94ca78")
+  if(NOT EXISTS "${benchmark_path}" OR
+     NOT EXISTS "${benchmark_path}.sha256")
+    message(FATAL_ERROR "Accepted 0.3.1 benchmark evidence is missing")
+  endif()
+  file(SHA256 "${benchmark_path}" actual_benchmark_checksum)
+  file(READ "${benchmark_path}.sha256" recorded_benchmark_checksum)
+  if(NOT actual_benchmark_checksum STREQUAL benchmark_checksum OR
+     NOT recorded_benchmark_checksum MATCHES
+       "^${benchmark_checksum}  benchmark-0.3.1.json")
+    message(FATAL_ERROR "Accepted 0.3.1 benchmark digest differs")
+  endif()
 endif()

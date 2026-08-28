@@ -36,6 +36,8 @@ Target project version: **0.3.1**. C ABI: **2**. Shared-library SONAME: **1**.
 - Release `0.3.1` rebuilds the native, standalone Deno, benchmark, and JSR
   assets under one version even though its runtime changes are confined to the
   Deno distribution. The C ABI and SONAME remain unchanged.
+- The accepted schema 2 benchmark now compares the unchanged native execution
+  paths with the 0.3.0 baseline on the same controlled Apple Silicon host.
 
 ### Fixed
 

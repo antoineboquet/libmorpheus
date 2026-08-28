@@ -2,13 +2,13 @@
 
 # Release decision: 0.3.1
 
-Status: candidate prepared; benchmark and platform qualification pending.
+Status: benchmark accepted; platform qualification pending.
 
 - Project version: **0.3.1**
 - C ABI: **2**
 - SONAME major: **1**
 - Previous release tag: `v0.3.0` at `6e13d6ec720529f724b41af60f1394dad1f1c2dc`
-- Benchmark evidence: **pending**
+- Benchmark evidence: **accepted**
 
 ## Version and ABI rationale
 
@@ -73,28 +73,38 @@ derived-index redistribution terms are unresolved.
 
 ## Benchmark evidence
 
-Benchmark evidence is not yet accepted for 0.3.1. Before tagging, run
-`bench/release.sh` on the controlled host to create
-`benchmark-0.3.1.json`, compare it with the accepted 0.3.0 report, validate its
-recorded source, stemlib, compiler, corpus, and generation-index identities,
-then commit the report and SHA-256 sidecar under `bench/release-evidence/`.
+The accepted schema 2 report was produced on Apple Silicon from
+`2545574afddce3a0174297cdd393de6435d2b3e7` with Deno 2.9.6, Apple Clang 21,
+the pinned Alpheios revision, and the canonical generation-index digest. Its
+SHA-256 is
+`336db599db9f87ba06cedb7c2e0435125fc9918a62215ddc6988b5612c94ca78`.
+The release validator accepts all 13 required configurations and identities;
+the embedded comparison reproduces exactly from the accepted 0.3.0 report.
 
-No native analysis or generation implementation changed since the accepted
-0.3.0 measurement, so a material native performance difference would be
-unexpected and must be investigated rather than attributed to the Deno setup
-changes.
+Compared with 0.3.0, analysis throughput improves by approximately 2.1% to
+4.9% across one, two, and four FFI contexts. Persistent and cold `cruncher`
+throughput improve by 2.1% and 1.4%. Maximal warm generation changes by +0.2%,
++2.2%, and +1.0%; small warm generation varies by -6.6%, +8.6%, and -0.2%.
+Both cold generation workloads improve by approximately 1.1% to 1.2%. Peak
+RSS is lower for every measured warm configuration; the maximal cold sample is
+9.9% higher, but its process RSS growth is lower and cold samples share the
+runner's accumulated high-water mark. These variations are accepted as normal
+measurement noise for unchanged native execution paths.
+
+The evidence-finalization commit changes only the benchmark, release metadata,
+validation workflow, and documentation after the measured revision. It does
+not change the native or Deno runtime implementation, stemlib inputs, corpus,
+or generation index.
 
 ## Remaining gates
 
-1. Produce, compare, validate, and accept `benchmark-0.3.1.json` and its
-   SHA-256 sidecar from the exact candidate revision.
-2. Require the complete Linux CI, including Deno package checks, sanitizers,
+1. Require the complete Linux CI, including Deno package checks, sanitizers,
    signedness, fixtures, and release metadata, to pass.
-3. Manually dispatch `Platform and release qualification` for the exact
+2. Manually dispatch `Platform and release qualification` for the exact
    benchmark-finalized commit with package artifacts enabled; inspect every
    native and standalone Deno archive and checksum.
-4. Tag that qualified commit as `v0.3.1` only after explicit authorization.
+3. Tag that qualified commit as `v0.3.1` only after explicit authorization.
    Require both tag workflows to rebuild and publish all versioned assets and
    the JSR package.
-5. Manually dispatch `Published JSR smoke test` for `0.3.1` and require Greek
+4. Manually dispatch `Published JSR smoke test` for `0.3.1` and require Greek
    and Latin analysis plus experimental Greek generation to pass.

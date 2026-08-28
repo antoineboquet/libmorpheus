@@ -79,10 +79,13 @@ The accepted 0.3.0 preparation report is retained at
 with its companion SHA-256 file. The version-tag workflow verifies that
 sidecar and publishes both files with the release assets.
 
-Version 0.3.1 changes the Deno distribution and installation path without
-changing the native analysis or generation implementation. It nevertheless
-requires its own versioned report, compared with the accepted 0.3.0 evidence
-on the same controlled hardware, before the candidate may be tagged.
+The accepted 0.3.1 report is retained at
+[`bench/release-evidence/benchmark-0.3.1.json`](../bench/release-evidence/benchmark-0.3.1.json)
+with its companion SHA-256 file. It measures the Deno distribution candidate
+against the accepted 0.3.0 evidence on the same controlled Apple Silicon host.
+The native analysis and generation implementation, corpus, stemlib revision,
+and generation-index digest are unchanged; the release decision records the
+accepted comparison.
 
 The wrapper refuses a dirty tracked worktree or submodule, an uninitialized or
 displaced Alpheios submodule, and an existing output path. Its label, stemlib
