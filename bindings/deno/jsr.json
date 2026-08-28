@@ -1,7 +1,7 @@
 {
   "name": "@humanities/libmorpheus",
   "version": "0.3.0",
-  "license": "AGPL-3.0-or-later AND MPL-2.0 AND MIT",
+  "license": "AGPL-3.0-or-later",
   "exports": {
     ".": "./mod.ts",
     "./data": "./data.ts",

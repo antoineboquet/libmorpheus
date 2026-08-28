@@ -58,9 +58,10 @@ string(JSON jsr_native_export GET "${jsr_config}" exports ./native)
 if(NOT jsr_name STREQUAL "@humanities/libmorpheus")
   message(FATAL_ERROR "Packaged Deno binding has unexpected JSR name: ${jsr_name}")
 endif()
-if(NOT jsr_config MATCHES
-   "AGPL-3.0-or-later AND MPL-2.0 AND MIT")
-  message(FATAL_ERROR "Packaged Deno binding has unexpected license expression")
+string(JSON jsr_license GET "${jsr_config}" license)
+if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
+  message(FATAL_ERROR
+    "Packaged Deno binding has unexpected primary license: ${jsr_license}")
 endif()
 if(NOT jsr_version STREQUAL "${CPACK_PACKAGE_VERSION}")
   message(FATAL_ERROR

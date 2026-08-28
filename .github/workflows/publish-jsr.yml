@@ -1,0 +1,100 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Recover JSR publication
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Published release tag whose JSR publication failed
+        required: true
+        default: v0.3.0
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish-jsr:
+    name: Publish corrected JSR metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out corrected default branch
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.9.5
+
+      - name: Verify narrow recovery scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          case "$RELEASE_TAG" in
+            v[0-9]*.[0-9]*.[0-9]*) ;;
+            *) echo "Invalid release tag: $RELEASE_TAG" >&2; exit 1 ;;
+          esac
+
+          git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}"
+          package_version="$(deno eval \
+            'console.log(JSON.parse(await Deno.readTextFile("bindings/deno/jsr.json")).version)')"
+          test "$RELEASE_TAG" = "v$package_version"
+
+          release_json="$(gh api \
+            "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG")"
+          test "$(jq -r '.draft' <<<"$release_json")" = false
+          test "$(jq -r '.tag_name' <<<"$release_json")" = "$RELEASE_TAG"
+          test "$(jq -r '.published_at' <<<"$release_json")" != null
+          expected_assets="$(printf '%s\n' \
+            "benchmark-$package_version.json" \
+            "benchmark-$package_version.json.sha256" \
+            "libmorpheus-$package_version-Linux-aarch64-glibc.tar.gz" \
+            "libmorpheus-$package_version-Linux-aarch64-glibc.tar.gz.sha256" \
+            "libmorpheus-$package_version-Linux-x86_64-glibc.tar.gz" \
+            "libmorpheus-$package_version-Linux-x86_64-glibc.tar.gz.sha256" \
+            "libmorpheus-$package_version-macOS-arm64.tar.gz" \
+            "libmorpheus-$package_version-macOS-arm64.tar.gz.sha256" \
+            "libmorpheus-deno-$package_version.tar.gz" \
+            "libmorpheus-deno-$package_version.tar.gz.sha256" | sort)"
+          actual_assets="$(jq -r '.assets[].name' <<<"$release_json" | sort)"
+          test "$actual_assets" = "$expected_assets"
+
+          changed="$(git diff --name-only \
+            "$RELEASE_TAG^{commit}" HEAD -- bindings/deno)"
+          test "$changed" = "bindings/deno/jsr.json"
+
+          tagged_license="$(git show \
+            "$RELEASE_TAG:bindings/deno/jsr.json" | deno eval \
+            'console.log(JSON.parse(await new Response(Deno.stdin.readable).text()).license)')"
+          current_license="$(deno eval \
+            'console.log(JSON.parse(await Deno.readTextFile("bindings/deno/jsr.json")).license)')"
+          test "$tagged_license" = \
+            "AGPL-3.0-or-later AND MPL-2.0 AND MIT"
+          test "$current_license" = "AGPL-3.0-or-later"
+
+          status="$(curl --fail --silent --show-error \
+            -H 'Accept: application/json' \
+            -o /tmp/jsr-version.json -w '%{http_code}' \
+            "https://jsr.io/@humanities/libmorpheus/${package_version}_meta.json" \
+            || true)"
+          test "$status" = 404
+
+      - name: Verify package contents
+        working-directory: bindings/deno
+        run: |
+          deno lint --rules-include=no-slow-types mod.ts
+          deno publish --dry-run
+
+      - name: Publish JSR package
+        working-directory: bindings/deno
+        run: deno publish

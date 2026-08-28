@@ -163,6 +163,12 @@ Alpheios fixture suites must run where their data prerequisites are available.
   and `NOTICE`; they do not embed a native library or stem data. A missing JSR
   repository association makes the JSR publication fail without weakening the
   preceding GitHub release.
+- Do not move a published tag when JSR rejects metadata after the GitHub release
+  succeeds. If that JSR version is still unpublished, correct the metadata on
+  `main` and manually dispatch `Recover JSR publication`. This recovery verifies
+  the published release and refuses to proceed unless `bindings/deno/jsr.json`
+  is the binding's only change since the tag. It exists for registry-metadata
+  rejection only, not for changing published package code.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact

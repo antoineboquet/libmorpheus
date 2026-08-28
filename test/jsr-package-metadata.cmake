@@ -23,7 +23,7 @@ if(NOT jsr_version STREQUAL "${MORPHEUS_PROJECT_VERSION}")
   message(FATAL_ERROR
     "JSR version ${jsr_version} differs from project ${MORPHEUS_PROJECT_VERSION}")
 endif()
-if(NOT jsr_license STREQUAL "AGPL-3.0-or-later AND MPL-2.0 AND MIT")
+if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
   message(FATAL_ERROR "Unexpected JSR package license: ${jsr_license}")
 endif()
 string(JSON jsr_default_export GET "${config}" exports .)
