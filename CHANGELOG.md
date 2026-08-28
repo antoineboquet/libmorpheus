@@ -9,10 +9,14 @@ the corpus.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-28
+
 Target project version: **0.3.0**. C ABI: **2**. Shared-library SONAME: **1**.
 
 ### Added
 
+- The public C ABI now exposes owned Greek lemma-generation results, typed
+  request filters, explicit result limits, and normalized morphology accessors.
 - The Deno binding now exposes nonblocking `generate()` and `generateRaw()`
   methods with typed morphology filters, owned results, stable failures, and
   parallel execution through distinct contexts.
@@ -33,6 +37,12 @@ Target project version: **0.3.0**. C ABI: **2**. Shared-library SONAME: **1**.
 - A checksummed derivation-rule manifest and `do_conj full` differential
   fixture now freeze the inputs and representative behavior required to expand
   `:de:`/`;` records safely.
+- The JSR `/data` command acquires pinned Alpheios or Perseids-Tools stem data
+  without Git or a C toolchain and can prepare the validated experimental Greek
+  generation index locally.
+- The JSR `/native` command acquires the matching data-free GitHub Release
+  archive, verifies its SHA-256 sidecar, safely extracts it, and records a
+  machine-readable receipt.
 
 ### Changed
 
@@ -41,6 +51,11 @@ Target project version: **0.3.0**. C ABI: **2**. Shared-library SONAME: **1**.
   automated qualification.
 - Native and Deno release archives now carry self-contained licensing and
   provenance information without relying on paths outside the archives.
+- Docker qualification images now include the canonical Alpheios generation
+  index and exercise real Deno analysis and generation on Alpine x86-64 and
+  aarch64; they remain non-published while data redistribution is unresolved.
+- Version-tag automation now publishes verified native and standalone Deno
+  assets before the JSR package, including the accepted benchmark evidence.
 
 ### Fixed
 

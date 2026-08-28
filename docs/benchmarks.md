@@ -72,6 +72,11 @@ configurations. Generation was introduced in schema 2; the first accepted
 0.3.0 report establishes its performance baseline instead of fabricating a
 comparison with 0.2.0.
 
+The accepted 0.3.0 preparation report is retained at
+[`bench/release-evidence/benchmark-0.3.0.json`](../bench/release-evidence/benchmark-0.3.0.json)
+with its companion SHA-256 file. The version-tag workflow verifies that
+sidecar and publishes both files with the release assets.
+
 The wrapper refuses a dirty tracked worktree or submodule, an uninitialized or
 displaced Alpheios submodule, and an existing output path. Its label, stemlib
 path, iteration counts, warmup, context list, and cold-sample count can be

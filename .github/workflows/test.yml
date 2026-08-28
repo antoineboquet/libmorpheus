@@ -175,6 +175,16 @@ jobs:
           bench/compare_test.ts
           bench/validate_test.ts
 
+      - name: Validate accepted release benchmark evidence
+        run: |
+          (cd bench/release-evidence && sha256sum -c benchmark-0.3.0.json.sha256)
+          deno run --allow-read bench/validate.ts \
+            bench/release-evidence/benchmark-0.3.0.json \
+            --label release-candidate \
+            --revision 66e656d27aedce04cc7b96fe84aff3aca8a35afd \
+            --stemlib-revision 4632415fe93c85e9fdca47a0c5a13f31385f0023 \
+            --compiler 'Apple clang version 21.0.0 (clang-2100.1.1.101)'
+
       - name: Acquire and verify pinned Deno datasets
         run: |
           deno run --allow-net=codeload.github.com \

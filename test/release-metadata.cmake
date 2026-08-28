@@ -93,6 +93,7 @@ foreach(expected_workflow_value IN ITEMS
         "needs: publish-release"
         "actions/download-artifact@v5"
         "contents: write"
+        "bench/release-evidence/benchmark-"
         "id-token: write"
         "workflow_id: 'test.yml'"
         "deno publish --dry-run"
@@ -132,5 +133,20 @@ if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.0")
   if(experimental_at EQUAL -1)
     message(FATAL_ERROR
       "release-0.3.0.md does not retain experimental generation status")
+  endif()
+  set(benchmark_path
+      "${MORPHEUS_SOURCE_DIR}/bench/release-evidence/benchmark-0.3.0.json")
+  set(benchmark_checksum
+      "82875bed7e33312a1315819dc8c73fb53aa79a05c8aef0407b5768c2baf2a290")
+  if(NOT EXISTS "${benchmark_path}" OR
+     NOT EXISTS "${benchmark_path}.sha256")
+    message(FATAL_ERROR "Accepted 0.3.0 benchmark evidence is missing")
+  endif()
+  file(SHA256 "${benchmark_path}" actual_benchmark_checksum)
+  file(READ "${benchmark_path}.sha256" recorded_benchmark_checksum)
+  if(NOT actual_benchmark_checksum STREQUAL benchmark_checksum OR
+     NOT recorded_benchmark_checksum MATCHES
+       "^${benchmark_checksum}  benchmark-0.3.0.json")
+    message(FATAL_ERROR "Accepted 0.3.0 benchmark digest differs")
   endif()
 endif()

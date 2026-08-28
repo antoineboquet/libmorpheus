@@ -517,6 +517,7 @@ jobs:
       - name: Verify the release asset set
         run: |
           version="${GITHUB_REF_NAME#v}"
+          cp "bench/release-evidence/benchmark-${version}.json"* release-assets/
           expected=(
             "libmorpheus-${version}-Linux-x86_64-glibc.tar.gz"
             "libmorpheus-${version}-Linux-x86_64-glibc.tar.gz.sha256"
@@ -526,8 +527,10 @@ jobs:
             "libmorpheus-${version}-macOS-arm64.tar.gz.sha256"
             "libmorpheus-deno-${version}.tar.gz"
             "libmorpheus-deno-${version}.tar.gz.sha256"
+            "benchmark-${version}.json"
+            "benchmark-${version}.json.sha256"
           )
-          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 8
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 10
           for asset in "${expected[@]}"; do
             test -f "release-assets/$asset"
           done
