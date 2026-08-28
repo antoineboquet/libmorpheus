@@ -13,6 +13,18 @@ interface TestModule {
   };
   callMain(arguments_: string[]): number;
 }
+
+Deno.test("WebAssembly preparer accepts a non-file module URL", async () => {
+  const module = await createGenerPreparer({
+    noInitialRun: true,
+    print: () => undefined,
+    printErr: () => undefined,
+    scriptUrl: "https://jsr.io/@humanities/libmorpheus/gener_preparer.mjs",
+  }) as TestModule;
+  assert(typeof module.callMain === "function", "remote factory lost callMain");
+  assert(module.FS !== undefined, "remote factory lost its virtual filesystem");
+});
+
 async function prepare(
   source: string,
 ): Promise<{ readonly status: number; readonly output: string | null }> {

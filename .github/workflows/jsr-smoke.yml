@@ -43,7 +43,8 @@ jobs:
           smoke_root="$RUNNER_TEMP/libmorpheus-jsr-smoke"
           deno init "$smoke_root"
           cd "$smoke_root"
-          deno add "jsr:@humanities/libmorpheus@$PACKAGE_VERSION"
+          deno add --min-dep-age=0 \
+            "jsr:@humanities/libmorpheus@$PACKAGE_VERSION"
           cp "$GITHUB_WORKSPACE/test/jsr-published-smoke.ts" smoke.ts
 
       - name: Acquire the published native library
@@ -51,6 +52,7 @@ jobs:
           PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           deno x \
+            --min-dep-age=0 \
             --allow-net=github.com,release-assets.githubusercontent.com \
             --allow-read="$RUNNER_TEMP/morpheus-native" \
             --allow-write="$RUNNER_TEMP/morpheus-native" \
@@ -62,6 +64,7 @@ jobs:
           PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           deno x \
+            --min-dep-age=0 \
             --allow-net=codeload.github.com \
             --allow-read="$RUNNER_TEMP/morpheus-alpheios" \
             --allow-write="$RUNNER_TEMP/morpheus-alpheios" \
@@ -75,6 +78,7 @@ jobs:
           PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           deno x \
+            --min-dep-age=0 \
             --allow-net=codeload.github.com \
             --allow-read="$RUNNER_TEMP/morpheus-perseids" \
             --allow-write="$RUNNER_TEMP/morpheus-perseids" \
