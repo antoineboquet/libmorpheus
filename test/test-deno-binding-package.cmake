@@ -40,6 +40,8 @@ endif()
 set(binding_dir "${extract_root}/${package_basename}")
 foreach(required IN ITEMS
         mod.ts data.ts data_internal.ts data_manifest.ts
+        gener_index_internal.ts gener_manifest.ts gener_preparer.mjs
+        gener_runtime_internal.ts LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt
         README.md LICENSE NOTICE jsr.json)
   if(NOT EXISTS "${binding_dir}/${required}")
     message(FATAL_ERROR "Deno binding package is missing ${required}")
@@ -53,6 +55,10 @@ string(JSON jsr_export GET "${jsr_config}" exports .)
 string(JSON jsr_data_export GET "${jsr_config}" exports ./data)
 if(NOT jsr_name STREQUAL "@humanities/libmorpheus")
   message(FATAL_ERROR "Packaged Deno binding has unexpected JSR name: ${jsr_name}")
+endif()
+if(NOT jsr_config MATCHES
+   "AGPL-3.0-or-later AND MPL-2.0 AND MIT")
+  message(FATAL_ERROR "Packaged Deno binding has unexpected license expression")
 endif()
 if(NOT jsr_version STREQUAL "${CPACK_PACKAGE_VERSION}")
   message(FATAL_ERROR

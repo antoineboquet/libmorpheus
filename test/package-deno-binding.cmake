@@ -25,10 +25,18 @@ file(COPY
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/data.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/data_internal.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/data_manifest.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_index_internal.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_manifest.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_preparer.mjs"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_runtime_internal.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/README.md"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSE"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/NOTICE"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json"
+  DESTINATION "${package_dir}"
+)
+file(COPY
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSES"
   DESTINATION "${package_dir}"
 )
 

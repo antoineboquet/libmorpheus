@@ -617,13 +617,25 @@ if(MORPHEUS_BUILD_DENO_GENER_PREPARER)
   target_link_options(
     morpheus_gener_source_preparer
     PRIVATE
+      "-O2"
       "-sMODULARIZE=1"
       "-sEXPORT_ES6=1"
       "-sEXPORT_NAME=createGenerPreparer"
-      "-sENVIRONMENT=web"
+      "-sENVIRONMENT=node"
       "-sALLOW_MEMORY_GROWTH=1"
       "-sEXIT_RUNTIME=1"
+      "-sSINGLE_FILE=1"
       "-sEXPORTED_RUNTIME_METHODS=['FS','callMain']"
+  )
+  target_compile_options(
+    morpheus_build_options INTERFACE "-Wno-error=sign-conversion"
+  )
+  add_custom_command(
+    TARGET morpheus_gener_source_preparer POST_BUILD
+    COMMAND
+      "${CMAKE_COMMAND}"
+      "-DMORPHEUS_GENER_PREPARER=$<TARGET_FILE:morpheus_gener_source_preparer>"
+      -P "${PROJECT_SOURCE_DIR}/cmake/stamp-gener-preparer.cmake"
   )
 endif()
 
@@ -1250,13 +1262,15 @@ set_target_properties(
     SOVERSION ${MORPHEUS_SOVERSION}
     EXPORT_NAME morpheus
 )
-install(
-  TARGETS morpheus
-  EXPORT MorpheusTargets
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+if(NOT MORPHEUS_BUILD_DENO_GENER_PREPARER)
+  install(
+    TARGETS morpheus
+    EXPORT MorpheusTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  )
+endif()
 install(
   FILES include/morpheus/morpheus.h include/morpheus/compat.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/morpheus
@@ -1280,11 +1294,13 @@ write_basic_package_version_file(
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY SameMajorVersion
 )
-install(
-  EXPORT MorpheusTargets
-  NAMESPACE Morpheus::
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Morpheus"
-)
+if(NOT MORPHEUS_BUILD_DENO_GENER_PREPARER)
+  install(
+    EXPORT MorpheusTargets
+    NAMESPACE Morpheus::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Morpheus"
+  )
+endif()
 install(
   FILES
     "${CMAKE_CURRENT_BINARY_DIR}/MorpheusConfig.cmake"

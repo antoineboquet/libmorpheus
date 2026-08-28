@@ -1,7 +1,7 @@
 {
   "name": "@humanities/libmorpheus",
   "version": "0.3.0",
-  "license": "AGPL-3.0-or-later",
+  "license": "AGPL-3.0-or-later AND MPL-2.0 AND MIT",
   "exports": {
     ".": "./mod.ts",
     "./data": "./data.ts"
@@ -9,11 +9,17 @@
   "publish": {
     "include": [
       "LICENSE",
+      "LICENSES/EMSCRIPTEN.txt",
+      "LICENSES/MPL-2.0.txt",
       "NOTICE",
       "README.md",
       "data.ts",
       "data_internal.ts",
       "data_manifest.ts",
+      "gener_index_internal.ts",
+      "gener_manifest.ts",
+      "gener_preparer.mjs",
+      "gener_runtime_internal.ts",
       "mod.ts"
     ]
   }

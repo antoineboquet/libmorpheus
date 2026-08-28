@@ -904,6 +904,13 @@ main(int argc, char **argv)
 	int input;
 	int result = EXIT_FAILURE;
 
+#ifdef __EMSCRIPTEN__
+	if (setenv("MORPHLIB","/morphlib",1)) {
+		report_errno("cannot configure","MORPHLIB");
+		return EXIT_FAILURE;
+	}
+#endif
+
 	if (argc >= 5 && !strcmp(argv[1],"--exceptions")) {
 		if (!load_exceptions(&exceptions,argv[2]))
 			goto finish;

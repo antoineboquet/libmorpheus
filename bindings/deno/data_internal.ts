@@ -8,6 +8,7 @@ import {
   type MorpheusDatasetDefinition,
   type MorpheusDatasetName,
 } from "./data_manifest.ts";
+import { prepareGenerIndex } from "./gener_runtime_internal.ts";
 
 const TAR_BLOCK_SIZE = 512;
 const MAX_COMPRESSED_SIZE = 64 * 1024 * 1024;
@@ -33,12 +34,23 @@ export interface MorpheusDataReceipt {
     readonly experimental: true;
     readonly available: boolean;
     readonly indexSha256: string | null;
+    readonly supportSource: {
+      readonly repository: string;
+      readonly revision: string;
+      readonly archiveUrl: string;
+    } | null;
   };
 }
 
 export interface AcquireMorpheusDataOptions {
   readonly dataset: MorpheusDatasetName;
   readonly output: string;
+  readonly withGener?: boolean;
+}
+
+interface ArchiveDataset {
+  readonly files: ReadonlyMap<string, Uint8Array>;
+  readonly license: Uint8Array;
 }
 
 interface ArchiveEntry {
@@ -197,14 +209,14 @@ async function treeDigest(lines: string[]): Promise<string> {
   return await sha256(textEncoder.encode(`${lines.join("\n")}\n`));
 }
 
-async function writeArchiveDataset(
+async function extractArchiveDataset(
   archive: Uint8Array,
   definition: MorpheusDatasetDefinition,
-  directory: string,
-): Promise<void> {
+): Promise<ArchiveDataset> {
   const dataRoot = `${definition.archiveRoot}${definition.dataPrefix}`;
   const licensePath = `${definition.archiveRoot}${definition.licensePath}`;
   const paths = new Set<string>();
+  const files = new Map<string, Uint8Array>();
   const digestLines: string[] = [];
   let license: Uint8Array | undefined;
 
@@ -224,11 +236,9 @@ async function writeArchiveDataset(
     }
     if (paths.has(path)) throw new Error(`duplicate dataset path: ${path}`);
     paths.add(path);
+    files.set(path, entry.content);
     const digest = await sha256(entry.content);
     digestLines.push(`${digest}  ${path}`);
-    const destination = join(directory, ...path.split("/"));
-    await Deno.mkdir(dirname(destination), { recursive: true });
-    await Deno.writeFile(destination, entry.content, { createNew: true });
   }
 
   if (paths.size !== definition.fileCount) {
@@ -248,7 +258,19 @@ async function writeArchiveDataset(
   ) {
     throw new Error(`${definition.name} upstream license digest mismatch`);
   }
-  await Deno.writeFile(join(directory, "UPSTREAM-LICENSE"), license, {
+  return { files, license };
+}
+
+async function writeArchiveDataset(
+  dataset: ArchiveDataset,
+  directory: string,
+): Promise<void> {
+  for (const [path, content] of dataset.files) {
+    const destination = join(directory, ...path.split("/"));
+    await Deno.mkdir(dirname(destination), { recursive: true });
+    await Deno.writeFile(destination, content, { createNew: true });
+  }
+  await Deno.writeFile(join(directory, "UPSTREAM-LICENSE"), dataset.license, {
     createNew: true,
   });
 }
@@ -323,15 +345,45 @@ export async function acquireMorpheusData(
   if (definition === undefined) {
     throw new TypeError(`unsupported Morpheus dataset: ${options.dataset}`);
   }
+  if (options.withGener && !definition.generation) {
+    throw new TypeError(
+      `dataset ${definition.name} does not support experimental generation`,
+    );
+  }
   const output = resolve(options.output);
   if (await pathExists(output)) {
     throw new Error(`output path already exists: ${output}`);
   }
   await Deno.mkdir(output);
-  let committed = false;
   try {
     const archive = await downloadArchive(definition);
-    await writeArchiveDataset(archive, definition, output);
+    const dataset = await extractArchiveDataset(archive, definition);
+    await writeArchiveDataset(dataset, output);
+    let indexSha256: string | null = null;
+    let supportSource: MorpheusDataReceipt["generation"]["supportSource"] =
+      null;
+    if (options.withGener) {
+      const supportDefinition = MORPHEUS_DATASETS.perseids;
+      const supportArchive = await downloadArchive(supportDefinition);
+      const supportDataset = await extractArchiveDataset(
+        supportArchive,
+        supportDefinition,
+      );
+      const index = await prepareGenerIndex(
+        dataset.files,
+        supportDataset.files,
+        sha256,
+      );
+      indexSha256 = await sha256(index);
+      await Deno.writeFile(join(output, "gener.index"), index, {
+        createNew: true,
+      });
+      supportSource = {
+        repository: supportDefinition.repository,
+        revision: supportDefinition.revision,
+        archiveUrl: supportDefinition.archiveUrl,
+      };
+    }
     const receipt: MorpheusDataReceipt = {
       schema: MORPHEUS_DATA_SCHEMA_VERSION,
       packageVersion: MORPHEUS_PACKAGE_VERSION,
@@ -348,8 +400,9 @@ export async function acquireMorpheusData(
       },
       generation: {
         experimental: true,
-        available: false,
-        indexSha256: null,
+        available: options.withGener === true,
+        indexSha256,
+        supportSource,
       },
     };
     await Deno.writeTextFile(
@@ -357,15 +410,18 @@ export async function acquireMorpheusData(
       `${JSON.stringify(receipt, null, 2)}\n`,
       { createNew: true },
     );
-    committed = true;
     return receipt;
-  } finally {
-    if (!committed) {
-      try {
-        await Deno.remove(output, { recursive: true });
-      } catch (error) {
-        if (!(error instanceof Deno.errors.NotFound)) throw error;
+  } catch (error) {
+    try {
+      await Deno.remove(output, { recursive: true });
+    } catch (cleanupError) {
+      if (!(cleanupError instanceof Deno.errors.NotFound)) {
+        throw new AggregateError(
+          [error, cleanupError],
+          `data acquisition and cleanup both failed for ${output}`,
+        );
       }
     }
+    throw error;
   }
 }

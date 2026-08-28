@@ -2,6 +2,7 @@
 
 import { parseMorpheusDataArgs } from "./data.ts";
 import { parseTarArchive, sha256 } from "./data_internal.ts";
+import { buildGenerIndex } from "./gener_index_internal.ts";
 
 function assert(
   condition: unknown,
@@ -69,9 +70,11 @@ Deno.test("data CLI parses explicit datasets and permissions-independent options
   const options = parseMorpheusDataArgs([
     "--dataset",
     "alpheios",
+    "--with-gener",
     "--output=runtime-data",
   ]);
   assert(options.dataset === "alpheios");
+  assert(options.withGener === true);
   assert(options.output === "runtime-data");
   assert(options.help === false);
 });
@@ -85,7 +88,7 @@ Deno.test("data CLI rejects incomplete and incompatible requests", () => {
         "--with-gener",
         "--output=x",
       ]),
-    /unknown argument/,
+    /only for alpheios/,
   );
   assertThrows(
     () => parseMorpheusDataArgs(["--dataset=unknown", "--output=x"]),
@@ -109,5 +112,37 @@ Deno.test("SHA-256 helper uses lowercase canonical hexadecimal", async () => {
   assert(
     digest ===
       "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+  );
+});
+
+Deno.test("TypeScript generation index matches the native fixture", async () => {
+  const source = `:le:zeta
+:no:zet os_ou masc
+
+:le:lo/-_^+gos
+:no:log os_ou masc
+:aj:logik os_h_on
+
+:le:dupe
+:wd:du/pe indecl
+
+:le:dupe
+:vb:du/pe w_stem pres ind act 1st sg
+
+:le:dupe
+:wd:du/pe indecl
+
+:le:empty
+:def:metadata only
+`;
+  const index = buildGenerIndex([source]);
+  assert(index.length === 427);
+  assert(
+    await sha256(index) ===
+      "16c6c9bdca30cb6cc0a9eb1073336ac4a828d5e3aef7b53d55ca0171550ffa9b",
+  );
+  assertThrows(
+    () => buildGenerIndex([":le:test\n:de:unexpanded\n"]),
+    /unexpanded generation record/,
   );
 });

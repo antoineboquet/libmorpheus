@@ -21,10 +21,10 @@ interface CommandLineOptions extends AcquireMorpheusDataOptions {
 function usage(): string {
   return `Usage:
   deno x [permissions] jsr:@humanities/libmorpheus/data \\
-    --dataset <alpheios|perseids> --output <directory>
+    --dataset <alpheios|perseids> --output <directory> [--with-gener]
 
 Datasets:
-  alpheios  Ancient Greek analysis
+  alpheios  Ancient Greek analysis; supports experimental --with-gener
   perseids  Ancient Greek and Latin analysis
 
 The command downloads an immutable upstream revision, verifies every selected
@@ -49,11 +49,14 @@ export function parseMorpheusDataArgs(
 ): CommandLineOptions {
   let dataset: MorpheusDatasetName | undefined;
   let output: string | undefined;
+  let withGener = false;
   let help = false;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
     if (argument === "--help" || argument === "-h") {
       help = true;
+    } else if (argument === "--with-gener") {
+      withGener = true;
     } else if (argument === "--dataset") {
       const value = takeValue(args, index, "--dataset");
       if (value !== "alpheios" && value !== "perseids") {
@@ -80,6 +83,7 @@ export function parseMorpheusDataArgs(
     return {
       dataset: dataset ?? "alpheios",
       output: output ?? ".",
+      withGener,
       help,
     };
   }
@@ -87,7 +91,10 @@ export function parseMorpheusDataArgs(
   if (output === undefined || output === "") {
     throw new TypeError("--output is required");
   }
-  return { dataset, output, help };
+  if (withGener && dataset !== "alpheios") {
+    throw new TypeError("--with-gener is supported only for alpheios");
+  }
+  return { dataset, output, withGener, help };
 }
 
 if (import.meta.main) {

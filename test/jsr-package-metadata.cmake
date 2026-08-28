@@ -23,7 +23,7 @@ if(NOT jsr_version STREQUAL "${MORPHEUS_PROJECT_VERSION}")
   message(FATAL_ERROR
     "JSR version ${jsr_version} differs from project ${MORPHEUS_PROJECT_VERSION}")
 endif()
-if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
+if(NOT jsr_license STREQUAL "AGPL-3.0-or-later AND MPL-2.0 AND MIT")
   message(FATAL_ERROR "Unexpected JSR package license: ${jsr_license}")
 endif()
 string(JSON jsr_default_export GET "${config}" exports .)
@@ -35,7 +35,9 @@ if(NOT jsr_default_export STREQUAL "./mod.ts" OR
 endif()
 
 set(expected_files
-    LICENSE NOTICE README.md data.ts data_internal.ts data_manifest.ts mod.ts)
+    LICENSE LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt NOTICE README.md
+    data.ts data_internal.ts data_manifest.ts gener_index_internal.ts
+    gener_manifest.ts gener_preparer.mjs gener_runtime_internal.ts mod.ts)
 string(JSON include_count ERROR_VARIABLE json_error
        LENGTH "${config}" publish include)
 if(json_error)
@@ -61,7 +63,9 @@ if(expected_files)
 endif()
 
 foreach(required IN ITEMS
-        LICENSE NOTICE README.md data.ts data_internal.ts data_manifest.ts mod.ts)
+        LICENSE LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt NOTICE README.md
+        data.ts data_internal.ts data_manifest.ts gener_index_internal.ts
+        gener_manifest.ts gener_preparer.mjs gener_runtime_internal.ts mod.ts)
   if(NOT EXISTS "${MORPHEUS_SOURCE_DIR}/bindings/deno/${required}")
     message(FATAL_ERROR "Missing JSR package source: ${required}")
   endif()

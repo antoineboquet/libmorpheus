@@ -5,7 +5,7 @@ on:
     branches:
       - main
     tags:
-      - 'v*'
+      - "v*"
   pull_request:
 
 permissions:
@@ -158,6 +158,7 @@ jobs:
           sh -n bench/release.sh
           deno check bindings/deno/mod.ts bindings/deno/mod_test.ts \
             bindings/deno/data.ts bindings/deno/data_test.ts \
+            bindings/deno/gener_preparer_test.ts \
             bench/compare.ts bench/compare_test.ts \
             bench/validate.ts bench/validate_test.ts
 
@@ -168,6 +169,7 @@ jobs:
         run: >-
           deno test --allow-env --allow-ffi
           bindings/deno/mod_test.ts bindings/deno/data_test.ts
+          bindings/deno/gener_preparer_test.ts
           bench/compare_test.ts
           bench/validate_test.ts
 
@@ -176,12 +178,15 @@ jobs:
           deno run --allow-net=codeload.github.com \
             --allow-read=build --allow-write=build \
             bindings/deno/data.ts --dataset alpheios \
+            --with-gener \
             --output build/data-test-alpheios
           deno run --allow-net=codeload.github.com \
             --allow-read=build --allow-write=build \
             bindings/deno/data.ts --dataset perseids \
             --output build/data-test-perseids
           test -f build/data-test-alpheios/Greek/steminds/nomind
+          cmake -E sha256sum build/data-test-alpheios/gener.index | \
+            grep -F '5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6'
           test -f build/data-test-perseids/Latin/steminds/nomind
 
       - name: Smoke-test benchmark runner
@@ -212,17 +217,17 @@ jobs:
           -DMORPHEUS_BUILD_DENO_GENER_PREPARER=ON
 
       - name: Build WebAssembly preparer
-        run: >-
-          cmake --build build/deno-gener-wasm
-          --target morpheus_gener_source_preparer
+        run: |
+          cmake --build build/deno-gener-wasm \
+            --target morpheus_gener_source_preparer
+          cmp build/deno-gener-wasm/gener_preparer.mjs \
+            bindings/deno/gener_preparer.mjs
 
       - name: Upload WebAssembly preparer
         uses: actions/upload-artifact@v4
         with:
           name: deno-gener-preparer
-          path: |
-            build/deno-gener-wasm/gener_preparer.mjs
-            build/deno-gener-wasm/gener_preparer.wasm
+          path: build/deno-gener-wasm/gener_preparer.mjs
           if-no-files-found: error
 
   char-signedness:

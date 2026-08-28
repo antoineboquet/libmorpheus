@@ -19,19 +19,20 @@ See [the architecture baseline](docs/architecture.md),
 [the C17 port notes](docs/c17-port.md), and
 [source provenance](docs/provenance.md),
 [available stem libraries](docs/stem-libraries.md), and
-[platform support](docs/portability.md) for the implementation boundaries,
-exact upstream revisions, and tested deployment targets.
-The repository is mixed-license: inherited engine, bridge, compatibility, and
-derived internal code remain under [MPL-2.0](LICENSE), while the normalized
-public API, Deno binding, and marked independently written support files are
-licensed under AGPL-3.0-or-later. The exact file boundary and inventory are in
+[platform support](docs/portability.md) for the implementation boundaries, exact
+upstream revisions, and tested deployment targets. The repository is
+mixed-license: inherited engine, bridge, compatibility, and derived internal
+code remain under [MPL-2.0](LICENSE), while the normalized public API, Deno
+binding, and marked independently written support files are licensed under
+AGPL-3.0-or-later. The exact file boundary and inventory are in
 [the licensing guide](docs/licensing.md). No MPL-to-CC change is made here.
-Historical evidence supports an MPL licensing lineage for the inherited
-Morpheus sources. Later repository-level CC references are recorded as
-provenance evidence, but are not treated as authority to relicense those
-sources; see [the source-provenance record](docs/provenance.md).
+Historical evidence supports an MPL licensing lineage for the inherited Morpheus
+sources. Later repository-level CC references are recorded as provenance
+evidence, but are not treated as authority to relicense those sources; see
+[the source-provenance record](docs/provenance.md).
 
-The complete native contract is in [the public API reference](docs/public-api.md);
+The complete native contract is in
+[the public API reference](docs/public-api.md);
 [release qualification](docs/releasing.md) defines the checks required before
 tagging a publishable version, and the [changelog](CHANGELOG.md) records the
 candidate release contents.
@@ -82,12 +83,17 @@ deno x \
 ```
 
 Use `--dataset alpheios` for Greek-only analysis. From a recursive versioned
-checkout, prepare a standalone Greek runtime-data directory with its
-experimental generation index using:
+checkout, the native helper can prepare a standalone Greek runtime-data
+directory with its experimental generation index using:
 
 ```sh
 sh tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"
 ```
+
+JSR users need no C toolchain: add `--with-gener` to the Alpheios `deno x`
+command above. The bundled internal WebAssembly preparer and TypeScript index
+builder reproduce the native reference digest locally; no linguistic data or
+derived index is shipped in the package.
 
 The command validates the pinned sources and builds the index locally without
 publishing upstream data or derived data in a release asset. See
@@ -165,9 +171,9 @@ cmake --install build/dev --prefix /chosen/prefix
 ```
 
 The installation contains the shared library, `morpheus/morpheus.h`, the
-`Morpheus::morpheus` CMake package target, `libmorpheus.pc`, and
-`cruncher`. Stem data remains a separately versioned runtime component and is
-not installed with the library.
+`Morpheus::morpheus` CMake package target, `libmorpheus.pc`, and `cruncher`.
+Stem data remains a separately versioned runtime component and is not installed
+with the library.
 
 A CMake consumer can use:
 
@@ -182,11 +188,11 @@ A `pkg-config` consumer can use:
 cc analyzer.c $(pkg-config --cflags --libs libmorpheus)
 ```
 
-Both installed discovery mechanisms are relocatable when the installation
-prefix is changed with `cmake --install --prefix`. The test suite compiles,
-links, and runs independent consumers through both CMake package discovery and
-`pkg-config`, including installations whose library directory has multiple
-path components.
+Both installed discovery mechanisms are relocatable when the installation prefix
+is changed with `cmake --install --prefix`. The test suite compiles, links, and
+runs independent consumers through both CMake package discovery and
+`pkg-config`, including installations whose library directory has multiple path
+components.
 
 Minimal native use:
 
@@ -284,13 +290,13 @@ and release assets intentionally contain no stem data. The
 and Latin analysis datasets and provides one local command to prepare the
 Alpheios Greek stemlib with its reproducible `gener.index`.
 
-`analyze()` supports Greek and Latin contexts. The experimental first
-generation integration deliberately focuses on Greek and requires a
-`gener.index` beside its stemlib. Its experimental qualification can be removed
-after sufficient real-world use complements the current automated coverage.
-The wrapper dispatches analysis and generation as nonblocking FFI operations,
-serializes requests made through one context, and copies native results into
-TypeScript objects before releasing native memory. See
+`analyze()` supports Greek and Latin contexts. The experimental first generation
+integration deliberately focuses on Greek and requires a `gener.index` beside
+its stemlib. Its experimental qualification can be removed after sufficient
+real-world use complements the current automated coverage. The wrapper
+dispatches analysis and generation as nonblocking FFI operations, serializes
+requests made through one context, and copies native results into TypeScript
+objects before releasing native memory. See
 [the standalone binding guide](bindings/deno/README.md) for installation,
 language scope, all examples, test commands, and platform library names.
 
@@ -312,8 +318,8 @@ verbs only.
 ## Alpine container images
 
 The default multi-stage image builds and tests the C17 runtime on musl, then
-ships only the installed library, `cruncher`, its runtime dependencies, and
-the pinned Alpheios stemlib:
+ships only the installed library, `cruncher`, its runtime dependencies, and the
+pinned Alpheios stemlib:
 
 ```sh
 docker build --target runtime -t morpheus .
@@ -346,8 +352,8 @@ container paths. Application code can import the bundled binding from
 Two fixture suites, executed by CMake without a scripting-language runtime,
 intentionally remain separate:
 
-- `legacy_fixtures` runs the inherited Greek and Latin expectations against
-  the Perseids `stemlib` directory;
+- `legacy_fixtures` runs the inherited Greek and Latin expectations against the
+  Perseids `stemlib` directory;
 - `alpheios_greek_fixtures` runs Greek smoke cases against the pinned
   `vendor/alpheios-morpheus/dist/stemlib`.
 
@@ -369,6 +375,6 @@ They are retained only as a compatibility check. New consumers should use the
 CMake build and public ABI.
 
 Only the inherited `libs` and `cruncher` targets are covered by that check.
-Other standalone programs preserved below `src/` are deliberately excluded
-from the supported build and installation; their status and reintroduction
-criteria are documented in [Historical utility policy](docs/historical-utilities.md).
+Other standalone programs preserved below `src/` are deliberately excluded from
+the supported build and installation; their status and reintroduction criteria
+are documented in [Historical utility policy](docs/historical-utilities.md).
