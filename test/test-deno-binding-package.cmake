@@ -41,7 +41,7 @@ set(binding_dir "${extract_root}/${package_basename}")
 foreach(required IN ITEMS
         mod.ts data.ts data_internal.ts data_manifest.ts
         gener_index_internal.ts gener_manifest.ts gener_preparer.mjs
-        gener_runtime_internal.ts native.ts native_internal.ts native_manifest.ts
+        gener_runtime_internal.ts init.ts native.ts native_internal.ts native_manifest.ts
         LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt
         README.md LICENSE NOTICE jsr.json)
   if(NOT EXISTS "${binding_dir}/${required}")
@@ -54,6 +54,7 @@ string(JSON jsr_name GET "${jsr_config}" name)
 string(JSON jsr_version GET "${jsr_config}" version)
 string(JSON jsr_export GET "${jsr_config}" exports .)
 string(JSON jsr_data_export GET "${jsr_config}" exports ./data)
+string(JSON jsr_init_export GET "${jsr_config}" exports ./init)
 string(JSON jsr_native_export GET "${jsr_config}" exports ./native)
 if(NOT jsr_name STREQUAL "@humanities/libmorpheus")
   message(FATAL_ERROR "Packaged Deno binding has unexpected JSR name: ${jsr_name}")
@@ -73,6 +74,10 @@ endif()
 if(NOT jsr_data_export STREQUAL "./data.ts")
   message(FATAL_ERROR
     "Packaged Deno binding has unexpected JSR data export: ${jsr_data_export}")
+endif()
+if(NOT jsr_init_export STREQUAL "./init.ts")
+  message(FATAL_ERROR
+    "Packaged Deno binding has unexpected JSR init export: ${jsr_init_export}")
 endif()
 if(NOT jsr_native_export STREQUAL "./native.ts")
   message(FATAL_ERROR
@@ -154,7 +159,7 @@ endif()
 
 find_program(deno_program deno REQUIRED)
 execute_process(
-  COMMAND "${deno_program}" check mod.ts data.ts native.ts
+  COMMAND "${deno_program}" check mod.ts data.ts init.ts native.ts
   WORKING_DIRECTORY "${binding_dir}"
   RESULT_VARIABLE check_result
   OUTPUT_VARIABLE check_output

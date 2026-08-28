@@ -11,6 +11,13 @@
  * @module
  */
 
+export { init } from "./init.ts";
+export type {
+  MorpheusInitDataset,
+  MorpheusInitOptions,
+  MorpheusInitPlan,
+} from "./init.ts";
+
 const ABI_VERSION = 2;
 const TEXT_CAPACITY = 64;
 const DOMAIN_CAPACITY = 24;

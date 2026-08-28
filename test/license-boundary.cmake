@@ -18,6 +18,8 @@ set(agpl_files
     bindings/deno/gener_index_internal.ts
     bindings/deno/gener_preparer_test.ts
     bindings/deno/gener_runtime_internal.ts
+    bindings/deno/init.ts
+    bindings/deno/init_test.ts
     bindings/deno/mod.ts
     bindings/deno/mod_test.ts
     bindings/deno/native.ts

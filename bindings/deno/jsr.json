@@ -5,6 +5,7 @@
   "exports": {
     ".": "./mod.ts",
     "./data": "./data.ts",
+    "./init": "./init.ts",
     "./native": "./native.ts"
   },
   "publish": {
@@ -21,6 +22,7 @@
       "gener_manifest.ts",
       "gener_preparer.mjs",
       "gener_runtime_internal.ts",
+      "init.ts",
       "mod.ts",
       "native.ts",
       "native_internal.ts",

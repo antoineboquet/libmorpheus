@@ -29,6 +29,7 @@ file(COPY
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_manifest.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_preparer.mjs"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_runtime_internal.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/init.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/native.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/native_internal.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/native_manifest.ts"
