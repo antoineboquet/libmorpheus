@@ -158,6 +158,7 @@ jobs:
           sh -n bench/release.sh
           deno check bindings/deno/mod.ts bindings/deno/mod_test.ts \
             bindings/deno/data.ts bindings/deno/data_test.ts \
+            bindings/deno/native.ts bindings/deno/native_test.ts \
             bindings/deno/gener_preparer_test.ts \
             bench/compare.ts bench/compare_test.ts \
             bench/validate.ts bench/validate_test.ts
@@ -167,8 +168,9 @@ jobs:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: >-
-          deno test --allow-env --allow-ffi
+          deno test --allow-env --allow-ffi --allow-read --allow-write
           bindings/deno/mod_test.ts bindings/deno/data_test.ts
+          bindings/deno/native_test.ts
           bindings/deno/gener_preparer_test.ts
           bench/compare_test.ts
           bench/validate_test.ts

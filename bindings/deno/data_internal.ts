@@ -53,10 +53,12 @@ interface ArchiveDataset {
   readonly license: Uint8Array;
 }
 
-interface ArchiveEntry {
+export interface ArchiveEntry {
   readonly path: string;
   readonly type: string;
   readonly content: Uint8Array;
+  readonly mode: number;
+  readonly linkPath: string;
 }
 
 function decodeTarString(bytes: Uint8Array): string {
@@ -127,6 +129,7 @@ export function parseTarArchive(archive: Uint8Array): ArchiveEntry[] {
   let nextPax = new Map<string, string>();
   let globalPax = new Map<string, string>();
   let longPath: string | undefined;
+  let longLinkPath: string | undefined;
   let zeroBlocks = 0;
 
   while (offset + TAR_BLOCK_SIZE <= archive.length) {
@@ -147,6 +150,7 @@ export function parseTarArchive(archive: Uint8Array): ArchiveEntry[] {
     const content = archive.subarray(offset, offset + size);
     offset += paddedSize;
     const type = String.fromCharCode(header[156] || 0x30);
+    const mode = parseTarNumber(header.subarray(100, 108), "mode");
     const name = decodeTarString(header.subarray(0, 100));
     const prefix = decodeTarString(header.subarray(345, 500));
     const headerPath = prefix === "" ? name : `${prefix}/${name}`;
@@ -163,11 +167,18 @@ export function parseTarArchive(archive: Uint8Array): ArchiveEntry[] {
       longPath = decodeTarString(content);
       continue;
     }
+    if (type === "K") {
+      longLinkPath = decodeTarString(content);
+      continue;
+    }
     const path = nextPax.get("path") ?? globalPax.get("path") ?? longPath ??
       headerPath;
+    const linkPath = nextPax.get("linkpath") ?? globalPax.get("linkpath") ??
+      longLinkPath ?? decodeTarString(header.subarray(157, 257));
     nextPax = new Map();
     longPath = undefined;
-    entries.push({ path, type, content });
+    longLinkPath = undefined;
+    entries.push({ path, type, content, mode, linkPath });
   }
   throw new Error("tar archive has no complete end marker");
 }

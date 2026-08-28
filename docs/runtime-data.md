@@ -7,6 +7,25 @@ data. Applications select a compiled stem library at runtime; experimental Greek
 generation additionally requires a validated `gener.index` at that stemlib's
 root.
 
+The native runtime is likewise separate from the JSR source package. Install the
+matching GitHub Release archive without a native toolchain before acquiring
+data:
+
+```sh
+deno x \
+  --allow-net=github.com,release-assets.githubusercontent.com \
+  --allow-read=./morpheus-native \
+  --allow-write=./morpheus-native \
+  jsr:@humanities/libmorpheus@0.3.0/native \
+  --output ./morpheus-native
+```
+
+This verifies the release SHA-256 sidecar, extracts only safe archive entries,
+and writes `MORPHEUS-NATIVE.json`. It supports Linux x86-64 glibc, Linux aarch64
+glibc, and macOS arm64. Import `nativeLibraryPath` from the package's `/native`
+export to obtain the `.so` or `.dylib` path. Loading it remains an FFI operation
+and therefore requires `deno run --allow-ffi`.
+
 ## Choose a dataset
 
 | Use                     | Dataset path in a recursive `libmorpheus` checkout | Languages               | `gener.index`                    |

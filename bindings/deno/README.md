@@ -17,14 +17,15 @@
    2. [Docker image](#docker-image)
    3. [JSR package](#jsr-package)
 4. [Acquire stem data](#acquire-stem-data)
-5. [Language and stemlib support](#language-and-stemlib-support)
-6. [FFI permission](#ffi-permission)
-7. [Analyze a form](#analyze-a-form)
-8. [Generate forms from a lemma](#generate-forms-from-a-lemma)
-9. [Parallel contexts](#parallel-contexts)
-10. [Raw access and cleanup](#raw-access-and-cleanup)
-11. [Documentation](#documentation)
-12. [Local checks](#local-checks)
+5. [Acquire the native library](#acquire-the-native-library)
+6. [Language and stemlib support](#language-and-stemlib-support)
+7. [FFI permission](#ffi-permission)
+8. [Analyze a form](#analyze-a-form)
+9. [Generate forms from a lemma](#generate-forms-from-a-lemma)
+10. [Parallel contexts](#parallel-contexts)
+11. [Raw access and cleanup](#raw-access-and-cleanup)
+12. [Documentation](#documentation)
+13. [Local checks](#local-checks)
 
 ## Purpose
 
@@ -93,11 +94,11 @@ import {
 } from "@humanities/libmorpheus";
 ```
 
-The JSR package contains the TypeScript binding, a small internal WebAssembly
-data preparer, and their licensing and usage documentation. It does not contain
-the native library, stem data, or a generated index. Publication is tied to the
-matching `v0.3.0` Git tag and occurs only after the tagged Linux and platform
-qualification workflows succeed.
+The JSR package contains the TypeScript binding, native and data acquisition
+commands, a small internal WebAssembly data preparer, and their licensing and
+usage documentation. It does not embed the native library, stem data, or a
+generated index. The separately acquired native archive and data directory keep
+their own licenses and receipts.
 
 ## Acquire stem data
 
@@ -150,6 +151,42 @@ provides
 [`tools/prepare-runtime-data.sh`](https://github.com/defense-humanites/libmorpheus/blob/main/tools/prepare-runtime-data.sh)
 for the native build workflow. The JSR data command above is the intended route
 for JavaScript users who do not have a C toolchain.
+
+## Acquire the native library
+
+The package can install the matching data-free native release without Git,
+CMake, a C compiler, or a shell extractor:
+
+```sh
+deno x \
+  --allow-net=github.com,release-assets.githubusercontent.com \
+  --allow-read=./morpheus-native \
+  --allow-write=./morpheus-native \
+  jsr:@humanities/libmorpheus@0.3.0/native \
+  --output ./morpheus-native
+```
+
+The command selects Linux x86-64 glibc, Linux aarch64 glibc, or macOS arm64 from
+`Deno.build`, downloads the matching GitHub Release archive and SHA-256 sidecar,
+validates the single redirect host, safely extracts the archive, and refuses an
+existing output directory. `MORPHEUS-NATIVE.json` records the exact asset,
+digest, target, ABI and relative library path.
+
+Use the exported helper to avoid platform-specific filenames:
+
+```ts
+import { MorpheusLibrary } from "@humanities/libmorpheus";
+import { nativeLibraryPath } from "@humanities/libmorpheus/native";
+
+using library = new MorpheusLibrary(
+  nativeLibraryPath("./morpheus-native"),
+);
+```
+
+Acquisition needs only the scoped network, read and write permissions shown
+above. Running an application that loads the result remains a separate step and
+requires `--allow-ffi` as described below. The package version fixes the release
+version; the command has no arbitrary-version option.
 
 ## Language and stemlib support
 

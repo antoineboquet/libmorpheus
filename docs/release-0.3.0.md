@@ -7,13 +7,12 @@ Status: candidate prepared for final qualification and publication.
 - Project version: **0.3.0**
 - C ABI: **2**
 - SONAME major: **1**
-- Previous release tag: `v0.2.0` at
-  `5c071548a7ceea05340dffc60591567cff7ca6c5`
+- Previous release tag: `v0.2.0` at `5c071548a7ceea05340dffc60591567cff7ca6c5`
 
 ## Version and ABI rationale
 
-Version 0.3.0 is a compatible feature release. It adds Greek lemma generation,
-a generation-options structure, an owned generation-result type, generation
+Version 0.3.0 is a compatible feature release. It adds Greek lemma generation, a
+generation-options structure, an owned generation-result type, generation
 accessors, and a result-limit status. It does not remove a public function,
 change a published signature, reassign an existing constant, or change the
 layout of `morpheus_analysis`. ABI 2 and SONAME 1 therefore remain correct.
@@ -56,10 +55,12 @@ binaries and stem data are not embedded in the Deno archive.
 
 The Deno source package is configured for JSR under the reserved name
 `@humanities/libmorpheus` at candidate version 0.3.0. Its metadata, exact
-source-only contents, import command, and strict registry dry-run are covered
-by the ordinary Linux CI. The dry-run contains only `jsr.json`, `mod.ts`,
-`README.md`, `LICENSE`, and `NOTICE`. The JSR package retains the AGPL notice
-and the documented MPL boundary to the separately distributed native runtime.
+source-only contents, import command, and strict registry dry-run are covered by
+the ordinary Linux CI. It includes the public `/data` and `/native` commands and
+their internal support, but no downloaded binary or linguistic data. The JSR
+package retains the AGPL notice and the documented MPL boundary to the
+separately distributed native runtime. The `/native` command verifies and
+extracts the matching release asset without a C toolchain.
 
 Container builds remain qualification artifacts. An image embedding the pinned
 Alpheios stemlib must not be published until that dataset's redistribution terms
@@ -69,17 +70,17 @@ have been confirmed.
 
 1. Produce and validate the 0.3.0 benchmark report on the controlled release
    host against the accepted 0.2.0 schema 1 report (SHA-256
-   `d877dadd080a31ae75c8f970fb179a6638b54a2db0afd11c336eb9b2e33cf977`).
-   Compare its historical analysis measurements; treat the schema 2 generation
+   `d877dadd080a31ae75c8f970fb179a6638b54a2db0afd11c336eb9b2e33cf977`). Compare
+   its historical analysis measurements; treat the schema 2 generation
    measurements as the initial accepted generation baseline.
 2. Manually dispatch the architecture workflow for the exact candidate commit
    with package artifacts enabled and inspect every archive and checksum.
 3. Confirm Linux x86-64, Linux aarch64, Alpine x86-64/aarch64, macOS arm64,
    ASan/UBSan, ThreadSanitizer, signedness, Deno FFI, and inherited Makefile
    qualification.
-4. Move the changelog contents from `Unreleased` to a dated `0.3.0` heading,
-   tag the qualified commit as `v0.3.0`, and require both tag workflows to pass.
-5. Publish only tag-produced archives and the validated benchmark evidence;
-   let the tagged platform workflow publish the JSR package from the same
-   qualified source revision after tagged Linux CI succeeds. The JSR package
-   must first be linked to this GitHub repository in its JSR settings.
+4. Move the changelog contents from `Unreleased` to a dated `0.3.0` heading, tag
+   the qualified commit as `v0.3.0`, and require both tag workflows to pass.
+5. Publish only tag-produced archives and the validated benchmark evidence; let
+   the tagged platform workflow publish the JSR package from the same qualified
+   source revision after tagged Linux CI succeeds. The JSR package must first be
+   linked to this GitHub repository in its JSR settings.

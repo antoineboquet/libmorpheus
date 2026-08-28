@@ -284,11 +284,24 @@ rejects those pointer reads. Keep the library path explicit in application code
 and grant no unrelated Deno permissions unless the application needs them.
 
 Install the source binding from JSR with
-`deno add jsr:@humanities/libmorpheus@0.3.0`. Native archives, the JSR package,
-and release assets intentionally contain no stem data. The
-[runtime-data guide](docs/runtime-data.md) documents the version-pinned Greek
-and Latin analysis datasets and provides one local command to prepare the
-Alpheios Greek stemlib with its reproducible `gener.index`.
+`deno add jsr:@humanities/libmorpheus@0.3.0`. JSR users can acquire the matching
+native archive without a native toolchain:
+
+```sh
+deno x \
+  --allow-net=github.com,release-assets.githubusercontent.com \
+  --allow-read=./morpheus-native \
+  --allow-write=./morpheus-native \
+  jsr:@humanities/libmorpheus@0.3.0/native \
+  --output ./morpheus-native
+```
+
+Import `nativeLibraryPath` from `@humanities/libmorpheus/native` to resolve the
+installed `.so` or `.dylib`; loading it still requires `deno run --allow-ffi`.
+Native archives, the JSR package, and release assets intentionally contain no
+stem data. The [runtime-data guide](docs/runtime-data.md) documents the
+version-pinned Greek and Latin analysis datasets and provides one local command
+to prepare the Alpheios Greek stemlib with its reproducible `gener.index`.
 
 `analyze()` supports Greek and Latin contexts. The experimental first generation
 integration deliberately focuses on Greek and requires a `gener.index` beside

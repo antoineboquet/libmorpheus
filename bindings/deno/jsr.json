@@ -4,7 +4,8 @@
   "license": "AGPL-3.0-or-later AND MPL-2.0 AND MIT",
   "exports": {
     ".": "./mod.ts",
-    "./data": "./data.ts"
+    "./data": "./data.ts",
+    "./native": "./native.ts"
   },
   "publish": {
     "include": [
@@ -20,7 +21,10 @@
       "gener_manifest.ts",
       "gener_preparer.mjs",
       "gener_runtime_internal.ts",
-      "mod.ts"
+      "mod.ts",
+      "native.ts",
+      "native_internal.ts",
+      "native_manifest.ts"
     ]
   }
 }
