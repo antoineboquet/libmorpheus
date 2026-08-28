@@ -169,6 +169,11 @@ Alpheios fixture suites must run where their data prerequisites are available.
   the published release and refuses to proceed unless `bindings/deno/jsr.json`
   is the binding's only change since the tag. It exists for registry-metadata
   rejection only, not for changing published package code.
+- After JSR publication, manually dispatch `Published JSR smoke test` with the
+  exact package version. It starts with an empty Deno application and obtains
+  the public JSR package, matching native archive, Alpheios data plus generation
+  index, and Perseids data. Require Greek and Latin analysis plus experimental
+  Greek generation to pass before closing the release.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact
