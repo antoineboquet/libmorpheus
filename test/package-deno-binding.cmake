@@ -22,6 +22,9 @@ file(REMOVE_RECURSE "${package_root}")
 file(MAKE_DIRECTORY "${package_dir}")
 file(COPY
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/mod.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/data.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/data_internal.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/data_manifest.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/README.md"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSE"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/NOTICE"

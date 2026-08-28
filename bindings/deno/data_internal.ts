@@ -1,0 +1,371 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+import { dirname, join, resolve } from "node:path";
+import {
+  MORPHEUS_DATA_SCHEMA_VERSION,
+  MORPHEUS_DATASETS,
+  MORPHEUS_PACKAGE_VERSION,
+  type MorpheusDatasetDefinition,
+  type MorpheusDatasetName,
+} from "./data_manifest.ts";
+
+const TAR_BLOCK_SIZE = 512;
+const MAX_COMPRESSED_SIZE = 64 * 1024 * 1024;
+const MAX_UNCOMPRESSED_SIZE = 256 * 1024 * 1024;
+const textDecoder = new TextDecoder();
+const textEncoder = new TextEncoder();
+
+export interface MorpheusDataReceipt {
+  readonly schema: number;
+  readonly packageVersion: string;
+  readonly dataset: MorpheusDatasetName;
+  readonly languages: readonly string[];
+  readonly source: {
+    readonly repository: string;
+    readonly revision: string;
+    readonly archiveUrl: string;
+  };
+  readonly files: {
+    readonly count: number;
+    readonly treeSha256: string;
+  };
+  readonly generation: {
+    readonly experimental: true;
+    readonly available: boolean;
+    readonly indexSha256: string | null;
+  };
+}
+
+export interface AcquireMorpheusDataOptions {
+  readonly dataset: MorpheusDatasetName;
+  readonly output: string;
+}
+
+interface ArchiveEntry {
+  readonly path: string;
+  readonly type: string;
+  readonly content: Uint8Array;
+}
+
+function decodeTarString(bytes: Uint8Array): string {
+  const zero = bytes.indexOf(0);
+  return textDecoder.decode(zero === -1 ? bytes : bytes.subarray(0, zero));
+}
+
+function parseTarNumber(bytes: Uint8Array, field: string): number {
+  if ((bytes[0] & 0x80) !== 0) {
+    let value = BigInt(bytes[0] & 0x7f);
+    for (const byte of bytes.subarray(1)) value = (value << 8n) | BigInt(byte);
+    if (value > BigInt(Number.MAX_SAFE_INTEGER)) {
+      throw new Error(`tar ${field} exceeds JavaScript limits`);
+    }
+    return Number(value);
+  }
+  const source = decodeTarString(bytes).trim();
+  if (source === "") return 0;
+  if (!/^[0-7]+$/.test(source)) throw new Error(`invalid tar ${field}`);
+  const value = Number.parseInt(source, 8);
+  if (!Number.isSafeInteger(value)) throw new Error(`invalid tar ${field}`);
+  return value;
+}
+
+function verifyTarChecksum(header: Uint8Array): void {
+  const expected = parseTarNumber(header.subarray(148, 156), "checksum");
+  let actual = 0;
+  for (let index = 0; index < header.length; index++) {
+    actual += index >= 148 && index < 156 ? 0x20 : header[index];
+  }
+  if (actual !== expected) throw new Error("tar header checksum mismatch");
+}
+
+function isZeroBlock(block: Uint8Array): boolean {
+  return block.every((byte) => byte === 0);
+}
+
+function parsePax(content: Uint8Array): Map<string, string> {
+  const fields = new Map<string, string>();
+  let offset = 0;
+  while (offset < content.length) {
+    const space = content.indexOf(0x20, offset);
+    if (space === -1) throw new Error("invalid PAX record length");
+    const lengthText = textDecoder.decode(content.subarray(offset, space));
+    if (!/^[1-9][0-9]*$/.test(lengthText)) {
+      throw new Error("invalid PAX record length");
+    }
+    const length = Number.parseInt(lengthText, 10);
+    const end = offset + length;
+    if (
+      !Number.isSafeInteger(length) || end > content.length ||
+      content[end - 1] !== 0x0a
+    ) {
+      throw new Error("truncated PAX record");
+    }
+    const record = textDecoder.decode(content.subarray(space + 1, end - 1));
+    const equals = record.indexOf("=");
+    if (equals <= 0) throw new Error("invalid PAX record");
+    fields.set(record.slice(0, equals), record.slice(equals + 1));
+    offset = end;
+  }
+  return fields;
+}
+
+export function parseTarArchive(archive: Uint8Array): ArchiveEntry[] {
+  const entries: ArchiveEntry[] = [];
+  let offset = 0;
+  let nextPax = new Map<string, string>();
+  let globalPax = new Map<string, string>();
+  let longPath: string | undefined;
+  let zeroBlocks = 0;
+
+  while (offset + TAR_BLOCK_SIZE <= archive.length) {
+    const header = archive.subarray(offset, offset + TAR_BLOCK_SIZE);
+    offset += TAR_BLOCK_SIZE;
+    if (isZeroBlock(header)) {
+      zeroBlocks++;
+      if (zeroBlocks === 2) return entries;
+      continue;
+    }
+    zeroBlocks = 0;
+    verifyTarChecksum(header);
+    const size = parseTarNumber(header.subarray(124, 136), "size");
+    const paddedSize = Math.ceil(size / TAR_BLOCK_SIZE) * TAR_BLOCK_SIZE;
+    if (offset + paddedSize > archive.length) {
+      throw new Error("truncated tar entry");
+    }
+    const content = archive.subarray(offset, offset + size);
+    offset += paddedSize;
+    const type = String.fromCharCode(header[156] || 0x30);
+    const name = decodeTarString(header.subarray(0, 100));
+    const prefix = decodeTarString(header.subarray(345, 500));
+    const headerPath = prefix === "" ? name : `${prefix}/${name}`;
+
+    if (type === "x") {
+      nextPax = parsePax(content);
+      continue;
+    }
+    if (type === "g") {
+      globalPax = new Map([...globalPax, ...parsePax(content)]);
+      continue;
+    }
+    if (type === "L") {
+      longPath = decodeTarString(content);
+      continue;
+    }
+    const path = nextPax.get("path") ?? globalPax.get("path") ?? longPath ??
+      headerPath;
+    nextPax = new Map();
+    longPath = undefined;
+    entries.push({ path, type, content });
+  }
+  throw new Error("tar archive has no complete end marker");
+}
+
+function safeRelativePath(path: string): string {
+  if (
+    path === "" || path.startsWith("/") || path.includes("\\") ||
+    path.includes("\0")
+  ) {
+    throw new Error(`unsafe archive path: ${path}`);
+  }
+  const components = path.split("/");
+  if (
+    components.some((component) =>
+      component === "" || component === "." ||
+      component === ".."
+    )
+  ) {
+    throw new Error(`unsafe archive path: ${path}`);
+  }
+  return components.join("/");
+}
+
+export async function sha256(bytes: Uint8Array): Promise<string> {
+  const owned = Uint8Array.from(bytes);
+  const digest = await crypto.subtle.digest("SHA-256", owned.buffer);
+  return Array.from(
+    new Uint8Array(digest),
+    (byte) => byte.toString(16).padStart(2, "0"),
+  ).join("");
+}
+
+async function treeDigest(lines: string[]): Promise<string> {
+  lines.sort((left, right) => {
+    const leftPath = left.slice(66);
+    const rightPath = right.slice(66);
+    return leftPath < rightPath ? -1 : leftPath === rightPath ? 0 : 1;
+  });
+  return await sha256(textEncoder.encode(`${lines.join("\n")}\n`));
+}
+
+async function writeArchiveDataset(
+  archive: Uint8Array,
+  definition: MorpheusDatasetDefinition,
+  directory: string,
+): Promise<void> {
+  const dataRoot = `${definition.archiveRoot}${definition.dataPrefix}`;
+  const licensePath = `${definition.archiveRoot}${definition.licensePath}`;
+  const paths = new Set<string>();
+  const digestLines: string[] = [];
+  let license: Uint8Array | undefined;
+
+  for (const entry of parseTarArchive(archive)) {
+    if (entry.path === licensePath) {
+      if (entry.type !== "0") throw new Error("upstream license is not a file");
+      license = entry.content;
+      continue;
+    }
+    if (!entry.path.startsWith(dataRoot)) continue;
+    const relative = entry.path.slice(dataRoot.length).replace(/\/$/, "");
+    if (relative === "") continue;
+    const path = safeRelativePath(relative);
+    if (entry.type === "5") continue;
+    if (entry.type !== "0") {
+      throw new Error(`unsupported dataset archive entry: ${entry.path}`);
+    }
+    if (paths.has(path)) throw new Error(`duplicate dataset path: ${path}`);
+    paths.add(path);
+    const digest = await sha256(entry.content);
+    digestLines.push(`${digest}  ${path}`);
+    const destination = join(directory, ...path.split("/"));
+    await Deno.mkdir(dirname(destination), { recursive: true });
+    await Deno.writeFile(destination, entry.content, { createNew: true });
+  }
+
+  if (paths.size !== definition.fileCount) {
+    throw new Error(
+      `${definition.name} archive contains ${paths.size} dataset files; expected ${definition.fileCount}`,
+    );
+  }
+  const actualTree = await treeDigest(digestLines);
+  if (actualTree !== definition.treeSha256) {
+    throw new Error(
+      `${definition.name} dataset digest mismatch: ${actualTree}`,
+    );
+  }
+  if (
+    license === undefined ||
+    await sha256(license) !== definition.licenseSha256
+  ) {
+    throw new Error(`${definition.name} upstream license digest mismatch`);
+  }
+  await Deno.writeFile(join(directory, "UPSTREAM-LICENSE"), license, {
+    createNew: true,
+  });
+}
+
+async function readLimited(
+  stream: ReadableStream<Uint8Array>,
+  limit: number,
+  description: string,
+): Promise<Uint8Array> {
+  const chunks: Uint8Array[] = [];
+  const reader = stream.getReader();
+  let size = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.length;
+      if (size > limit) throw new Error(`${description} exceeds size limit`);
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const result = new Uint8Array(size);
+  let offset = 0;
+  for (const chunk of chunks) {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return result;
+}
+
+async function downloadArchive(
+  definition: MorpheusDatasetDefinition,
+): Promise<Uint8Array> {
+  const response = await fetch(definition.archiveUrl, { redirect: "error" });
+  if (!response.ok || response.body === null) {
+    throw new Error(
+      `cannot download ${definition.name} dataset: HTTP ${response.status}`,
+    );
+  }
+  const compressed = await readLimited(
+    response.body,
+    MAX_COMPRESSED_SIZE,
+    "compressed dataset archive",
+  );
+  const decompressed = new Blob([Uint8Array.from(compressed).buffer]).stream()
+    .pipeThrough(
+      new DecompressionStream("gzip"),
+    );
+  return await readLimited(
+    decompressed,
+    MAX_UNCOMPRESSED_SIZE,
+    "decompressed dataset archive",
+  );
+}
+
+async function pathExists(path: string): Promise<boolean> {
+  try {
+    await Deno.lstat(path);
+    return true;
+  } catch (error) {
+    if (error instanceof Deno.errors.NotFound) return false;
+    throw error;
+  }
+}
+
+export async function acquireMorpheusData(
+  options: AcquireMorpheusDataOptions,
+): Promise<MorpheusDataReceipt> {
+  const definition = MORPHEUS_DATASETS[options.dataset];
+  if (definition === undefined) {
+    throw new TypeError(`unsupported Morpheus dataset: ${options.dataset}`);
+  }
+  const output = resolve(options.output);
+  if (await pathExists(output)) {
+    throw new Error(`output path already exists: ${output}`);
+  }
+  await Deno.mkdir(output);
+  let committed = false;
+  try {
+    const archive = await downloadArchive(definition);
+    await writeArchiveDataset(archive, definition, output);
+    const receipt: MorpheusDataReceipt = {
+      schema: MORPHEUS_DATA_SCHEMA_VERSION,
+      packageVersion: MORPHEUS_PACKAGE_VERSION,
+      dataset: definition.name,
+      languages: definition.languages,
+      source: {
+        repository: definition.repository,
+        revision: definition.revision,
+        archiveUrl: definition.archiveUrl,
+      },
+      files: {
+        count: definition.fileCount,
+        treeSha256: definition.treeSha256,
+      },
+      generation: {
+        experimental: true,
+        available: false,
+        indexSha256: null,
+      },
+    };
+    await Deno.writeTextFile(
+      join(output, "MORPHEUS-DATA.json"),
+      `${JSON.stringify(receipt, null, 2)}\n`,
+      { createNew: true },
+    );
+    committed = true;
+    return receipt;
+  } finally {
+    if (!committed) {
+      try {
+        await Deno.remove(output, { recursive: true });
+      } catch (error) {
+        if (!(error instanceof Deno.errors.NotFound)) throw error;
+      }
+    }
+  }
+}

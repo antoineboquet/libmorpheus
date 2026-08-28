@@ -99,22 +99,28 @@ tagged Linux and platform qualification workflows succeed.
 
 ## Acquire stem data
 
-Clone the same release as the binding, including its pinned Alpheios
-submodule:
+The package exports a permission-scoped data command. It downloads an exact
+upstream revision, verifies every selected file and the upstream license, and
+refuses to overwrite an existing directory. For Greek and Latin analysis:
 
 ```sh
-git clone --depth 1 --branch v0.3.0 --recurse-submodules \
-  --shallow-submodules \
-  https://github.com/defense-humanites/libmorpheus.git libmorpheus-data
+deno x \
+  --allow-net=codeload.github.com \
+  --allow-read=./morpheus-data \
+  --allow-write=./morpheus-data \
+  jsr:@humanities/libmorpheus@0.3.0/data \
+  --dataset perseids \
+  --output ./morpheus-data
 ```
 
-For Greek and Latin analysis, pass the absolute
-`libmorpheus-data/stemlib` path to `createContext()`. For the Greek-only
-Alpheios reference data, use
-`libmorpheus-data/vendor/alpheios-morpheus/dist/stemlib`.
+Choose `--dataset alpheios` instead for the Greek-only reference dataset.
+Pass the resulting absolute `morpheus-data` path to `createContext()`. The
+receipt `MORPHEUS-DATA.json` records the source revision and verified tree
+digest; `UPSTREAM-LICENSE` preserves the selected project's license text.
 
-Experimental Greek generation needs a complete Alpheios stemlib plus its
-locally built index. CMake, Ninja, and a C compiler are required:
+Experimental Greek generation currently needs a complete Alpheios stemlib
+plus its locally built index. From a recursive release checkout, CMake, Ninja,
+and a C compiler are required:
 
 ```sh
 sh libmorpheus-data/tools/prepare-runtime-data.sh \

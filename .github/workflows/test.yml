@@ -157,6 +157,7 @@ jobs:
         run: |
           sh -n bench/release.sh
           deno check bindings/deno/mod.ts bindings/deno/mod_test.ts \
+            bindings/deno/data.ts bindings/deno/data_test.ts \
             bench/compare.ts bench/compare_test.ts \
             bench/validate.ts bench/validate_test.ts
 
@@ -166,8 +167,22 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: >-
           deno test --allow-env --allow-ffi
-          bindings/deno/mod_test.ts bench/compare_test.ts
+          bindings/deno/mod_test.ts bindings/deno/data_test.ts
+          bench/compare_test.ts
           bench/validate_test.ts
+
+      - name: Acquire and verify pinned Deno datasets
+        run: |
+          deno run --allow-net=codeload.github.com \
+            --allow-read=build --allow-write=build \
+            bindings/deno/data.ts --dataset alpheios \
+            --output build/data-test-alpheios
+          deno run --allow-net=codeload.github.com \
+            --allow-read=build --allow-write=build \
+            bindings/deno/data.ts --dataset perseids \
+            --output build/data-test-perseids
+          test -f build/data-test-alpheios/Greek/steminds/nomind
+          test -f build/data-test-perseids/Latin/steminds/nomind
 
       - name: Smoke-test benchmark runner
         env:
@@ -181,6 +196,34 @@ jobs:
             bench/compare.ts --iterations 1 --warmup 0 --contexts 1 \
             --cold-samples 1 --generation-small 'lo/gos' \
             --generation-maximal 'i(/hmi' --json > /dev/null
+
+  deno-gener-preparer:
+    runs-on: ubuntu-latest
+    container: emscripten/emsdk:4.0.15
+    timeout-minutes: 15
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v5
+
+      - name: Configure WebAssembly preparer
+        run: >-
+          emcmake cmake -S . -B build/deno-gener-wasm -G Ninja
+          -DBUILD_TESTING=OFF
+          -DMORPHEUS_BUILD_DENO_GENER_PREPARER=ON
+
+      - name: Build WebAssembly preparer
+        run: >-
+          cmake --build build/deno-gener-wasm
+          --target morpheus_gener_source_preparer
+
+      - name: Upload WebAssembly preparer
+        uses: actions/upload-artifact@v4
+        with:
+          name: deno-gener-preparer
+          path: |
+            build/deno-gener-wasm/gener_preparer.mjs
+            build/deno-gener-wasm/gener_preparer.wasm
+          if-no-files-found: error
 
   char-signedness:
     if: github.event_name == 'push'

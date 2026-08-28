@@ -15,18 +15,32 @@ stemlib's root.
 | Reference analysis | `vendor/alpheios-morpheus/dist/stemlib` | Ancient Greek | Not required |
 | Experimental generation | Prepared directory described below | Ancient Greek | Included after local preparation |
 
-Clone the release that matches the native library or JSR binding:
+JSR users can acquire either dataset without Git or a C toolchain. For Greek
+and Latin analysis:
+
+```sh
+deno x \
+  --allow-net=codeload.github.com \
+  --allow-read=./morpheus-data \
+  --allow-write=./morpheus-data \
+  jsr:@humanities/libmorpheus@0.3.0/data \
+  --dataset perseids \
+  --output ./morpheus-data
+```
+
+Use `--dataset alpheios` for the Greek-only reference dataset. The command
+downloads a pinned archive directly from the original GitHub repository,
+checks the complete selected tree and license, and refuses an existing output
+directory. Pass the resulting absolute `morpheus-data` path to the context.
+
+A recursive checkout of the matching release remains useful for native
+development and for the current generation-index preparation workflow:
 
 ```sh
 git clone --depth 1 --branch v0.3.0 --recurse-submodules \
   --shallow-submodules \
   https://github.com/defense-humanites/libmorpheus.git libmorpheus-data
 ```
-
-For Greek and Latin analysis, pass the absolute path to
-`libmorpheus-data/stemlib` when creating a context. For the pinned Alpheios
-Greek reference data, use
-`libmorpheus-data/vendor/alpheios-morpheus/dist/stemlib` instead.
 
 ## Prepare Greek generation data
 

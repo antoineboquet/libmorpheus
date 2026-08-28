@@ -2,12 +2,18 @@
   "name": "@humanities/libmorpheus",
   "version": "0.3.0",
   "license": "AGPL-3.0-or-later",
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./data": "./data.ts"
+  },
   "publish": {
     "include": [
       "LICENSE",
       "NOTICE",
       "README.md",
+      "data.ts",
+      "data_internal.ts",
+      "data_manifest.ts",
       "mod.ts"
     ]
   }

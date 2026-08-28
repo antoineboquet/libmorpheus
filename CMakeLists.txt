@@ -600,6 +600,33 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
 
+option(
+  MORPHEUS_BUILD_DENO_GENER_PREPARER
+  "Build the internal generation source preparer as an Emscripten module"
+  OFF
+)
+if(MORPHEUS_BUILD_DENO_GENER_PREPARER)
+  if(NOT EMSCRIPTEN)
+    message(FATAL_ERROR
+      "MORPHEUS_BUILD_DENO_GENER_PREPARER requires Emscripten")
+  endif()
+  set_target_properties(
+    morpheus_gener_source_preparer
+    PROPERTIES OUTPUT_NAME gener_preparer SUFFIX ".mjs"
+  )
+  target_link_options(
+    morpheus_gener_source_preparer
+    PRIVATE
+      "-sMODULARIZE=1"
+      "-sEXPORT_ES6=1"
+      "-sEXPORT_NAME=createGenerPreparer"
+      "-sENVIRONMENT=web"
+      "-sALLOW_MEMORY_GROWTH=1"
+      "-sEXIT_RUNTIME=1"
+      "-sEXPORTED_RUNTIME_METHODS=['FS','callMain']"
+  )
+endif()
+
 if(BUILD_TESTING)
   add_executable(
     morpheus_gener_index_reader_test

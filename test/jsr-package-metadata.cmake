@@ -9,7 +9,7 @@ endif()
 set(config_path "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json")
 file(READ "${config_path}" config)
 
-foreach(field IN ITEMS name version license exports)
+foreach(field IN ITEMS name version license)
   string(JSON "jsr_${field}" ERROR_VARIABLE json_error GET "${config}" "${field}")
   if(json_error)
     message(FATAL_ERROR "Invalid ${field} in ${config_path}: ${json_error}")
@@ -26,11 +26,16 @@ endif()
 if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
   message(FATAL_ERROR "Unexpected JSR package license: ${jsr_license}")
 endif()
-if(NOT jsr_exports STREQUAL "./mod.ts")
-  message(FATAL_ERROR "Unexpected JSR package export: ${jsr_exports}")
+string(JSON jsr_default_export GET "${config}" exports .)
+string(JSON jsr_data_export GET "${config}" exports ./data)
+if(NOT jsr_default_export STREQUAL "./mod.ts" OR
+   NOT jsr_data_export STREQUAL "./data.ts")
+  message(FATAL_ERROR
+    "Unexpected JSR package exports: ${jsr_default_export}, ${jsr_data_export}")
 endif()
 
-set(expected_files LICENSE NOTICE README.md mod.ts)
+set(expected_files
+    LICENSE NOTICE README.md data.ts data_internal.ts data_manifest.ts mod.ts)
 string(JSON include_count ERROR_VARIABLE json_error
        LENGTH "${config}" publish include)
 if(json_error)
@@ -55,7 +60,8 @@ if(expected_files)
   message(FATAL_ERROR "Missing JSR package files: ${expected_files}")
 endif()
 
-foreach(required IN ITEMS LICENSE NOTICE README.md mod.ts)
+foreach(required IN ITEMS
+        LICENSE NOTICE README.md data.ts data_internal.ts data_manifest.ts mod.ts)
   if(NOT EXISTS "${MORPHEUS_SOURCE_DIR}/bindings/deno/${required}")
     message(FATAL_ERROR "Missing JSR package source: ${required}")
   endif()

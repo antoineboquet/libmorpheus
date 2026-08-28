@@ -68,8 +68,22 @@ git submodule update --init --recursive
 Native archives and the JSR package contain no linguistic data. The repository
 `stemlib/` supports Greek and Latin analysis; the pinned Alpheios submodule is
 the Greek reference dataset. Experimental Greek generation also needs a
-validated `gener.index`. From a recursive versioned checkout, prepare a
-standalone Greek runtime-data directory with:
+validated `gener.index`. JSR users can acquire a verified analysis dataset
+without Git or a native toolchain:
+
+```sh
+deno x \
+  --allow-net=codeload.github.com \
+  --allow-read=./morpheus-data \
+  --allow-write=./morpheus-data \
+  jsr:@humanities/libmorpheus@0.3.0/data \
+  --dataset perseids \
+  --output ./morpheus-data
+```
+
+Use `--dataset alpheios` for Greek-only analysis. From a recursive versioned
+checkout, prepare a standalone Greek runtime-data directory with its
+experimental generation index using:
 
 ```sh
 sh tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"

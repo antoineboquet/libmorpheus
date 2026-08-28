@@ -10,6 +10,10 @@ set(agpl_files
     CMakeLists.txt
     bindings/deno/NOTICE
     bindings/deno/README.md
+    bindings/deno/data.ts
+    bindings/deno/data_internal.ts
+    bindings/deno/data_manifest.ts
+    bindings/deno/data_test.ts
     bindings/deno/mod.ts
     bindings/deno/mod_test.ts
     include/morpheus/morpheus.h
