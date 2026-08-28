@@ -89,6 +89,10 @@ file(READ "${MORPHEUS_SOURCE_DIR}/.github/workflows/platform.yml"
      platform_workflow)
 foreach(expected_workflow_value IN ITEMS
         "publish-jsr:"
+        "publish-release:"
+        "needs: publish-release"
+        "actions/download-artifact@v5"
+        "contents: write"
         "id-token: write"
         "workflow_id: 'test.yml'"
         "deno publish --dry-run"

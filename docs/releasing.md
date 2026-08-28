@@ -53,8 +53,10 @@ The expensive architecture workflow in `.github/workflows/platform.yml` runs
 weekly, on explicit manual dispatch, and for every `v*` tag. It covers native
 Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Manual dispatches can
 request all three native release-candidate packages; version tags always build
-them. Packages and checksums are retained as short-lived CI artifacts until
-they are promoted to a GitHub release.
+them. Packages and checksums are retained as short-lived CI artifacts on non-tag
+runs. After a version tag passes the full platform matrix and separate Linux CI,
+the tag workflow publishes the verified native and standalone Deno assets to a
+GitHub release before it publishes JSR.
 
 Scheduled runs first compare the current default-branch SHA with the last
 completed weekly run. The architecture jobs are skipped when the SHA is
@@ -151,11 +153,14 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Before the first publication, link `@humanities/libmorpheus` to
   `defense-humanites/libmorpheus` in the package's JSR settings. This one-time
   association authorizes tokenless GitHub Actions publication through OIDC.
-- Pushing the matching `v<version>` tag automatically publishes the JSR package
-  only after every platform job and the separate tagged Linux workflow pass.
-  Its source-only contents retain `README.md`, `LICENSE`, and `NOTICE`; they do
-  not embed a native library or stem data. A missing JSR repository association
-  makes the publication job fail without weakening the preceding qualification.
+- Pushing the matching `v<version>` tag automatically publishes the three native
+  archives, the standalone Deno archive, and all four SHA-256 sidecars only
+  after every platform job and the separate tagged Linux workflow pass. The
+  workflow then publishes the JSR package, so its `/native` command never points
+  at CI-only artifacts. Its source-only contents retain `README.md`, `LICENSE`,
+  and `NOTICE`; they do not embed a native library or stem data. A missing JSR
+  repository association makes the JSR publication fail without weakening the
+  preceding GitHub release.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact

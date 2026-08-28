@@ -98,7 +98,8 @@ The JSR package contains the TypeScript binding, native and data acquisition
 commands, a small internal WebAssembly data preparer, and their licensing and
 usage documentation. It does not embed the native library, stem data, or a
 generated index. The separately acquired native archive and data directory keep
-their own licenses and receipts.
+their own licenses and receipts. A qualified version tag publishes the native
+GitHub Release assets first and publishes JSR only after those downloads exist.
 
 ## Acquire stem data
 

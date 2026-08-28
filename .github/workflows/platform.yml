@@ -424,8 +424,8 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  publish-jsr:
-    name: Publish JSR package
+  publish-release:
+    name: Publish GitHub release assets
     if: startsWith(github.ref, 'refs/tags/v')
     needs:
       - activity
@@ -437,8 +437,7 @@ jobs:
     timeout-minutes: 15
     permissions:
       actions: read
-      contents: read
-      id-token: write
+      contents: write
     steps:
       - name: Wait for tagged Linux qualification
         uses: actions/github-script@v8
@@ -475,6 +474,123 @@ jobs:
             }
             throw new Error('Timed out waiting for tagged Linux CI')
 
+      - name: Check out the qualified tag
+        uses: actions/checkout@v5
+
+      - name: Download native packages
+        uses: actions/download-artifact@v5
+        with:
+          pattern: libmorpheus-native-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Download standalone Deno package
+        uses: actions/download-artifact@v5
+        with:
+          name: libmorpheus-deno-binding
+          path: release-assets
+
+      - name: Verify the release asset set
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          expected=(
+            "libmorpheus-${version}-Linux-x86_64-glibc.tar.gz"
+            "libmorpheus-${version}-Linux-x86_64-glibc.tar.gz.sha256"
+            "libmorpheus-${version}-Linux-aarch64-glibc.tar.gz"
+            "libmorpheus-${version}-Linux-aarch64-glibc.tar.gz.sha256"
+            "libmorpheus-${version}-macOS-arm64.tar.gz"
+            "libmorpheus-${version}-macOS-arm64.tar.gz.sha256"
+            "libmorpheus-deno-${version}.tar.gz"
+            "libmorpheus-deno-${version}.tar.gz.sha256"
+          )
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 8
+          for asset in "${expected[@]}"; do
+            test -f "release-assets/$asset"
+          done
+          (cd release-assets && sha256sum -c -- *.sha256)
+
+      - name: Publish qualified GitHub release
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const fs = require('fs')
+            const path = require('path')
+            const directory = 'release-assets'
+            const expected = fs.readdirSync(directory).sort()
+            let existing
+            try {
+              existing = await github.rest.repos.getReleaseByTag({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                tag: context.ref.replace('refs/tags/', ''),
+              })
+            } catch (error) {
+              if (error.status !== 404) throw error
+            }
+            if (existing !== undefined) {
+              if (existing.data.draft) {
+                throw new Error(
+                  `A partial draft release already exists: ${existing.data.html_url}`,
+                )
+              }
+              const published = new Set(
+                existing.data.assets.map((asset) => asset.name),
+              )
+              const missing = expected.filter((name) => !published.has(name))
+              if (missing.length !== 0) {
+                throw new Error(
+                  `Published release is missing: ${missing.join(', ')}`,
+                )
+              }
+              core.info(`Qualified release already exists: ${existing.data.html_url}`)
+              return
+            }
+
+            const tag = context.ref.replace('refs/tags/', '')
+            const notes = `docs/release-${tag.slice(1)}.md`
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: tag,
+              target_commitish: context.sha,
+              name: `libmorpheus ${tag.slice(1)}`,
+              body: fs.readFileSync(notes, 'utf8'),
+              draft: true,
+              prerelease: false,
+            })
+            for (const name of expected) {
+              const data = fs.readFileSync(path.join(directory, name))
+              await github.rest.repos.uploadReleaseAsset({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.data.id,
+                name,
+                data,
+                headers: {
+                  'content-type': 'application/octet-stream',
+                  'content-length': data.length,
+                },
+              })
+            }
+            const published = await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              draft: false,
+              make_latest: 'true',
+            })
+            core.info(`Published qualified release: ${published.data.html_url}`)
+
+  publish-jsr:
+    name: Publish JSR package
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: publish-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
       - name: Check out the qualified tag
         uses: actions/checkout@v5
 
