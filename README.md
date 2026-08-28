@@ -69,17 +69,17 @@ git submodule update --init --recursive
 Native archives and the JSR package contain no linguistic data. The repository
 `stemlib/` supports Greek and Latin analysis; the pinned Alpheios submodule is
 the Greek reference dataset. Experimental Greek generation also needs a
-validated `gener.index`. JSR users can acquire a verified analysis dataset
-without Git or a native toolchain:
+validated `gener.index`. After adding the JSR package, users can acquire the
+matching native library and a verified analysis dataset without Git or a native
+toolchain:
 
 ```sh
 deno x \
-  --allow-net=codeload.github.com \
-  --allow-read=./morpheus-data \
-  --allow-write=./morpheus-data \
-  jsr:@humanities/libmorpheus@0.3.0/data \
-  --dataset perseids \
-  --output ./morpheus-data
+  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
+  --allow-read=./morpheus-native,./morpheus-data \
+  --allow-write=./morpheus-native,./morpheus-data \
+  jsr:@humanities/libmorpheus/setup \
+  --dataset perseids
 ```
 
 Use `--dataset alpheios` for Greek-only analysis. From a recursive versioned
@@ -90,10 +90,10 @@ directory with its experimental generation index using:
 sh tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"
 ```
 
-JSR users need no C toolchain: add `--with-gener` to the Alpheios `deno x`
-command above. The bundled internal WebAssembly preparer and TypeScript index
-builder reproduce the native reference digest locally; no linguistic data or
-derived index is shipped in the package.
+JSR users need no C toolchain: select `--dataset alpheios --with-gener` in the
+combined command above. The bundled internal WebAssembly preparer and
+TypeScript index builder reproduce the native reference digest locally; no
+linguistic data or derived index is shipped in the package.
 
 The command validates the pinned sources and builds the index locally without
 publishing upstream data or derived data in a release asset. See
@@ -284,17 +284,11 @@ rejects those pointer reads. Keep the library path explicit in application code
 and grant no unrelated Deno permissions unless the application needs them.
 
 Install the source binding from JSR with
-`deno add jsr:@humanities/libmorpheus@0.3.0`. JSR users can acquire the matching
-native archive without a native toolchain:
-
-```sh
-deno x \
-  --allow-net=github.com,release-assets.githubusercontent.com \
-  --allow-read=./morpheus-native \
-  --allow-write=./morpheus-native \
-  jsr:@humanities/libmorpheus@0.3.0/native \
-  --output ./morpheus-native
-```
+`deno add jsr:@humanities/libmorpheus`. Because JSR packages cannot run a
+post-install hook, complete the installation with the combined `/setup` command
+shown in [Runtime data](#runtime-data). It acquires both the native archive and
+the selected stem dataset without a native toolchain. The package also retains
+separate `/native` and `/data` entrypoints for advanced workflows.
 
 Import `nativeLibraryPath` from `@humanities/libmorpheus/native` to resolve the
 installed `.so` or `.dylib`; loading it still requires `deno run --allow-ffi`.

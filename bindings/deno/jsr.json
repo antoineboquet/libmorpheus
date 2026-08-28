@@ -5,8 +5,8 @@
   "exports": {
     ".": "./mod.ts",
     "./data": "./data.ts",
-    "./init": "./init.ts",
-    "./native": "./native.ts"
+    "./native": "./native.ts",
+    "./setup": "./setup.ts"
   },
   "publish": {
     "include": [
@@ -22,11 +22,12 @@
       "gener_manifest.ts",
       "gener_preparer.mjs",
       "gener_runtime_internal.ts",
-      "init.ts",
       "mod.ts",
       "native.ts",
       "native_internal.ts",
-      "native_manifest.ts"
+      "native_manifest.ts",
+      "setup.ts",
+      "setup_internal.ts"
     ]
   }
 }

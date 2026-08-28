@@ -7,24 +7,31 @@ data. Applications select a compiled stem library at runtime; experimental Greek
 generation additionally requires a validated `gener.index` at that stemlib's
 root.
 
-The native runtime is likewise separate from the JSR source package. Install the
-matching GitHub Release archive without a native toolchain before acquiring
-data:
+The native runtime is likewise separate from the JSR source package. JSR cannot
+run a package hook after `deno add`; use the combined setup entrypoint to
+install the matching GitHub Release archive and selected data without a native
+toolchain:
 
 ```sh
 deno x \
-  --allow-net=github.com,release-assets.githubusercontent.com \
-  --allow-read=./morpheus-native \
-  --allow-write=./morpheus-native \
-  jsr:@humanities/libmorpheus@0.3.0/native \
-  --output ./morpheus-native
+  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
+  --allow-read=./morpheus-native,./morpheus-data \
+  --allow-write=./morpheus-native,./morpheus-data \
+  jsr:@humanities/libmorpheus/setup \
+  --dataset perseids
 ```
 
-This verifies the release SHA-256 sidecar, extracts only safe archive entries,
-and writes `MORPHEUS-NATIVE.json`. It supports Linux x86-64 glibc, Linux aarch64
-glibc, and macOS arm64. Import `nativeLibraryPath` from the package's `/native`
-export to obtain the `.so` or `.dylib` path. Loading it remains an FFI operation
-and therefore requires `deno run --allow-ffi`.
+Use `--dataset alpheios --with-gener` for Greek analysis and experimental
+generation. The command verifies the release and dataset, writes both receipts,
+and rolls back its new native directory if data acquisition fails. The two
+outputs must be absent and non-overlapping. Separate `/native` and `/data`
+commands remain available for independent acquisition.
+
+The native installer verifies the release SHA-256 sidecar and extracts only
+safe archive entries. It supports Linux x86-64 glibc, Linux aarch64 glibc, and
+macOS arm64. Import `nativeLibraryPath` from the package's `/native` export to
+obtain the `.so` or `.dylib` path. Loading it remains an FFI operation and
+therefore requires `deno run --allow-ffi`.
 
 ## Choose a dataset
 

@@ -85,7 +85,7 @@ Install the qualified source binding from
 [JSR](https://jsr.io/@humanities/libmorpheus):
 
 ```sh
-deno add jsr:@humanities/libmorpheus@0.3.0
+deno add jsr:@humanities/libmorpheus
 ```
 
 Then import from the dependency name recorded in `deno.json`:
@@ -98,25 +98,29 @@ import {
 } from "@humanities/libmorpheus";
 ```
 
-Call the permission-free `init()` helper to print the complete installation
-procedure. It returns the same commands as structured data and does not access
-the network, write files, or run subprocesses:
+JSR packages cannot run a post-install hook after `deno add`. Complete the
+installation with the package's combined setup command. For Greek analysis and
+experimental generation with Alpheios data:
 
-```ts
-import { init } from "@humanities/libmorpheus";
-
-init(); // Alpheios Greek data plus the experimental gener index
+```sh
+deno x \
+  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
+  --allow-read=./morpheus-native,./morpheus-data \
+  --allow-write=./morpheus-native,./morpheus-data \
+  jsr:@humanities/libmorpheus/setup \
+  --dataset alpheios \
+  --with-gener
 ```
 
-For Greek and Latin analysis with Perseids data instead:
+Choose `--dataset perseids` without `--with-gener` for Greek and Latin
+analysis. The command installs the matching native release in
+`./morpheus-native` and verified stem data in `./morpheus-data`. Both paths must
+be absent and non-overlapping. If data acquisition fails, the new native
+directory is rolled back. Use `--native-output` and `--data-output` to select
+other destinations.
 
-```ts
-init({ dataset: "perseids" });
-```
-
-The helper explains all three parts of the installation: the JSR source
-binding, the matching native release, and the selected stem data. The explicit
-commands below remain useful for automation and permission review.
+The separate `/native` and `/data` commands below remain available for
+independent installation, automation, and permission review.
 
 The JSR package contains the TypeScript binding, native and data acquisition
 commands, a small internal WebAssembly data preparer, and their licensing and
@@ -386,7 +390,7 @@ rejects while any child context remains open.
 
 The generated [JSR API reference](https://jsr.io/@humanities/libmorpheus/doc)
 documents the main binding and its independently importable
-[`/init`](https://jsr.io/@humanities/libmorpheus/doc/init),
+[`/setup`](https://jsr.io/@humanities/libmorpheus/doc/setup),
 [`/data`](https://jsr.io/@humanities/libmorpheus/doc/data), and
 [`/native`](https://jsr.io/@humanities/libmorpheus/doc/native) entrypoints.
 

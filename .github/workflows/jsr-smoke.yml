@@ -47,31 +47,20 @@ jobs:
             "jsr:@humanities/libmorpheus@$PACKAGE_VERSION"
           cp "$GITHUB_WORKSPACE/test/jsr-published-smoke.ts" smoke.ts
 
-      - name: Acquire the published native library
+      - name: Acquire native library, Alpheios data, and generation index
         env:
           PACKAGE_VERSION: ${{ inputs.package_version }}
         run: |
           deno x \
             --min-dep-age=0 \
-            --allow-net=github.com,release-assets.githubusercontent.com \
-            --allow-read="$RUNNER_TEMP/morpheus-native" \
-            --allow-write="$RUNNER_TEMP/morpheus-native" \
-            "jsr:@humanities/libmorpheus@$PACKAGE_VERSION/native" \
-            --output "$RUNNER_TEMP/morpheus-native"
-
-      - name: Acquire Alpheios data and generation index
-        env:
-          PACKAGE_VERSION: ${{ inputs.package_version }}
-        run: |
-          deno x \
-            --min-dep-age=0 \
-            --allow-net=codeload.github.com \
-            --allow-read="$RUNNER_TEMP/morpheus-alpheios" \
-            --allow-write="$RUNNER_TEMP/morpheus-alpheios" \
-            "jsr:@humanities/libmorpheus@$PACKAGE_VERSION/data" \
+            --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
+            --allow-read="$RUNNER_TEMP/morpheus-native,$RUNNER_TEMP/morpheus-alpheios" \
+            --allow-write="$RUNNER_TEMP/morpheus-native,$RUNNER_TEMP/morpheus-alpheios" \
+            "jsr:@humanities/libmorpheus@$PACKAGE_VERSION/setup" \
             --dataset alpheios \
             --with-gener \
-            --output "$RUNNER_TEMP/morpheus-alpheios"
+            --native-output "$RUNNER_TEMP/morpheus-native" \
+            --data-output "$RUNNER_TEMP/morpheus-alpheios"
 
       - name: Acquire Perseids Greek and Latin data
         env:

@@ -158,8 +158,8 @@ jobs:
           sh -n bench/release.sh
           deno check bindings/deno/mod.ts bindings/deno/mod_test.ts \
             bindings/deno/data.ts bindings/deno/data_test.ts \
-            bindings/deno/init.ts bindings/deno/init_test.ts \
             bindings/deno/native.ts bindings/deno/native_test.ts \
+            bindings/deno/setup.ts bindings/deno/setup_test.ts \
             bindings/deno/gener_preparer_test.ts \
             bench/compare.ts bench/compare_test.ts \
             bench/validate.ts bench/validate_test.ts
@@ -171,8 +171,8 @@ jobs:
         run: >-
           deno test --allow-env --allow-ffi --allow-read --allow-write
           bindings/deno/mod_test.ts bindings/deno/data_test.ts
-          bindings/deno/init_test.ts
           bindings/deno/native_test.ts
+          bindings/deno/setup_test.ts
           bindings/deno/gener_preparer_test.ts
           bench/compare_test.ts
           bench/validate_test.ts

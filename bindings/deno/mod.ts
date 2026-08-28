@@ -8,8 +8,8 @@
  * The separately distributed native library and stem data must be supplied at
  * runtime. Applications need Deno's `--allow-ffi` permission.
  *
- * Call {@link init} after adding the package to print permission-scoped native
- * and stem-data acquisition commands.
+ * After adding the package, run its `/setup` entrypoint to acquire the native
+ * library and verified stem data with explicit permissions.
  *
  * @example Analyze an Ancient Greek Beta Code form
  * ```ts
@@ -32,15 +32,6 @@
  *
  * @module
  */
-
-/** Print and return permission-scoped installation commands. */
-export { init } from "./init.ts";
-/** Types used to customize and inspect the installation guide. */
-export type {
-  MorpheusInitDataset,
-  MorpheusInitOptions,
-  MorpheusInitPlan,
-} from "./init.ts";
 
 const ABI_VERSION = 2;
 const TEXT_CAPACITY = 64;

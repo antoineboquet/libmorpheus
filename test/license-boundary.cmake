@@ -18,14 +18,15 @@ set(agpl_files
     bindings/deno/gener_index_internal.ts
     bindings/deno/gener_preparer_test.ts
     bindings/deno/gener_runtime_internal.ts
-    bindings/deno/init.ts
-    bindings/deno/init_test.ts
     bindings/deno/mod.ts
     bindings/deno/mod_test.ts
     bindings/deno/native.ts
     bindings/deno/native_internal.ts
     bindings/deno/native_manifest.ts
     bindings/deno/native_test.ts
+    bindings/deno/setup.ts
+    bindings/deno/setup_internal.ts
+    bindings/deno/setup_test.ts
     include/morpheus/morpheus.h
     src/api/gener_index.c
     src/api/gener_index.h
