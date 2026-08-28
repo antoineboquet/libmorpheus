@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import createGenerPreparer from "./gener_preparer.mjs";
+import process from "node:process";
 import { buildGenerIndex } from "./gener_index_internal.ts";
 import {
   GENER_CORPUS_EXCEPTIONS,
@@ -61,12 +62,18 @@ export async function prepareGenerIndex(
     inputs.push(input);
   }
   fileSystem.writeFile("/exceptions.tsv", GENER_CORPUS_EXCEPTIONS);
-  const status = module.callMain([
-    "--exceptions",
-    "/exceptions.tsv",
-    "/prepared.txt",
-    ...inputs,
-  ]);
+  const previousExitCode = process.exitCode;
+  let status: number;
+  try {
+    status = module.callMain([
+      "--exceptions",
+      "/exceptions.tsv",
+      "/prepared.txt",
+      ...inputs,
+    ]);
+  } finally {
+    process.exitCode = previousExitCode;
+  }
   if (status !== 0) {
     const detail = errors.slice(-8).join("\n");
     throw new Error(

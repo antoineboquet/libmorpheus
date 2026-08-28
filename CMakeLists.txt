@@ -623,7 +623,7 @@ if(MORPHEUS_BUILD_DENO_GENER_PREPARER)
       "-sEXPORT_NAME=createGenerPreparer"
       "-sENVIRONMENT=node"
       "-sALLOW_MEMORY_GROWTH=1"
-      "-sEXIT_RUNTIME=1"
+      "-sEXIT_RUNTIME=0"
       "-sSINGLE_FILE=1"
       "-sEXPORTED_RUNTIME_METHODS=['FS','callMain']"
   )

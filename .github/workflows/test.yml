@@ -210,6 +210,11 @@ jobs:
       - name: Check out sources
         uses: actions/checkout@v5
 
+      - name: Install supported CMake
+        run: |
+          python3 -m pip install --user cmake==3.31.6
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Configure WebAssembly preparer
         run: >-
           emcmake cmake -S . -B build/deno-gener-wasm -G Ninja

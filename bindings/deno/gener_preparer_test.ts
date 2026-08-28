@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import createGenerPreparer from "./gener_preparer.mjs";
+import process from "node:process";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);
@@ -21,7 +22,13 @@ async function prepare(
     printErr: () => undefined,
   }) as TestModule;
   module.FS.writeFile("/input.txt", source);
-  const status = module.callMain(["/output.txt", "/input.txt"]);
+  const previousExitCode = process.exitCode;
+  let status: number;
+  try {
+    status = module.callMain(["/output.txt", "/input.txt"]);
+  } finally {
+    process.exitCode = previousExitCode;
+  }
   let output: string | null = null;
   try {
     output = module.FS.readFile("/output.txt", { encoding: "utf8" });
