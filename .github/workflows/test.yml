@@ -217,7 +217,7 @@ jobs:
 
       - name: Configure WebAssembly preparer
         run: >-
-          emcmake cmake -S . -B build/deno-gener-wasm -G Ninja
+          emcmake cmake -S . -B build/deno-gener-wasm
           -DBUILD_TESTING=OFF
           -DMORPHEUS_BUILD_DENO_GENER_PREPARER=ON
 
