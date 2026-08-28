@@ -16,18 +16,29 @@ const MAX_UNCOMPRESSED_SIZE = 256 * 1024 * 1024;
 const MAX_CHECKSUM_SIZE = 4096;
 const RELEASE_ASSET_HOST = "release-assets.githubusercontent.com";
 
+/** Verified provenance written to `MORPHEUS-NATIVE.json`. */
 export interface MorpheusNativeReceipt {
+  /** Receipt schema version. */
   readonly schema: number;
+  /** JSR package version that performed the acquisition. */
   readonly packageVersion: string;
+  /** Native ABI version provided by the library. */
   readonly abiVersion: number;
+  /** Selected operating-system and architecture identifier. */
   readonly target: string;
+  /** Verified GitHub Release archive filename. */
   readonly asset: string;
+  /** SHA-256 digest of the downloaded archive. */
   readonly archiveSha256: string;
+  /** Original GitHub Release download URL. */
   readonly sourceUrl: string;
+  /** Shared-library path relative to the installation root. */
   readonly libraryPath: string;
 }
 
+/** Options for acquiring the matching native release. */
 export interface AcquireMorpheusNativeOptions {
+  /** New destination directory; existing paths are refused. */
   readonly output: string;
 }
 

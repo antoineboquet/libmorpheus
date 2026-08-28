@@ -8,10 +8,34 @@
  * The separately distributed native library and stem data must be supplied at
  * runtime. Applications need Deno's `--allow-ffi` permission.
  *
+ * Call {@link init} after adding the package to print permission-scoped native
+ * and stem-data acquisition commands.
+ *
+ * @example Analyze an Ancient Greek Beta Code form
+ * ```ts
+ * import {
+ *   MorpheusLanguage,
+ *   MorpheusLibrary,
+ *   MorpheusOption,
+ * } from "@humanities/libmorpheus";
+ *
+ * using library = new MorpheusLibrary("/path/to/libmorpheus.so");
+ * await using context = library.createContext(
+ *   "/path/to/stemlib",
+ *   MorpheusLanguage.Greek,
+ * );
+ * const analyses = await context.analyze(
+ *   "a)/nqrwpos",
+ *   MorpheusOption.StrictCase,
+ * );
+ * ```
+ *
  * @module
  */
 
+/** Print and return permission-scoped installation commands. */
 export { init } from "./init.ts";
+/** Types used to customize and inspect the installation guide. */
 export type {
   MorpheusInitDataset,
   MorpheusInitOptions,
@@ -75,14 +99,17 @@ const SYMBOLS = {
 
 type NativeLibrary = Deno.DynamicLibrary<typeof SYMBOLS>;
 
+/** Numeric language selectors accepted by {@link MorpheusLibrary.createContext}. */
 export const MorpheusLanguage = {
   Greek: 0,
   Latin: 1,
   Italian: 2,
 } as const;
+/** A numeric language selector. */
 export type MorpheusLanguage =
   typeof MorpheusLanguage[keyof typeof MorpheusLanguage];
 
+/** Status codes returned by the stable native ABI. */
 export const MorpheusStatus = {
   Ok: 0,
   InvalidArgument: 1,
@@ -95,9 +122,11 @@ export const MorpheusStatus = {
   StemlibError: 8,
   ResultLimitExceeded: 9,
 } as const;
+/** A native status code, also exposed by {@link MorpheusError}. */
 export type MorpheusStatus =
   typeof MorpheusStatus[keyof typeof MorpheusStatus];
 
+/** Bit flags that customize analysis requests. Combine flags with `|`. */
 export const MorpheusOption = {
   StrictCase: 1n << 0n,
   IgnoreAccents: 1n << 1n,
@@ -117,6 +146,7 @@ export const MorpheusOption = {
   DialectProse: 256n << 16n,
 } as const;
 
+/** Numeric morphological feature flags preserved from the engine. */
 export const MorpheusMorphFlag = {
   SyllAugment: 74,
   CompOnly: 7,
@@ -203,9 +233,11 @@ export const MorpheusMorphFlag = {
   TauPreverb: 76,
   GroupName: 24,
 } as const;
+/** A numeric morphological feature flag. */
 export type MorpheusMorphFlag =
   typeof MorpheusMorphFlag[keyof typeof MorpheusMorphFlag];
 
+/** Stable normalized name for a morphological feature flag. */
 export type MorpheusMorphFlagName =
   | "syllabic-augment" | "compound-only" | "enclitic" | "iterative"
   | "suffix-accent" | "stem-accent" | "contracted" | "person-name"
@@ -275,6 +307,10 @@ function isMorpheusMorphFlagAnalysisArray(
   return Array.isArray(analysis);
 }
 
+/**
+ * Tests one raw or normalized result, or an array of results, for a
+ * morphological feature.
+ */
 export function hasMorpheusMorphFlag(
   analysis: MorpheusMorphFlagAnalysis | readonly MorpheusMorphFlagAnalysis[],
   flag: number | MorpheusMorphFlagName,
@@ -298,6 +334,7 @@ export function hasMorpheusMorphFlag(
     (analysis.morphFlags[index] & (1 << (flag % 8))) !== 0;
 }
 
+/** Numeric part-of-speech values used by the native ABI and generation filters. */
 export const MorpheusPartOfSpeech = {
   Unknown: 0,
   Noun: 1,
@@ -312,27 +349,33 @@ export const MorpheusPartOfSpeech = {
   Particle: 10,
   Interjection: 11,
 } as const;
+/** A numeric part-of-speech value. */
 export type MorpheusPartOfSpeech =
   typeof MorpheusPartOfSpeech[keyof typeof MorpheusPartOfSpeech];
 
+/** Numeric grammatical-person values used by generation filters. */
 export const MorpheusPerson = {
   None: 0,
   First: 1,
   Second: 2,
   Third: 3,
 } as const;
+/** A numeric grammatical-person value. */
 export type MorpheusPerson =
   typeof MorpheusPerson[keyof typeof MorpheusPerson];
 
+/** Numeric grammatical-number values, including the dual. */
 export const MorpheusNumber = {
   None: 0,
   Singular: 1,
   Dual: 2,
   Plural: 3,
 } as const;
+/** A numeric grammatical-number value. */
 export type MorpheusNumber =
   typeof MorpheusNumber[keyof typeof MorpheusNumber];
 
+/** Numeric grammatical-gender mask values. */
 export const MorpheusGender = {
   None: 0,
   Adverbial: 1,
@@ -340,9 +383,11 @@ export const MorpheusGender = {
   Masculine: 4,
   Neuter: 8,
 } as const;
+/** A numeric grammatical-gender mask. */
 export type MorpheusGender =
   typeof MorpheusGender[keyof typeof MorpheusGender];
 
+/** Numeric grammatical-case mask values. */
 export const MorpheusCase = {
   None: 0,
   Ablative: 1,
@@ -352,9 +397,11 @@ export const MorpheusCase = {
   Nominative: 16,
   Vocative: 32,
 } as const;
+/** A numeric grammatical-case mask. */
 export type MorpheusCase =
   typeof MorpheusCase[keyof typeof MorpheusCase];
 
+/** Numeric tense values used by generation filters. */
 export const MorpheusTense = {
   None: 0,
   Present: 1,
@@ -366,9 +413,11 @@ export const MorpheusTense = {
   FuturePerfect: 7,
   PastAbsolute: 8,
 } as const;
+/** A numeric tense value. */
 export type MorpheusTense =
   typeof MorpheusTense[keyof typeof MorpheusTense];
 
+/** Numeric mood values used by generation filters. */
 export const MorpheusMood = {
   None: 0,
   Conditional: 1,
@@ -381,9 +430,11 @@ export const MorpheusMood = {
   Subjunctive: 8,
   Supine: 9,
 } as const;
+/** A numeric mood value. */
 export type MorpheusMood =
   typeof MorpheusMood[keyof typeof MorpheusMood];
 
+/** Numeric grammatical-voice mask values. */
 export const MorpheusVoice = {
   None: 0,
   Active: 1,
@@ -392,18 +443,22 @@ export const MorpheusVoice = {
   MedioPassive: 6,
   Deponent: 5,
 } as const;
+/** A numeric grammatical-voice mask. */
 export type MorpheusVoice =
   typeof MorpheusVoice[keyof typeof MorpheusVoice];
 
+/** Numeric comparison-degree values used by generation filters. */
 export const MorpheusDegree = {
   None: 0,
   Positive: 1,
   Comparative: 2,
   Superlative: 3,
 } as const;
+/** A numeric comparison-degree value. */
 export type MorpheusDegree =
   typeof MorpheusDegree[keyof typeof MorpheusDegree];
 
+/** Numeric dialect mask values preserved by analysis and generation. */
 export const MorpheusDialect = {
   All: 0,
   Aeolic: 1,
@@ -417,9 +472,11 @@ export const MorpheusDialect = {
   Epic: 72,
   Prose: 256,
 } as const;
+/** A numeric dialect mask. */
 export type MorpheusDialect =
   typeof MorpheusDialect[keyof typeof MorpheusDialect];
 
+/** Numeric geographic-region mask values. */
 export const MorpheusGeographicRegion = {
   None: 0,
   Arcadia: 1,
@@ -438,25 +495,45 @@ export const MorpheusGeographicRegion = {
   Rhodes: 8192,
   Thera: 16384,
 } as const;
+/** A numeric geographic-region mask. */
 export type MorpheusGeographicRegion =
   typeof MorpheusGeographicRegion[keyof typeof MorpheusGeographicRegion];
 
+/**
+ * Filters and limits for experimental Greek lemma generation.
+ *
+ * @experimental Pending sufficient real-world validation.
+ */
 export interface MorpheusGenerationOptions {
+  /** Maximum returned records, from 1 through 65,536. */
   readonly resultLimit?: number;
+  /** Remove dual-number forms after generation. */
   readonly excludeDuals?: boolean;
+  /** Keep only this part of speech. */
   readonly partOfSpeech?: MorpheusPartOfSpeech;
+  /** Keep forms matching this dialect mask. */
   readonly dialect?: MorpheusDialect;
+  /** Keep forms matching this geographic-region mask. */
   readonly geographicRegion?: MorpheusGeographicRegion;
+  /** Keep only this grammatical person. */
   readonly person?: MorpheusPerson;
+  /** Keep only this grammatical number. */
   readonly number?: MorpheusNumber;
+  /** Keep forms matching this gender mask. */
   readonly gender?: MorpheusGender;
+  /** Keep forms matching this grammatical-case mask. */
   readonly grammaticalCase?: MorpheusCase;
+  /** Keep only this tense. */
   readonly tense?: MorpheusTense;
+  /** Keep only this mood. */
   readonly mood?: MorpheusMood;
+  /** Keep forms matching this voice mask. */
   readonly voice?: MorpheusVoice;
+  /** Keep only this comparison degree. */
   readonly degree?: MorpheusDegree;
 }
 
+/** Bit flags identifying fixed-width ABI fields that were truncated. */
 export const MorpheusTruncatedField = {
   None: 0,
   Raw: 1 << 0,
@@ -474,136 +551,251 @@ export const MorpheusTruncatedField = {
   Domains: 1 << 12,
 } as const;
 
+/** One analysis record using the numeric values and masks of the native ABI. */
 export interface MorpheusRawAnalysis {
+  /** Native record size used for ABI validation. */
   readonly structSize: number;
+  /** Numeric {@link MorpheusPartOfSpeech} value. */
   readonly partOfSpeech: number;
+  /** Numeric {@link MorpheusDialect} mask. */
   readonly dialect: number;
+  /** Numeric {@link MorpheusGeographicRegion} mask. */
   readonly geographicRegion: number;
+  /** Numeric {@link MorpheusPerson} value. */
   readonly person: number;
+  /** Numeric {@link MorpheusNumber} value. */
   readonly number: number;
+  /** Numeric {@link MorpheusGender} mask. */
   readonly gender: number;
+  /** Numeric {@link MorpheusCase} mask. */
   readonly grammaticalCase: number;
+  /** Numeric {@link MorpheusTense} value. */
   readonly tense: number;
+  /** Numeric {@link MorpheusMood} value. */
   readonly mood: number;
+  /** Numeric {@link MorpheusVoice} mask. */
   readonly voice: number;
+  /** Numeric {@link MorpheusDegree} value. */
   readonly degree: number;
+  /** Original engine analysis text. */
   readonly raw: string;
+  /** Normalized input form used by the engine. */
   readonly workword: string;
+  /** Analyzed lemma in Beta Code. */
   readonly lemma: string;
+  /** Parsed preverb in Beta Code. */
   readonly preverb: string;
+  /** Parsed augment in Beta Code. */
   readonly augment: string;
+  /** Parsed stem in Beta Code. */
   readonly stem: string;
+  /** Parsed suffix in Beta Code. */
   readonly suffix: string;
+  /** Parsed ending in Beta Code. */
   readonly ending: string;
+  /** Parsed crasis component in Beta Code. */
   readonly crasis: string;
+  /** Dictionary headword in Beta Code. */
   readonly dictionaryForm: string;
+  /** English gloss supplied by the stem data. */
   readonly englishForm: string;
+  /** Unnormalized preverb retained by the engine. */
   readonly rawPreverb: string;
+  /** Domain metadata supplied by the stem data. */
   readonly domains: string;
+  /** Complete public morphology bit vector. */
   readonly morphFlags: Uint8Array;
+  /** Bit mask of {@link MorpheusTruncatedField} values. */
   readonly truncatedFields: number;
 }
 
+/**
+ * One experimental generation record using numeric native ABI values.
+ *
+ * @experimental Pending sufficient real-world validation.
+ */
 export interface MorpheusRawGeneration {
+  /** Native record size used for ABI validation. */
   readonly structSize: number;
+  /** Numeric {@link MorpheusPartOfSpeech} value. */
   readonly partOfSpeech: number;
+  /** Numeric {@link MorpheusDialect} mask. */
   readonly dialect: number;
+  /** Numeric {@link MorpheusGeographicRegion} mask. */
   readonly geographicRegion: number;
+  /** Numeric {@link MorpheusPerson} value. */
   readonly person: number;
+  /** Numeric {@link MorpheusNumber} value. */
   readonly number: number;
+  /** Numeric {@link MorpheusGender} mask. */
   readonly gender: number;
+  /** Numeric {@link MorpheusCase} mask. */
   readonly grammaticalCase: number;
+  /** Numeric {@link MorpheusTense} value. */
   readonly tense: number;
+  /** Numeric {@link MorpheusMood} value. */
   readonly mood: number;
+  /** Numeric {@link MorpheusVoice} mask. */
   readonly voice: number;
+  /** Numeric {@link MorpheusDegree} value. */
   readonly degree: number;
+  /** Generated surface form in Beta Code. */
   readonly surface: string;
+  /** Indexed lemma in Beta Code. */
   readonly lemma: string;
+  /** Complete public morphology bit vector. */
   readonly morphFlags: Uint8Array;
+  /** Bit mask of truncated generation fields. */
   readonly truncatedFields: number;
 }
 
+/** Normalized part-of-speech identifier. */
 export type MorpheusPartOfSpeechName =
   | "unknown" | "noun" | "verb" | "adjective" | "adverb" | "article"
   | "pronoun" | "numeral" | "preposition" | "conjunction" | "particle"
   | "interjection";
+/** Normalized grammatical-person identifier. */
 export type MorpheusPersonName = "first" | "second" | "third";
+/** Normalized grammatical-number identifier, including the dual. */
 export type MorpheusNumberName = "singular" | "dual" | "plural";
+/** Normalized grammatical-gender identifier. */
 export type MorpheusGenderName = "masculine" | "feminine" | "neuter" | "adverbial";
+/** Normalized grammatical-case identifier. */
 export type MorpheusCaseName =
   | "nominative" | "genitive" | "dative" | "accusative" | "vocative" | "ablative";
+/** Normalized tense identifier. */
 export type MorpheusTenseName =
   | "present" | "imperfect" | "future" | "aorist" | "perfect"
   | "pluperfect" | "future-perfect" | "past-absolute";
+/** Normalized mood identifier. */
 export type MorpheusMoodName =
   | "indicative" | "subjunctive" | "optative" | "imperative" | "infinitive"
   | "participle" | "gerundive" | "supine" | "conditional";
+/** Normalized grammatical-voice identifier. */
 export type MorpheusVoiceName =
   | "active" | "middle" | "passive" | "medio-passive" | "deponent";
+/** Normalized comparison-degree identifier. */
 export type MorpheusDegreeName = "positive" | "comparative" | "superlative";
+/** Normalized dialect identifier. */
 export type MorpheusDialectName =
   | "attic" | "ionic" | "aeolic" | "lesbian" | "homeric" | "doric"
   | "paradigm" | "non-homeric-epic" | "epic" | "prose";
+/** Normalized geographic-region identifier. */
 export type MorpheusGeographicRegionName =
   | "phocis" | "locris" | "elis" | "laconia" | "heraclea" | "megarid"
   | "argolid" | "rhodes" | "cos" | "thera" | "cyrene" | "crete"
   | "arcadia" | "cyprus" | "boeotia";
+/** Name of a truncated analysis field. */
 export type MorpheusTruncatedFieldName =
   | "raw" | "workword" | "lemma" | "preverb" | "augment" | "stem"
   | "suffix" | "ending" | "crasis" | "dictionaryForm" | "englishForm"
   | "rawPreverb" | "domains";
+/** Name of a truncated experimental generation field. */
 export type MorpheusGenerationTruncatedFieldName = "surface" | "lemma";
 
+/** One normalized analysis with stable names and explicit mask arrays. */
 export interface MorpheusAnalysis {
+  /** Normalized lexical category. */
   readonly partOfSpeech: MorpheusPartOfSpeechName;
+  /** Every dialect represented by the native mask. */
   readonly dialects: readonly MorpheusDialectName[];
+  /** Every geographic region represented by the native mask. */
   readonly geographicRegions: readonly MorpheusGeographicRegionName[];
+  /** Grammatical person, or `null` when inapplicable. */
   readonly person: MorpheusPersonName | null;
+  /** Grammatical number, including dual, or `null` when inapplicable. */
   readonly grammaticalNumber: MorpheusNumberName | null;
+  /** Every gender represented by the native mask. */
   readonly genders: readonly MorpheusGenderName[];
+  /** Every grammatical case represented by the native mask. */
   readonly grammaticalCases: readonly MorpheusCaseName[];
+  /** Tense, or `null` when inapplicable. */
   readonly tense: MorpheusTenseName | null;
+  /** Mood, or `null` when inapplicable. */
   readonly mood: MorpheusMoodName | null;
+  /** Every voice represented by the native mask. */
   readonly voices: readonly MorpheusVoiceName[];
+  /** Comparison degree, or `null` when inapplicable. */
   readonly degree: MorpheusDegreeName | null;
+  /** Original engine analysis text. */
   readonly raw: string;
+  /** Normalized input form used by the engine. */
   readonly workword: string;
+  /** Analyzed lemma in Beta Code. */
   readonly lemma: string;
+  /** Parsed preverb in Beta Code. */
   readonly preverb: string;
+  /** Parsed augment in Beta Code. */
   readonly augment: string;
+  /** Parsed stem in Beta Code. */
   readonly stem: string;
+  /** Parsed suffix in Beta Code. */
   readonly suffix: string;
+  /** Parsed ending in Beta Code. */
   readonly ending: string;
+  /** Parsed crasis component in Beta Code. */
   readonly crasis: string;
+  /** Dictionary headword in Beta Code. */
   readonly dictionaryForm: string;
+  /** English gloss supplied by the stem data. */
   readonly englishForm: string;
+  /** Unnormalized preverb retained by the engine. */
   readonly rawPreverb: string;
+  /** Domain metadata supplied by the stem data. */
   readonly domains: string;
+  /** Stable names for every set morphology flag. */
   readonly morphFlags: readonly MorpheusMorphFlagName[];
+  /** Names of fixed-width fields truncated by the native ABI. */
   readonly truncatedFields: readonly MorpheusTruncatedFieldName[];
 }
 
+/**
+ * One normalized form returned by experimental Greek lemma generation.
+ *
+ * @experimental Pending sufficient real-world validation.
+ */
 export interface MorpheusGeneration {
+  /** Normalized lexical category. */
   readonly partOfSpeech: MorpheusPartOfSpeechName;
+  /** Every dialect represented by the indexed analysis. */
   readonly dialects: readonly MorpheusDialectName[];
+  /** Every geographic region represented by the indexed analysis. */
   readonly geographicRegions: readonly MorpheusGeographicRegionName[];
+  /** Grammatical person, or `null` when inapplicable. */
   readonly person: MorpheusPersonName | null;
+  /** Grammatical number, including dual, or `null` when inapplicable. */
   readonly grammaticalNumber: MorpheusNumberName | null;
+  /** Every gender represented by the indexed analysis. */
   readonly genders: readonly MorpheusGenderName[];
+  /** Every grammatical case represented by the indexed analysis. */
   readonly grammaticalCases: readonly MorpheusCaseName[];
+  /** Tense, or `null` when inapplicable. */
   readonly tense: MorpheusTenseName | null;
+  /** Mood, or `null` when inapplicable. */
   readonly mood: MorpheusMoodName | null;
+  /** Every voice represented by the indexed analysis. */
   readonly voices: readonly MorpheusVoiceName[];
+  /** Comparison degree, or `null` when inapplicable. */
   readonly degree: MorpheusDegreeName | null;
+  /** Generated surface form in Beta Code. */
   readonly surface: string;
+  /** Indexed source lemma in Beta Code. */
   readonly lemma: string;
+  /** Stable names for every set morphology flag. */
   readonly morphFlags: readonly MorpheusMorphFlagName[];
+  /** Names of fixed-width fields truncated by the native ABI. */
   readonly truncatedFields: readonly MorpheusGenerationTruncatedFieldName[];
 }
 
+/** Error reported by the native ABI, including its numeric status. */
 export class MorpheusError extends Error {
-  constructor(readonly status: number, message: string) {
+  /** Numeric {@link MorpheusStatus} value returned by the native ABI. */
+  readonly status: number;
+
+  /** Creates an error for a native status and human-readable message. */
+  constructor(status: number, message: string) {
     super(message);
+    this.status = status;
     this.name = "MorpheusError";
   }
 }
@@ -875,6 +1067,11 @@ function semanticGeneration(raw: MorpheusRawGeneration): MorpheusGeneration {
   };
 }
 
+/**
+ * Owns one loaded native library and creates independent stateful contexts.
+ *
+ * Dispose the library after all of its contexts have been closed.
+ */
 export class MorpheusLibrary {
   readonly #native: NativeLibrary;
   readonly #analysisSize: number;
@@ -882,6 +1079,7 @@ export class MorpheusLibrary {
   #contexts = 0;
   #closed = false;
 
+  /** Loads and validates an ABI-compatible shared library. Requires `--allow-ffi`. */
   constructor(path: string | URL) {
     if (!["x86_64", "aarch64"].includes(Deno.build.arch)) {
       throw new Error(`Unsupported pointer width for ${Deno.build.arch}`);
@@ -905,6 +1103,12 @@ export class MorpheusLibrary {
     }
   }
 
+  /**
+   * Opens a context for one stemlib directory and language.
+   *
+   * The directory needs only analysis data unless experimental generation is
+   * used, in which case it must also contain `gener.index`.
+   */
   createContext(
     stemlibPath: string,
     language: MorpheusLanguage,
@@ -930,6 +1134,7 @@ export class MorpheusLibrary {
     );
   }
 
+  /** Unloads the native library after all contexts have been closed. */
   close(): void {
     if (this.#closed) return;
     if (this.#contexts) {
@@ -939,6 +1144,7 @@ export class MorpheusLibrary {
     this.#closed = true;
   }
 
+  /** Supports deterministic cleanup with a `using` declaration. */
   [Symbol.dispose](): void {
     this.close();
   }
@@ -953,10 +1159,17 @@ export class MorpheusLibrary {
   }
 }
 
+/**
+ * A stateful analysis and generation context bound to one language and stemlib.
+ *
+ * Calls on the same context are serialized. Use distinct contexts for
+ * independent parallel operations.
+ */
 export class MorpheusContext {
   #tail: Promise<void> = Promise.resolve();
   #closed = false;
 
+  /** @internal Contexts are created by {@link MorpheusLibrary.createContext}. */
   constructor(
     private readonly native: NativeLibrary,
     private readonly pointer: Deno.PointerObject,
@@ -965,6 +1178,7 @@ export class MorpheusContext {
     private readonly onClose: () => void,
   ) {}
 
+  /** Analyzes one Greek or Latin Beta Code form into normalized records. */
   analyze(
     betaCode: string,
     options: bigint = 0n,
@@ -974,6 +1188,7 @@ export class MorpheusContext {
     );
   }
 
+  /** Analyzes one Greek or Latin Beta Code form into numeric ABI records. */
   analyzeRaw(
     betaCode: string,
     options: bigint = 0n,
@@ -1012,6 +1227,7 @@ export class MorpheusContext {
     return this.#enqueue(() => this.#generate(lemma, encodedOptions));
   }
 
+  /** Waits for queued calls, then releases this native context. */
   async close(): Promise<void> {
     if (this.#closed) return;
     this.#closed = true;
@@ -1020,6 +1236,7 @@ export class MorpheusContext {
     this.onClose();
   }
 
+  /** Supports deterministic asynchronous cleanup with `await using`. */
   async [Symbol.asyncDispose](): Promise<void> {
     await this.close();
   }

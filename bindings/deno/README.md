@@ -5,8 +5,9 @@
 > [!WARNING]
 > This binding and the normalized native API it calls are AGPL-3.0-or-later. The
 > inherited engine, translation bridge, compatibility API, and generated index
-> reader remain MPL-2.0. Read the [archive notice](NOTICE) before distributing
-> an application or archive.
+> reader remain MPL-2.0. Read the
+> [archive notice](https://github.com/defense-humanites/libmorpheus/blob/main/bindings/deno/NOTICE)
+> before distributing an application or archive.
 
 ## Summary
 
@@ -96,6 +97,26 @@ import {
   MorpheusOption,
 } from "@humanities/libmorpheus";
 ```
+
+Call the permission-free `init()` helper to print the complete installation
+procedure. It returns the same commands as structured data and does not access
+the network, write files, or run subprocesses:
+
+```ts
+import { init } from "@humanities/libmorpheus";
+
+init(); // Alpheios Greek data plus the experimental gener index
+```
+
+For Greek and Latin analysis with Perseids data instead:
+
+```ts
+init({ dataset: "perseids" });
+```
+
+The helper explains all three parts of the installation: the JSR source
+binding, the matching native release, and the selected stem data. The explicit
+commands below remain useful for automation and permission review.
 
 The JSR package contains the TypeScript binding, native and data acquisition
 commands, a small internal WebAssembly data preparer, and their licensing and
@@ -234,7 +255,7 @@ import {
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
-} from "./mod.ts";
+} from "@humanities/libmorpheus";
 
 try {
   using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
@@ -296,7 +317,7 @@ import {
   MorpheusLibrary,
   MorpheusNumber,
   MorpheusStatus,
-} from "./mod.ts";
+} from "@humanities/libmorpheus";
 
 try {
   using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
@@ -362,6 +383,12 @@ deterministic cleanup, including when a promise rejects. `MorpheusLibrary.close`
 rejects while any child context remains open.
 
 ## Documentation
+
+The generated [JSR API reference](https://jsr.io/@humanities/libmorpheus/doc)
+documents the main binding and its independently importable
+[`/init`](https://jsr.io/@humanities/libmorpheus/doc/init),
+[`/data`](https://jsr.io/@humanities/libmorpheus/doc/data), and
+[`/native`](https://jsr.io/@humanities/libmorpheus/doc/native) entrypoints.
 
 | Topic                              | Document                                                                                            |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------- |

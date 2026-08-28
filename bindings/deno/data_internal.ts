@@ -16,35 +16,59 @@ const MAX_UNCOMPRESSED_SIZE = 256 * 1024 * 1024;
 const textDecoder = new TextDecoder();
 const textEncoder = new TextEncoder();
 
+/** Verified provenance written to `MORPHEUS-DATA.json`. */
 export interface MorpheusDataReceipt {
+  /** Receipt schema version. */
   readonly schema: number;
+  /** JSR package version that performed the acquisition. */
   readonly packageVersion: string;
+  /** Installed dataset name. */
   readonly dataset: MorpheusDatasetName;
+  /** ISO language codes covered by the dataset. */
   readonly languages: readonly string[];
+  /** Pinned upstream archive provenance. */
   readonly source: {
+    /** Original upstream repository. */
     readonly repository: string;
+    /** Immutable upstream commit. */
     readonly revision: string;
+    /** Downloaded archive URL. */
     readonly archiveUrl: string;
   };
+  /** Verified stem-data tree metadata. */
   readonly files: {
+    /** Number of installed stem files. */
     readonly count: number;
+    /** Deterministic digest of the installed tree. */
     readonly treeSha256: string;
   };
+  /** Experimental generation-index provenance and availability. */
   readonly generation: {
+    /** Constant marker that generation is experimental. */
     readonly experimental: true;
+    /** Whether `gener.index` was built and installed. */
     readonly available: boolean;
+    /** Digest of `gener.index`, or `null` when it was not requested. */
     readonly indexSha256: string | null;
+    /** Supplemental source provenance, or `null` when unused. */
     readonly supportSource: {
+      /** Original supplemental repository. */
       readonly repository: string;
+      /** Immutable supplemental commit. */
       readonly revision: string;
+      /** Downloaded supplemental archive URL. */
       readonly archiveUrl: string;
     } | null;
   };
 }
 
+/** Options for acquiring one pinned stem dataset. */
 export interface AcquireMorpheusDataOptions {
+  /** Upstream dataset to verify and install. */
   readonly dataset: MorpheusDatasetName;
+  /** New destination directory; existing paths are refused. */
   readonly output: string;
+  /** Build the experimental Greek index; supported only by Alpheios. */
   readonly withGener?: boolean;
 }
 
@@ -349,6 +373,7 @@ async function pathExists(path: string): Promise<boolean> {
   }
 }
 
+/** Downloads, verifies, and installs stem data without a native toolchain. */
 export async function acquireMorpheusData(
   options: AcquireMorpheusDataOptions,
 ): Promise<MorpheusDataReceipt> {

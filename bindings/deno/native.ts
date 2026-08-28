@@ -1,5 +1,21 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+/**
+ * Permission-scoped acquisition of a qualified libmorpheus native release.
+ *
+ * Run this module with `deno x` to install the library selected for the current
+ * platform, or use its functions from an application.
+ *
+ * @example Acquire the native release for the current platform
+ * ```sh
+ * deno x --allow-net=github.com,release-assets.githubusercontent.com \
+ *   --allow-read=./morpheus-native --allow-write=./morpheus-native \
+ *   jsr:@humanities/libmorpheus/native --output ./morpheus-native
+ * ```
+ *
+ * @module
+ */
+
 import { join, resolve } from "node:path";
 import {
   type AcquireMorpheusNativeOptions,
@@ -9,8 +25,10 @@ import {
 } from "./native_internal.ts";
 import { selectMorpheusNativeTarget } from "./native_manifest.ts";
 
+/** Options and receipt returned by native-library acquisition. */
 export type { AcquireMorpheusNativeOptions, MorpheusNativeReceipt };
 
+/** Downloads, verifies, and extracts the native library for this platform. */
 export async function acquireMorpheusNative(
   options: AcquireMorpheusNativeOptions,
 ): Promise<MorpheusNativeReceipt> {
@@ -20,12 +38,16 @@ export async function acquireMorpheusNative(
   );
 }
 
+/** Resolves the platform-specific shared-library path below an installed root. */
 export function nativeLibraryPath(root: string): string {
   const target = selectMorpheusNativeTarget(Deno.build.os, Deno.build.arch);
   return join(resolve(root), ...target.libraryPath.split("/"));
 }
 
-interface CommandLineOptions extends AcquireMorpheusNativeOptions {
+/** Parsed options for the executable `/native` entrypoint. */
+export interface MorpheusNativeCommandLineOptions
+  extends AcquireMorpheusNativeOptions {
+  /** Whether help was requested instead of acquisition. */
   readonly help: boolean;
 }
 
@@ -41,9 +63,10 @@ Linux aarch64 glibc, and macOS arm64.
 `;
 }
 
+/** Parses command-line arguments accepted by the `/native` entrypoint. */
 export function parseMorpheusNativeArgs(
   args: readonly string[],
-): CommandLineOptions {
+): MorpheusNativeCommandLineOptions {
   let output: string | undefined;
   let help = false;
   for (let index = 0; index < args.length; index++) {

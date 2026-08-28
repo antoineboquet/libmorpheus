@@ -126,7 +126,9 @@ foreach(reference IN ITEMS docs/licensing.md docs/provenance.md)
 endforeach()
 
 file(READ "${binding_dir}/README.md" binding_readme)
-string(FIND "${binding_readme}" "[archive notice](NOTICE)" notice_link_at)
+string(FIND "${binding_readme}"
+  "https://github.com/defense-humanites/libmorpheus/blob/main/bindings/deno/NOTICE"
+  notice_link_at)
 if(notice_link_at EQUAL -1)
   message(FATAL_ERROR "Packaged Deno README does not link to its notice")
 endif()
@@ -135,6 +137,7 @@ foreach(required_text IN ITEMS
     "Standalone release archive"
     "Docker image"
     "JSR package"
+    "init({ dataset: \"perseids\" })"
     "Acquire stem data"
     "Acquire the native library"
     "@humanities/libmorpheus/native"

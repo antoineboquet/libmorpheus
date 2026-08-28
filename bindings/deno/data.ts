@@ -1,5 +1,23 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+/**
+ * Permission-scoped acquisition of verified Alpheios or Perseids stem data.
+ *
+ * Run this module with `deno x` to create a new data directory, or call
+ * {@link acquireMorpheusData} from an application that grants the documented
+ * network, read, and write permissions.
+ *
+ * @example Acquire Greek and Latin analysis data
+ * ```sh
+ * deno x --allow-net=codeload.github.com \
+ *   --allow-read=./morpheus-data --allow-write=./morpheus-data \
+ *   jsr:@humanities/libmorpheus/data \
+ *   --dataset perseids --output ./morpheus-data
+ * ```
+ *
+ * @module
+ */
+
 import {
   acquireMorpheusData,
   type AcquireMorpheusDataOptions,
@@ -7,14 +25,19 @@ import {
 } from "./data_internal.ts";
 import type { MorpheusDatasetName } from "./data_manifest.ts";
 
+/** Options, receipt, and dataset names used by data acquisition. */
 export type {
   AcquireMorpheusDataOptions,
   MorpheusDataReceipt,
   MorpheusDatasetName,
 };
+/** Downloads and verifies a pinned stem dataset in a new directory. */
 export { acquireMorpheusData };
 
-interface CommandLineOptions extends AcquireMorpheusDataOptions {
+/** Parsed options for the executable `/data` entrypoint. */
+export interface MorpheusDataCommandLineOptions
+  extends AcquireMorpheusDataOptions {
+  /** Whether help was requested instead of acquisition. */
   readonly help: boolean;
 }
 
@@ -44,9 +67,10 @@ function takeValue(
   return value;
 }
 
+/** Parses command-line arguments accepted by the `/data` entrypoint. */
 export function parseMorpheusDataArgs(
   args: readonly string[],
-): CommandLineOptions {
+): MorpheusDataCommandLineOptions {
   let dataset: MorpheusDatasetName | undefined;
   let output: string | undefined;
   let withGener = false;

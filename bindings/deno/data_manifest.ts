@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
+/** Name of a stem dataset supported by the JSR acquisition command. */
 export type MorpheusDatasetName = "alpheios" | "perseids";
 
 export interface MorpheusDatasetDefinition {
