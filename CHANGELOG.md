@@ -9,6 +9,45 @@ the corpus.
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-08-28
+
+Target project version: **0.3.1**. C ABI: **2**. Shared-library SONAME: **1**.
+
+### Added
+
+- The JSR package now exports a combined `/setup` command that installs the
+  matching verified native archive and either Alpheios or Perseids stem data;
+  Alpheios setup can also prepare the experimental generation index without a
+  native toolchain.
+- A public-package smoke workflow now installs a freshly published JSR version
+  in an empty Deno application and qualifies Greek and Latin analysis plus
+  experimental Greek generation from public download endpoints.
+- Exported Deno symbols and the `/data`, `/native`, and `/setup` entrypoints now
+  carry JSR API documentation.
+
+### Changed
+
+- Deno installation documentation now presents the published JSR package and
+  combined setup path first, while retaining the permission-scoped `/native`
+  and `/data` commands for independent automation.
+- The JSR license field now identifies the package's AGPL license; the package
+  notice continues to document the MPL and MIT licenses of separately covered
+  components.
+- Release `0.3.1` rebuilds the native, standalone Deno, benchmark, and JSR
+  assets under one version even though its runtime changes are confined to the
+  Deno distribution. The C ABI and SONAME remain unchanged.
+
+### Fixed
+
+- The bundled Emscripten generation preparer now loads correctly from its
+  remote JSR module URL instead of passing an HTTPS URL to Node's
+  `createRequire()`.
+- Fresh-package CI disables Deno's default minimum dependency age for the
+  exact version under test, so a just-published package can be qualified
+  immediately.
+- The Deno README archive notice now resolves to the binding's repository
+  notice.
+
 ## [0.3.0] - 2026-08-28
 
 Target project version: **0.3.0**. C ABI: **2**. Shared-library SONAME: **1**.
