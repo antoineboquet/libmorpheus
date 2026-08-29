@@ -147,8 +147,11 @@ async function extractNativeArchive(
 ): Promise<void> {
   const entries = parseTarArchive(archive);
   const paths = new Set<string>();
-  const extracted = new Set<string>();
-  const symlinks: { path: string; target: string }[] = [];
+  const regularFiles = new Map<
+    string,
+    { readonly content: Uint8Array; readonly mode: number }
+  >();
+  const symlinks = new Map<string, string>();
 
   for (const entry of entries) {
     if (!entry.path.startsWith(target.archiveRoot)) {
@@ -167,14 +170,16 @@ async function extractNativeArchive(
         recursive: true,
         mode: entry.mode & 0o777,
       });
-      extracted.add(relative);
     } else if (entry.type === "0" || entry.type === "\0") {
       await Deno.mkdir(dirname(destination), { recursive: true });
       await Deno.writeFile(destination, entry.content, {
         createNew: true,
         mode: entry.mode & 0o777,
       });
-      extracted.add(relative);
+      regularFiles.set(relative, {
+        content: entry.content,
+        mode: entry.mode & 0o777,
+      });
     } else if (entry.type === "2") {
       if (
         entry.linkPath === "" || entry.linkPath.startsWith("/") ||
@@ -186,26 +191,49 @@ async function extractNativeArchive(
       if (normalized === ".." || normalized.startsWith("../")) {
         throw new Error(`symbolic link escapes output: ${relative}`);
       }
-      symlinks.push({ path: relative, target: entry.linkPath });
-      extracted.add(relative);
+      symlinks.set(relative, normalized);
     } else {
       throw new Error(`unsupported native archive entry type: ${entry.type}`);
     }
   }
 
-  if (!extracted.has(target.libraryPath)) {
+  if (
+    !regularFiles.has(target.libraryPath) &&
+    !symlinks.has(target.libraryPath)
+  ) {
     throw new Error(`native archive is missing ${target.libraryPath}`);
   }
-  for (const link of symlinks) {
-    const normalized = posix.normalize(
-      posix.join(posix.dirname(link.path), link.target),
-    );
-    if (!extracted.has(normalized)) {
-      throw new Error(`symbolic link target is absent: ${link.path}`);
+
+  const resolveRegularFile = (
+    path: string,
+    visited = new Set<string>(),
+  ): { readonly content: Uint8Array; readonly mode: number } => {
+    const regular = regularFiles.get(path);
+    if (regular !== undefined) return regular;
+    const linked = symlinks.get(path);
+    if (linked === undefined) {
+      throw new Error(`symbolic link target is absent or not regular: ${path}`);
     }
-    const destination = join(directory, ...link.path.split("/"));
+    if (visited.has(path)) {
+      throw new Error(`symbolic link cycle in native archive: ${path}`);
+    }
+    visited.add(path);
+    const resolved = resolveRegularFile(linked, visited);
+    visited.delete(path);
+    return resolved;
+  };
+
+  // Deno requires unscoped read and write grants for Deno.symlink(). Preserve
+  // path-scoped installation by materializing each verified archive alias as a
+  // regular file. This also keeps the unversioned and SONAME paths loadable.
+  for (const [path] of symlinks) {
+    const source = resolveRegularFile(path);
+    const destination = join(directory, ...path.split("/"));
     await Deno.mkdir(dirname(destination), { recursive: true });
-    await Deno.symlink(link.target, destination);
+    await Deno.writeFile(destination, source.content, {
+      createNew: true,
+      mode: source.mode,
+    });
   }
 }
 

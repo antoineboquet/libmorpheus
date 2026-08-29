@@ -9,6 +9,12 @@ the corpus.
 
 ## [Unreleased]
 
+### Fixed
+
+- The Deno native installer now materializes verified shared-library aliases
+  as regular files, allowing `/native` and `/setup` to retain path-scoped read
+  and write permissions on Deno versions that forbid scoped `Deno.symlink()`.
+
 ## [0.3.1] - 2026-08-28
 
 Target project version: **0.3.1**. C ABI: **2**. Shared-library SONAME: **1**.

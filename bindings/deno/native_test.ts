@@ -97,13 +97,16 @@ async function gzip(bytes: Uint8Array): Promise<Uint8Array> {
 
 async function fixture(
   extraEntries: Uint8Array[] = [],
+  libraryEntries?: Uint8Array[],
 ): Promise<{ compressed: Uint8Array; asset: string }> {
   const target = selectMorpheusNativeTarget("linux", "x86_64");
   const root = target.archiveRoot;
   const compressed = await gzip(tarArchive([
     tarEntry(root, new Uint8Array(), "5"),
     tarEntry(`${root}lib/`, new Uint8Array(), "5"),
-    tarEntry(`${root}${target.libraryPath}`, encoder.encode("ELF fixture")),
+    ...(libraryEntries ?? [
+      tarEntry(`${root}${target.libraryPath}`, encoder.encode("ELF fixture")),
+    ]),
     ...extraEntries,
   ]));
   return { compressed, asset: target.asset };
@@ -162,6 +165,99 @@ Deno.test("native acquisition verifies, extracts, and records the release", asyn
       await Deno.readTextFile(join(output, "MORPHEUS-NATIVE.json")),
     );
     assert(stored.archiveSha256 === receipt.archiveSha256);
+  } finally {
+    await Deno.remove(parent, { recursive: true });
+  }
+});
+
+Deno.test(
+  "native extraction materializes versioned library links",
+  async () => {
+    const parent = join(Deno.cwd(), "build", "deno-scoped-native");
+    const output = join(parent, "native");
+    await Deno.remove(parent, { recursive: true }).catch((error) => {
+      if (!(error instanceof Deno.errors.NotFound)) throw error;
+    });
+    await Deno.mkdir(parent, { recursive: true });
+    try {
+      const target = selectMorpheusNativeTarget("linux", "x86_64");
+      const root = target.archiveRoot;
+      const archive = await fixture([], [
+        tarEntry(
+          `${root}lib/libmorpheus.so.1`,
+          new Uint8Array(),
+          "2",
+          "libmorpheus.so.0.3.1",
+        ),
+        tarEntry(
+          `${root}lib/libmorpheus.so.0.3.1`,
+          encoder.encode("versioned ELF fixture"),
+        ),
+        tarEntry(
+          `${root}${target.libraryPath}`,
+          new Uint8Array(),
+          "2",
+          "libmorpheus.so.1",
+        ),
+      ]);
+      const receipt = await acquireMorpheusNativeWithDependencies(
+        { output },
+        await dependencies(archive.compressed, archive.asset),
+      );
+      for (const path of [
+        receipt.libraryPath,
+        "lib/libmorpheus.so.1",
+        "lib/libmorpheus.so.0.3.1",
+      ]) {
+        const installed = join(output, path);
+        assert(
+          !(await Deno.lstat(installed)).isSymlink,
+          `${path} is a symlink`,
+        );
+        assert(
+          decoder.decode(await Deno.readFile(installed)) ===
+            "versioned ELF fixture",
+          `${path} has unexpected content`,
+        );
+      }
+    } finally {
+      await Deno.remove(parent, { recursive: true });
+    }
+  },
+);
+
+Deno.test("native extraction rejects symbolic link cycles", async () => {
+  const parent = await Deno.makeTempDir();
+  try {
+    const target = selectMorpheusNativeTarget("linux", "x86_64");
+    const root = target.archiveRoot;
+    const archive = await fixture([], [
+      tarEntry(
+        `${root}${target.libraryPath}`,
+        new Uint8Array(),
+        "2",
+        "libmorpheus.so.1",
+      ),
+      tarEntry(
+        `${root}lib/libmorpheus.so.1`,
+        new Uint8Array(),
+        "2",
+        "libmorpheus.so",
+      ),
+    ]);
+    const digest = await sha256(archive.compressed);
+    await assertRejects(
+      () =>
+        acquireMorpheusNativeWithDependencies(
+          { output: join(parent, "native") },
+          awaitableDependencies(
+            archive.compressed,
+            archive.asset,
+            digest,
+          ),
+        ),
+      /symbolic link cycle/,
+    );
   } finally {
     await Deno.remove(parent, { recursive: true });
   }

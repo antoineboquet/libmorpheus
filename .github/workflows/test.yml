@@ -177,6 +177,15 @@ jobs:
           bench/compare_test.ts
           bench/validate_test.ts
 
+      - name: Test native acquisition with path-scoped permissions
+        run: |
+          mkdir -p build/deno-scoped-native
+          deno test \
+            --filter 'native extraction materializes versioned library links' \
+            --allow-read="$PWD/build/deno-scoped-native" \
+            --allow-write="$PWD/build/deno-scoped-native" \
+            bindings/deno/native_test.ts
+
       - name: Validate accepted release benchmark evidence
         run: |
           (cd bench/release-evidence && sha256sum -c \
