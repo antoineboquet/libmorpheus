@@ -189,11 +189,12 @@ jobs:
       - name: Validate accepted release benchmark evidence
         run: |
           (cd bench/release-evidence && sha256sum -c \
-            benchmark-0.3.0.json.sha256 benchmark-0.3.1.json.sha256)
+            benchmark-0.3.0.json.sha256 benchmark-0.3.1.json.sha256 \
+            benchmark-0.3.2.json.sha256)
           deno run --allow-read bench/validate.ts \
-            bench/release-evidence/benchmark-0.3.1.json \
+            bench/release-evidence/benchmark-0.3.2.json \
             --label release-candidate \
-            --revision 2545574afddce3a0174297cdd393de6435d2b3e7 \
+            --revision 81aac2dacf454a692fa83eecd98ade672209027f \
             --stemlib-revision 4632415fe93c85e9fdca47a0c5a13f31385f0023 \
             --compiler 'Apple clang version 21.0.0 (clang-2100.1.1.101)'
 

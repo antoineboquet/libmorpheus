@@ -87,10 +87,12 @@ The native analysis and generation implementation, corpus, stemlib revision,
 and generation-index digest are unchanged; the release decision records the
 accepted comparison.
 
-Version 0.3.2 changes only Deno's native-archive extraction and release
-support, not the measured analysis or generation paths. It nevertheless
-requires a versioned report compared with the accepted 0.3.1 evidence before
-the coordinated candidate may be tagged.
+The accepted 0.3.2 report is retained at
+[`bench/release-evidence/benchmark-0.3.2.json`](../bench/release-evidence/benchmark-0.3.2.json)
+with its companion SHA-256 file. It compares the corrected Deno distribution
+candidate with 0.3.1 on the same controlled Apple Silicon host. The measured
+analysis and generation paths, corpus, stemlib revision, and generation-index
+digest are unchanged; the release decision records the accepted comparison.
 
 The wrapper refuses a dirty tracked worktree or submodule, an uninitialized or
 displaced Alpheios submodule, and an existing output path. Its label, stemlib

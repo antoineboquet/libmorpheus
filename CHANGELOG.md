@@ -13,6 +13,12 @@ the corpus.
 
 Target project version: **0.3.2**. C ABI: **2**. Shared-library SONAME: **1**.
 
+### Changed
+
+- The accepted schema 2 benchmark compares the unchanged analysis and
+  generation paths with the 0.3.1 baseline on the same controlled Apple
+  Silicon host.
+
 ### Fixed
 
 - The Deno native installer now materializes verified shared-library aliases
