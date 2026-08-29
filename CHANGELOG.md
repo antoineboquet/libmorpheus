@@ -9,6 +9,10 @@ the corpus.
 
 ## [Unreleased]
 
+## [0.3.2] - 2026-08-29
+
+Target project version: **0.3.2**. C ABI: **2**. Shared-library SONAME: **1**.
+
 ### Fixed
 
 - The Deno native installer now materializes verified shared-library aliases

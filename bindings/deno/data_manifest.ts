@@ -61,4 +61,4 @@ export const MORPHEUS_DATASETS: Readonly<
 };
 
 export const MORPHEUS_DATA_SCHEMA_VERSION = 1;
-export const MORPHEUS_PACKAGE_VERSION = "0.3.1";
+export const MORPHEUS_PACKAGE_VERSION = "0.3.2";

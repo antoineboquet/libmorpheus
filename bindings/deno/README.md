@@ -140,7 +140,7 @@ deno x \
   --allow-net=codeload.github.com \
   --allow-read=./morpheus-data \
   --allow-write=./morpheus-data \
-  jsr:@humanities/libmorpheus@0.3.1/data \
+  jsr:@humanities/libmorpheus@0.3.2/data \
   --dataset perseids \
   --output ./morpheus-data
 ```
@@ -158,7 +158,7 @@ deno x \
   --allow-net=codeload.github.com \
   --allow-read=./morpheus-greek-data \
   --allow-write=./morpheus-greek-data \
-  jsr:@humanities/libmorpheus@0.3.1/data \
+  jsr:@humanities/libmorpheus@0.3.2/data \
   --dataset alpheios \
   --with-gener \
   --output ./morpheus-greek-data
@@ -191,7 +191,7 @@ deno x \
   --allow-net=github.com,release-assets.githubusercontent.com \
   --allow-read=./morpheus-native \
   --allow-write=./morpheus-native \
-  jsr:@humanities/libmorpheus@0.3.1/native \
+  jsr:@humanities/libmorpheus@0.3.2/native \
   --output ./morpheus-native
 ```
 

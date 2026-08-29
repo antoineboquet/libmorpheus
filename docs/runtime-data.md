@@ -49,7 +49,7 @@ deno x \
   --allow-net=codeload.github.com \
   --allow-read=./morpheus-data \
   --allow-write=./morpheus-data \
-  jsr:@humanities/libmorpheus@0.3.1/data \
+  jsr:@humanities/libmorpheus@0.3.2/data \
   --dataset perseids \
   --output ./morpheus-data
 ```
@@ -63,7 +63,7 @@ A recursive checkout of the matching release remains useful for native
 development and for the current generation-index preparation workflow:
 
 ```sh
-git clone --depth 1 --branch v0.3.1 --recurse-submodules \
+git clone --depth 1 --branch v0.3.2 --recurse-submodules \
   --shallow-submodules \
   https://github.com/defense-humanites/libmorpheus.git libmorpheus-data
 ```
@@ -77,7 +77,7 @@ deno x \
   --allow-net=codeload.github.com \
   --allow-read=./morpheus-greek-data \
   --allow-write=./morpheus-greek-data \
-  jsr:@humanities/libmorpheus@0.3.1/data \
+  jsr:@humanities/libmorpheus@0.3.2/data \
   --dataset alpheios \
   --with-gener \
   --output ./morpheus-greek-data
@@ -99,7 +99,7 @@ sh libmorpheus-data/tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"
 
 Use the resulting absolute `morpheus-greek-data` path for both analysis and
 experimental generation. The expected SHA-256 of its `gener.index` in version
-0.3.1 is:
+0.3.2 is:
 
 ```text
 5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6

@@ -50,8 +50,8 @@ complete configure, build, CTest, benchmark, and validation sequence is wrapped
 by:
 
 ```sh
-sh bench/release.sh benchmark-0.3.1.json \
-  bench/release-evidence/benchmark-0.3.0.json
+sh bench/release.sh benchmark-0.3.2.json \
+  bench/release-evidence/benchmark-0.3.1.json
 ```
 
 The wrapper uses the checksummed complete index produced by the `gener_corpus`
@@ -61,8 +61,8 @@ CTest and exposes it through a temporary stemlib root. It never writes
 Pass a previous report as the second argument to add the normalized comparison:
 
 ```sh
-sh bench/release.sh benchmark-0.3.1.json \
-  bench/release-evidence/benchmark-0.3.0.json
+sh bench/release.sh benchmark-0.3.2.json \
+  bench/release-evidence/benchmark-0.3.1.json
 ```
 
 The accepted 0.2.0 baseline is
@@ -86,6 +86,11 @@ against the accepted 0.3.0 evidence on the same controlled Apple Silicon host.
 The native analysis and generation implementation, corpus, stemlib revision,
 and generation-index digest are unchanged; the release decision records the
 accepted comparison.
+
+Version 0.3.2 changes only Deno's native-archive extraction and release
+support, not the measured analysis or generation paths. It nevertheless
+requires a versioned report compared with the accepted 0.3.1 evidence before
+the coordinated candidate may be tagged.
 
 The wrapper refuses a dirty tracked worktree or submodule, an uninitialized or
 displaced Alpheios submodule, and an existing output path. Its label, stemlib

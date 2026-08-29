@@ -9,9 +9,9 @@ from C++.
 
 ## Versioning
 
-The current project version is 0.3.1, the SONAME major is 1, and
-`MORPHEUS_ABI_VERSION` is 2. Version 0.3.1 changes packaging and Deno setup
-only: the public C declarations and symbol set are identical to 0.3.0. The
+The current project version is 0.3.2, the SONAME major is 1, and
+`MORPHEUS_ABI_VERSION` is 2. Version 0.3.2 changes Deno native acquisition
+only: the public C declarations and symbol set are identical to 0.3.1. The
 generation surface remains experimental, but its additions remain covered by
 the same ABI 2 compatibility contract.
 

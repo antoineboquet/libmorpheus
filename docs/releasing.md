@@ -9,7 +9,7 @@ utilities are outside the release contract.
 
 Each release records its version and ABI decision in
 `release-<version>.md`. The current candidate is recorded in
-`release-0.3.1.md`; the earlier decisions remain historical evidence.
+`release-0.3.2.md`; the earlier decisions remain historical evidence.
 
 ## 1. Version and ABI decision
 

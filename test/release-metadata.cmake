@@ -180,3 +180,19 @@ if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.1")
     message(FATAL_ERROR "Accepted 0.3.1 benchmark digest differs")
   endif()
 endif()
+
+if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.2")
+  foreach(expected_patch_release_value IN ITEMS
+          "@humanities/libmorpheus@0.3.2"
+          "Benchmark evidence: **pending**"
+          "generation surface and Deno `generate()`/`generateRaw()` methods remain\nexperimental"
+          "path-scoped `--allow-read` and `--allow-write`"
+          "Tag that qualified commit as `v0.3.2` only after explicit authorization")
+    string(FIND "${release_decision}" "${expected_patch_release_value}"
+                patch_release_value_at)
+    if(patch_release_value_at EQUAL -1)
+      message(FATAL_ERROR
+        "release-0.3.2.md is missing: ${expected_patch_release_value}")
+    endif()
+  endforeach()
+endif()
