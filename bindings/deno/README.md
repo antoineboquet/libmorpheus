@@ -1,12 +1,5 @@
 # libmorpheus for Deno
 
-> [!NOTE]
-> This binding and the normalized native API it calls are AGPL-3.0-or-later. The
-> inherited engine, translation bridge, compatibility API, and generated index
-> reader remain MPL-2.0. Read the
-> [archive notice](https://github.com/defense-humanites/libmorpheus/blob/main/bindings/deno/NOTICE)
-> before distributing an application or archive.
-
 `libmorpheus` modernizes the [Morpheus](https://github.com/PerseusDL/morpheus)
 morphological analyzer for Ancient Greek and Latin. It turns the historical C
 programs into an installable C17 shared library with a stable, opaque ABI and a
@@ -19,16 +12,18 @@ typed Deno 2 binding.
 3. [Other installation options](#other-installation-options)
    1. [Standalone release archive](#standalone-release-archive)
    2. [Docker image](#docker-image)
-4. [Acquire stem data](#acquire-stem-data)
-5. [Acquire the native library](#acquire-the-native-library)
-6. [Language and stemlib support](#language-and-stemlib-support)
-7. [FFI permission](#ffi-permission)
-8. [Analyze a form](#analyze-a-form)
-9. [Generate forms from a lemma](#generate-forms-from-a-lemma)
-10. [Parallel contexts](#parallel-contexts)
-11. [Raw access and cleanup](#raw-access-and-cleanup)
-12. [Documentation](#documentation)
-13. [Local checks](#local-checks)
+4. [Native library and runtime data](#native-library-and-runtime-data)
+   1. [Acquire stem data](#acquire-stem-data)
+   2. [Acquire the native library](#acquire-the-native-library)
+   3. [Language and data coverage](#language-and-data-coverage)
+5. [FFI permission](#ffi-permission)
+6. [Analyze a form](#analyze-a-form)
+7. [Generate forms from a lemma](#generate-forms-from-a-lemma)
+8. [Parallel contexts](#parallel-contexts)
+9. [Raw access and cleanup](#raw-access-and-cleanup)
+10. [Documentation](#documentation)
+11. [Local checks](#local-checks)
+12. [License](#license)
 
 ## Purpose
 
@@ -113,7 +108,7 @@ deno x \
   --with-gener
 ```
 
-Continue with the detailed [installation](#installation),
+Continue with the [other installation options](#other-installation-options),
 [generation](#generate-forms-from-a-lemma), [parallel-context](#parallel-contexts),
 and [low-level API](#raw-access-and-cleanup) documentation below.
 
@@ -149,11 +144,23 @@ Greek `analyze()` and experimental `generate()` are both qualified in the image;
 CI also checks that generation preserves dual forms. The image is a
 qualification and application-build target, not a published registry image.
 
-## Acquire stem data
+## Native library and runtime data
 
-The package exports a permission-scoped data command. It downloads an exact
-upstream revision, verifies every selected file and the upstream license, and
-refuses to overwrite an existing directory. For Greek and Latin analysis:
+The binding needs both a native `libmorpheus` library and a compatible stemlib.
+What must be acquired depends on the distribution:
+
+| Distribution | Native library | Stem data | What to do |
+| --- | --- | --- | --- |
+| JSR package | Not included | Not included | Run `/setup`, or use `/native` and `/data` separately. |
+| Standalone binding archive | Not included | Not included | Install the matching native release and acquire a stemlib as described below. |
+| `deno-runtime` Docker image | Included | Alpheios included | Nothing: use `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB`. |
+
+The following acquisition commands therefore apply to the JSR package and the
+standalone binding archive, not to the Docker image.
+
+### Acquire stem data
+
+For Greek and Latin analysis, acquire the Perseids dataset:
 
 ```sh
 deno x \
@@ -166,12 +173,10 @@ deno x \
 ```
 
 Choose `--dataset alpheios` instead for the Greek-only reference dataset. Pass
-the resulting absolute `morpheus-data` path to `createContext()`. The receipt
-`MORPHEUS-DATA.json` records the source revision and verified tree digest;
-`UPSTREAM-LICENSE` preserves the selected project's license text.
+the resulting absolute path to `createContext()`.
 
 Add `--with-gener` to the Alpheios command to build its experimental Greek
-generation index without Git, CMake, or a C compiler:
+generation index:
 
 ```sh
 deno x \
@@ -184,16 +189,9 @@ deno x \
   --output ./morpheus-greek-data
 ```
 
-Pass the resulting absolute `morpheus-greek-data` path to `createContext()`. The
-command also verifies the pinned Perseids support data in memory, runs the
-MPL-covered historical source preparer inside the bundled WebAssembly module,
-and builds `gener.index` in TypeScript. It checks the prepared corpus and final
-index against the native reference digests. The package does not redistribute
-either upstream dataset or the derived index because their distribution terms
-require separate review. See the complete
-[runtime-data guide](https://github.com/defense-humanites/libmorpheus/blob/main/docs/runtime-data.md)
-and
-[provenance evidence](https://github.com/defense-humanites/libmorpheus/blob/main/docs/provenance.md).
+The command verifies the pinned sources and generated index, refuses to
+overwrite an existing directory, and writes provenance and license receipts.
+See the complete [runtime-data guide](https://github.com/defense-humanites/libmorpheus/blob/main/docs/runtime-data.md).
 
 When working from a full source checkout instead of JSR, the repository also
 provides
@@ -201,10 +199,9 @@ provides
 for the native build workflow. The JSR data command above is the intended route
 for JavaScript users who do not have a C toolchain.
 
-## Acquire the native library
+### Acquire the native library
 
-The package can install the matching data-free native release without Git,
-CMake, a C compiler, or a shell extractor:
+Install the matching native release without Git or a C toolchain:
 
 ```sh
 deno x \
@@ -215,11 +212,10 @@ deno x \
   --output ./morpheus-native
 ```
 
-The command selects Linux x86-64 glibc, Linux aarch64 glibc, or macOS arm64 from
-`Deno.build`, downloads the matching GitHub Release archive and SHA-256 sidecar,
-validates the single redirect host, safely extracts the archive, and refuses an
-existing output directory. `MORPHEUS-NATIVE.json` records the exact asset,
-digest, target, ABI and relative library path.
+The command selects the qualified release for the current platform, verifies
+its SHA-256 digest, refuses to overwrite an existing directory, and records the
+installed target and ABI in `MORPHEUS-NATIVE.json`. Standalone-archive users may
+instead extract the matching native archive from the same GitHub release.
 
 Use the exported helper to avoid platform-specific filenames:
 
@@ -232,30 +228,25 @@ using library = new MorpheusLibrary(
 );
 ```
 
-Acquisition needs only the scoped network, read and write permissions shown
-above. Running an application that loads the result remains a separate step and
-requires `--allow-ffi` as described below. The package version fixes the release
-version; the command has no arbitrary-version option.
+Running an application that loads the result requires `--allow-ffi` as
+described below.
 
-## Language and stemlib support
+### Language and data coverage
 
-The operation and selected data source both determine language coverage:
+The operation and selected dataset together determine language coverage:
 
-| Operation                                    | Ancient Greek | Latin | Notes                                                                                  |
-| ------------------------------------------------------- | ------------- | ----- | -------------------------------------------------------------------------------------- |
-| `analyze()`                                             | Yes           | Yes   | Select `MorpheusLanguage.Greek` or `MorpheusLanguage.Latin` when creating the context. |
-| `generate()`                                            | Yes           | No    | The first `gener` integration deliberately focuses on Greek.                           |
+| Operation | Ancient Greek | Latin | Additional requirement |
+| --- | :---: | :---: | --- |
+| `analyze()` | Yes | Yes | A stemlib for the selected language. |
+| `generate()` | Yes | No | Alpheios data prepared with `gener.index`. |
 
-| Dataset                                    | Ancient Greek | Latin | Notes                                                                                  |
-| ------------------------------------------------------- | ------------- | ----- | -------------------------------------------------------------------------------------- |
-| `perseids-Tools` (bundled) `stemlib/`                       | Yes           | Yes   | Baseline analysis fixtures.                                                            |
-| `alpheios-project` (pinned) `vendor/alpheios-morpheus/dist/stemlib` | Yes           | No    | Reference fixtures and default Docker dataset.                                         |
+| Dataset | Ancient Greek | Latin | Generation |
+| --- | :---: | :---: | --- |
+| Perseids | Yes | Yes | No |
+| Alpheios | Yes | No | With `--with-gener`; already prepared in Docker. |
 
-The
-[stem-library inventory](https://github.com/defense-humanites/libmorpheus/blob/main/docs/stem-libraries.md)
-links the original projects and records where each dataset appears in the
-repository. A stemlib does not need `gener.index` for analysis; the current
-generation service does.
+See the [stem-library inventory](https://github.com/defense-humanites/libmorpheus/blob/main/docs/stem-libraries.md)
+for dataset origins and repository locations.
 
 ## FFI permission
 
@@ -442,3 +433,16 @@ MORPHEUS_STEMLIB="$PWD/stemlib" \
 deno test --allow-env --allow-ffi \
   bindings/deno/mod_test.ts
 ```
+
+## License
+
+The Deno binding itself is licensed under
+[AGPL-3.0-or-later](LICENSE). Its TypeScript API and acquisition tooling do not
+inherit the MPL-2.0 license of the native Morpheus engine.
+
+The binding archive also contains an internal data preparer built from
+MPL-2.0-covered Morpheus code and the MIT-licensed Emscripten runtime. These
+components retain their own licenses; they do not change the license of the
+binding itself. See the [archive notice](NOTICE) and the project's
+[licensing guide](https://github.com/defense-humanites/libmorpheus/blob/main/docs/licensing.md)
+for the precise file-level boundary.
