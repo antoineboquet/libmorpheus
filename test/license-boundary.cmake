@@ -125,6 +125,7 @@ if(jsr_spdx_at EQUAL -1)
 endif()
 
 foreach(license_file IN ITEMS
+        LICENSE-AGPL-3.0-or-later
         LICENSES/MPL-2.0.txt
         LICENSES/AGPL-3.0-or-later.txt
         docs/licensing.md
@@ -133,3 +134,12 @@ foreach(license_file IN ITEMS
     message(FATAL_ERROR "licensing artifact missing: ${license_file}")
   endif()
 endforeach()
+
+file(READ "${MORPHEUS_SOURCE_DIR}/LICENSE-AGPL-3.0-or-later"
+     root_agpl_license)
+file(READ "${MORPHEUS_SOURCE_DIR}/LICENSES/AGPL-3.0-or-later.txt"
+     canonical_agpl_license)
+if(NOT root_agpl_license STREQUAL canonical_agpl_license)
+  message(FATAL_ERROR
+          "root AGPL discovery copy differs from canonical license text")
+endif()

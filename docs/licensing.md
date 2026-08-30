@@ -49,9 +49,12 @@ MPL/AGPL boundary.
 
 Canonical texts are available in `LICENSES/MPL-2.0.txt` and
 `LICENSES/AGPL-3.0-or-later.txt`. The root `LICENSE` remains MPL-2.0 so that
-unmarked inherited files keep their existing treatment. Source ancestry is
-recorded in [the provenance record](provenance.md); the current classification
-is recorded in [the license inventory](license-inventory.md).
+unmarked inherited files keep their existing treatment. The root
+`LICENSE-AGPL-3.0-or-later` is an exact copy of the canonical AGPL text so that
+GitHub exposes both licenses in its repository metadata; it does not change the
+file-level boundary. Source ancestry is recorded in
+[the provenance record](provenance.md); the current classification is recorded
+in [the license inventory](license-inventory.md).
 
 No file in this repository is relicensed from MPL-2.0 to CC BY-SA. Any future
 repository based on a separately accepted PerseusDL baseline requires its own

@@ -61,6 +61,9 @@ included in the standalone binding package.
 
 The root `LICENSE` remains the default for every unmarked file. Explicit MPL
 notices on boundary files prevent their accidental inclusion in the AGPL set.
+The root `LICENSE-AGPL-3.0-or-later` mirrors the canonical text under
+`LICENSES/` solely for repository-level discovery and does not alter that
+default or any file classification.
 
 ## Future PerseusDL-based repository
 

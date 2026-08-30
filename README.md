@@ -24,7 +24,8 @@ upstream revisions, and tested deployment targets. The repository is
 mixed-license: inherited engine, bridge, compatibility, and derived internal
 code remain under [MPL-2.0](LICENSE), while the normalized public API, Deno
 binding, and marked independently written support files are licensed under
-AGPL-3.0-or-later. The exact file boundary and inventory are in
+[AGPL-3.0-or-later](LICENSE-AGPL-3.0-or-later). The exact file boundary and
+inventory are in
 [the licensing guide](docs/licensing.md). No MPL-to-CC change is made here.
 Historical evidence supports an MPL licensing lineage for the inherited Morpheus
 sources. Later repository-level CC references are recorded as provenance
