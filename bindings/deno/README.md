@@ -12,21 +12,22 @@
 ## Summary
 
 1. [Purpose](#purpose)
-2. [Requirements and constraints](#requirements-and-constraints)
-3. [Installation](#installation)
+2. [Quick start](#quick-start)
+3. [Requirements and constraints](#requirements-and-constraints)
+4. [Installation](#installation)
    1. [Standalone release archive](#standalone-release-archive)
    2. [Docker image](#docker-image)
    3. [JSR package](#jsr-package)
-4. [Acquire stem data](#acquire-stem-data)
-5. [Acquire the native library](#acquire-the-native-library)
-6. [Language and stemlib support](#language-and-stemlib-support)
-7. [FFI permission](#ffi-permission)
-8. [Analyze a form](#analyze-a-form)
-9. [Generate forms from a lemma](#generate-forms-from-a-lemma)
-10. [Parallel contexts](#parallel-contexts)
-11. [Raw access and cleanup](#raw-access-and-cleanup)
-12. [Documentation](#documentation)
-13. [Local checks](#local-checks)
+5. [Acquire stem data](#acquire-stem-data)
+6. [Acquire the native library](#acquire-the-native-library)
+7. [Language and stemlib support](#language-and-stemlib-support)
+8. [FFI permission](#ffi-permission)
+9. [Analyze a form](#analyze-a-form)
+10. [Generate forms from a lemma](#generate-forms-from-a-lemma)
+11. [Parallel contexts](#parallel-contexts)
+12. [Raw access and cleanup](#raw-access-and-cleanup)
+13. [Documentation](#documentation)
+14. [Local checks](#local-checks)
 
 ## Purpose
 
@@ -35,6 +36,86 @@ This module loads the
 with `Deno.dlopen`. It exposes normalized Greek and Latin analysis plus
 experimental Greek lemma generation. Native results are copied into owned
 TypeScript objects before their C allocations are released.
+
+## Quick start
+
+The simplest installation needs Deno 2 but no C toolchain. The prebuilt native
+archives currently support Linux x86-64 glibc, Linux aarch64 glibc, and macOS
+arm64. Install the binding:
+
+```sh
+deno add jsr:@humanities/libmorpheus
+```
+
+Then acquire the matching native library and the Perseids dataset for Greek and
+Latin analysis:
+
+```sh
+deno x \
+  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
+  --allow-read=./morpheus-native,./morpheus-data \
+  --allow-write=./morpheus-native,./morpheus-data \
+  jsr:@humanities/libmorpheus/setup \
+  --dataset perseids
+```
+
+The output directories must not already exist; the command refuses to overwrite
+an installation or dataset.
+
+Create `app.ts`:
+
+```ts
+import {
+  MorpheusLanguage,
+  MorpheusLibrary,
+  MorpheusOption,
+} from "@humanities/libmorpheus";
+import { nativeLibraryPath } from "@humanities/libmorpheus/native";
+
+using library = new MorpheusLibrary(
+  nativeLibraryPath("./morpheus-native"),
+);
+await using context = library.createContext(
+  await Deno.realPath("./morpheus-data"),
+  MorpheusLanguage.Greek,
+);
+
+const analyses = await context.analyze(
+  "a)/nqrwpos",
+  MorpheusOption.StrictCase,
+);
+
+for (const analysis of analyses) {
+  console.log(analysis.lemma, analysis.partOfSpeech);
+}
+```
+
+Run it with the permissions used by the application:
+
+```sh
+deno run --allow-ffi --allow-read=./morpheus-data app.ts
+```
+
+The FFI permission must currently remain unscoped because Deno rejects native
+pointer reads under a path-scoped `--allow-ffi` grant. The binding itself does
+not require network, environment, or write access at runtime.
+
+For Greek analysis and experimental generation, choose the Alpheios dataset and
+build its validated index during setup:
+
+```sh
+deno x \
+  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
+  --allow-read=./morpheus-native,./morpheus-data \
+  --allow-write=./morpheus-native,./morpheus-data \
+  jsr:@humanities/libmorpheus/setup \
+  --dataset alpheios \
+  --with-gener
+```
+
+Continue with the detailed [installation](#installation),
+[generation](#generate-forms-from-a-lemma), [parallel-context](#parallel-contexts),
+and [low-level API](#raw-access-and-cleanup) documentation below.
 
 ## Requirements and constraints
 

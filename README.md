@@ -5,6 +5,20 @@ morphological analyzer for Ancient Greek and Latin. It turns the historical C
 programs into an installable C17 shared library with a stable, opaque ABI and a
 typed Deno 2 binding.
 
+## Summary
+
+1. [What is supported?](#what-is-supported)
+2. [Bindings](#bindings)
+3. [Build the native library](#build-the-native-library)
+   1. [Requirements](#requirements)
+4. [Install and consume from C](#install-and-consume-from-c)
+5. [Runtime data](#runtime-data)
+6. [`cruncher`](#cruncher)
+7. [Alpine container images](#alpine-container-images)
+8. [Releases and platform support](#releases-and-platform-support)
+9. [Architecture and provenance](#architecture-and-provenance)
+10. [License](#license)
+
 ## What is supported?
 
 | Operation | Ancient Greek | Latin | Status |
@@ -30,86 +44,6 @@ The public runtime includes:
 > [!NOTE]
 > Native archives and the JSR package contain no linguistic data. Applications
 > acquire a compatible stem library separately; see [Runtime data](#runtime-data).
-
-## Quick start with Deno
-
-The simplest installation needs Deno 2 but no C toolchain. The prebuilt native
-archives currently support Linux x86-64 glibc, Linux aarch64 glibc, and macOS
-arm64. Install the binding:
-
-```sh
-deno add jsr:@humanities/libmorpheus
-```
-
-Then acquire the matching native library and the Perseids dataset for Greek and
-Latin analysis:
-
-```sh
-deno x \
-  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
-  --allow-read=./morpheus-native,./morpheus-data \
-  --allow-write=./morpheus-native,./morpheus-data \
-  jsr:@humanities/libmorpheus/setup \
-  --dataset perseids
-```
-
-The output directories must not already exist; the command refuses to overwrite
-an installation or dataset.
-
-Create `app.ts`:
-
-```ts
-import {
-  MorpheusLanguage,
-  MorpheusLibrary,
-  MorpheusOption,
-} from "@humanities/libmorpheus";
-import { nativeLibraryPath } from "@humanities/libmorpheus/native";
-
-using library = new MorpheusLibrary(
-  nativeLibraryPath("./morpheus-native"),
-);
-await using context = library.createContext(
-  await Deno.realPath("./morpheus-data"),
-  MorpheusLanguage.Greek,
-);
-
-const analyses = await context.analyze(
-  "a)/nqrwpos",
-  MorpheusOption.StrictCase,
-);
-
-for (const analysis of analyses) {
-  console.log(analysis.lemma, analysis.partOfSpeech);
-}
-```
-
-Run it with the permissions used by the application:
-
-```sh
-deno run --allow-ffi --allow-read=./morpheus-data app.ts
-```
-
-The FFI permission must currently remain unscoped because Deno rejects native
-pointer reads under a path-scoped `--allow-ffi` grant. The binding itself does
-not require network, environment, or write access at runtime.
-
-For Greek analysis and experimental generation, choose the Alpheios dataset and
-build its validated index during setup:
-
-```sh
-deno x \
-  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
-  --allow-read=./morpheus-native,./morpheus-data \
-  --allow-write=./morpheus-native,./morpheus-data \
-  jsr:@humanities/libmorpheus/setup \
-  --dataset alpheios \
-  --with-gener
-```
-
-See the [Deno binding guide](bindings/deno/README.md) for generation examples,
-parallel contexts, low-level access, standalone release archives, and all
-supported options.
 
 ## Bindings
 
