@@ -17,7 +17,7 @@ TypeScript objects before their C allocations are released.
 2. [In-depth overview](#in-depth-overview)
    1. [Analyze a form](#analyze-a-form)
    2. [Generate forms from a lemma](#generate-forms-from-a-lemma)
-   3. [Parallel contexts](#parallel-contexts)
+   3. [Use parallel contexts](#use-parallel-contexts)
    4. [Raw access and cleanup](#raw-access-and-cleanup)
 3. [Other installation options](#other-installation-options)
    1. [Standalone release archive](#standalone-release-archive)
@@ -212,7 +212,7 @@ interpretations unless filters remove them. `excludeDuals` is available when
 dual forms are unwanted. The default native limit is 4,096 and the explicit hard
 maximum is 65,536.
 
-### Parallel contexts
+### Use parallel contexts
 
 One context deliberately queues analysis and generation calls because the native
 context is stateful. Create separate contexts to perform independent work in
