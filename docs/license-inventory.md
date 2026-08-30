@@ -54,8 +54,9 @@ The following remain MPL-2.0 even where the current path was created locally:
 - `tools/gener-derivation-manifest.tsv` and the generation-derivation fixtures,
   which record and exercise inherited rule data and behavior.
 
-The same MPL treatment applies to `bindings/deno/gener_manifest.ts` and the
-compiled `bindings/deno/gener_preparer.mjs`. The latter also contains the
+The same MPL treatment applies to
+`bindings/deno/internal/gener_manifest.ts` and the compiled
+`bindings/deno/internal/gener_preparer.mjs`. The latter also contains the
 permissively licensed Emscripten runtime; its accompanying license text is
 included in the standalone binding package.
 

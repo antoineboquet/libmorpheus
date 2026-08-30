@@ -42,10 +42,12 @@ endif()
 
 set(binding_dir "${extract_root}/${package_basename}")
 foreach(required IN ITEMS
-        mod.ts data.ts data_internal.ts data_manifest.ts
-        gener_index_internal.ts gener_manifest.ts gener_preparer.mjs
-        gener_runtime_internal.ts native.ts native_internal.ts native_manifest.ts
-        setup.ts setup_internal.ts version.ts
+        mod.ts data.ts native.ts setup.ts
+        internal/data_internal.ts internal/data_manifest.ts
+        internal/gener_index_internal.ts internal/gener_manifest.ts
+        internal/gener_preparer.mjs internal/gener_runtime_internal.ts
+        internal/native_internal.ts internal/native_manifest.ts
+        internal/setup_internal.ts internal/version.ts
         LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt
         README.md LICENSE NOTICE jsr.json)
   if(NOT EXISTS "${binding_dir}/${required}")
@@ -72,7 +74,7 @@ if(NOT jsr_version STREQUAL "${expected_deno_version}")
   message(FATAL_ERROR
     "Packaged Deno binding JSR version ${jsr_version} differs from ${expected_deno_version}")
 endif()
-file(READ "${binding_dir}/version.ts" version_source)
+file(READ "${binding_dir}/internal/version.ts" version_source)
 string(REGEX MATCH
   "MORPHEUS_DENO_VERSION[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
   deno_version_definition "${version_source}")

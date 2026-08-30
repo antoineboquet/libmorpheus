@@ -13,22 +13,22 @@ set(agpl_files
     bindings/deno/NOTICE
     bindings/deno/README.md
     bindings/deno/data.ts
-    bindings/deno/data_internal.ts
-    bindings/deno/data_manifest.ts
-    bindings/deno/data_test.ts
-    bindings/deno/gener_index_internal.ts
-    bindings/deno/gener_preparer_test.ts
-    bindings/deno/gener_runtime_internal.ts
+    bindings/deno/internal/data_internal.ts
+    bindings/deno/internal/data_manifest.ts
+    bindings/deno/test/data_test.ts
+    bindings/deno/internal/gener_index_internal.ts
+    bindings/deno/test/gener_preparer_test.ts
+    bindings/deno/internal/gener_runtime_internal.ts
     bindings/deno/mod.ts
-    bindings/deno/mod_test.ts
+    bindings/deno/test/mod_test.ts
     bindings/deno/native.ts
-    bindings/deno/native_internal.ts
-    bindings/deno/native_manifest.ts
-    bindings/deno/native_test.ts
+    bindings/deno/internal/native_internal.ts
+    bindings/deno/internal/native_manifest.ts
+    bindings/deno/test/native_test.ts
     bindings/deno/setup.ts
-    bindings/deno/setup_internal.ts
-    bindings/deno/setup_test.ts
-    bindings/deno/version.ts
+    bindings/deno/internal/setup_internal.ts
+    bindings/deno/test/setup_test.ts
+    bindings/deno/internal/version.ts
     include/morpheus/morpheus.h
     src/api/gener_index.c
     src/api/gener_index.h
@@ -63,8 +63,8 @@ foreach(agpl_file IN LISTS agpl_files)
 endforeach()
 
 foreach(mpl_file IN ITEMS
-        bindings/deno/gener_manifest.ts
-        bindings/deno/gener_preparer.mjs
+        bindings/deno/internal/gener_manifest.ts
+        bindings/deno/internal/gener_preparer.mjs
         include/morpheus/compat.h
         src/anal/anal_internal.h
         src/anal/cruncher_internal.h

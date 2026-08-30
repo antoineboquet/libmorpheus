@@ -235,7 +235,7 @@ jobs:
           fi
 
       - name: Check binding
-        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+        run: deno check bindings/deno/mod.ts bindings/deno/test/mod_test.ts
 
       - name: Prepare Deno generation fixture
         run: >-
@@ -247,7 +247,7 @@ jobs:
         env:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
-        run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+        run: deno test --allow-env --allow-ffi bindings/deno/test/mod_test.ts
 
       - name: Smoke-test generation qualification
         env:
@@ -400,7 +400,7 @@ jobs:
           esac
 
       - name: Check binding
-        run: deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+        run: deno check bindings/deno/mod.ts bindings/deno/test/mod_test.ts
 
       - name: Prepare Deno generation fixture
         run: >-
@@ -412,7 +412,7 @@ jobs:
         env:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.dylib
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
-        run: deno test --allow-env --allow-ffi bindings/deno/mod_test.ts
+        run: deno test --allow-env --allow-ffi bindings/deno/test/mod_test.ts
 
       - name: Smoke-test generation qualification
         env:

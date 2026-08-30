@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { parseMorpheusSetupArgs } from "./setup.ts";
+import { parseMorpheusSetupArgs } from "../setup.ts";
 import {
   type MorpheusSetupDependencies,
   setupMorpheusWithDependencies,
-} from "./setup_internal.ts";
+} from "../internal/setup_internal.ts";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);

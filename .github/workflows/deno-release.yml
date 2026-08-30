@@ -42,7 +42,7 @@ jobs:
           binding_version="$(deno eval \
             'console.log(JSON.parse(await Deno.readTextFile("bindings/deno/jsr.json")).version)')"
           declared="$(deno eval \
-            'import { MORPHEUS_DENO_VERSION, MORPHEUS_NATIVE_ABI_VERSION, MORPHEUS_NATIVE_VERSION } from "./bindings/deno/version.ts"; console.log(`${MORPHEUS_DENO_VERSION} ${MORPHEUS_NATIVE_VERSION} ${MORPHEUS_NATIVE_ABI_VERSION}`)')"
+            'import { MORPHEUS_DENO_VERSION, MORPHEUS_NATIVE_ABI_VERSION, MORPHEUS_NATIVE_VERSION } from "./bindings/deno/internal/version.ts"; console.log(`${MORPHEUS_DENO_VERSION} ${MORPHEUS_NATIVE_VERSION} ${MORPHEUS_NATIVE_ABI_VERSION}`)')"
           read -r declared_binding native_version native_abi <<<"$declared"
           test "$binding_version" = "$declared_binding"
           test "$GITHUB_REF_NAME" = "deno-v$binding_version"

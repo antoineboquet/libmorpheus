@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { parseMorpheusDataArgs } from "./data.ts";
-import { parseTarArchive, sha256 } from "./data_internal.ts";
-import { buildGenerIndex } from "./gener_index_internal.ts";
+import { parseMorpheusDataArgs } from "../data.ts";
+import { parseTarArchive, sha256 } from "../internal/data_internal.ts";
+import { buildGenerIndex } from "../internal/gener_index_internal.ts";
 
 function assert(
   condition: unknown,

@@ -33,9 +33,9 @@
  * @module
  */
 
-import { MORPHEUS_NATIVE_ABI_VERSION } from "./version.ts";
+import { MORPHEUS_NATIVE_ABI_VERSION } from "./internal/version.ts";
 
-export { MORPHEUS_DENO_VERSION } from "./version.ts";
+export { MORPHEUS_DENO_VERSION } from "./internal/version.ts";
 
 const ABI_VERSION = MORPHEUS_NATIVE_ABI_VERSION;
 const TEXT_CAPACITY = 64;

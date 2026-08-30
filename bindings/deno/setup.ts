@@ -20,17 +20,17 @@
  * @module
  */
 
-import { acquireMorpheusData } from "./data_internal.ts";
-import type { MorpheusDatasetName } from "./data_manifest.ts";
+import { acquireMorpheusData } from "./internal/data_internal.ts";
+import type { MorpheusDatasetName } from "./internal/data_manifest.ts";
 import {
   acquireMorpheusNativeWithDependencies,
   defaultNativeAcquisitionDependencies,
-} from "./native_internal.ts";
+} from "./internal/native_internal.ts";
 import {
   type MorpheusSetupOptions,
   type MorpheusSetupReceipt,
   setupMorpheusWithDependencies,
-} from "./setup_internal.ts";
+} from "./internal/setup_internal.ts";
 
 /** Options and receipt returned by combined setup. */
 export type { MorpheusSetupOptions, MorpheusSetupReceipt };

@@ -1,18 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { join } from "node:path";
-import { sha256 } from "./data_internal.ts";
+import { sha256 } from "../internal/data_internal.ts";
 import {
   acquireMorpheusNativeWithDependencies,
   type NativeAcquisitionDependencies,
-} from "./native_internal.ts";
+} from "../internal/native_internal.ts";
 import {
   MORPHEUS_NATIVE_ABI_VERSION,
   MORPHEUS_NATIVE_VERSION,
   parseMorpheusNativeArgs,
-} from "./native.ts";
-import { selectMorpheusNativeTarget } from "./native_manifest.ts";
-import { MORPHEUS_DENO_VERSION } from "./version.ts";
+} from "../native.ts";
+import { selectMorpheusNativeTarget } from "../internal/native_manifest.ts";
+import { MORPHEUS_DENO_VERSION } from "../internal/version.ts";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

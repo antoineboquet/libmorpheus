@@ -16,19 +16,19 @@
       "NOTICE",
       "README.md",
       "data.ts",
-      "data_internal.ts",
-      "data_manifest.ts",
-      "gener_index_internal.ts",
-      "gener_manifest.ts",
-      "gener_preparer.mjs",
-      "gener_runtime_internal.ts",
+      "internal/data_internal.ts",
+      "internal/data_manifest.ts",
+      "internal/gener_index_internal.ts",
+      "internal/gener_manifest.ts",
+      "internal/gener_preparer.mjs",
+      "internal/gener_runtime_internal.ts",
+      "internal/native_internal.ts",
+      "internal/native_manifest.ts",
+      "internal/setup_internal.ts",
+      "internal/version.ts",
       "mod.ts",
       "native.ts",
-      "native_internal.ts",
-      "native_manifest.ts",
-      "setup.ts",
-      "setup_internal.ts",
-      "version.ts"
+      "setup.ts"
     ]
   }
 }

@@ -48,7 +48,7 @@ jobs:
           package_version="$(deno eval \
             'console.log(JSON.parse(await Deno.readTextFile("bindings/deno/jsr.json")).version)')"
           declared_binding="$(deno eval \
-            'import { MORPHEUS_DENO_VERSION } from "./bindings/deno/version.ts"; console.log(MORPHEUS_DENO_VERSION)')"
+            'import { MORPHEUS_DENO_VERSION } from "./bindings/deno/internal/version.ts"; console.log(MORPHEUS_DENO_VERSION)')"
           test "$package_version" = "$declared_binding"
           test "$RELEASE_TAG" = "deno-v$package_version"
 
@@ -72,7 +72,7 @@ jobs:
           test "$current_license" = "AGPL-3.0-or-later"
 
           native_version="$(deno eval \
-            'import { MORPHEUS_NATIVE_VERSION } from "./bindings/deno/version.ts"; console.log(MORPHEUS_NATIVE_VERSION)')"
+            'import { MORPHEUS_NATIVE_VERSION } from "./bindings/deno/internal/version.ts"; console.log(MORPHEUS_NATIVE_VERSION)')"
           native_release="$(gh api \
             "repos/$GITHUB_REPOSITORY/releases/tags/v$native_version")"
           test "$(jq -r '.draft' <<<"$native_release")" = false

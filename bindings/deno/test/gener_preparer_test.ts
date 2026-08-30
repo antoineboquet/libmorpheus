@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import createGenerPreparer from "./gener_preparer.mjs";
+import createGenerPreparer from "../internal/gener_preparer.mjs";
 import process from "node:process";
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -19,7 +19,8 @@ Deno.test("WebAssembly preparer accepts a non-file module URL", async () => {
     noInitialRun: true,
     print: () => undefined,
     printErr: () => undefined,
-    scriptUrl: "https://jsr.io/@humanities/libmorpheus/gener_preparer.mjs",
+    scriptUrl:
+      "https://jsr.io/@humanities/libmorpheus/internal/gener_preparer.mjs",
   }) as TestModule;
   assert(typeof module.callMain === "function", "remote factory lost callMain");
   assert(module.FS !== undefined, "remote factory lost its virtual filesystem");

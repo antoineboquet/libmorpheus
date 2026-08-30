@@ -25,22 +25,16 @@ file(MAKE_DIRECTORY "${package_dir}")
 file(COPY
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/mod.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/data.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/data_internal.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/data_manifest.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_index_internal.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_manifest.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_preparer.mjs"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/gener_runtime_internal.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/native.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/native_internal.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/native_manifest.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/setup.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/setup_internal.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/version.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/README.md"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSE"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/NOTICE"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json"
+  DESTINATION "${package_dir}"
+)
+file(COPY
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/internal"
   DESTINATION "${package_dir}"
 )
 file(COPY

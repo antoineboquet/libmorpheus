@@ -21,7 +21,7 @@ if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
   message(FATAL_ERROR "Unexpected JSR package license: ${jsr_license}")
 endif()
 
-set(version_path "${MORPHEUS_SOURCE_DIR}/bindings/deno/version.ts")
+set(version_path "${MORPHEUS_SOURCE_DIR}/bindings/deno/internal/version.ts")
 file(READ "${version_path}" version_source)
 string(REGEX MATCH
   "MORPHEUS_DENO_VERSION[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
@@ -54,7 +54,7 @@ if(deno_abi_definition_at EQUAL -1)
   message(FATAL_ERROR
     "Deno binding does not consume its declared native ABI")
 endif()
-file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/native_manifest.ts"
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/internal/native_manifest.ts"
      native_manifest)
 string(FIND "${native_manifest}" "MORPHEUS_NATIVE_VERSION"
             native_version_use_at)
@@ -76,12 +76,31 @@ if(NOT jsr_default_export STREQUAL "./mod.ts" OR
     "Unexpected JSR package exports: ${jsr_default_export}, ${jsr_data_export}, ${jsr_native_export}, ${jsr_setup_export}")
 endif()
 
+file(GLOB binding_root_files
+     LIST_DIRECTORIES false
+     RELATIVE "${MORPHEUS_SOURCE_DIR}/bindings/deno"
+     "${MORPHEUS_SOURCE_DIR}/bindings/deno/*")
+set(expected_root_files
+    LICENSE NOTICE README.md data.ts jsr.json jsr.json.license mod.ts native.ts
+    setup.ts)
+foreach(root_file IN LISTS binding_root_files)
+  list(FIND expected_root_files "${root_file}" expected_at)
+  if(expected_at EQUAL -1)
+    message(FATAL_ERROR "Unexpected file at Deno binding root: ${root_file}")
+  endif()
+  list(REMOVE_ITEM expected_root_files "${root_file}")
+endforeach()
+if(expected_root_files)
+  message(FATAL_ERROR "Missing Deno binding root files: ${expected_root_files}")
+endif()
+
 set(expected_files
     LICENSE LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt NOTICE README.md
-    data.ts data_internal.ts data_manifest.ts gener_index_internal.ts
-    gener_manifest.ts gener_preparer.mjs gener_runtime_internal.ts mod.ts
-    native.ts native_internal.ts native_manifest.ts setup.ts setup_internal.ts
-    version.ts)
+    data.ts internal/data_internal.ts internal/data_manifest.ts
+    internal/gener_index_internal.ts internal/gener_manifest.ts
+    internal/gener_preparer.mjs internal/gener_runtime_internal.ts
+    internal/native_internal.ts internal/native_manifest.ts
+    internal/setup_internal.ts internal/version.ts mod.ts native.ts setup.ts)
 string(JSON include_count ERROR_VARIABLE json_error
        LENGTH "${config}" publish include)
 if(json_error)
@@ -108,10 +127,11 @@ endif()
 
 foreach(required IN ITEMS
         LICENSE LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt NOTICE README.md
-        data.ts data_internal.ts data_manifest.ts gener_index_internal.ts
-        gener_manifest.ts gener_preparer.mjs gener_runtime_internal.ts mod.ts
-        native.ts native_internal.ts native_manifest.ts setup.ts setup_internal.ts
-        version.ts)
+        data.ts internal/data_internal.ts internal/data_manifest.ts
+        internal/gener_index_internal.ts internal/gener_manifest.ts
+        internal/gener_preparer.mjs internal/gener_runtime_internal.ts
+        internal/native_internal.ts internal/native_manifest.ts
+        internal/setup_internal.ts internal/version.ts mod.ts native.ts setup.ts)
   if(NOT EXISTS "${MORPHEUS_SOURCE_DIR}/bindings/deno/${required}")
     message(FATAL_ERROR "Missing JSR package source: ${required}")
   endif()

@@ -22,8 +22,8 @@ import {
   acquireMorpheusData,
   type AcquireMorpheusDataOptions,
   type MorpheusDataReceipt,
-} from "./data_internal.ts";
-import type { MorpheusDatasetName } from "./data_manifest.ts";
+} from "./internal/data_internal.ts";
+import type { MorpheusDatasetName } from "./internal/data_manifest.ts";
 
 /** Options, receipt, and dataset names used by data acquisition. */
 export type {

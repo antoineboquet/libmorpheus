@@ -296,7 +296,7 @@ standalone binding archive, not to the Docker image.
 
 Binding and runtime versions are independent. Binding `0.3.2` currently
 acquires native runtime `0.3.2` and requires C ABI `2`; these compatibility
-values are declared in `version.ts`. The main module exports
+values are declared in `internal/version.ts`. The main module exports
 `MORPHEUS_DENO_VERSION`; the `/native` module exports
 `MORPHEUS_NATIVE_VERSION` and `MORPHEUS_NATIVE_ABI_VERSION` for tooling.
 
@@ -432,11 +432,11 @@ cmake --preset dev
 cmake --build --preset dev
 build/dev/morpheus_gener_index_builder \
   stemlib/gener.index test/generation-service-source.txt
-deno check bindings/deno/mod.ts bindings/deno/mod_test.ts
+deno check bindings/deno/mod.ts bindings/deno/test/mod_test.ts
 MORPHEUS_LIBRARY="$PWD/build/dev/libmorpheus.so" \
 MORPHEUS_STEMLIB="$PWD/stemlib" \
 deno test --allow-env --allow-ffi \
-  bindings/deno/mod_test.ts
+  bindings/deno/test/mod_test.ts
 ```
 
 ## License

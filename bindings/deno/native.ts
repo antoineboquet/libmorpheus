@@ -22,13 +22,13 @@ import {
   acquireMorpheusNativeWithDependencies,
   defaultNativeAcquisitionDependencies,
   type MorpheusNativeReceipt,
-} from "./native_internal.ts";
-import { selectMorpheusNativeTarget } from "./native_manifest.ts";
+} from "./internal/native_internal.ts";
+import { selectMorpheusNativeTarget } from "./internal/native_manifest.ts";
 
 export {
   MORPHEUS_NATIVE_ABI_VERSION,
   MORPHEUS_NATIVE_VERSION,
-} from "./native_manifest.ts";
+} from "./internal/native_manifest.ts";
 
 /** Options and receipt returned by native-library acquisition. */
 export type { AcquireMorpheusNativeOptions, MorpheusNativeReceipt };

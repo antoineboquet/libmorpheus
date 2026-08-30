@@ -10,8 +10,8 @@ standalone utilities are outside both release contracts.
 
 Native releases use `v<version>` tags. Deno binding releases use
 `deno-v<version>` tags and declare the compatible native release and ABI in
-`bindings/deno/version.ts`. Releases through `0.3.2` predate this separation and
-used one `v<version>` tag for both tracks.
+`bindings/deno/internal/version.ts`. Releases through `0.3.2` predate this
+separation and used one `v<version>` tag for both tracks.
 
 Each release records its version and ABI decision in
 `release-<version>.md`. The current candidate is recorded in

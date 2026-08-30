@@ -19,6 +19,8 @@ the corpus.
 - Native runtime and Deno binding versions are now independent. The binding
   declares the exact native release and ABI it supports, and native acquisition
   receipts record both the binding and runtime versions.
+- Deno implementation modules and tests now live under `internal/` and `test/`,
+  leaving only public entrypoints and package metadata at the binding root.
 
 ## [0.3.2] - 2026-08-29
 
