@@ -25,6 +25,11 @@ import {
 } from "./native_internal.ts";
 import { selectMorpheusNativeTarget } from "./native_manifest.ts";
 
+export {
+  MORPHEUS_NATIVE_ABI_VERSION,
+  MORPHEUS_NATIVE_VERSION,
+} from "./native_manifest.ts";
+
 /** Options and receipt returned by native-library acquisition. */
 export type { AcquireMorpheusNativeOptions, MorpheusNativeReceipt };
 

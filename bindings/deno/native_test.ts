@@ -6,8 +6,13 @@ import {
   acquireMorpheusNativeWithDependencies,
   type NativeAcquisitionDependencies,
 } from "./native_internal.ts";
-import { parseMorpheusNativeArgs } from "./native.ts";
+import {
+  MORPHEUS_NATIVE_ABI_VERSION,
+  MORPHEUS_NATIVE_VERSION,
+  parseMorpheusNativeArgs,
+} from "./native.ts";
 import { selectMorpheusNativeTarget } from "./native_manifest.ts";
+import { MORPHEUS_DENO_VERSION } from "./version.ts";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -155,7 +160,15 @@ Deno.test("native acquisition verifies, extracts, and records the release", asyn
       { output },
       await dependencies(archive.compressed, archive.asset),
     );
-    assert(receipt.abiVersion === 2);
+    assert(receipt.schema === 2);
+    assert(receipt.packageVersion === MORPHEUS_DENO_VERSION);
+    assert(receipt.nativeVersion === MORPHEUS_NATIVE_VERSION);
+    assert(receipt.abiVersion === MORPHEUS_NATIVE_ABI_VERSION);
+    assert(
+      receipt.sourceUrl.includes(
+        `/releases/download/v${MORPHEUS_NATIVE_VERSION}/`,
+      ),
+    );
     assert(receipt.target === "linux-x86_64-glibc");
     assert(
       decoder.decode(await Deno.readFile(join(output, receipt.libraryPath))) ===

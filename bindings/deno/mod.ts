@@ -33,7 +33,11 @@
  * @module
  */
 
-const ABI_VERSION = 2;
+import { MORPHEUS_NATIVE_ABI_VERSION } from "./version.ts";
+
+export { MORPHEUS_DENO_VERSION } from "./version.ts";
+
+const ABI_VERSION = MORPHEUS_NATIVE_ABI_VERSION;
 const TEXT_CAPACITY = 64;
 const DOMAIN_CAPACITY = 24;
 const MORPH_FLAG_CAPACITY = 11;

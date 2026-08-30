@@ -7,10 +7,11 @@ data. Applications select a compiled stem library at runtime; experimental Greek
 generation additionally requires a validated `gener.index` at that stemlib's
 root.
 
-The native runtime is likewise separate from the JSR source package. JSR cannot
-run a package hook after `deno add`; use the combined setup entrypoint to
-install the matching GitHub Release archive and selected data without a native
-toolchain:
+The native runtime is likewise separate from the JSR source package. Binding
+and runtime versions are independent; each binding declares the exact native
+release and ABI acquired by `/native` and `/setup`. JSR cannot run a package
+hook after `deno add`; use the combined setup entrypoint to install that
+declared GitHub Release archive and selected data without a native toolchain:
 
 ```sh
 deno x \
@@ -28,9 +29,10 @@ outputs must be absent and non-overlapping. Separate `/native` and `/data`
 commands remain available for independent acquisition.
 
 The native installer verifies the release SHA-256 sidecar and extracts only
-safe archive entries. It supports Linux x86-64 glibc, Linux aarch64 glibc, and
-macOS arm64. Import `nativeLibraryPath` from the package's `/native` export to
-obtain the `.so` or `.dylib` path. Loading it remains an FFI operation and
+safe archive entries. Its receipt records both the Deno binding version and the
+installed native version. It supports Linux x86-64 glibc, Linux aarch64 glibc,
+and macOS arm64. Import `nativeLibraryPath` from the package's `/native` export
+to obtain the `.so` or `.dylib` path. Loading it remains an FFI operation and
 therefore requires `deno run --allow-ffi`.
 
 ## Choose a dataset

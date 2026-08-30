@@ -4,11 +4,11 @@ import { dirname, join, resolve } from "node:path";
 import {
   MORPHEUS_DATA_SCHEMA_VERSION,
   MORPHEUS_DATASETS,
-  MORPHEUS_PACKAGE_VERSION,
   type MorpheusDatasetDefinition,
   type MorpheusDatasetName,
 } from "./data_manifest.ts";
 import { prepareGenerIndex } from "./gener_runtime_internal.ts";
+import { MORPHEUS_DENO_VERSION } from "./version.ts";
 
 const TAR_BLOCK_SIZE = 512;
 const MAX_COMPRESSED_SIZE = 64 * 1024 * 1024;
@@ -422,7 +422,7 @@ export async function acquireMorpheusData(
     }
     const receipt: MorpheusDataReceipt = {
       schema: MORPHEUS_DATA_SCHEMA_VERSION,
-      packageVersion: MORPHEUS_PACKAGE_VERSION,
+      packageVersion: MORPHEUS_DENO_VERSION,
       dataset: definition.name,
       languages: definition.languages,
       source: {

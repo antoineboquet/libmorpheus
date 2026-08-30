@@ -54,7 +54,6 @@ if(BUILD_TESTING)
     COMMAND
       "${CMAKE_COMMAND}"
       "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
-      "-DMORPHEUS_PROJECT_VERSION=${PROJECT_VERSION}"
       -P "${PROJECT_SOURCE_DIR}/test/jsr-package-metadata.cmake"
   )
 endif()

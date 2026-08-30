@@ -47,8 +47,9 @@ function dependencies(events: string[]): MorpheusSetupDependencies {
     acquireNative: async (options) => {
       events.push(`native:${options.output}`);
       return {
-        schema: 1,
+        schema: 2,
         packageVersion: "0.3.2",
+        nativeVersion: "0.3.2",
         abiVersion: 2,
         target: "linux-x86_64-glibc",
         asset: "native.tar.gz",

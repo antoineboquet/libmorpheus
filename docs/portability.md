@@ -19,8 +19,8 @@ complete CTest suite, and runs the Deno FFI tests against the generated
 `libmorpheus.dylib`.
 
 The architecture matrix is intentionally separate from ordinary pull-request
-CI. It runs weekly, on manual request, and for version tags. Tagged runs use
-optimized builds and additionally preserve verified Linux x86-64, Linux
+CI. It runs weekly, on manual request, and for native `v*` version tags. Tagged
+runs use optimized builds and additionally preserve verified Linux x86-64, Linux
 aarch64 glibc, and macOS arm64 native packages with SHA-256 integrity files.
 The Apple Silicon build sets a minimum deployment target of macOS 11.0. Alpine
 images remain qualification artifacts only until stemlib redistribution has
@@ -29,7 +29,7 @@ been authorized.
 The weekly trigger still creates a lightweight Linux decision job, but the
 architecture matrix is skipped when `main` has the same SHA as the preceding
 successful weekly run. Failed qualification is retried even without a new
-commit. Manual and version-tag runs never apply the inactivity shortcut.
+commit. Manual and native-version-tag runs never apply the inactivity shortcut.
 Manual runs offer a `package_artifacts` switch, enabled by default, which
 produces Linux x86-64 glibc, Linux aarch64 glibc, and macOS arm64 archives.
 Scheduled runs test the platforms without producing packages.

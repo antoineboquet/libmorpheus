@@ -255,12 +255,16 @@ ignore accents, `-d` for database format, `-e` for numeric feature indices,
 
 ## Releases and platform support
 
-Qualified release tags provide data-free native archives and SHA-256 files for:
+Native `v<version>` release tags provide data-free archives and SHA-256 files
+for:
 
 - Linux x86-64 glibc;
 - Linux aarch64 glibc;
-- macOS arm64;
-- the platform-independent Deno binding source archive.
+- macOS arm64.
+
+The Deno binding has an independent version and uses `deno-v<version>` tags for
+its standalone source archive and JSR publication. Each binding version declares
+the native runtime release and ABI it supports.
 
 The checksum detects corruption; it is not a release signature. See
 [platform support](docs/portability.md) for the complete qualification matrix

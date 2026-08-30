@@ -6,9 +6,8 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Published release tag whose JSR publication failed
+        description: Published Deno binding tag whose JSR publication failed
         required: true
-        default: v0.3.0
         type: string
 
 permissions:
@@ -41,14 +40,17 @@ jobs:
           RELEASE_TAG: ${{ inputs.release_tag }}
         run: |
           case "$RELEASE_TAG" in
-            v[0-9]*.[0-9]*.[0-9]*) ;;
+            deno-v[0-9]*.[0-9]*.[0-9]*) ;;
             *) echo "Invalid release tag: $RELEASE_TAG" >&2; exit 1 ;;
           esac
 
           git rev-parse --verify "refs/tags/$RELEASE_TAG^{commit}"
           package_version="$(deno eval \
             'console.log(JSON.parse(await Deno.readTextFile("bindings/deno/jsr.json")).version)')"
-          test "$RELEASE_TAG" = "v$package_version"
+          declared_binding="$(deno eval \
+            'import { MORPHEUS_DENO_VERSION } from "./bindings/deno/version.ts"; console.log(MORPHEUS_DENO_VERSION)')"
+          test "$package_version" = "$declared_binding"
+          test "$RELEASE_TAG" = "deno-v$package_version"
 
           release_json="$(gh api \
             "repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG")"
@@ -56,14 +58,6 @@ jobs:
           test "$(jq -r '.tag_name' <<<"$release_json")" = "$RELEASE_TAG"
           test "$(jq -r '.published_at' <<<"$release_json")" != null
           expected_assets="$(printf '%s\n' \
-            "benchmark-$package_version.json" \
-            "benchmark-$package_version.json.sha256" \
-            "libmorpheus-$package_version-Linux-aarch64-glibc.tar.gz" \
-            "libmorpheus-$package_version-Linux-aarch64-glibc.tar.gz.sha256" \
-            "libmorpheus-$package_version-Linux-x86_64-glibc.tar.gz" \
-            "libmorpheus-$package_version-Linux-x86_64-glibc.tar.gz.sha256" \
-            "libmorpheus-$package_version-macOS-arm64.tar.gz" \
-            "libmorpheus-$package_version-macOS-arm64.tar.gz.sha256" \
             "libmorpheus-deno-$package_version.tar.gz" \
             "libmorpheus-deno-$package_version.tar.gz.sha256" | sort)"
           actual_assets="$(jq -r '.assets[].name' <<<"$release_json" | sort)"
@@ -73,14 +67,16 @@ jobs:
             "$RELEASE_TAG^{commit}" HEAD -- bindings/deno)"
           test "$changed" = "bindings/deno/jsr.json"
 
-          tagged_license="$(git show \
-            "$RELEASE_TAG:bindings/deno/jsr.json" | deno eval \
-            'console.log(JSON.parse(await new Response(Deno.stdin.readable).text()).license)')"
           current_license="$(deno eval \
             'console.log(JSON.parse(await Deno.readTextFile("bindings/deno/jsr.json")).license)')"
-          test "$tagged_license" = \
-            "AGPL-3.0-or-later AND MPL-2.0 AND MIT"
           test "$current_license" = "AGPL-3.0-or-later"
+
+          native_version="$(deno eval \
+            'import { MORPHEUS_NATIVE_VERSION } from "./bindings/deno/version.ts"; console.log(MORPHEUS_NATIVE_VERSION)')"
+          native_release="$(gh api \
+            "repos/$GITHUB_REPOSITORY/releases/tags/v$native_version")"
+          test "$(jq -r '.draft' <<<"$native_release")" = false
+          test "$(jq -r '.published_at' <<<"$native_release")" != null
 
           status="$(curl --fail --silent --show-error \
             -H 'Accept: application/json' \

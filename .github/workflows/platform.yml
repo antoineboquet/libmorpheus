@@ -162,6 +162,7 @@ jobs:
       - name: Verify standalone Deno binding package
         run: >-
           cmake
+          -DMORPHEUS_SOURCE_DIR=${{ github.workspace }}
           -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/release
           -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/release/packages
           -P test/test-deno-binding-package.cmake
@@ -508,12 +509,6 @@ jobs:
           path: release-assets
           merge-multiple: true
 
-      - name: Download standalone Deno package
-        uses: actions/download-artifact@v5
-        with:
-          name: libmorpheus-deno-binding
-          path: release-assets
-
       - name: Verify the release asset set
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -525,12 +520,10 @@ jobs:
             "libmorpheus-${version}-Linux-aarch64-glibc.tar.gz.sha256"
             "libmorpheus-${version}-macOS-arm64.tar.gz"
             "libmorpheus-${version}-macOS-arm64.tar.gz.sha256"
-            "libmorpheus-deno-${version}.tar.gz"
-            "libmorpheus-deno-${version}.tar.gz.sha256"
             "benchmark-${version}.json"
             "benchmark-${version}.json.sha256"
           )
-          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 10
+          test "$(find release-assets -maxdepth 1 -type f | wc -l)" -eq 8
           for asset in "${expected[@]}"; do
             test -f "release-assets/$asset"
           done
@@ -607,34 +600,3 @@ jobs:
               make_latest: 'true',
             })
             core.info(`Published qualified release: ${published.data.html_url}`)
-
-  publish-jsr:
-    name: Publish JSR package
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: publish-release
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - name: Check out the qualified tag
-        uses: actions/checkout@v5
-
-      - name: Set up Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.9.5
-
-      - name: Verify tag and package contents
-        working-directory: bindings/deno
-        run: |
-          package_version="$(deno eval \
-            'console.log(JSON.parse(await Deno.readTextFile("jsr.json")).version)')"
-          test "$GITHUB_REF_NAME" = "v$package_version"
-          deno lint --rules-include=no-slow-types mod.ts
-          deno publish --dry-run
-
-      - name: Publish JSR package
-        working-directory: bindings/deno
-        run: deno publish

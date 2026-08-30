@@ -6,6 +6,7 @@ on:
       - main
     tags:
       - "v*"
+      - "deno-v*"
   pull_request:
 
 permissions:
@@ -149,6 +150,7 @@ jobs:
       - name: Verify standalone Deno binding package
         run: >-
           cmake
+          -DMORPHEUS_SOURCE_DIR=${{ github.workspace }}
           -DMORPHEUS_BUILD_DIR=${{ github.workspace }}/build/dev
           -DMORPHEUS_PACKAGE_DIR=${{ github.workspace }}/build/dev/packages
           -P test/test-deno-binding-package.cmake

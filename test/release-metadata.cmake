@@ -21,15 +21,6 @@ if(NOT "${CMAKE_MATCH_1}" STREQUAL "${MORPHEUS_ABI_VERSION}")
   )
 endif()
 
-file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/mod.ts" deno_binding)
-string(REGEX MATCH "const ABI_VERSION = ([0-9]+);" deno_abi_definition
-             "${deno_binding}")
-if(NOT "${CMAKE_MATCH_1}" STREQUAL "${MORPHEUS_ABI_VERSION}")
-  message(FATAL_ERROR
-    "Deno ABI ${CMAKE_MATCH_1} differs from CMake ABI ${MORPHEUS_ABI_VERSION}"
-  )
-endif()
-
 file(READ "${MORPHEUS_SOURCE_DIR}/docs/public-api.md" api_documentation)
 set(expected_api_versions
     "The current project version is ${MORPHEUS_PROJECT_VERSION}, the SONAME major is ${MORPHEUS_SOVERSION}, and")
@@ -88,21 +79,40 @@ endif()
 file(READ "${MORPHEUS_SOURCE_DIR}/.github/workflows/platform.yml"
      platform_workflow)
 foreach(expected_workflow_value IN ITEMS
-        "publish-jsr:"
         "publish-release:"
-        "needs: publish-release"
         "actions/download-artifact@v5"
         "contents: write"
         "bench/release-evidence/benchmark-"
-        "id-token: write"
         "workflow_id: 'test.yml'"
-        "deno publish --dry-run"
-        "run: deno publish")
+        "Linux-x86_64-glibc.tar.gz")
   string(FIND "${platform_workflow}" "${expected_workflow_value}"
               workflow_value_at)
   if(workflow_value_at EQUAL -1)
     message(FATAL_ERROR
       "platform workflow is missing: ${expected_workflow_value}")
+  endif()
+endforeach()
+string(FIND "${platform_workflow}" "publish-jsr:" coupled_jsr_at)
+if(NOT coupled_jsr_at EQUAL -1)
+  message(FATAL_ERROR "native platform workflow still publishes JSR")
+endif()
+
+file(READ "${MORPHEUS_SOURCE_DIR}/.github/workflows/deno-release.yml"
+     deno_release_workflow)
+foreach(expected_workflow_value IN ITEMS
+        "deno-v*"
+        "MORPHEUS_DENO_VERSION"
+        "MORPHEUS_NATIVE_VERSION"
+        "libmorpheus-deno-"
+        "workflow_id: 'test.yml'"
+        "deno publish --dry-run"
+        "run: deno publish"
+        "id-token: write")
+  string(FIND "${deno_release_workflow}" "${expected_workflow_value}"
+              workflow_value_at)
+  if(workflow_value_at EQUAL -1)
+    message(FATAL_ERROR
+      "Deno release workflow is missing: ${expected_workflow_value}")
   endif()
 endforeach()
 

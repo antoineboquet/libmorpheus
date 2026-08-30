@@ -2,14 +2,15 @@
 
 import { dirname, join, posix, resolve } from "node:path";
 import { parseTarArchive, sha256 } from "./data_internal.ts";
-import { MORPHEUS_PACKAGE_VERSION } from "./data_manifest.ts";
 import {
   MORPHEUS_NATIVE_ABI_VERSION,
   MORPHEUS_NATIVE_REPOSITORY,
   MORPHEUS_NATIVE_SCHEMA_VERSION,
+  MORPHEUS_NATIVE_VERSION,
   type MorpheusNativeTarget,
   selectMorpheusNativeTarget,
 } from "./native_manifest.ts";
+import { MORPHEUS_DENO_VERSION } from "./version.ts";
 
 const MAX_COMPRESSED_SIZE = 64 * 1024 * 1024;
 const MAX_UNCOMPRESSED_SIZE = 256 * 1024 * 1024;
@@ -20,8 +21,10 @@ const RELEASE_ASSET_HOST = "release-assets.githubusercontent.com";
 export interface MorpheusNativeReceipt {
   /** Receipt schema version. */
   readonly schema: number;
-  /** JSR package version that performed the acquisition. */
+  /** Deno binding version that performed the acquisition. */
   readonly packageVersion: string;
+  /** Native runtime release installed by the binding. */
+  readonly nativeVersion: string;
   /** Native ABI version provided by the library. */
   readonly abiVersion: number;
   /** Selected operating-system and architecture identifier. */
@@ -238,7 +241,7 @@ async function extractNativeArchive(
 }
 
 function releaseUrl(asset: string): string {
-  return `${MORPHEUS_NATIVE_REPOSITORY}/releases/download/v${MORPHEUS_PACKAGE_VERSION}/${asset}`;
+  return `${MORPHEUS_NATIVE_REPOSITORY}/releases/download/v${MORPHEUS_NATIVE_VERSION}/${asset}`;
 }
 
 async function pathExists(path: string): Promise<boolean> {
@@ -288,7 +291,8 @@ export async function acquireMorpheusNativeWithDependencies(
     );
     const receipt: MorpheusNativeReceipt = {
       schema: MORPHEUS_NATIVE_SCHEMA_VERSION,
-      packageVersion: MORPHEUS_PACKAGE_VERSION,
+      packageVersion: MORPHEUS_DENO_VERSION,
+      nativeVersion: MORPHEUS_NATIVE_VERSION,
       abiVersion: MORPHEUS_NATIVE_ABI_VERSION,
       target: target.name,
       asset: target.asset,

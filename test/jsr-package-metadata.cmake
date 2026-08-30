@@ -1,9 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-if(NOT DEFINED MORPHEUS_SOURCE_DIR OR
-   NOT DEFINED MORPHEUS_PROJECT_VERSION)
-  message(FATAL_ERROR
-    "MORPHEUS_SOURCE_DIR and MORPHEUS_PROJECT_VERSION are required")
+if(NOT DEFINED MORPHEUS_SOURCE_DIR)
+  message(FATAL_ERROR "MORPHEUS_SOURCE_DIR is required")
 endif()
 
 set(config_path "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json")
@@ -19,12 +17,52 @@ endforeach()
 if(NOT jsr_name STREQUAL "@humanities/libmorpheus")
   message(FATAL_ERROR "Unexpected JSR package name: ${jsr_name}")
 endif()
-if(NOT jsr_version STREQUAL "${MORPHEUS_PROJECT_VERSION}")
-  message(FATAL_ERROR
-    "JSR version ${jsr_version} differs from project ${MORPHEUS_PROJECT_VERSION}")
-endif()
 if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
   message(FATAL_ERROR "Unexpected JSR package license: ${jsr_license}")
+endif()
+
+set(version_path "${MORPHEUS_SOURCE_DIR}/bindings/deno/version.ts")
+file(READ "${version_path}" version_source)
+string(REGEX MATCH
+  "MORPHEUS_DENO_VERSION[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
+  deno_version_definition "${version_source}")
+set(deno_version "${CMAKE_MATCH_1}")
+if(NOT deno_version_definition OR
+   NOT "${jsr_version}" STREQUAL "${deno_version}")
+  message(FATAL_ERROR
+    "JSR version ${jsr_version} differs from Deno binding ${deno_version}")
+endif()
+string(REGEX MATCH
+  "MORPHEUS_NATIVE_VERSION[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
+  native_version_definition "${version_source}")
+set(native_version "${CMAKE_MATCH_1}")
+if(NOT native_version_definition)
+  message(FATAL_ERROR "Deno binding native runtime version is missing")
+endif()
+string(REGEX MATCH
+  "MORPHEUS_NATIVE_ABI_VERSION[ \t]*=[ \t]*([0-9]+)"
+  native_abi_definition "${version_source}")
+set(native_abi "${CMAKE_MATCH_1}")
+if(NOT native_abi_definition)
+  message(FATAL_ERROR "Deno binding native ABI version is missing")
+endif()
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/mod.ts" deno_binding)
+string(FIND "${deno_binding}"
+       "const ABI_VERSION = MORPHEUS_NATIVE_ABI_VERSION;"
+       deno_abi_definition_at)
+if(deno_abi_definition_at EQUAL -1)
+  message(FATAL_ERROR
+    "Deno binding does not consume its declared native ABI")
+endif()
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/native_manifest.ts"
+     native_manifest)
+string(FIND "${native_manifest}" "MORPHEUS_NATIVE_VERSION"
+            native_version_use_at)
+string(FIND "${native_manifest}" "MORPHEUS_DENO_VERSION"
+            deno_version_leak_at)
+if(native_version_use_at EQUAL -1 OR NOT deno_version_leak_at EQUAL -1)
+  message(FATAL_ERROR
+    "Native asset selection is not independent from the Deno version")
 endif()
 string(JSON jsr_default_export GET "${config}" exports .)
 string(JSON jsr_data_export GET "${config}" exports ./data)
@@ -42,7 +80,8 @@ set(expected_files
     LICENSE LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt NOTICE README.md
     data.ts data_internal.ts data_manifest.ts gener_index_internal.ts
     gener_manifest.ts gener_preparer.mjs gener_runtime_internal.ts mod.ts
-    native.ts native_internal.ts native_manifest.ts setup.ts setup_internal.ts)
+    native.ts native_internal.ts native_manifest.ts setup.ts setup_internal.ts
+    version.ts)
 string(JSON include_count ERROR_VARIABLE json_error
        LENGTH "${config}" publish include)
 if(json_error)
@@ -71,7 +110,8 @@ foreach(required IN ITEMS
         LICENSE LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt NOTICE README.md
         data.ts data_internal.ts data_manifest.ts gener_index_internal.ts
         gener_manifest.ts gener_preparer.mjs gener_runtime_internal.ts mod.ts
-        native.ts native_internal.ts native_manifest.ts setup.ts setup_internal.ts)
+        native.ts native_internal.ts native_manifest.ts setup.ts setup_internal.ts
+        version.ts)
   if(NOT EXISTS "${MORPHEUS_SOURCE_DIR}/bindings/deno/${required}")
     message(FATAL_ERROR "Missing JSR package source: ${required}")
   endif()

@@ -249,12 +249,15 @@ rejects while any child context remains open.
 
 ### Standalone release archive
 
-Each [GitHub release](https://github.com/defense-humanites/libmorpheus/releases)
-provides `libmorpheus-deno-<version>.tar.gz` and a companion SHA-256 file.
-Extract it beside the matching native archive, import `mod.ts` from the
-extracted directory, and pass the installed shared-library path to
-`MorpheusLibrary`. The binding archive contains neither native binaries nor stem
-data.
+Starting with the next publication after `0.3.2`, Deno binding releases use
+`deno-v<version>` tags and provide `libmorpheus-deno-<version>.tar.gz` plus a
+companion SHA-256 file on the
+[GitHub releases page](https://github.com/defense-humanites/libmorpheus/releases).
+The `0.3.2` archive remains attached to the historical combined `v0.3.2`
+release. Extract the binding beside a compatible native archive, import
+`mod.ts` from the extracted directory, and pass the installed shared-library
+path to `MorpheusLibrary`. The binding archive contains neither native binaries
+nor stem data.
 
 ### Docker image
 
@@ -290,6 +293,12 @@ What must be acquired depends on the distribution:
 
 The following acquisition commands therefore apply to the JSR package and the
 standalone binding archive, not to the Docker image.
+
+Binding and runtime versions are independent. Binding `0.3.2` currently
+acquires native runtime `0.3.2` and requires C ABI `2`; these compatibility
+values are declared in `version.ts`. The main module exports
+`MORPHEUS_DENO_VERSION`; the `/native` module exports
+`MORPHEUS_NATIVE_VERSION` and `MORPHEUS_NATIVE_ABI_VERSION` for tooling.
 
 ### Acquire stem data
 
@@ -345,10 +354,11 @@ deno x \
   --output ./morpheus-native
 ```
 
-The command selects the qualified release for the current platform, verifies
-its SHA-256 digest, refuses to overwrite an existing directory, and records the
-installed target and ABI in `MORPHEUS-NATIVE.json`. Standalone-archive users may
-instead extract the matching native archive from the same GitHub release.
+The command selects the declared native release for the current platform,
+verifies its SHA-256 digest, refuses to overwrite an existing directory, and
+records the binding version, native version, target, and ABI in
+`MORPHEUS-NATIVE.json`. Standalone-archive users may instead extract a compatible
+native archive from its `v<version>` GitHub release.
 
 Use the exported helper to avoid platform-specific filenames:
 

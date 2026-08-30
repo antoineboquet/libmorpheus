@@ -5,6 +5,7 @@ if(NOT DEFINED MORPHEUS_SOURCE_DIR)
 endif()
 
 set(agpl_files
+    .github/workflows/deno-release.yml
     .github/workflows/platform.yml
     CHANGELOG.md
     CMakeLists.txt
@@ -27,6 +28,7 @@ set(agpl_files
     bindings/deno/setup.ts
     bindings/deno/setup_internal.ts
     bindings/deno/setup_test.ts
+    bindings/deno/version.ts
     include/morpheus/morpheus.h
     src/api/gener_index.c
     src/api/gener_index.h

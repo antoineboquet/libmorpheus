@@ -1,12 +1,15 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-if(NOT DEFINED MORPHEUS_BUILD_DIR OR
+if(NOT DEFINED MORPHEUS_SOURCE_DIR OR
+   NOT DEFINED MORPHEUS_BUILD_DIR OR
    NOT DEFINED MORPHEUS_PACKAGE_DIR)
-  message(FATAL_ERROR "MORPHEUS_BUILD_DIR and MORPHEUS_PACKAGE_DIR are required")
+  message(FATAL_ERROR
+    "MORPHEUS_SOURCE_DIR, MORPHEUS_BUILD_DIR, and MORPHEUS_PACKAGE_DIR are required")
 endif()
 
-include("${MORPHEUS_BUILD_DIR}/CPackConfig.cmake")
-set(package_basename "libmorpheus-deno-${CPACK_PACKAGE_VERSION}")
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json" source_jsr_config)
+string(JSON expected_deno_version GET "${source_jsr_config}" version)
+set(package_basename "libmorpheus-deno-${expected_deno_version}")
 set(archive "${MORPHEUS_PACKAGE_DIR}/${package_basename}.tar.gz")
 set(checksum "${archive}.sha256")
 foreach(required IN ITEMS "${archive}" "${checksum}")
@@ -42,7 +45,7 @@ foreach(required IN ITEMS
         mod.ts data.ts data_internal.ts data_manifest.ts
         gener_index_internal.ts gener_manifest.ts gener_preparer.mjs
         gener_runtime_internal.ts native.ts native_internal.ts native_manifest.ts
-        setup.ts setup_internal.ts
+        setup.ts setup_internal.ts version.ts
         LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt
         README.md LICENSE NOTICE jsr.json)
   if(NOT EXISTS "${binding_dir}/${required}")
@@ -65,9 +68,18 @@ if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
   message(FATAL_ERROR
     "Packaged Deno binding has unexpected primary license: ${jsr_license}")
 endif()
-if(NOT jsr_version STREQUAL "${CPACK_PACKAGE_VERSION}")
+if(NOT jsr_version STREQUAL "${expected_deno_version}")
   message(FATAL_ERROR
-    "Packaged Deno binding JSR version ${jsr_version} differs from ${CPACK_PACKAGE_VERSION}")
+    "Packaged Deno binding JSR version ${jsr_version} differs from ${expected_deno_version}")
+endif()
+file(READ "${binding_dir}/version.ts" version_source)
+string(REGEX MATCH
+  "MORPHEUS_DENO_VERSION[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
+  deno_version_definition "${version_source}")
+if(NOT deno_version_definition OR
+   NOT "${CMAKE_MATCH_1}" STREQUAL "${expected_deno_version}")
+  message(FATAL_ERROR
+    "Packaged Deno version declaration differs from ${expected_deno_version}")
 endif()
 if(NOT jsr_export STREQUAL "./mod.ts")
   message(FATAL_ERROR "Packaged Deno binding has unexpected JSR export: ${jsr_export}")
@@ -128,16 +140,15 @@ endforeach()
 
 file(READ "${binding_dir}/README.md" binding_readme)
 string(FIND "${binding_readme}"
-  "https://github.com/defense-humanites/libmorpheus/blob/main/bindings/deno/NOTICE"
+  "[archive notice](NOTICE)"
   notice_link_at)
 if(notice_link_at EQUAL -1)
   message(FATAL_ERROR "Packaged Deno README does not link to its notice")
 endif()
 foreach(required_text IN ITEMS
-    "> [!WARNING]"
     "Standalone release archive"
     "Docker image"
-    "JSR package"
+    "Native library and runtime data"
     "@humanities/libmorpheus/setup"
     "--dataset perseids"
     "Acquire stem data"
@@ -145,12 +156,13 @@ foreach(required_text IN ITEMS
     "@humanities/libmorpheus/native"
     "tools/prepare-runtime-data.sh"
     "@humanities/libmorpheus"
-    "Language and stemlib support"
+    "Language and data coverage"
     "MorpheusOption.StrictCase"
     "https://github.com/defense-humanites/libmorpheus"
     "`generate()` and `generateRaw()` are experimental"
     "generate()"
-    "--allow-ffi app.ts")
+    "--allow-ffi app.ts"
+    "## License")
   string(FIND "${binding_readme}" "${required_text}" required_text_at)
   if(required_text_at EQUAL -1)
     message(FATAL_ERROR

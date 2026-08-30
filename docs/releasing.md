@@ -2,16 +2,22 @@
 
 # Release qualification
 
-This checklist defines a publishable `libmorpheus` release. It applies to the
-supported C library, installed metadata, Deno binding, containers, `cruncher`,
-and the pinned runtime data used by the fixtures. Historical standalone
-utilities are outside the release contract.
+This checklist defines the independent native-runtime and Deno-binding release
+tracks. Native releases cover the C library, installed metadata, containers,
+`cruncher`, and pinned fixture data. Deno releases cover the TypeScript binding,
+its acquisition commands, standalone archive, and JSR package. Historical
+standalone utilities are outside both release contracts.
+
+Native releases use `v<version>` tags. Deno binding releases use
+`deno-v<version>` tags and declare the compatible native release and ABI in
+`bindings/deno/version.ts`. Releases through `0.3.2` predate this separation and
+used one `v<version>` tag for both tracks.
 
 Each release records its version and ABI decision in
 `release-<version>.md`. The current candidate is recorded in
 `release-0.3.2.md`; the earlier decisions remain historical evidence.
 
-## 1. Version and ABI decision
+## 1. Version and compatibility decisions
 
 - Choose the project version and update `project(VERSION ...)` in
   `CMakeLists.txt`.
@@ -20,8 +26,13 @@ Each release records its version and ABI decision in
 - Keep `MORPHEUS_ABI_VERSION` and `SOVERSION` unchanged only for compatible
   additions. A removed function, changed signature, reassigned constant, or
   changed `morpheus_analysis` layout requires an explicit ABI/SONAME decision.
+- For a Deno release, update `bindings/deno/jsr.json` and
+  `MORPHEUS_DENO_VERSION` together. Review `MORPHEUS_NATIVE_VERSION` and
+  `MORPHEUS_NATIVE_ABI_VERSION` independently; they identify the already
+  published native release acquired by the binding.
 - Confirm that the Deno `ABI_VERSION` and native structure declarations match
-  the C header.
+  the binding's declared native ABI. They need not match a newer native ABI
+  being developed concurrently on `main`.
 - Write release notes that distinguish code changes from stemlib data changes.
 - Move the candidate notes in `CHANGELOG.md` from `Unreleased` to a dated
   version heading without changing their technical scope during packaging.
@@ -44,19 +55,25 @@ Each release records its version and ABI decision in
 The Linux workflow in `.github/workflows/test.yml` deliberately has two
 levels. Pull requests run the native CMake and Deno jobs. Pushes to `main`
 additionally run the optimized build, sanitizers, byte-signedness matrix, and
-inherited Makefile compatibility check. Version tags run the same Linux
-qualification except that the optimized build and package verification are
-owned by the architecture workflow. Superseded runs are cancelled, except for
-immutable version-tag runs.
+inherited Makefile compatibility check. Native `v*` tags delegate optimized
+package verification to the architecture workflow. Deno `deno-v*` tags run the
+Linux binding checks before their dedicated publication workflow builds the
+standalone source archive. Superseded runs are cancelled, except for immutable
+version-tag runs.
 
-The expensive architecture workflow in `.github/workflows/platform.yml` runs
-weekly, on explicit manual dispatch, and for every `v*` tag. It covers native
-Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Manual dispatches can
-request all three native release-candidate packages; version tags always build
-them. Packages and checksums are retained as short-lived CI artifacts on non-tag
-runs. After a version tag passes the full platform matrix and separate Linux CI,
-the tag workflow publishes the verified native and standalone Deno assets to a
-GitHub release before it publishes JSR.
+The expensive native architecture workflow in `.github/workflows/platform.yml`
+runs weekly, on explicit manual dispatch, and for every `v*` tag. It covers
+native Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Manual
+dispatches can request all three native release-candidate packages; native
+version tags always build them. Packages and checksums are retained as
+short-lived CI artifacts on non-tag runs. After a native version tag passes the
+full platform matrix and separate Linux CI, the tag workflow publishes only the
+verified native assets and benchmark evidence to the native GitHub release.
+
+The Deno publication workflow runs only for `deno-v*` tags. It requires Linux
+CI on the tagged commit, verifies that the declared native `v<version>` release
+and all six native archive files exist, builds the standalone binding archive,
+publishes a separate non-latest GitHub release, and then publishes JSR.
 
 Scheduled runs first compare the current default-branch SHA with the last
 completed weekly run. The architecture jobs are skipped when the SHA is
@@ -102,8 +119,9 @@ Alpheios fixture suites must run where their data prerequisites are available.
   nested-libdir test must resolve the relocated prefix correctly.
 - Confirm that the generated project version, package-config version, SONAME,
   and `libmorpheus.pc` version agree.
-- Require the `release_metadata` test to pass; it keeps the C header, Deno
-  binding, public API documentation, changelog, and CMake ABI decisions aligned.
+- Require `release_metadata` to keep the C header, public API documentation,
+  changelog, and CMake ABI decisions aligned. `jsr_package_metadata` separately
+  keeps the JSR version and the binding's declared native compatibility aligned.
 
 ## 5. Runtime artifacts
 
@@ -141,39 +159,34 @@ Alpheios fixture suites must run where their data prerequisites are available.
   history that must remain visible.
 - Verify after the merge that the former branch tip is an ancestor of `main`
   with `git merge-base --is-ancestor <release-tip> main`.
-- Tag the exact commit that passed the complete matrix.
-- Build release artifacts from that tag rather than from an uncommitted tree;
-  ordinary pull-request and `main` runs do not preserve publishable packages.
-- Rebuild all three native archives from the tag; the manually qualified
-  artifacts are pre-tag evidence and must not be promoted directly.
-- Install the produced native package into a fresh prefix and repeat one CMake
-  and one `pkg-config` consumer smoke test.
-- Verify the container by digest on both architectures.
-- From `bindings/deno`, run `deno publish --dry-run` and inspect the exact file
-  list before tagging. Require the configured JSR name and version to match
-  `@humanities/libmorpheus` and the CMake project version, respectively.
+- For a native release, tag the exact fully qualified commit as `v<version>`.
+  The platform workflow rebuilds all three native archives, adds the accepted
+  benchmark evidence, and publishes eight files after the separate tagged Linux
+  workflow passes. It does not publish or version the Deno binding.
+- Install a produced native package into a fresh prefix and repeat one CMake and
+  one `pkg-config` consumer smoke test. Verify the qualification-only container
+  by digest on both architectures.
+- For a Deno release, run `deno publish --dry-run` from `bindings/deno` and
+  inspect the exact file list. Require `jsr.json` to match
+  `MORPHEUS_DENO_VERSION`; verify that the independent
+  `MORPHEUS_NATIVE_VERSION` release exists with the declared ABI.
+- Tag the qualified binding commit as `deno-v<version>`. The dedicated workflow
+  waits for Linux CI, publishes `libmorpheus-deno-<version>.tar.gz` and its
+  checksum in a separate GitHub release, then publishes the same version to
+  JSR. Neither binding artifact embeds a native library or stem data.
 - Before the first publication, link `@humanities/libmorpheus` to
   `defense-humanites/libmorpheus` in the package's JSR settings. This one-time
   association authorizes tokenless GitHub Actions publication through OIDC.
-- Pushing the matching `v<version>` tag automatically publishes the three native
-  archives, the standalone Deno archive, and all four SHA-256 sidecars only
-  after every platform job and the separate tagged Linux workflow pass. The
-  workflow then publishes the JSR package, so its `/native` command never points
-  at CI-only artifacts. Its source-only contents retain `README.md`, `LICENSE`,
-  and `NOTICE`; they do not embed a native library or stem data. A missing JSR
-  repository association makes the JSR publication fail without weakening the
-  preceding GitHub release.
-- Do not move a published tag when JSR rejects metadata after the GitHub release
-  succeeds. If that JSR version is still unpublished, correct the metadata on
-  `main` and manually dispatch `Recover JSR publication`. This recovery verifies
-  the published release and refuses to proceed unless `bindings/deno/jsr.json`
-  is the binding's only change since the tag. It exists for registry-metadata
-  rejection only, not for changing published package code.
+- Do not move either kind of published tag. If JSR rejects metadata after the
+  Deno GitHub release succeeds and that version is still unpublished, correct
+  only `bindings/deno/jsr.json` on `main` and manually dispatch
+  `Recover JSR publication` with the `deno-v<version>` tag. The recovery refuses
+  broader binding changes.
 - After JSR publication, manually dispatch `Published JSR smoke test` with the
   exact package version. It starts with an empty Deno application and obtains
-  the public JSR package, matching native archive, Alpheios data plus generation
-  index, and Perseids data. Require Greek and Latin analysis plus experimental
-  Greek generation to pass before closing the release.
+  the public JSR package, its declared native archive, Alpheios data plus
+  generation index, and Perseids data. Require Greek and Latin analysis plus
+  experimental Greek generation to pass before closing the Deno release.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact

@@ -9,6 +9,17 @@ the corpus.
 
 ## [Unreleased]
 
+### Added
+
+- Dedicated `deno-v<version>` tags now publish the standalone Deno archive and
+  JSR package independently from native runtime releases.
+
+### Changed
+
+- Native runtime and Deno binding versions are now independent. The binding
+  declares the exact native release and ABI it supports, and native acquisition
+  receipts record both the binding and runtime versions.
+
 ## [0.3.2] - 2026-08-29
 
 Target project version: **0.3.2**. C ABI: **2**. Shared-library SONAME: **1**.

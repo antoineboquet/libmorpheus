@@ -27,7 +27,8 @@
       "native_internal.ts",
       "native_manifest.ts",
       "setup.ts",
-      "setup_internal.ts"
+      "setup_internal.ts",
+      "version.ts"
     ]
   }
 }

@@ -7,12 +7,14 @@ if(NOT DEFINED MORPHEUS_SOURCE_DIR OR
     "MORPHEUS_SOURCE_DIR, MORPHEUS_BUILD_DIR, and MORPHEUS_PACKAGE_DIR are required")
 endif()
 
-include("${MORPHEUS_BUILD_DIR}/CPackConfig.cmake")
-if(NOT DEFINED CPACK_PACKAGE_VERSION)
-  message(FATAL_ERROR "CPackConfig.cmake did not define CPACK_PACKAGE_VERSION")
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json" jsr_config)
+string(JSON deno_version ERROR_VARIABLE version_error
+       GET "${jsr_config}" version)
+if(version_error OR NOT deno_version MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
+  message(FATAL_ERROR "Invalid Deno binding version: ${version_error}")
 endif()
 
-set(package_basename "libmorpheus-deno-${CPACK_PACKAGE_VERSION}")
+set(package_basename "libmorpheus-deno-${deno_version}")
 set(package_root "${MORPHEUS_BUILD_DIR}/deno-binding-package")
 set(package_dir "${package_root}/${package_basename}")
 set(archive "${MORPHEUS_PACKAGE_DIR}/${package_basename}.tar.gz")
@@ -34,6 +36,7 @@ file(COPY
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/native_manifest.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/setup.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/setup_internal.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/deno/version.ts"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/README.md"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSE"
   "${MORPHEUS_SOURCE_DIR}/bindings/deno/NOTICE"
