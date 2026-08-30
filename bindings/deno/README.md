@@ -1,3 +1,5 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
 # libmorpheus for Deno
 
 `libmorpheus` modernizes the [Morpheus](https://github.com/PerseusDL/morpheus)
