@@ -1,33 +1,34 @@
-<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+# libmorpheus for Deno
 
-# Deno binding
-
-> [!WARNING]
+> [!NOTE]
 > This binding and the normalized native API it calls are AGPL-3.0-or-later. The
 > inherited engine, translation bridge, compatibility API, and generated index
 > reader remain MPL-2.0. Read the
 > [archive notice](https://github.com/defense-humanites/libmorpheus/blob/main/bindings/deno/NOTICE)
 > before distributing an application or archive.
 
+`libmorpheus` modernizes the [Morpheus](https://github.com/PerseusDL/morpheus)
+morphological analyzer for Ancient Greek and Latin. It turns the historical C
+programs into an installable C17 shared library with a stable, opaque ABI and a
+typed Deno 2 binding.
+
 ## Summary
 
 1. [Purpose](#purpose)
-2. [Quick start](#quick-start)
-3. [Requirements and constraints](#requirements-and-constraints)
-4. [Installation](#installation)
+2. [Quick start (using the JSR package)](#quick-start-using-the-jsr-package)
+3. [Other installation options](#other-installation-options)
    1. [Standalone release archive](#standalone-release-archive)
    2. [Docker image](#docker-image)
-   3. [JSR package](#jsr-package)
-5. [Acquire stem data](#acquire-stem-data)
-6. [Acquire the native library](#acquire-the-native-library)
-7. [Language and stemlib support](#language-and-stemlib-support)
-8. [FFI permission](#ffi-permission)
-9. [Analyze a form](#analyze-a-form)
-10. [Generate forms from a lemma](#generate-forms-from-a-lemma)
-11. [Parallel contexts](#parallel-contexts)
-12. [Raw access and cleanup](#raw-access-and-cleanup)
-13. [Documentation](#documentation)
-14. [Local checks](#local-checks)
+4. [Acquire stem data](#acquire-stem-data)
+5. [Acquire the native library](#acquire-the-native-library)
+6. [Language and stemlib support](#language-and-stemlib-support)
+7. [FFI permission](#ffi-permission)
+8. [Analyze a form](#analyze-a-form)
+9. [Generate forms from a lemma](#generate-forms-from-a-lemma)
+10. [Parallel contexts](#parallel-contexts)
+11. [Raw access and cleanup](#raw-access-and-cleanup)
+12. [Documentation](#documentation)
+13. [Local checks](#local-checks)
 
 ## Purpose
 
@@ -37,9 +38,9 @@ with `Deno.dlopen`. It exposes normalized Greek and Latin analysis plus
 experimental Greek lemma generation. Native results are copied into owned
 TypeScript objects before their C allocations are released.
 
-## Quick start
+## Quick start (using the JSR package)
 
-The simplest installation needs Deno 2 but no C toolchain. The prebuilt native
+The simplest installation needs no C toolchain. The prebuilt native
 archives currently support Linux x86-64 glibc, Linux aarch64 glibc, and macOS
 arm64. Install the binding:
 
@@ -72,17 +73,16 @@ import {
 } from "@humanities/libmorpheus";
 import { nativeLibraryPath } from "@humanities/libmorpheus/native";
 
-using library = new MorpheusLibrary(
-  nativeLibraryPath("./morpheus-native"),
-);
+using library = new MorpheusLibrary(nativeLibraryPath("./morpheus-native"));
+
 await using context = library.createContext(
   await Deno.realPath("./morpheus-data"),
-  MorpheusLanguage.Greek,
+  MorpheusLanguage.Greek
 );
 
 const analyses = await context.analyze(
   "a)/nqrwpos",
-  MorpheusOption.StrictCase,
+  MorpheusOption.StrictCase
 );
 
 for (const analysis of analyses) {
@@ -117,17 +117,7 @@ Continue with the detailed [installation](#installation),
 [generation](#generate-forms-from-a-lemma), [parallel-context](#parallel-contexts),
 and [low-level API](#raw-access-and-cleanup) documentation below.
 
-## Requirements and constraints
-
-- Deno 2 on a 64-bit `x86_64` or `aarch64` runtime.
-- A matching ABI 2 `libmorpheus` shared library.
-- A compatible stemlib tree. Generation additionally requires a validated
-  `gener.index` at the stemlib root; analysis remains available without it.
-- Greek contexts for generation. Greek and Latin contexts are supported for
-  analysis.
-- Serialized calls within one context. Distinct contexts may run concurrently.
-
-## Installation
+## Other installation options
 
 ### Standalone release archive
 
@@ -157,58 +147,7 @@ Inside the image, import `/opt/morpheus/share/morpheus/deno/mod.ts`.
 container paths. Applications still need Deno's `--allow-ffi` permission.
 Greek `analyze()` and experimental `generate()` are both qualified in the image;
 CI also checks that generation preserves dual forms. The image is a
-qualification and application-build target, not a published registry image,
-while the Alpheios and derived-index redistribution terms remain unresolved.
-
-### JSR package
-
-Install the qualified source binding from
-[JSR](https://jsr.io/@humanities/libmorpheus):
-
-```sh
-deno add jsr:@humanities/libmorpheus
-```
-
-Then import from the dependency name recorded in `deno.json`:
-
-```ts
-import {
-  MorpheusLanguage,
-  MorpheusLibrary,
-  MorpheusOption,
-} from "@humanities/libmorpheus";
-```
-
-JSR packages cannot run a post-install hook after `deno add`. Complete the
-installation with the package's combined setup command. For Greek analysis and
-experimental generation with Alpheios data:
-
-```sh
-deno x \
-  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
-  --allow-read=./morpheus-native,./morpheus-data \
-  --allow-write=./morpheus-native,./morpheus-data \
-  jsr:@humanities/libmorpheus/setup \
-  --dataset alpheios \
-  --with-gener
-```
-
-Choose `--dataset perseids` without `--with-gener` for Greek and Latin
-analysis. The command installs the matching native release in
-`./morpheus-native` and verified stem data in `./morpheus-data`. Both paths must
-be absent and non-overlapping. If data acquisition fails, the new native
-directory is rolled back. Use `--native-output` and `--data-output` to select
-other destinations.
-
-The separate `/native` and `/data` commands below remain available for
-independent installation, automation, and permission review.
-
-The JSR package contains the TypeScript binding, native and data acquisition
-commands, a small internal WebAssembly data preparer, and their licensing and
-usage documentation. It does not embed the native library, stem data, or a
-generated index. The separately acquired native archive and data directory keep
-their own licenses and receipts. A qualified version tag publishes the native
-GitHub Release assets first and publishes JSR only after those downloads exist.
+qualification and application-build target, not a published registry image.
 
 ## Acquire stem data
 
@@ -302,12 +241,15 @@ version; the command has no arbitrary-version option.
 
 The operation and selected data source both determine language coverage:
 
-| Operation or dataset                                    | Ancient Greek | Latin | Notes                                                                                  |
+| Operation                                    | Ancient Greek | Latin | Notes                                                                                  |
 | ------------------------------------------------------- | ------------- | ----- | -------------------------------------------------------------------------------------- |
 | `analyze()`                                             | Yes           | Yes   | Select `MorpheusLanguage.Greek` or `MorpheusLanguage.Latin` when creating the context. |
 | `generate()`                                            | Yes           | No    | The first `gener` integration deliberately focuses on Greek.                           |
-| Bundled Perseids-Tools `stemlib/`                       | Yes           | Yes   | Baseline analysis fixtures.                                                            |
-| Pinned Alpheios `vendor/alpheios-morpheus/dist/stemlib` | Yes           | No    | Reference fixtures and default Docker dataset.                                         |
+
+| Dataset                                    | Ancient Greek | Latin | Notes                                                                                  |
+| ------------------------------------------------------- | ------------- | ----- | -------------------------------------------------------------------------------------- |
+| `perseids-Tools` (bundled) `stemlib/`                       | Yes           | Yes   | Baseline analysis fixtures.                                                            |
+| `alpheios-project` (pinned) `vendor/alpheios-morpheus/dist/stemlib` | Yes           | No    | Reference fixtures and default Docker dataset.                                         |
 
 The
 [stem-library inventory](https://github.com/defense-humanites/libmorpheus/blob/main/docs/stem-libraries.md)
