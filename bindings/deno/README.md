@@ -5,10 +5,20 @@ morphological analyzer for Ancient Greek and Latin. It turns the historical C
 programs into an installable C17 shared library with a stable, opaque ABI and a
 typed Deno 2 binding.
 
+This module loads the
+[`libmorpheus`](https://github.com/defense-humanites/libmorpheus) shared library
+with `Deno.dlopen`. It exposes normalized Greek and Latin analysis plus
+experimental Greek lemma generation. Native results are copied into owned
+TypeScript objects before their C allocations are released.
+
 ## Summary
 
-1. [Purpose](#purpose)
-2. [Quick start (using the JSR package)](#quick-start-using-the-jsr-package)
+1. [Quick start (using the JSR package)](#quick-start-using-the-jsr-package)
+2. [In-depth overview](#in-depth-overview)
+   1. [Analyze a form](#analyze-a-form)
+   2. [Generate forms from a lemma](#generate-forms-from-a-lemma)
+   3. [Parallel contexts](#parallel-contexts)
+   4. [Raw access and cleanup](#raw-access-and-cleanup)
 3. [Other installation options](#other-installation-options)
    1. [Standalone release archive](#standalone-release-archive)
    2. [Docker image](#docker-image)
@@ -17,21 +27,9 @@ typed Deno 2 binding.
    2. [Acquire the native library](#acquire-the-native-library)
    3. [Language and data coverage](#language-and-data-coverage)
 5. [FFI permission](#ffi-permission)
-6. [Analyze a form](#analyze-a-form)
-7. [Generate forms from a lemma](#generate-forms-from-a-lemma)
-8. [Parallel contexts](#parallel-contexts)
-9. [Raw access and cleanup](#raw-access-and-cleanup)
-10. [Documentation](#documentation)
-11. [Local checks](#local-checks)
-12. [License](#license)
-
-## Purpose
-
-This module loads the
-[`libmorpheus`](https://github.com/defense-humanites/libmorpheus) shared library
-with `Deno.dlopen`. It exposes normalized Greek and Latin analysis plus
-experimental Greek lemma generation. Native results are copied into owned
-TypeScript objects before their C allocations are released.
+6. [Documentation](#documentation)
+7. [Local checks](#local-checks)
+8. [License](#license)
 
 ## Quick start (using the JSR package)
 
@@ -108,9 +106,142 @@ deno x \
   --with-gener
 ```
 
-Continue with the [other installation options](#other-installation-options),
-[generation](#generate-forms-from-a-lemma), [parallel-context](#parallel-contexts),
-and [low-level API](#raw-access-and-cleanup) documentation below.
+## In-depth overview
+
+### Analyze a form
+
+```ts
+import {
+  MorpheusError,
+  MorpheusLanguage,
+  MorpheusLibrary,
+  MorpheusOption,
+} from "@humanities/libmorpheus";
+
+try {
+  using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
+  await using context = library.createContext(
+    "/path/to/stemlib",
+    MorpheusLanguage.Greek,
+  );
+
+  const analyses = await context.analyze(
+    "a)/nqrwpos",
+    MorpheusOption.StrictCase,
+  );
+  console.log(analyses[0].partOfSpeech); // "noun"
+  console.log(analyses[0].grammaticalNumber); // "singular"
+  console.log(analyses[0].grammaticalCases); // ["nominative"]
+} catch (error) {
+  if (error instanceof MorpheusError) {
+    console.error(`Morpheus status ${error.status}: ${error.message}`);
+  } else {
+    throw error;
+  }
+}
+```
+
+`analyze()` returns stable English identifiers, arrays for combinable masks, and
+`null` for inapplicable scalar values. It preserves all analyses. A generic
+stemlib `indecl` class remains `"unknown"` because it does not identify a
+lexical category. An empty dialect array means no recorded restriction.
+
+Options are bit flags and may be combined with `|`. For example, strict case
+plus accent-insensitive fallback is:
+
+```ts
+const options = MorpheusOption.StrictCase |
+  MorpheusOption.IgnoreAccents;
+const analyses = await context.analyze("a)/nqrwpos", options);
+```
+
+Passing no option uses the binding's default analysis behavior. See the
+[native option table](https://github.com/defense-humanites/libmorpheus/blob/main/docs/public-api.md#request-options)
+before enabling specialized modes.
+
+`MorpheusOption.HqDictionary` requires both HQ index files. If they are absent,
+the promise rejects with `MorpheusStatus.StemlibError` before native analysis.
+
+### Generate forms from a lemma
+
+> [!WARNING]
+> `generate()` and `generateRaw()` are experimental. Their automated
+> differential, isolation, failure, portability, and sanitizer coverage is
+> extensive, but sufficient real-world use is still required before this
+> qualification can be removed.
+
+```ts
+import {
+  MorpheusDialect,
+  MorpheusError,
+  MorpheusLanguage,
+  MorpheusLibrary,
+  MorpheusNumber,
+  MorpheusStatus,
+} from "@humanities/libmorpheus";
+
+try {
+  using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
+  await using context = library.createContext(
+    "/path/to/stemlib",
+    MorpheusLanguage.Greek,
+  );
+
+  const duals = await context.generate("lo/gos", {
+    number: MorpheusNumber.Dual,
+    dialect: MorpheusDialect.Attic,
+    resultLimit: 256,
+  });
+  for (const form of duals) console.log(form.surface, form.grammaticalCases);
+} catch (error) {
+  if (
+    error instanceof MorpheusError &&
+    error.status === MorpheusStatus.ResultLimitExceeded
+  ) {
+    console.error("Increase the explicit result limit for this paradigm");
+  } else {
+    throw error;
+  }
+}
+```
+
+`generate()` is nonblocking and accepts typed filters for part of speech,
+dialect, region, person, number, gender, case, tense, mood, voice, and degree.
+It preserves dialect masks, duals, duplicate surfaces, and multiple indexed
+interpretations unless filters remove them. `excludeDuals` is available when
+dual forms are unwanted. The default native limit is 4,096 and the explicit hard
+maximum is 65,536.
+
+### Parallel contexts
+
+One context deliberately queues analysis and generation calls because the native
+context is stateful. Create separate contexts to perform independent work in
+parallel:
+
+```ts
+using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
+await using first = library.createContext(stemlib, MorpheusLanguage.Greek);
+await using second = library.createContext(stemlib, MorpheusLanguage.Greek);
+
+const [analyses, forms] = await Promise.all([
+  first.analyze("a)/nqrwpos"),
+  second.generate("lo/gos"),
+]);
+```
+
+The actual speedup depends on the workload and machine. Reuse warm contexts; the
+generation index is loaded lazily once per context.
+
+### Raw access and cleanup
+
+Use `analyzeRaw()` and `generateRaw()` for ABI inspection and low-level tools.
+They return numeric normalized traits, `structSize`, the complete 11-byte public
+morphology vector, and a numeric truncation mask. The semantic methods return
+named morphology flags and truncated fields.
+
+Close contexts before their parent library. `using` and `await using` provide
+deterministic cleanup, including when a promise rejects. `MorpheusLibrary.close`
+rejects while any child context remains open.
 
 ## Other installation options
 
@@ -235,13 +366,10 @@ described below.
 
 The operation and selected dataset together determine language coverage:
 
-| Operation | Ancient Greek | Latin | Additional requirement |
+| Operation or dataset | Ancient Greek | Latin | Additional requirement |
 | --- | :---: | :---: | --- |
 | `analyze()` | Yes | Yes | A stemlib for the selected language. |
 | `generate()` | Yes | No | Alpheios data prepared with `gener.index`. |
-
-| Dataset | Ancient Greek | Latin | Generation |
-| --- | :---: | :---: | --- |
 | Perseids | Yes | Yes | No |
 | Alpheios | Yes | No | With `--with-gener`; already prepared in Docker. |
 
@@ -264,141 +392,6 @@ library path explicit in code, but use the unscoped permission shown above. A
 `deno.json` task can retain the same command for both `x86_64` and `aarch64`
 deployments; only the library path needs to change. Environment and file
 permissions are not required by the binding itself.
-
-## Analyze a form
-
-```ts
-import {
-  MorpheusError,
-  MorpheusLanguage,
-  MorpheusLibrary,
-  MorpheusOption,
-} from "@humanities/libmorpheus";
-
-try {
-  using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
-  await using context = library.createContext(
-    "/path/to/stemlib",
-    MorpheusLanguage.Greek,
-  );
-
-  const analyses = await context.analyze(
-    "a)/nqrwpos",
-    MorpheusOption.StrictCase,
-  );
-  console.log(analyses[0].partOfSpeech); // "noun"
-  console.log(analyses[0].grammaticalNumber); // "singular"
-  console.log(analyses[0].grammaticalCases); // ["nominative"]
-} catch (error) {
-  if (error instanceof MorpheusError) {
-    console.error(`Morpheus status ${error.status}: ${error.message}`);
-  } else {
-    throw error;
-  }
-}
-```
-
-`analyze()` returns stable English identifiers, arrays for combinable masks, and
-`null` for inapplicable scalar values. It preserves all analyses. A generic
-stemlib `indecl` class remains `"unknown"` because it does not identify a
-lexical category. An empty dialect array means no recorded restriction.
-
-Options are bit flags and may be combined with `|`. For example, strict case
-plus accent-insensitive fallback is:
-
-```ts
-const options = MorpheusOption.StrictCase |
-  MorpheusOption.IgnoreAccents;
-const analyses = await context.analyze("a)/nqrwpos", options);
-```
-
-Passing no option uses the binding's default analysis behavior. See the
-[native option table](https://github.com/defense-humanites/libmorpheus/blob/main/docs/public-api.md#request-options)
-before enabling specialized modes.
-
-`MorpheusOption.HqDictionary` requires both HQ index files. If they are absent,
-the promise rejects with `MorpheusStatus.StemlibError` before native analysis.
-
-## Generate forms from a lemma
-
-> [!CAUTION]
-> `generate()` and `generateRaw()` are experimental. Their automated
-> differential, isolation, failure, portability, and sanitizer coverage is
-> extensive, but sufficient real-world use is still required before this
-> qualification can be removed.
-
-```ts
-import {
-  MorpheusDialect,
-  MorpheusError,
-  MorpheusLanguage,
-  MorpheusLibrary,
-  MorpheusNumber,
-  MorpheusStatus,
-} from "@humanities/libmorpheus";
-
-try {
-  using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
-  await using context = library.createContext(
-    "/path/to/stemlib",
-    MorpheusLanguage.Greek,
-  );
-
-  const duals = await context.generate("lo/gos", {
-    number: MorpheusNumber.Dual,
-    dialect: MorpheusDialect.Attic,
-    resultLimit: 256,
-  });
-  for (const form of duals) console.log(form.surface, form.grammaticalCases);
-} catch (error) {
-  if (
-    error instanceof MorpheusError &&
-    error.status === MorpheusStatus.ResultLimitExceeded
-  ) {
-    console.error("Increase the explicit result limit for this paradigm");
-  } else {
-    throw error;
-  }
-}
-```
-
-`generate()` is nonblocking and accepts typed filters for part of speech,
-dialect, region, person, number, gender, case, tense, mood, voice, and degree.
-It preserves dialect masks, duals, duplicate surfaces, and multiple indexed
-interpretations unless filters remove them. `excludeDuals` is available when
-dual forms are unwanted. The default native limit is 4,096 and the explicit hard
-maximum is 65,536.
-
-## Parallel contexts
-
-One context deliberately queues analysis and generation calls because the native
-context is stateful. Create separate contexts to perform independent work in
-parallel:
-
-```ts
-using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
-await using first = library.createContext(stemlib, MorpheusLanguage.Greek);
-await using second = library.createContext(stemlib, MorpheusLanguage.Greek);
-
-const [analyses, forms] = await Promise.all([
-  first.analyze("a)/nqrwpos"),
-  second.generate("lo/gos"),
-]);
-```
-
-The actual speedup depends on the workload and machine. Reuse warm contexts; the
-generation index is loaded lazily once per context.
-
-## Raw access and cleanup
-
-Use `analyzeRaw()` and `generateRaw()` for ABI inspection and low-level tools.
-They return numeric normalized traits, `structSize`, the complete 11-byte public
-morphology vector, and a numeric truncation mask. The semantic methods return
-named morphology flags and truncated fields.
-
-Close contexts before their parent library. `using` and `await using` provide
-deterministic cleanup, including when a promise rejects. `MorpheusLibrary.close`
-rejects while any child context remains open.
 
 ## Documentation
 
