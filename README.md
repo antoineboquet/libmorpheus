@@ -7,19 +7,22 @@ typed Deno 2 binding.
 
 ## Summary
 
-1. [What is supported?](#what-is-supported)
+1. [Project status](#project-status)
 2. [Bindings](#bindings)
 3. [Build the native library](#build-the-native-library)
    1. [Requirements](#requirements)
+   2. [Steps and options](#steps-and-options)
 4. [Install and consume from C](#install-and-consume-from-c)
 5. [Runtime data](#runtime-data)
-6. [`cruncher`](#cruncher)
-7. [Alpine container images](#alpine-container-images)
-8. [Releases and platform support](#releases-and-platform-support)
-9. [Architecture and provenance](#architecture-and-provenance)
-10. [License](#license)
+6. [Alpine container images](#alpine-container-images)
+   1. [`runtime`](#runtime)
+   2. [`deno-runtime`](#deno-runtime)
+8. [`cruncher`](#cruncher)
+9. [Releases and platform support](#releases-and-platform-support)
+10. [Architecture and provenance](#architecture-and-provenance)
+11. [License](#license)
 
-## What is supported?
+## Project status
 
 | Operation | Ancient Greek | Latin | Status |
 | --- | :---: | :---: | --- |
@@ -31,18 +34,13 @@ The public runtime includes:
 - structured, caller-owned analysis and generation results;
 - per-request analysis options and generation filters;
 - isolated contexts that can be used concurrently;
-- a Deno 2 FFI binding published as
+- a Deno 2 FFI binding published on JSR as
   [`@humanities/libmorpheus`](https://jsr.io/@humanities/libmorpheus);
 - `cruncher`, retained as a compatibility client of the public library;
 - CMake and `pkg-config` installation metadata.
 
-> [!IMPORTANT]
-> `generate()` is experimental. It preserves multiple morphological
-> interpretations, dialects, dual forms, and inapplicable values represented by
-> `null`, but still needs more real-world qualification.
-
 > [!NOTE]
-> Native archives and the JSR package contain no linguistic data. Applications
+> Native archives and the JSR package contain no linguistic data. Applications must
 > acquire a compatible stem library separately; see [Runtime data](#runtime-data).
 
 ## Bindings
@@ -65,7 +63,9 @@ Native consumers should instead use the [public C API](docs/public-api.md).
 - a C17 compiler;
 - Deno 2 only for the binding tests.
 
-The Alpheios reference stemlib is a pinned Git submodule, so clone recursively:
+### Steps and options
+
+The `alpheios-project` reference stemlib is a pinned Git submodule, so clone recursively:
 
 ```sh
 git clone --recurse-submodules \
@@ -103,11 +103,15 @@ Sanitizer and optimized test configurations are available as separate presets:
 cmake --preset sanitizers
 cmake --build --preset sanitizers
 ctest --preset sanitizers
+```
 
+```sh
 cmake --preset thread-sanitizer
 cmake --build --preset thread-sanitizer
 ctest --preset thread-sanitizer
+```
 
+```sh
 cmake --preset release -DBUILD_TESTING=ON
 cmake --build --preset release
 ctest --preset release
@@ -192,12 +196,8 @@ versioned and distributed separately.
 
 | Dataset | Analysis | Generation | Repository location |
 | --- | --- | --- | --- |
-| Perseids-Tools | Greek and Latin | No | `stemlib/` |
-| Pinned Alpheios | Greek | Requires a prepared `gener.index` | `vendor/alpheios-morpheus/dist/stemlib/` |
-
-The setup commands in [Quick start with Deno](#quick-start-with-deno) download
-and verify the selected upstream dataset. They do not redistribute it inside
-the JSR package or a release asset.
+| `perseids-tools` | Greek and Latin | No | `stemlib/` |
+| `alpheios-project` (pinned) | Greek | Requires a prepared `gener.index` | `vendor/alpheios-morpheus/dist/stemlib/` |
 
 From a recursive source checkout, prepare a standalone Alpheios directory with
 the validated experimental generation index using:
@@ -210,6 +210,33 @@ The [runtime-data guide](docs/runtime-data.md) records exact pinned revisions,
 digests, acquisition permissions, and redistribution caveats. The
 [stem-library inventory](docs/stem-libraries.md) explains the origin and role of
 each dataset.
+
+## Alpine container images
+
+We provide two Alpine container images to facilitate the use of the library. The Dockerfile supports `linux/amd64`
+and `linux/arm64` with BuildKit/QEMU. These images are local qualification and application-build targets.
+
+### `runtime`
+
+We provide two Alpine container imagesThe default Alpine multi-stage image builds and tests the C17 runtime on musl,
+then ships the installed library, `cruncher`, runtime dependencies, and the
+prepared `alpheios-project` stemlib:
+
+```sh
+docker build --target runtime -t morpheus .
+printf 'a)/nqrwpos\n' | docker run --rm -i morpheus -S
+```
+
+### `deno-runtime`
+
+The `deno-runtime` target also includes Deno and the typed binding:
+
+```sh
+docker build --target deno-runtime -t morpheus-deno .
+```
+
+See the Deno binding guide for the [`deno-runtime`](bindings/deno/README.md#docker-image) image,
+including its preconfigured paths, supported operations, and usage constraints.
 
 ## `cruncher`
 
@@ -225,31 +252,6 @@ printf 'a)/nqrwpos\n' | \
 Retained options include `-L` for Latin, `-S` for non-strict case, `-n` to
 ignore accents, `-d` for database format, `-e` for numeric feature indices,
 `-k` to retain Beta Code, `-l` for lemma-only output, and `-V` for verbs only.
-
-## Alpine container images
-
-The default Alpine multi-stage image builds and tests the C17 runtime on musl,
-then ships the installed library, `cruncher`, runtime dependencies, and the
-prepared Alpheios stemlib:
-
-```sh
-docker build --target runtime -t morpheus .
-printf 'a)/nqrwpos\n' | docker run --rm -i morpheus -S
-```
-
-The `deno-runtime` target also includes Deno and the typed binding:
-
-```sh
-docker build --target deno-runtime -t morpheus-deno .
-```
-
-See the Deno binding guide for the [`deno-runtime` image](bindings/deno/README.md#docker-image),
-including its preconfigured paths, supported operations, and usage constraints.
-
-The Dockerfile supports `linux/amd64` and `linux/arm64` with BuildKit/QEMU.
-These images are local qualification and application-build targets. Do not
-publish them while the Alpheios stemlib and derived-index redistribution terms
-remain unresolved.
 
 ## Releases and platform support
 
@@ -269,7 +271,7 @@ Two separate fixture suites prevent stemlib differences from being mistaken for
 runtime regressions:
 
 - `legacy_fixtures` checks inherited Greek and Latin expectations against the
-  Perseids dataset;
+  `perseids-tools` dataset;
 - `alpheios_greek_fixtures` checks Greek reference cases against the pinned
   Alpheios dataset.
 
@@ -278,7 +280,7 @@ tests complement those fixtures.
 
 ## Architecture and provenance
 
-The current implementation derives from the Perseids-Tools fork, the only
+The current implementation derives from the `perseids-tools` fork, the only
 baseline known to compile before this modernization. The repository bundles its
 Greek and Latin stemlib and pins a newer Alpheios Greek stemlib for additional
 testing and validation.
