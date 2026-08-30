@@ -80,5 +80,6 @@ docker build --target deno-runtime -t morpheus-deno .
 
 The build uses the canonical runtime-data preparer and embeds its validated
 Alpheios `gener.index` beside the Greek stemlib. Platform CI checks the index
-digest, then runs real Deno analysis and experimental generation through the
-image on both Alpine architectures, including preservation of dual forms.
+digest, verifies that no source-tree binding was copied into the image, then
+runs real Deno analysis and experimental generation through the public JSR
+package on both Alpine architectures, including preservation of dual forms.

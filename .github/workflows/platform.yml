@@ -323,11 +323,16 @@ jobs:
         run: |
           docker run --rm --entrypoint sh morpheus-deno:ci -c \
             'echo "5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6  /opt/morpheus/share/morpheus/stemlib/gener.index" | sha256sum -c -'
-          docker run --rm morpheus-deno:ci eval --allow-env --allow-ffi '
+          docker run --rm --entrypoint sh morpheus-deno:ci -c \
+            'test ! -e /opt/morpheus/share/morpheus/deno'
+          docker run --rm morpheus-deno:ci eval \
+            --allow-env=MORPHEUS_LIBRARY,MORPHEUS_STEMLIB \
+            --allow-ffi=/opt/morpheus/lib/libmorpheus.so \
+            --allow-read=/opt/morpheus/share/morpheus/stemlib '
             import {
               MorpheusLanguage,
               MorpheusLibrary,
-            } from "/opt/morpheus/share/morpheus/deno/mod.ts";
+            } from "jsr:@humanities/libmorpheus";
             using library = new MorpheusLibrary(
               Deno.env.get("MORPHEUS_LIBRARY")!,
             );

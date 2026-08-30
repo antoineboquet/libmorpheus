@@ -120,6 +120,10 @@ file(READ "${MORPHEUS_SOURCE_DIR}/Dockerfile" dockerfile)
 foreach(expected_container_value IN ITEMS
         "tools/prepare-runtime-data.sh /opt/morpheus-runtime-data"
         "/opt/morpheus-runtime-data"
+        "ENV MORPHEUS_LIBRARY=/opt/morpheus/lib/libmorpheus.so"
+        "ENV MORPHEUS_STEMLIB=/opt/morpheus/share/morpheus/stemlib"
+        "jsr:@humanities/libmorpheus"
+        "test ! -e /opt/morpheus/share/morpheus/deno"
         "5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6"
         "generation lost dual forms")
   string(FIND "${dockerfile}${platform_workflow}"
@@ -129,6 +133,16 @@ foreach(expected_container_value IN ITEMS
       "Docker generation qualification is missing: ${expected_container_value}")
   endif()
 endforeach()
+string(FIND "${dockerfile}" "bindings/deno" embedded_deno_binding_at)
+if(NOT embedded_deno_binding_at EQUAL -1)
+  message(FATAL_ERROR "deno-runtime still embeds the source-tree Deno binding")
+endif()
+string(FIND "${platform_workflow}"
+  "from \"/opt/morpheus/share/morpheus/deno/mod.ts\""
+  local_deno_import_at)
+if(NOT local_deno_import_at EQUAL -1)
+  message(FATAL_ERROR "container qualification still imports a bundled binding")
+endif()
 
 if(MORPHEUS_PROJECT_VERSION STREQUAL "0.3.0")
   string(FIND "${release_decision}"

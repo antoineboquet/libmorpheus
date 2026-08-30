@@ -263,8 +263,9 @@ nor stem data.
 
 The repository's locally built
 [`deno-runtime` image target](https://github.com/defense-humanites/libmorpheus/blob/main/Dockerfile)
-bundles Deno, the native library, this binding, and the pinned Alpheios stemlib
-prepared with its validated `gener.index`:
+bundles Deno, the native library, and the pinned Alpheios stemlib prepared with
+its validated `gener.index`. It deliberately does not copy this binding into the
+image:
 
 ```sh
 git clone --recurse-submodules \
@@ -273,12 +274,35 @@ cd libmorpheus
 docker build --target deno-runtime -t morpheus-deno .
 ```
 
-Inside the image, import `/opt/morpheus/share/morpheus/deno/mod.ts`.
-`MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` already contain the corresponding
-container paths. Applications still need Deno's `--allow-ffi` permission.
-Greek `analyze()` and experimental `generate()` are both qualified in the image;
-CI also checks that generation preserves dual forms. The image is a
-qualification and application-build target, not a published registry image.
+Containerized applications declare `@humanities/libmorpheus` as the same normal
+JSR dependency used outside Docker:
+
+```sh
+deno add jsr:@humanities/libmorpheus
+```
+
+Application code imports `@humanities/libmorpheus` and reads only
+`MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB`, which already contain the container
+paths. It does not call `/setup` or depend on how the image provisioned those
+paths:
+
+```ts
+import {
+  MorpheusLanguage,
+  MorpheusLibrary,
+} from "@humanities/libmorpheus";
+
+using library = new MorpheusLibrary(Deno.env.get("MORPHEUS_LIBRARY")!);
+await using context = library.createContext(
+  Deno.env.get("MORPHEUS_STEMLIB")!,
+  MorpheusLanguage.Greek,
+);
+```
+
+Applications still need Deno's FFI permission. Greek `analyze()` and
+experimental `generate()` are both qualified in the image; CI also checks that
+generation preserves dual forms. The image is a qualification and
+application-build target, not a published registry image.
 
 ## Native library and runtime data
 
@@ -289,7 +313,7 @@ What must be acquired depends on the distribution:
 | --- | --- | --- | --- |
 | JSR package | Not included | Not included | Run `/setup`, or use `/native` and `/data` separately. |
 | Standalone binding archive | Not included | Not included | Install the matching native release and acquire a stemlib as described below. |
-| `deno-runtime` Docker image | Included | Alpheios included | Nothing: use `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB`. |
+| `deno-runtime` Docker image | Included | Alpheios included | Add the binding from JSR; use `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` without running `/setup`. |
 
 The following acquisition commands therefore apply to the JSR package and the
 standalone binding archive, not to the Docker image.

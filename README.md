@@ -213,12 +213,13 @@ each dataset.
 
 ## Alpine container images
 
-We provide two Alpine container images to facilitate the use of the library. The Dockerfile supports `linux/amd64`
-and `linux/arm64` with BuildKit/QEMU. These images are local qualification and application-build targets.
+We provide two Alpine container images to facilitate the use of the library.
+The Dockerfile supports `linux/amd64` and `linux/arm64` with BuildKit/QEMU.
+These images are local qualification and application-build targets.
 
 ### `runtime`
 
-We provide two Alpine container imagesThe default Alpine multi-stage image builds and tests the C17 runtime on musl,
+The default Alpine multi-stage image builds and tests the C17 runtime on musl,
 then ships the installed library, `cruncher`, runtime dependencies, and the
 prepared `alpheios-project` stemlib:
 
@@ -229,14 +230,16 @@ printf 'a)/nqrwpos\n' | docker run --rm -i morpheus -S
 
 ### `deno-runtime`
 
-The `deno-runtime` target also includes Deno and the typed binding:
+The `deno-runtime` target adds Deno while preinstalling only the native runtime
+and prepared data:
 
 ```sh
 docker build --target deno-runtime -t morpheus-deno .
 ```
 
-See the Deno binding guide for the [`deno-runtime`](bindings/deno/README.md#docker-image) image,
-including its preconfigured paths, supported operations, and usage constraints.
+Applications consume the binding as a normal JSR dependency. See the
+[Deno binding guide](bindings/deno/README.md#docker-image) for the preconfigured
+paths and a consumer example.
 
 ## `cruncher`
 

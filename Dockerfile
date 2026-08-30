@@ -38,9 +38,6 @@ COPY --from=build /opt/morpheus /opt/morpheus
 COPY --from=build \
   /opt/morpheus-runtime-data \
   /opt/morpheus/share/morpheus/stemlib
-COPY --from=build \
-  /src/bindings/deno \
-  /opt/morpheus/share/morpheus/deno
 
 ENV LD_LIBRARY_PATH=/opt/morpheus/lib
 ENV MORPHEUS_LIBRARY=/opt/morpheus/lib/libmorpheus.so

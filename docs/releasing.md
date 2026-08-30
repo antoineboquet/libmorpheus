@@ -131,9 +131,10 @@ Alpheios fixture suites must run where their data prerequisites are available.
   embedding the Alpheios stemlib until its redistribution terms have been
   confirmed; this restriction does not apply to data-free native packages.
 - Require both images to contain the canonical Alpheios `gener.index` digest.
-  Smoke-test `cruncher`, then run real Deno analysis and experimental generation
-  against the prepared stemlib, including a dual-form assertion, rather than
-  merely checking that Deno starts.
+  Require `deno-runtime` to contain no copied Deno binding: applications must
+  consume the normal JSR dependency. Smoke-test `cruncher`, then run real Deno
+  analysis and experimental generation from JSR against the prepared stemlib,
+  including a dual-form assertion, rather than merely checking that Deno starts.
 - Inspect the native installation and confirm it contains only the public
   header, shared library, CMake package files, `libmorpheus.pc`, and optional
   `cruncher` executable.

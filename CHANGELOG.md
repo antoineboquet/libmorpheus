@@ -21,6 +21,9 @@ the corpus.
   receipts record both the binding and runtime versions.
 - Deno implementation modules and tests now live under `internal/` and `test/`,
   leaving only public entrypoints and package metadata at the binding root.
+- The Alpine `deno-runtime` image now provides only Deno, the native runtime,
+  and prepared data; applications consume the binding as a normal JSR
+  dependency and use the preconfigured runtime environment variables.
 
 ## [0.3.2] - 2026-08-29
 
