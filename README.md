@@ -1,78 +1,48 @@
 # libmorpheus
 
-`libmorpheus` modernizes the Morpheus morphological analyzer for Ancient Greek
-and Latin. The code baseline and bundled Greek/Latin stemlib come from the
-Perseids-Tools fork; a pinned Greek-only Alpheios stemlib provides an additional
-reference dataset for testing and validation.
+`libmorpheus` modernizes the [Morpheus](https://github.com/PerseusDL/morpheus)
+morphological analyzer for Ancient Greek and Latin. It turns the historical C
+programs into an installable C17 shared library with a stable, opaque ABI and a
+typed Deno 2 binding.
 
-The runtime now provides:
+## What is supported?
 
-- a C17 shared library with a versioned, opaque C ABI;
-- structured, caller-owned analysis results;
-- per-request analysis options;
-- experimental indexed Greek lemma generation;
-- a Deno 2 FFI binding;
-- `cruncher` as a compatibility client of the public library;
+| Operation | Ancient Greek | Latin | Status |
+| --- | :---: | :---: | --- |
+| Analyze an inflected form | Yes | Yes | Supported |
+| Generate forms from a lemma | Yes | No | Experimental |
+
+The public runtime includes:
+
+- structured, caller-owned analysis and generation results;
+- per-request analysis options and generation filters;
+- isolated contexts that can be used concurrently;
+- a Deno 2 FFI binding published as
+  [`@humanities/libmorpheus`](https://jsr.io/@humanities/libmorpheus);
+- `cruncher`, retained as a compatibility client of the public library;
 - CMake and `pkg-config` installation metadata.
 
-See [the architecture baseline](docs/architecture.md),
-[the C17 port notes](docs/c17-port.md), and
-[source provenance](docs/provenance.md),
-[available stem libraries](docs/stem-libraries.md), and
-[platform support](docs/portability.md) for the implementation boundaries, exact
-upstream revisions, and tested deployment targets. The repository is
-mixed-license: inherited engine, bridge, compatibility, and derived internal
-code remain under [MPL-2.0](LICENSE), while the normalized public API, Deno
-binding, and marked independently written support files are licensed under
-[AGPL-3.0-or-later](LICENSE-AGPL-3.0-or-later). The exact file boundary and
-inventory are in
-[the licensing guide](docs/licensing.md). No MPL-to-CC change is made here.
-Historical evidence supports an MPL licensing lineage for the inherited Morpheus
-sources. Later repository-level CC references are recorded as provenance
-evidence, but are not treated as authority to relicense those sources; see
-[the source-provenance record](docs/provenance.md).
+> [!IMPORTANT]
+> `generate()` is experimental. It preserves multiple morphological
+> interpretations, dialects, dual forms, and inapplicable values represented by
+> `null`, but still needs more real-world qualification.
 
-The complete native contract is in
-[the public API reference](docs/public-api.md);
-[release qualification](docs/releasing.md) defines the checks required before
-tagging a publishable version, and the [changelog](CHANGELOG.md) records the
-candidate release contents.
+> [!NOTE]
+> Native archives and the JSR package contain no linguistic data. Applications
+> acquire a compatible stem library separately; see [Runtime data](#runtime-data).
 
-## Summary
+## Quick start with Deno
 
-1. [Clone](#clone)
-2. [Runtime data](#runtime-data)
-3. [Build and test](#build-and-test)
-4. [Install and consume from C](#install-and-consume-from-c)
-5. [Deno FFI](#deno-ffi)
-6. [`cruncher` compatibility client](#cruncher-compatibility-client)
-7. [Alpine container images](#alpine-container-images)
-8. [Behavioral baselines](#behavioral-baselines)
-9. [Historical build](#historical-build)
-
-## Clone
-
-The Alpheios stemlib is a pinned Git submodule:
+The simplest installation needs Deno 2 but no C toolchain. The prebuilt native
+archives currently support Linux x86-64 glibc, Linux aarch64 glibc, and macOS
+arm64. Install the binding:
 
 ```sh
-git clone --recurse-submodules https://github.com/defense-humanites/libmorpheus.git
-cd libmorpheus
+deno add jsr:@humanities/libmorpheus
 ```
 
-For an existing clone:
-
-```sh
-git submodule update --init --recursive
-```
-
-## Runtime data
-
-Native archives and the JSR package contain no linguistic data. The repository
-`stemlib/` supports Greek and Latin analysis; the pinned Alpheios submodule is
-the Greek reference dataset. Experimental Greek generation also needs a
-validated `gener.index`. After adding the JSR package, users can acquire the
-matching native library and a verified analysis dataset without Git or a native
-toolchain:
+Then acquire the matching native library and the Perseids dataset for Greek and
+Latin analysis:
 
 ```sh
 deno x \
@@ -83,32 +53,99 @@ deno x \
   --dataset perseids
 ```
 
-Use `--dataset alpheios` for Greek-only analysis. From a recursive versioned
-checkout, the native helper can prepare a standalone Greek runtime-data
-directory with its experimental generation index using:
+The output directories must not already exist; the command refuses to overwrite
+an installation or dataset.
 
-```sh
-sh tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"
+Create `app.ts`:
+
+```ts
+import {
+  MorpheusLanguage,
+  MorpheusLibrary,
+  MorpheusOption,
+} from "@humanities/libmorpheus";
+import { nativeLibraryPath } from "@humanities/libmorpheus/native";
+
+using library = new MorpheusLibrary(
+  nativeLibraryPath("./morpheus-native"),
+);
+await using context = library.createContext(
+  await Deno.realPath("./morpheus-data"),
+  MorpheusLanguage.Greek,
+);
+
+const analyses = await context.analyze(
+  "a)/nqrwpos",
+  MorpheusOption.StrictCase,
+);
+
+for (const analysis of analyses) {
+  console.log(analysis.lemma, analysis.partOfSpeech);
+}
 ```
 
-JSR users need no C toolchain: select `--dataset alpheios --with-gener` in the
-combined command above. The bundled internal WebAssembly preparer and
-TypeScript index builder reproduce the native reference digest locally; no
-linguistic data or derived index is shipped in the package.
+Run it with the permissions used by the application:
 
-The command validates the pinned sources and builds the index locally without
-publishing upstream data or derived data in a release asset. See
-[acquiring runtime data](docs/runtime-data.md) for exact version-pinned paths,
-requirements, language coverage, expected digest, and redistribution caveats.
+```sh
+deno run --allow-ffi --allow-read=./morpheus-data app.ts
+```
 
-## Build and test
+The FFI permission must currently remain unscoped because Deno rejects native
+pointer reads under a path-scoped `--allow-ffi` grant. The binding itself does
+not require network, environment, or write access at runtime.
 
-Requirements:
+For Greek analysis and experimental generation, choose the Alpheios dataset and
+build its validated index during setup:
+
+```sh
+deno x \
+  --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
+  --allow-read=./morpheus-native,./morpheus-data \
+  --allow-write=./morpheus-native,./morpheus-data \
+  jsr:@humanities/libmorpheus/setup \
+  --dataset alpheios \
+  --with-gener
+```
+
+See the [Deno binding guide](bindings/deno/README.md) for generation examples,
+parallel contexts, low-level access, standalone release archives, and all
+supported options.
+
+## Bindings
+
+Bindings expose the native C API to other language ecosystems. One binding is
+currently available:
+
+| Binding | Description | Documentation |
+| --- | --- | --- |
+| Deno 2 | Typed TypeScript API for analysis and experimental Greek generation, published on JSR | [Deno binding guide](bindings/deno/README.md) |
+
+Native consumers should instead use the [public C API](docs/public-api.md).
+
+## Build the native library
+
+### Requirements
 
 - CMake 3.25 or newer;
 - Ninja;
 - a C17 compiler;
-- Deno 2 only when running the FFI binding tests.
+- Deno 2 only for the binding tests.
+
+The Alpheios reference stemlib is a pinned Git submodule, so clone recursively:
+
+```sh
+git clone --recurse-submodules \
+  https://github.com/defense-humanites/libmorpheus.git
+cd libmorpheus
+```
+
+For an existing clone:
+
+```sh
+git submodule update --init --recursive
+```
+
+Configure, build, and test the development preset:
 
 ```sh
 cmake --preset dev
@@ -116,17 +153,17 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
-The runtime-only CMake build consumes an already compiled stemlib and does not
-require Flex. It produces `build/dev/libmorpheus.so` (or the platform
-equivalent) and, by default, `build/dev/cruncher`.
+This produces `build/dev/libmorpheus.so` (or the platform equivalent) and, by
+default, `build/dev/cruncher`. The runtime build consumes compiled stemlibs and
+does not require Flex.
 
-To configure the Alpheios fixture suite against another compiled stemlib:
+To use another compiled stemlib for the Alpheios fixture suite:
 
 ```sh
 cmake --preset dev -DMORPHEUS_STEMLIB_DIR=/absolute/path/to/stemlib
 ```
 
-ASan/UBSan and ThreadSanitizer builds have separate presets:
+Sanitizer and optimized test configurations are available as separate presets:
 
 ```sh
 cmake --preset sanitizers
@@ -136,181 +173,114 @@ ctest --preset sanitizers
 cmake --preset thread-sanitizer
 cmake --build --preset thread-sanitizer
 ctest --preset thread-sanitizer
-```
 
-The publishable optimized configuration is tested separately from Debug:
-
-```sh
 cmake --preset release -DBUILD_TESTING=ON
 cmake --build --preset release
 ctest --preset release
 ```
 
-This run also installs into a clean prefix and verifies that no private header
-or internal static archive enters the installed package.
-
-To build the versioned native archive and its SHA-256 integrity file after the
-Release build:
-
-```sh
-cpack --config build/release/CPackConfig.cmake \
-  -G TGZ -B build/release/packages
-cmake -DMORPHEUS_BUILD_DIR="$PWD/build/release" \
-  -DMORPHEUS_PACKAGE_DIR="$PWD/build/release/packages" \
-  -P test/test-release-package.cmake
-```
-
-Release-tag CI builds and verifies data-free native archives for Linux x86-64
-glibc, Linux aarch64 glibc, and macOS arm64, plus a platform-independent Deno
-binding source archive. Each archive has a SHA-256 integrity file; the checksum
-detects accidental corruption and is not a release signature.
+The Release tests also install into a clean prefix and verify the public package
+boundary.
 
 ## Install and consume from C
+
+Install the development build into the prefix of your choice:
 
 ```sh
 cmake --install build/dev --prefix /chosen/prefix
 ```
 
 The installation contains the shared library, `morpheus/morpheus.h`, the
-`Morpheus::morpheus` CMake package target, `libmorpheus.pc`, and `cruncher`.
-Stem data remains a separately versioned runtime component and is not installed
-with the library.
+`Morpheus::morpheus` CMake target, `libmorpheus.pc`, and `cruncher`. Runtime data
+is not installed with the library.
 
-A CMake consumer can use:
+With CMake:
 
 ```cmake
 find_package(Morpheus 0.1 CONFIG REQUIRED)
 target_link_libraries(my_analyzer PRIVATE Morpheus::morpheus)
 ```
 
-A `pkg-config` consumer can use:
+With `pkg-config`:
 
 ```sh
 cc analyzer.c $(pkg-config --cflags --libs libmorpheus)
 ```
 
-Both installed discovery mechanisms are relocatable when the installation prefix
-is changed with `cmake --install --prefix`. The test suite compiles, links, and
-runs independent consumers through both CMake package discovery and
-`pkg-config`, including installations whose library directory has multiple path
-components.
-
-Minimal native use:
+Minimal API use:
 
 ```c
 #include <stdint.h>
 #include <morpheus/morpheus.h>
 
-morpheus_config config = {
-  MORPHEUS_ABI_VERSION,
-  sizeof config,
-  "/path/to/stemlib",
-  MORPHEUS_LANGUAGE_GREEK
-};
-morpheus_context *context = NULL;
-morpheus_result *result = NULL;
+int main(void) {
+  morpheus_config config = {
+    MORPHEUS_ABI_VERSION,
+    sizeof config,
+    "/path/to/stemlib",
+    MORPHEUS_LANGUAGE_GREEK
+  };
+  morpheus_context *context = NULL;
+  morpheus_result *result = NULL;
 
-if (morpheus_open(&config, &context) == MORPHEUS_OK &&
-    morpheus_analyze(
-      context,
-      (const uint8_t *)"a)/nqrwpos",
-      sizeof "a)/nqrwpos" - 1,
-      MORPHEUS_OPTION_STRICT_CASE,
-      &result
-    ) == MORPHEUS_OK) {
-  for (size_t i = 0; i < morpheus_result_count(result); i++) {
-    morpheus_analysis analysis;
-    if (morpheus_result_get(result, i, &analysis) == MORPHEUS_OK) {
-      /* analysis.lemma, analysis.stem, morphology fields, ... */
+  if (morpheus_open(&config, &context) == MORPHEUS_OK &&
+      morpheus_analyze(
+        context,
+        (const uint8_t *)"a)/nqrwpos",
+        sizeof "a)/nqrwpos" - 1,
+        MORPHEUS_OPTION_STRICT_CASE,
+        &result
+      ) == MORPHEUS_OK) {
+    for (size_t i = 0; i < morpheus_result_count(result); i++) {
+      morpheus_analysis analysis;
+      if (morpheus_result_get(result, i, &analysis) == MORPHEUS_OK) {
+        /* analysis.lemma, analysis.stem, morphology fields, ... */
+      }
     }
   }
-}
 
-morpheus_result_free(result);
-morpheus_close(context);
+  morpheus_result_free(result);
+  morpheus_close(context);
+  return 0;
+}
 ```
 
 Results preserve Morpheus ordering and duplicates. The caller owns every
-successful result until `morpheus_result_free`. Distinct contexts may be used
-concurrently; operations on one context must be serialized.
+successful result until `morpheus_result_free()`. Distinct contexts may run
+concurrently; calls on one context must be serialized. The
+[public API reference](docs/public-api.md) documents the complete ABI, error
+statuses, ownership rules, and buffer contracts.
 
-The installed header documents the complete ABI, error statuses, buffer
-contracts, compatibility formatter, and ownership rules.
+## Runtime data
 
-## Deno FFI
+Morpheus reads compiled binary databases called **stemlibs**. Code and data are
+versioned and distributed separately.
 
-The typed Deno 2 wrapper is in [`bindings/deno/mod.ts`](bindings/deno/mod.ts).
-It loads explicit library and stemlib paths, keeps native resources scoped with
-`using`/`await using`, and reports native failures as `MorpheusError` values:
+| Dataset | Analysis | Generation | Repository location |
+| --- | --- | --- | --- |
+| Perseids-Tools | Greek and Latin | No | `stemlib/` |
+| Pinned Alpheios | Greek | Requires a prepared `gener.index` | `vendor/alpheios-morpheus/dist/stemlib/` |
 
-```ts
-import {
-  MorpheusError,
-  MorpheusLanguage,
-  MorpheusLibrary,
-  MorpheusOption,
-} from "./bindings/deno/mod.ts";
+The setup commands in [Quick start with Deno](#quick-start-with-deno) download
+and verify the selected upstream dataset. They do not redistribute it inside
+the JSR package or a release asset.
 
-try {
-  using library = new MorpheusLibrary("/chosen/prefix/lib/libmorpheus.so");
-  await using context = library.createContext(
-    "/path/to/stemlib",
-    MorpheusLanguage.Greek,
-  );
-
-  const analyses = await context.analyze(
-    "a)/nqrwpos",
-    MorpheusOption.StrictCase,
-  );
-  console.log(analyses);
-} catch (error) {
-  if (error instanceof MorpheusError) {
-    console.error(`Morpheus status ${error.status}: ${error.message}`);
-  } else {
-    throw error;
-  }
-}
-```
-
-Run the application with Deno's FFI permission:
+From a recursive source checkout, prepare a standalone Alpheios directory with
+the validated experimental generation index using:
 
 ```sh
-deno run --allow-ffi app.ts
+sh tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"
 ```
 
-The wrapper reads returned native pointers with `Deno.UnsafePointerView`.
-Current Deno therefore requires the unscoped FFI permission; a path-scoped
-`--allow-ffi=/chosen/prefix/lib/libmorpheus.so` grant lets the library load but
-rejects those pointer reads. Keep the library path explicit in application code
-and grant no unrelated Deno permissions unless the application needs them.
+The [runtime-data guide](docs/runtime-data.md) records exact pinned revisions,
+digests, acquisition permissions, and redistribution caveats. The
+[stem-library inventory](docs/stem-libraries.md) explains the origin and role of
+each dataset.
 
-Install the source binding from JSR with
-`deno add jsr:@humanities/libmorpheus`. Because JSR packages cannot run a
-post-install hook, complete the installation with the combined `/setup` command
-shown in [Runtime data](#runtime-data). It acquires both the native archive and
-the selected stem dataset without a native toolchain. The package also retains
-separate `/native` and `/data` entrypoints for advanced workflows.
+## `cruncher`
 
-Import `nativeLibraryPath` from `@humanities/libmorpheus/native` to resolve the
-installed `.so` or `.dylib`; loading it still requires `deno run --allow-ffi`.
-Native archives, the JSR package, and release assets intentionally contain no
-stem data. The [runtime-data guide](docs/runtime-data.md) documents the
-version-pinned Greek and Latin analysis datasets and provides one local command
-to prepare the Alpheios Greek stemlib with its reproducible `gener.index`.
-
-`analyze()` supports Greek and Latin contexts. The experimental first generation
-integration deliberately focuses on Greek and requires a `gener.index` beside
-its stemlib. Its experimental qualification can be removed after sufficient
-real-world use complements the current automated coverage. The wrapper
-dispatches analysis and generation as nonblocking FFI operations, serializes
-requests made through one context, and copies native results into TypeScript
-objects before releasing native memory. See
-[the standalone binding guide](bindings/deno/README.md) for installation,
-language scope, all examples, test commands, and platform library names.
-
-## cruncher compatibility client
-
-`cruncher` continues to read `MORPHLIB` for command-line compatibility:
+The historical command-line interface remains available as a compatibility
+client of the library. It reads `MORPHLIB` as before:
 
 ```sh
 printf 'a)/nqrwpos\n' | \
@@ -318,78 +288,90 @@ printf 'a)/nqrwpos\n' | \
   build/dev/cruncher -S
 ```
 
-Important retained options include `-L` for Latin, `-S` for non-strict case,
-`-n` to ignore accents, `-d` for database format, `-e` for numeric feature
-indices, `-k` to retain Beta Code, `-l` for lemma-only output, and `-V` for
-verbs only.
+Retained options include `-L` for Latin, `-S` for non-strict case, `-n` to
+ignore accents, `-d` for database format, `-e` for numeric feature indices,
+`-k` to retain Beta Code, `-l` for lemma-only output, and `-V` for verbs only.
 
 ## Alpine container images
 
-The default multi-stage image builds and tests the C17 runtime on musl, then
-ships only the installed library, `cruncher`, its runtime dependencies, and the
-pinned Alpheios stemlib prepared with the validated experimental Greek
-`gener.index`:
+The default Alpine multi-stage image builds and tests the C17 runtime on musl,
+then ships the installed library, `cruncher`, runtime dependencies, and the
+prepared Alpheios stemlib:
 
 ```sh
 docker build --target runtime -t morpheus .
 printf 'a)/nqrwpos\n' | docker run --rm -i morpheus -S
 ```
 
-The Dockerfile is multiarchitecture. With BuildKit/QEMU configured, the same
-source builds both immediate Linux targets:
-
-```sh
-docker buildx build \
-  --platform linux/amd64,linux/arm64 \
-  --target runtime \
-  .
-```
-
-A separate `deno-runtime` target contains Deno, the shared library, the typed
-binding, and the prepared stemlib for use as an application base:
+The `deno-runtime` target also includes Deno and the typed binding:
 
 ```sh
 docker build --target deno-runtime -t morpheus-deno .
 ```
 
-Its `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB` variables already point to the
-container paths. Application code can import the bundled binding from
-`/opt/morpheus/share/morpheus/deno/mod.ts`. Both `analyze()` and experimental
-Greek `generate()` are ready to use; generation is smoke-tested against the
-full prepared Alpheios index on Alpine x86-64 and aarch64.
+See the Deno binding guide for the [`deno-runtime` image](bindings/deno/README.md#docker-image),
+including its preconfigured paths, supported operations, and usage constraints.
 
-These images remain local qualification and application-build targets. Do not
+The Dockerfile supports `linux/amd64` and `linux/arm64` with BuildKit/QEMU.
+These images are local qualification and application-build targets. Do not
 publish them while the Alpheios stemlib and derived-index redistribution terms
 remain unresolved.
 
-## Behavioral baselines
+## Releases and platform support
 
-Two fixture suites, executed by CMake without a scripting-language runtime,
-intentionally remain separate:
+Qualified release tags provide data-free native archives and SHA-256 files for:
 
-- `legacy_fixtures` runs the inherited Greek and Latin expectations against the
-  Perseids `stemlib` directory;
-- `alpheios_greek_fixtures` runs Greek smoke cases against the pinned
-  `vendor/alpheios-morpheus/dist/stemlib`.
+- Linux x86-64 glibc;
+- Linux aarch64 glibc;
+- macOS arm64;
+- the platform-independent Deno binding source archive.
 
-This prevents data-version differences from being mistaken for regressions in
-the C implementation. Public ABI, installed-package, parallel-context, Deno,
-ASan/UBSan, and TSan tests complement those fixtures.
+The checksum detects corruption; it is not a release signature. See
+[platform support](docs/portability.md) for the complete qualification matrix
+and [release qualification](docs/releasing.md) for the checks required before a
+tag. Release changes are recorded in the [changelog](CHANGELOG.md).
 
-## Historical build
+Two separate fixture suites prevent stemlib differences from being mistaken for
+runtime regressions:
 
-The inherited Makefiles remain available during the transition:
+- `legacy_fixtures` checks inherited Greek and Latin expectations against the
+  Perseids dataset;
+- `alpheios_greek_fixtures` checks Greek reference cases against the pinned
+  Alpheios dataset.
 
-```sh
-make -C src clean
-CFLAGS='-std=c17 -fcommon' make -C src libs
-CFLAGS='-std=c17 -fcommon' make -C src/anal cruncher
-```
+Public ABI, installed-package, parallel-context, Deno, ASan/UBSan, and TSan
+tests complement those fixtures.
 
-They are retained only as a compatibility check. New consumers should use the
-CMake build and public ABI.
+## Architecture and provenance
 
-Only the inherited `libs` and `cruncher` targets are covered by that check.
-Other standalone programs preserved below `src/` are deliberately excluded from
-the supported build and installation; their status and reintroduction criteria
-are documented in [Historical utility policy](docs/historical-utilities.md).
+The current implementation derives from the Perseids-Tools fork, the only
+baseline known to compile before this modernization. The repository bundles its
+Greek and Latin stemlib and pins a newer Alpheios Greek stemlib for additional
+testing and validation.
+
+Further documentation:
+
+- [Architecture baseline](docs/architecture.md)
+- [C17 port notes](docs/c17-port.md)
+- [Source provenance](docs/provenance.md)
+- [Historical utility policy](docs/historical-utilities.md)
+
+The inherited Makefiles remain as a compatibility check for `libs` and
+`cruncher`, but new consumers should use CMake and the public ABI. Other
+historical programs below `src/` are quarantined and excluded from supported
+builds.
+
+## License
+
+This is a mixed-license repository:
+
+- inherited engine, bridge, compatibility, and derived internal code remain
+  under [MPL-2.0](LICENSE);
+- the normalized public API, Deno binding, and marked independently written
+  support files use
+  [AGPL-3.0-or-later](LICENSE-AGPL-3.0-or-later).
+
+A file's SPDX identifier controls when present; otherwise the root MPL-2.0
+license applies. See the [licensing guide](docs/licensing.md) for the precise
+file-level boundary and the [license inventory](docs/license-inventory.md) for
+its rationale and provenance.
