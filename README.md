@@ -45,12 +45,13 @@ The public runtime includes:
 
 ## Bindings
 
-Bindings expose the native C API to other language ecosystems. One binding is
-currently available:
+Bindings expose the native C API to other language ecosystems. The Deno binding
+is published; the Node.js binding is under active development:
 
 | Binding | Description | Documentation |
 | --- | --- | --- |
 | Deno 2 | Typed TypeScript API for analysis and experimental Greek generation, published on JSR | [Deno binding guide](bindings/js/deno/README.md) |
+| Node.js 20+ | ESM facade over an asynchronous Node-API addon; not yet published | [Node.js binding guide](bindings/js/node/README.md) |
 
 The historical `@humanities/libmorpheus` package remains available through
 version `0.3.2`; new Deno releases use `@libmorpheus/deno`.

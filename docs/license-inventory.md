@@ -12,7 +12,9 @@ The following groups were introduced after the imported Perseids baseline and
 have no counterpart at the same path in either audited upstream tree:
 
 - the normalized public ABI in `include/morpheus/morpheus.h` and `src/api/`;
-- the Deno binding and its local documentation in `bindings/js/deno/`;
+- the independently written JavaScript bindings and their local documentation
+  under `bindings/js/`, except the explicitly MPL-marked generation preparer
+  components;
 - the CMake build, package metadata, benchmark tooling, and platform-release
   workflow identified by AGPL SPDX notices;
 - the C and CMake tests introduced by the modernization work;

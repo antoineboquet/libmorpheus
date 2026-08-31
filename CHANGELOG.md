@@ -11,6 +11,9 @@ the corpus.
 
 ### Added
 
+- An initial `@libmorpheus/node` binding uses a stable Node-API addon to load
+  the separately installed C runtime and performs analysis and experimental
+  generation on Node's asynchronous worker pool.
 - Dedicated `deno-v<version>` tags now publish the standalone Deno archive and
   JSR package independently from native runtime releases.
 

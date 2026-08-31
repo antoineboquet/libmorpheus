@@ -1,0 +1,59 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+if(NOT DEFINED MORPHEUS_SOURCE_DIR)
+  message(FATAL_ERROR "MORPHEUS_SOURCE_DIR is required")
+endif()
+
+set(node_dir "${MORPHEUS_SOURCE_DIR}/bindings/js/node")
+file(READ "${node_dir}/package.json" package)
+foreach(field IN ITEMS name version license type)
+  string(JSON "node_${field}" ERROR_VARIABLE json_error GET "${package}" "${field}")
+  if(json_error)
+    message(FATAL_ERROR "Invalid Node package ${field}: ${json_error}")
+  endif()
+endforeach()
+if(NOT node_name STREQUAL "@libmorpheus/node" OR
+   NOT node_version STREQUAL "0.1.0" OR
+   NOT node_license STREQUAL "AGPL-3.0-or-later" OR
+   NOT node_type STREQUAL "module")
+  message(FATAL_ERROR
+    "Unexpected Node package identity: ${node_name}@${node_version}, ${node_license}, ${node_type}")
+endif()
+
+file(READ "${node_dir}/index.js" facade)
+string(FIND "${facade}"
+  "MORPHEUS_NODE_VERSION = \"${node_version}\"" version_at)
+if(version_at EQUAL -1)
+  message(FATAL_ERROR "Node facade version differs from package.json")
+endif()
+
+foreach(forbidden_script IN ITEMS preinstall install postinstall)
+  string(JSON ignored ERROR_VARIABLE script_error
+    GET "${package}" scripts "${forbidden_script}")
+  if(NOT script_error)
+    message(FATAL_ERROR
+      "Node package must not run ${forbidden_script} during npm installation")
+  endif()
+endforeach()
+foreach(forbidden_field IN ITEMS dependencies optionalDependencies)
+  string(JSON ignored ERROR_VARIABLE field_error GET "${package}" "${forbidden_field}")
+  if(NOT field_error)
+    message(FATAL_ERROR
+      "Initial Node package unexpectedly declares ${forbidden_field}")
+  endif()
+endforeach()
+
+string(JSON default_import GET "${package}" exports . import)
+string(JSON default_types GET "${package}" exports . types)
+if(NOT default_import STREQUAL "./index.js" OR
+   NOT default_types STREQUAL "./index.d.ts")
+  message(FATAL_ERROR "Unexpected Node package exports")
+endif()
+
+foreach(required IN ITEMS
+    CMakeLists.txt LICENSE NOTICE README.md addon.c index.d.ts index.js
+    package.json package.json.license test/binding.test.js)
+  if(NOT EXISTS "${node_dir}/${required}")
+    message(FATAL_ERROR "Missing Node binding source: ${required}")
+  endif()
+endforeach()

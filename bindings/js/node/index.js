@@ -1,0 +1,443 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+// Copyright (C) 2026 Antoine Boquet
+
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+export const MORPHEUS_NODE_VERSION = "0.1.0";
+
+const require = createRequire(import.meta.url);
+const addonPath = process.env.MORPHEUS_NODE_ADDON ??
+  fileURLToPath(new URL("./libmorpheus_node.node", import.meta.url));
+const addon = require(addonPath);
+
+export const MorpheusLanguage = {
+  Greek: 0,
+  Latin: 1,
+  Italian: 2,
+};
+
+export const MorpheusStatus = {
+  Ok: 0,
+  InvalidArgument: 1,
+  AbiMismatch: 2,
+  NoMemory: 3,
+  InputTooLong: 4,
+  OutOfRange: 5,
+  InternalError: 6,
+  BufferTooSmall: 7,
+  StemlibError: 8,
+  ResultLimitExceeded: 9,
+};
+
+export const MorpheusOption = {
+  StrictCase: 1n << 0n,
+  IgnoreAccents: 1n << 1n,
+  VerbsOnly: 1n << 2n,
+  NoCrasis: 1n << 3n,
+  Quick: 1n << 4n,
+  HqDictionary: 1n << 5n,
+  DialectAeolic: 1n << 16n,
+  DialectAttic: 2n << 16n,
+  DialectDoric: 4n << 16n,
+  DialectHomeric: 8n << 16n,
+  DialectIonic: 16n << 16n,
+  DialectLesbian: 32n << 16n,
+  DialectNonHomericEpic: 64n << 16n,
+  DialectParadigm: 128n << 16n,
+  DialectEpic: 72n << 16n,
+  DialectProse: 256n << 16n,
+};
+
+export const MorpheusPartOfSpeech = {
+  Unknown: 0, Noun: 1, Verb: 2, Adjective: 3, Adverb: 4, Article: 5,
+  Pronoun: 6, Numeral: 7, Preposition: 8, Conjunction: 9, Particle: 10,
+  Interjection: 11,
+};
+export const MorpheusPerson = { None: 0, First: 1, Second: 2, Third: 3 };
+export const MorpheusNumber = { None: 0, Singular: 1, Dual: 2, Plural: 3 };
+export const MorpheusGender = {
+  None: 0, Adverbial: 1, Feminine: 2, Masculine: 4, Neuter: 8,
+};
+export const MorpheusCase = {
+  None: 0, Ablative: 1, Accusative: 2, Dative: 4, Genitive: 8,
+  Nominative: 16, Vocative: 32,
+};
+export const MorpheusTense = {
+  None: 0, Present: 1, Imperfect: 2, Future: 3, Aorist: 4, Perfect: 5,
+  Pluperfect: 6, FuturePerfect: 7, PastAbsolute: 8,
+};
+export const MorpheusMood = {
+  None: 0, Conditional: 1, Gerundive: 2, Imperative: 3, Indicative: 4,
+  Infinitive: 5, Optative: 6, Participle: 7, Subjunctive: 8, Supine: 9,
+};
+export const MorpheusVoice = {
+  None: 0, Active: 1, Passive: 2, Middle: 4, MedioPassive: 6, Deponent: 5,
+};
+export const MorpheusDegree = {
+  None: 0, Positive: 1, Comparative: 2, Superlative: 3,
+};
+export const MorpheusDialect = {
+  All: 0, Aeolic: 1, Attic: 2, Doric: 4, Homeric: 8, Ionic: 16,
+  Lesbian: 32, NonHomericEpic: 64, Paradigm: 128, Epic: 72, Prose: 256,
+};
+export const MorpheusGeographicRegion = {
+  None: 0, Arcadia: 1, Argolid: 2, Boeotia: 4, Cos: 8, Crete: 16,
+  Cyprus: 32, Cyrene: 64, Elis: 128, Heraclea: 256, Laconia: 512,
+  Locris: 1024, Megarid: 2048, Phocis: 4096, Rhodes: 8192, Thera: 16384,
+};
+export const MorpheusTruncatedField = {
+  None: 0, Raw: 1 << 0, Workword: 1 << 1, Lemma: 1 << 2,
+  Preverb: 1 << 3, Augment: 1 << 4, Stem: 1 << 5, Suffix: 1 << 6,
+  Ending: 1 << 7, Crasis: 1 << 8, DictionaryForm: 1 << 9,
+  EnglishForm: 1 << 10, RawPreverb: 1 << 11, Domains: 1 << 12,
+};
+
+export const MorpheusMorphFlag = {
+  SyllAugment: 74, CompOnly: 7, Enclitic: 19, Iterative: 35,
+  SuffixAccent: 73, StemAccent: 72, Contracted: 8, PersonName: 52,
+  AntepenultAccent: 3, IrregularSuperlative: 34, IrregularComparative: 32,
+  NoComparison: 47, ShortPenult: 69, LongPenult: 38, RecessiveAccent: 64,
+  AccentOptional: 0, NeedsAccent: 43, RhoEtaIotaAlpha: 66,
+  NotInComposition: 45, HasPreverb: 26, Unaugmented: 79, Dissimilation: 13,
+  Proclitic: 56, Apocope: 4, IrregularForm: 33, HasAugment: 25,
+  QuantityMetathesis: 60, NuMovable: 49, IntervocalicSToH: 29,
+  PreverbAugment: 55, Poetic: 53, UncontractedStem: 81, Metathesis: 40,
+  ElidedPreverb: 18, IndeclinableForm: 28, RootPreverb: 67, Diminutive: 12,
+  Late: 36, Rare: 61, RawPreverb: 62, Early: 17, ShortSubjunctive: 70,
+  UnaspiratedPreverb: 78, Reduplication: 65, UncontractedEnding: 80,
+  Derivative: 10, AtticReduplication: 5, NoReduplication: 48, NInfix: 50,
+  Syncope: 75, Impersonal: 27, NeedsRoughBreathing: 44, NoCircumflex: 46,
+  Causal: 6, Intransitive: 30, Tmesis: 77, RawSonant: 63, Prodelision: 57,
+  Frequentative: 22, Later: 37, DoubleAugment: 15, DoubleReduplication: 16,
+  Desiderative: 11, PresentReduplication: 54, EndsInDigamma: 20,
+  GeographicName: 23, DoubledConsonant: 14, IotaIntensive: 31,
+  LostAccent: 39, SigmaToCi: 71, ShortEis: 68, ProsToPoti: 58,
+  MetaToPeda: 41, ProsToProti: 59, UpoToUpai: 83, ParaToParai: 51,
+  UperToUpeir: 82, EnToEni: 21, AlphaPrivative: 2, AlphaCopulative: 1,
+  MetricallyLong: 42, DeltaPreverb: 9, TauPreverb: 76, GroupName: 24,
+};
+
+const MORPH_FLAG_NAMES = new Map([
+  [74, "syllabic-augment"], [7, "compound-only"], [19, "enclitic"],
+  [35, "iterative"], [73, "suffix-accent"], [72, "stem-accent"],
+  [8, "contracted"], [52, "person-name"], [3, "antepenult-accent"],
+  [34, "irregular-superlative"], [32, "irregular-comparative"],
+  [47, "no-comparison"], [69, "short-penult"], [38, "long-penult"],
+  [64, "recessive-accent"], [0, "accent-optional"], [43, "needs-accent"],
+  [66, "rho-eta-iota-alpha"], [45, "not-in-composition"],
+  [26, "has-preverb"], [79, "unaugmented"], [13, "dissimilation"],
+  [56, "proclitic"], [4, "apocope"], [33, "irregular-form"],
+  [25, "has-augment"], [60, "quantity-metathesis"], [49, "nu-movable"],
+  [29, "intervocalic-s-to-h"], [55, "preverb-augment"], [53, "poetic"],
+  [81, "uncontracted-stem"], [40, "metathesis"], [18, "elided-preverb"],
+  [28, "indeclinable-form"], [67, "root-preverb"], [12, "diminutive"],
+  [36, "late"], [61, "rare"], [62, "raw-preverb"], [17, "early"],
+  [70, "short-subjunctive"], [78, "unaspirated-preverb"],
+  [65, "reduplication"], [80, "uncontracted-ending"], [10, "derivative"],
+  [5, "attic-reduplication"], [48, "no-reduplication"], [50, "n-infix"],
+  [75, "syncope"], [27, "impersonal"], [44, "needs-rough-breathing"],
+  [46, "no-circumflex"], [6, "causal"], [30, "intransitive"],
+  [77, "tmesis"], [63, "raw-sonant"], [57, "prodelision"],
+  [22, "frequentative"], [37, "later"], [15, "double-augment"],
+  [16, "double-reduplication"], [11, "desiderative"],
+  [54, "present-reduplication"], [20, "ends-in-digamma"],
+  [23, "geographic-name"], [14, "doubled-consonant"],
+  [31, "iota-intensive"], [39, "lost-accent"], [71, "sigma-to-ci"],
+  [68, "short-eis"], [58, "pros-to-poti"], [41, "meta-to-peda"],
+  [59, "pros-to-proti"], [83, "upo-to-upai"], [51, "para-to-parai"],
+  [82, "uper-to-upeir"], [21, "en-to-eni"], [2, "alpha-privative"],
+  [1, "alpha-copulative"], [42, "metrically-long"],
+  [9, "delta-preverb"], [76, "tau-preverb"], [24, "group-name"],
+]);
+
+export function hasMorpheusMorphFlag(analysis, flag) {
+  if (Array.isArray(analysis)) {
+    return analysis.some((item) => hasMorpheusMorphFlag(item, flag));
+  }
+  if (!(analysis.morphFlags instanceof Uint8Array)) {
+    const name = typeof flag === "number" ? MORPH_FLAG_NAMES.get(flag) : flag;
+    return name !== undefined && analysis.morphFlags.includes(name);
+  }
+  if (typeof flag !== "number") {
+    for (const [code, name] of MORPH_FLAG_NAMES) {
+      if (name === flag) return hasMorpheusMorphFlag(analysis, code);
+    }
+    return false;
+  }
+  if (!Number.isInteger(flag) || flag < 0) return false;
+  const index = Math.floor(flag / 8);
+  return index < analysis.morphFlags.length &&
+    (analysis.morphFlags[index] & (1 << (flag % 8))) !== 0;
+}
+
+const PART_OF_SPEECH_NAMES = [
+  [0, "unknown"], [1, "noun"], [2, "verb"], [3, "adjective"],
+  [4, "adverb"], [5, "article"], [6, "pronoun"], [7, "numeral"],
+  [8, "preposition"], [9, "conjunction"], [10, "particle"],
+  [11, "interjection"],
+];
+const PERSON_NAMES = [[1, "first"], [2, "second"], [3, "third"]];
+const NUMBER_NAMES = [[1, "singular"], [2, "dual"], [3, "plural"]];
+const GENDER_NAMES = [
+  [1, "adverbial"], [2, "feminine"], [4, "masculine"], [8, "neuter"],
+];
+const CASE_NAMES = [
+  [1, "ablative"], [2, "accusative"], [4, "dative"], [8, "genitive"],
+  [16, "nominative"], [32, "vocative"],
+];
+const TENSE_NAMES = [
+  [1, "present"], [2, "imperfect"], [3, "future"], [4, "aorist"],
+  [5, "perfect"], [6, "pluperfect"], [7, "future-perfect"],
+  [8, "past-absolute"],
+];
+const MOOD_NAMES = [
+  [1, "conditional"], [2, "gerundive"], [3, "imperative"],
+  [4, "indicative"], [5, "infinitive"], [6, "optative"],
+  [7, "participle"], [8, "subjunctive"], [9, "supine"],
+];
+const VOICE_NAMES = [[1, "active"], [2, "passive"], [4, "middle"]];
+const VOICE_EXACT_NAMES = [[6, "medio-passive"], [5, "deponent"]];
+const DEGREE_NAMES = [[1, "positive"], [2, "comparative"], [3, "superlative"]];
+const DIALECT_NAMES = [
+  [1, "aeolic"], [2, "attic"], [4, "doric"], [8, "homeric"],
+  [16, "ionic"], [32, "lesbian"], [64, "non-homeric-epic"],
+  [128, "paradigm"], [256, "prose"],
+];
+const DIALECT_NAME_ORDER = [
+  "attic", "ionic", "aeolic", "lesbian", "homeric", "doric", "paradigm",
+  "non-homeric-epic", "epic", "prose",
+];
+const REGION_NAMES = [
+  [1, "arcadia"], [2, "argolid"], [4, "boeotia"], [8, "cos"],
+  [16, "crete"], [32, "cyprus"], [64, "cyrene"], [128, "elis"],
+  [256, "heraclea"], [512, "laconia"], [1024, "locris"],
+  [2048, "megarid"], [4096, "phocis"], [8192, "rhodes"], [16384, "thera"],
+];
+const TRUNCATED_FIELD_NAMES = [
+  [1 << 0, "raw"], [1 << 1, "workword"], [1 << 2, "lemma"],
+  [1 << 3, "preverb"], [1 << 4, "augment"], [1 << 5, "stem"],
+  [1 << 6, "suffix"], [1 << 7, "ending"], [1 << 8, "crasis"],
+  [1 << 9, "dictionaryForm"], [1 << 10, "englishForm"],
+  [1 << 11, "rawPreverb"], [1 << 12, "domains"],
+];
+
+function exactName(value, entries) {
+  return entries.find(([code]) => code === value)?.[1] ?? null;
+}
+
+function maskNames(value, entries, exactEntries = []) {
+  const exact = exactName(value, exactEntries);
+  if (exact !== null) return [exact];
+  return entries.filter(([bit]) => (value & bit) === bit).map(([, name]) => name);
+}
+
+function dialectNames(value) {
+  let remaining = value;
+  const selected = new Set();
+  if ((remaining & MorpheusDialect.Epic) === MorpheusDialect.Epic) {
+    selected.add("epic");
+    remaining &= ~MorpheusDialect.Epic;
+  }
+  for (const [bit, name] of DIALECT_NAMES) {
+    if ((remaining & bit) === bit) selected.add(name);
+  }
+  return DIALECT_NAME_ORDER.filter((name) => selected.has(name));
+}
+
+function semanticAnalysis(raw) {
+  const morphFlags = [];
+  for (const [code, name] of MORPH_FLAG_NAMES) {
+    if (hasMorpheusMorphFlag(raw, code)) morphFlags.push(name);
+  }
+  return {
+    partOfSpeech: exactName(raw.partOfSpeech, PART_OF_SPEECH_NAMES) ?? "unknown",
+    dialects: dialectNames(raw.dialect),
+    geographicRegions: maskNames(raw.geographicRegion, REGION_NAMES),
+    person: exactName(raw.person, PERSON_NAMES),
+    grammaticalNumber: exactName(raw.number, NUMBER_NAMES),
+    genders: maskNames(raw.gender, GENDER_NAMES),
+    grammaticalCases: maskNames(raw.grammaticalCase, CASE_NAMES),
+    tense: exactName(raw.tense, TENSE_NAMES),
+    mood: exactName(raw.mood, MOOD_NAMES),
+    voices: maskNames(raw.voice, VOICE_NAMES, VOICE_EXACT_NAMES),
+    degree: exactName(raw.degree, DEGREE_NAMES),
+    raw: raw.raw,
+    workword: raw.workword,
+    lemma: raw.lemma,
+    preverb: raw.preverb,
+    augment: raw.augment,
+    stem: raw.stem,
+    suffix: raw.suffix,
+    ending: raw.ending,
+    crasis: raw.crasis,
+    dictionaryForm: raw.dictionaryForm,
+    englishForm: raw.englishForm,
+    rawPreverb: raw.rawPreverb,
+    domains: raw.domains,
+    morphFlags,
+    truncatedFields: maskNames(raw.truncatedFields, TRUNCATED_FIELD_NAMES),
+  };
+}
+
+function semanticGeneration(raw) {
+  const morphFlags = [];
+  const truncatedFields = [];
+  for (const [code, name] of MORPH_FLAG_NAMES) {
+    if (hasMorpheusMorphFlag(raw, code)) morphFlags.push(name);
+  }
+  if (raw.truncatedFields & MorpheusTruncatedField.Workword) {
+    truncatedFields.push("surface");
+  }
+  if (raw.truncatedFields & MorpheusTruncatedField.Lemma) {
+    truncatedFields.push("lemma");
+  }
+  return {
+    partOfSpeech: exactName(raw.partOfSpeech, PART_OF_SPEECH_NAMES) ?? "unknown",
+    dialects: dialectNames(raw.dialect),
+    geographicRegions: maskNames(raw.geographicRegion, REGION_NAMES),
+    person: exactName(raw.person, PERSON_NAMES),
+    grammaticalNumber: exactName(raw.number, NUMBER_NAMES),
+    genders: maskNames(raw.gender, GENDER_NAMES),
+    grammaticalCases: maskNames(raw.grammaticalCase, CASE_NAMES),
+    tense: exactName(raw.tense, TENSE_NAMES),
+    mood: exactName(raw.mood, MOOD_NAMES),
+    voices: maskNames(raw.voice, VOICE_NAMES, VOICE_EXACT_NAMES),
+    degree: exactName(raw.degree, DEGREE_NAMES),
+    surface: raw.surface,
+    lemma: raw.lemma,
+    morphFlags,
+    truncatedFields,
+  };
+}
+
+export class MorpheusError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
+    this.name = "MorpheusError";
+  }
+}
+
+function asMorpheusError(error) {
+  if (error instanceof MorpheusError) return error;
+  if (error instanceof Error && Number.isInteger(error.status)) {
+    return new MorpheusError(error.status, error.message);
+  }
+  return error;
+}
+
+function nativeGenerationOptions(options) {
+  const resultLimit = options.resultLimit ?? 0;
+  if (!Number.isSafeInteger(resultLimit) || resultLimit < 0 ||
+      resultLimit > 65_536) {
+    throw new RangeError("resultLimit must be an integer from 0 to 65536");
+  }
+  return {
+    resultLimit,
+    excludeDuals: options.excludeDuals ? 1 : 0,
+    partOfSpeech: options.partOfSpeech ?? 0,
+    dialect: options.dialect ?? 0,
+    geographicRegion: options.geographicRegion ?? 0,
+    person: options.person ?? 0,
+    number: options.number ?? 0,
+    gender: options.gender ?? 0,
+    grammaticalCase: options.grammaticalCase ?? 0,
+    tense: options.tense ?? 0,
+    mood: options.mood ?? 0,
+    voice: options.voice ?? 0,
+    degree: options.degree ?? 0,
+  };
+}
+
+export class MorpheusLibrary {
+  #native;
+  #contexts = 0;
+  #closed = false;
+
+  constructor(path) {
+    this.#native = addon.openLibrary(
+      path instanceof URL ? fileURLToPath(path) : path,
+    );
+  }
+
+  createContext(stemlibPath, language) {
+    if (this.#closed) throw new Error("Morpheus library is closed");
+    try {
+      const native = addon.openContext(this.#native, stemlibPath, language);
+      this.#contexts++;
+      return new MorpheusContext(native, () => this.#contexts--);
+    } catch (error) {
+      throw asMorpheusError(error);
+    }
+  }
+
+  close() {
+    if (this.#closed) return;
+    if (this.#contexts !== 0) {
+      throw new Error("Close all Morpheus contexts before the library");
+    }
+    addon.closeLibrary(this.#native);
+    this.#closed = true;
+  }
+
+  [Symbol.dispose]() {
+    this.close();
+  }
+}
+
+export class MorpheusContext {
+  #native;
+  #onClose;
+  #tail = Promise.resolve();
+  #closed = false;
+
+  constructor(native, onClose) {
+    this.#native = native;
+    this.#onClose = onClose;
+  }
+
+  analyze(betaCode, options = 0n) {
+    return this.analyzeRaw(betaCode, options).then((items) =>
+      items.map(semanticAnalysis)
+    );
+  }
+
+  analyzeRaw(betaCode, options = 0n) {
+    return this.#enqueue(() => addon.analyze(this.#native, betaCode, options)
+      .catch((error) => { throw asMorpheusError(error); }));
+  }
+
+  generate(lemma, options = {}) {
+    return this.generateRaw(lemma, options).then((items) =>
+      items.map(semanticGeneration)
+    );
+  }
+
+  generateRaw(lemma, options = {}) {
+    const encoded = nativeGenerationOptions(options);
+    return this.#enqueue(() => addon.generate(this.#native, lemma, encoded)
+      .catch((error) => { throw asMorpheusError(error); }));
+  }
+
+  async close() {
+    if (this.#closed) return;
+    this.#closed = true;
+    await this.#tail;
+    addon.closeContext(this.#native);
+    this.#onClose();
+  }
+
+  async [Symbol.asyncDispose]() {
+    await this.close();
+  }
+
+  #enqueue(operation) {
+    if (this.#closed) {
+      return Promise.reject(new Error("Morpheus context is closed"));
+    }
+    const run = this.#tail.then(operation);
+    this.#tail = run.then(() => undefined, () => undefined);
+    return run;
+  }
+}

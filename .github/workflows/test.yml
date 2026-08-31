@@ -262,6 +262,61 @@ jobs:
           path: build/deno-gener-wasm/gener_preparer.mjs
           if-no-files-found: error
 
+  node:
+    name: Node.js binding
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out sources and stemlib
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Locate Node-API headers
+        id: node
+        run: |
+          node_prefix="$(node -p \
+            "require('node:path').resolve(process.execPath, '../..')")"
+          test -f "$node_prefix/include/node/node_api.h"
+          echo "include=$node_prefix/include/node" >> "$GITHUB_OUTPUT"
+
+      - name: Configure native runtime and Node-API addon
+        run: >-
+          cmake --preset dev
+          -DMORPHEUS_BUILD_NODE_BINDING=ON
+          -DMORPHEUS_NODE_INCLUDE_DIR=${{ steps.node.outputs.include }}
+
+      - name: Build native runtime and Node-API addon
+        run: >-
+          cmake --build --preset dev --target
+          morpheus libmorpheus_node morpheus_gener_index_builder
+
+      - name: Prepare experimental generation fixture
+        run: >-
+          build/dev/morpheus_gener_index_builder
+          stemlib/gener.index
+          test/generation-service-source.txt
+
+      - name: Test Node.js binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/dev/libmorpheus.so
+          MORPHEUS_NODE_ADDON: ${{ github.workspace }}/build/dev/node/libmorpheus_node.node
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        working-directory: bindings/js/node
+        run: npm test
+
+      - name: Verify npm package contents
+        working-directory: bindings/js/node
+        run: |
+          cp ../../../build/dev/node/libmorpheus_node.node .
+          npm pack --dry-run --ignore-scripts
+          test ! -e node_modules
+
   char-signedness:
     if: github.event_name == 'push'
     name: Byte conversions (${{ matrix.char_mode }} char)

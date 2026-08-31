@@ -13,7 +13,7 @@ work are licensed under AGPL-3.0-or-later:
 
 - `include/morpheus/morpheus.h`;
 - `src/api/`;
-- the AGPL-marked files in `bindings/js/deno/`;
+- the AGPL-marked JavaScript binding files under `bindings/js/`;
 - the marked CMake, benchmark, release-workflow, and test sources;
 - the marked project documentation and changelog.
 

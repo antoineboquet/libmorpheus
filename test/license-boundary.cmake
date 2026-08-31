@@ -10,6 +10,13 @@ set(agpl_files
     CHANGELOG.md
     CMakeLists.txt
     cmake/stamp-gener-preparer.cmake
+    bindings/js/node/CMakeLists.txt
+    bindings/js/node/NOTICE
+    bindings/js/node/README.md
+    bindings/js/node/addon.c
+    bindings/js/node/index.d.ts
+    bindings/js/node/index.js
+    bindings/js/node/test/binding.test.js
     bindings/js/deno/NOTICE
     bindings/js/deno/README.md
     bindings/js/deno/data.ts
@@ -124,6 +131,15 @@ string(FIND "${jsr_license}"
 if(jsr_spdx_at EQUAL -1)
   message(FATAL_ERROR
           "AGPL SPDX sidecar missing for bindings/js/deno/jsr.json")
+endif()
+
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/js/node/package.json.license"
+     node_package_license)
+string(FIND "${node_package_license}"
+       "SPDX-License-Identifier: AGPL-3.0-or-later" node_package_spdx_at)
+if(node_package_spdx_at EQUAL -1)
+  message(FATAL_ERROR
+          "AGPL SPDX sidecar missing for bindings/js/node/package.json")
 endif()
 
 foreach(license_file IN ITEMS

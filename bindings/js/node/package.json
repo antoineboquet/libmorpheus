@@ -1,0 +1,28 @@
+{
+  "name": "@libmorpheus/node",
+  "version": "0.1.0",
+  "description": "Node.js binding for the libmorpheus morphological analyzer",
+  "type": "module",
+  "types": "./index.d.ts",
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js"
+    }
+  },
+  "files": [
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "index.d.ts",
+    "index.js",
+    "libmorpheus_node.node"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  }
+}

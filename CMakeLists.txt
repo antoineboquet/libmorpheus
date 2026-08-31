@@ -56,9 +56,21 @@ if(BUILD_TESTING)
       "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
       -P "${PROJECT_SOURCE_DIR}/test/jsr-package-metadata.cmake"
   )
+  add_test(
+    NAME node_package_metadata
+    COMMAND
+      "${CMAKE_COMMAND}"
+      "-DMORPHEUS_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+      -P "${PROJECT_SOURCE_DIR}/test/node-package-metadata.cmake"
+  )
 endif()
 
 option(MORPHEUS_BUILD_CRUNCHER "Build the legacy-compatible cruncher CLI" ON)
+option(
+  MORPHEUS_BUILD_NODE_BINDING
+  "Build the experimental Node-API binding addon"
+  OFF
+)
 option(
   MORPHEUS_ENABLE_SANITIZERS
   "Build the runtime with AddressSanitizer and UndefinedBehaviorSanitizer"
@@ -1623,6 +1635,10 @@ if(MORPHEUS_BUILD_CRUNCHER)
       )
     endif()
   endif()
+endif()
+
+if(MORPHEUS_BUILD_NODE_BINDING)
+  add_subdirectory(bindings/js/node)
 endif()
 
 # Test programs use assertions as their executable checks.  Keep them enabled
