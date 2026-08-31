@@ -35,11 +35,30 @@ foreach(forbidden_script IN ITEMS preinstall install postinstall)
       "Node package must not run ${forbidden_script} during npm installation")
   endif()
 endforeach()
-foreach(forbidden_field IN ITEMS dependencies optionalDependencies)
+foreach(forbidden_field IN ITEMS dependencies)
   string(JSON ignored ERROR_VARIABLE field_error GET "${package}" "${forbidden_field}")
   if(NOT field_error)
     message(FATAL_ERROR
       "Initial Node package unexpectedly declares ${forbidden_field}")
+  endif()
+endforeach()
+
+foreach(platform IN ITEMS
+    darwin-arm64 linux-arm64-gnu linux-x64-gnu)
+  set(platform_path "${node_dir}/npm/${platform}/package.json")
+  file(READ "${platform_path}" platform_package)
+  string(JSON platform_name GET "${platform_package}" name)
+  string(JSON platform_version GET "${platform_package}" version)
+  if(NOT platform_name STREQUAL "@libmorpheus/node-${platform}" OR
+     NOT platform_version STREQUAL node_version)
+    message(FATAL_ERROR
+      "Unexpected Node platform package: ${platform_name}@${platform_version}")
+  endif()
+  string(JSON optional_version GET
+    "${package}" optionalDependencies "${platform_name}")
+  if(NOT optional_version STREQUAL node_version)
+    message(FATAL_ERROR
+      "Main Node package does not pin ${platform_name}@${node_version}")
   endif()
 endforeach()
 
@@ -52,7 +71,8 @@ endif()
 
 foreach(required IN ITEMS
     CMakeLists.txt LICENSE NOTICE README.md addon.c index.d.ts index.js
-    package.json package.json.license test/binding.test.js)
+    package-platform.mjs package.json package.json.license
+    test/binding.test.js)
   if(NOT EXISTS "${node_dir}/${required}")
     message(FATAL_ERROR "Missing Node binding source: ${required}")
   endif()

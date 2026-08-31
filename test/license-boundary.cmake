@@ -16,6 +16,7 @@ set(agpl_files
     bindings/js/node/addon.c
     bindings/js/node/index.d.ts
     bindings/js/node/index.js
+    bindings/js/node/package-platform.mjs
     bindings/js/node/test/binding.test.js
     bindings/js/deno/NOTICE
     bindings/js/deno/README.md
@@ -141,6 +142,19 @@ if(node_package_spdx_at EQUAL -1)
   message(FATAL_ERROR
           "AGPL SPDX sidecar missing for bindings/js/node/package.json")
 endif()
+
+foreach(platform IN ITEMS
+    darwin-arm64 linux-arm64-gnu linux-x64-gnu)
+  file(READ
+    "${MORPHEUS_SOURCE_DIR}/bindings/js/node/npm/${platform}/package.json.license"
+    platform_package_license)
+  string(FIND "${platform_package_license}"
+    "SPDX-License-Identifier: AGPL-3.0-or-later" platform_package_spdx_at)
+  if(platform_package_spdx_at EQUAL -1)
+    message(FATAL_ERROR
+      "AGPL SPDX sidecar missing for Node platform ${platform}")
+  endif()
+endforeach()
 
 foreach(license_file IN ITEMS
         LICENSE-AGPL-3.0-or-later

@@ -13,9 +13,10 @@ distinct contexts may execute concurrently.
 
 ## Development use
 
-This initial source distribution requires Node.js 20 or newer and a prebuilt
-`libmorpheus_node.node` addon. Set `MORPHEUS_NODE_ADDON` when the addon is not
-beside `index.js`:
+The npm package selects a matching optional Node-API binary package on Linux
+x64 glibc, Linux arm64 glibc, or macOS arm64. Installation runs no scripts. A
+source build can instead select its addon explicitly with
+`MORPHEUS_NODE_ADDON`:
 
 ```sh
 export MORPHEUS_NODE_ADDON=/path/to/libmorpheus_node.node
@@ -47,9 +48,10 @@ try {
 }
 ```
 
-Package installation deliberately performs no network request and runs no
-native installation script. Platform-specific prebuilt addon packages and the
-runtime/data setup command will be added before the first npm publication.
+Package installation runs no native installation script. The optional package
+contains only the small Node-API adapter; `libmorpheus` and stem data remain
+separate. The runtime/data setup command will be added before the first npm
+publication.
 
 ## Build the addon
 

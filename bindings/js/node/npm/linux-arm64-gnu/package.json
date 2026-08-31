@@ -1,0 +1,17 @@
+{
+  "name": "@libmorpheus/node-linux-arm64-gnu",
+  "version": "0.1.0",
+  "description": "Linux arm64 glibc Node-API addon for @libmorpheus/node",
+  "license": "AGPL-3.0-or-later",
+  "os": ["linux"],
+  "cpu": ["arm64"],
+  "libc": ["glibc"],
+  "main": "./libmorpheus_node.node",
+  "files": ["LICENSE", "NOTICE", "libmorpheus_node.node"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/defense-humanites/libmorpheus.git",
+    "directory": "bindings/js/node"
+  },
+  "publishConfig": { "access": "public" }
+}

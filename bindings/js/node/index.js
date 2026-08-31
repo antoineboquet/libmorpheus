@@ -7,9 +7,45 @@ import { fileURLToPath } from "node:url";
 export const MORPHEUS_NODE_VERSION = "0.1.0";
 
 const require = createRequire(import.meta.url);
-const addonPath = process.env.MORPHEUS_NODE_ADDON ??
-  fileURLToPath(new URL("./libmorpheus_node.node", import.meta.url));
-const addon = require(addonPath);
+
+function platformAddonPackage() {
+  if (process.platform === "darwin" && process.arch === "arm64") {
+    return "@libmorpheus/node-darwin-arm64";
+  }
+  if (process.platform === "linux" && ["arm64", "x64"].includes(process.arch)) {
+    const glibc = process.report?.getReport()?.header?.glibcVersionRuntime;
+    if (glibc === undefined) {
+      throw new Error("The libmorpheus native runtime requires glibc on Linux");
+    }
+    return `@libmorpheus/node-linux-${process.arch}-gnu`;
+  }
+  throw new Error(
+    `No libmorpheus Node-API addon supports ${process.platform}-${process.arch}`,
+  );
+}
+
+function loadAddon() {
+  if (process.env.MORPHEUS_NODE_ADDON !== undefined) {
+    return require(process.env.MORPHEUS_NODE_ADDON);
+  }
+  const packageName = platformAddonPackage();
+  try {
+    return require(packageName);
+  } catch (error) {
+    if (error?.code !== "MODULE_NOT_FOUND") throw error;
+  }
+  try {
+    return require(fileURLToPath(new URL("./libmorpheus_node.node", import.meta.url)));
+  } catch (error) {
+    if (error?.code !== "MODULE_NOT_FOUND") throw error;
+  }
+  throw new Error(
+    `Missing optional native package ${packageName}; reinstall ` +
+      "@libmorpheus/node without omitting optional dependencies",
+  );
+}
+
+const addon = loadAddon();
 
 export const MorpheusLanguage = {
   Greek: 0,

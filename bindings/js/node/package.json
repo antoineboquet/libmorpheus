@@ -5,6 +5,14 @@
   "type": "module",
   "types": "./index.d.ts",
   "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/defense-humanites/libmorpheus.git",
+    "directory": "bindings/js/node"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "engines": {
     "node": ">=20"
   },
@@ -19,9 +27,13 @@
     "NOTICE",
     "README.md",
     "index.d.ts",
-    "index.js",
-    "libmorpheus_node.node"
+    "index.js"
   ],
+  "optionalDependencies": {
+    "@libmorpheus/node-darwin-arm64": "0.1.0",
+    "@libmorpheus/node-linux-arm64-gnu": "0.1.0",
+    "@libmorpheus/node-linux-x64-gnu": "0.1.0"
+  },
   "scripts": {
     "test": "node --test test/*.test.js"
   }

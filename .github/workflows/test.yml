@@ -313,8 +313,13 @@ jobs:
       - name: Verify npm package contents
         working-directory: bindings/js/node
         run: |
-          cp ../../../build/dev/node/libmorpheus_node.node .
           npm pack --dry-run --ignore-scripts
+          node package-platform.mjs \
+            linux-x64-gnu \
+            ../../../build/dev/node/libmorpheus_node.node \
+            ../../../build/dev/npm-node-linux-x64-gnu
+          npm pack --dry-run --ignore-scripts \
+            ../../../build/dev/npm-node-linux-x64-gnu
           test ! -e node_modules
 
   char-signedness:
