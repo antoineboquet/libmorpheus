@@ -50,8 +50,17 @@ try {
 
 Package installation runs no native installation script. The optional package
 contains only the small Node-API adapter; `libmorpheus` and stem data remain
-separate. The runtime/data setup command will be added before the first npm
-publication.
+separate. Acquire the pinned native runtime explicitly:
+
+```sh
+npx --package @libmorpheus/node libmorpheus-native \
+  --output ./morpheus-native
+export MORPHEUS_LIBRARY="$PWD/morpheus-native/lib/libmorpheus.so"
+```
+
+The command refuses an existing destination and verifies the release archive's
+SHA-256 sidecar before safely extracting it. A stem-data acquisition command
+will be added before the first npm publication.
 
 ## Build the addon
 

@@ -310,6 +310,13 @@ jobs:
         working-directory: bindings/js/node
         run: npm test
 
+      - name: Acquire pinned native runtime with Node.js
+        working-directory: bindings/js/node
+        run: |
+          node native.js --output ../../../build/node-native-acquired
+          test -f ../../../build/node-native-acquired/MORPHEUS-NATIVE.json
+          test -f ../../../build/node-native-acquired/lib/libmorpheus.so
+
       - name: Verify npm package contents
         working-directory: bindings/js/node
         run: |

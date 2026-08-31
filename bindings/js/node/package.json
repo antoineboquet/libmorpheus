@@ -20,14 +20,24 @@
     ".": {
       "types": "./index.d.ts",
       "import": "./index.js"
+    },
+    "./native": {
+      "types": "./native.d.ts",
+      "import": "./native.js"
     }
+  },
+  "bin": {
+    "libmorpheus-native": "./native.js"
   },
   "files": [
     "LICENSE",
     "NOTICE",
     "README.md",
+    "internal",
     "index.d.ts",
-    "index.js"
+    "index.js",
+    "native.d.ts",
+    "native.js"
   ],
   "optionalDependencies": {
     "@libmorpheus/node-darwin-arm64": "0.1.0",

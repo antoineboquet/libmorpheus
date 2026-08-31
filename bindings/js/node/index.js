@@ -4,7 +4,9 @@
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 
-export const MORPHEUS_NODE_VERSION = "0.1.0";
+import { MORPHEUS_NODE_VERSION } from "./internal/version.js";
+
+export { MORPHEUS_NODE_VERSION };
 
 const require = createRequire(import.meta.url);
 

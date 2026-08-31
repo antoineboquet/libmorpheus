@@ -20,11 +20,11 @@ if(NOT node_name STREQUAL "@libmorpheus/node" OR
     "Unexpected Node package identity: ${node_name}@${node_version}, ${node_license}, ${node_type}")
 endif()
 
-file(READ "${node_dir}/index.js" facade)
-string(FIND "${facade}"
+file(READ "${node_dir}/internal/version.js" version_module)
+string(FIND "${version_module}"
   "MORPHEUS_NODE_VERSION = \"${node_version}\"" version_at)
 if(version_at EQUAL -1)
-  message(FATAL_ERROR "Node facade version differs from package.json")
+  message(FATAL_ERROR "Node version module differs from package.json")
 endif()
 
 foreach(forbidden_script IN ITEMS preinstall install postinstall)
@@ -68,11 +68,21 @@ if(NOT default_import STREQUAL "./index.js" OR
    NOT default_types STREQUAL "./index.d.ts")
   message(FATAL_ERROR "Unexpected Node package exports")
 endif()
+string(JSON native_import GET "${package}" exports ./native import)
+string(JSON native_types GET "${package}" exports ./native types)
+string(JSON native_bin GET "${package}" bin libmorpheus-native)
+if(NOT native_import STREQUAL "./native.js" OR
+   NOT native_types STREQUAL "./native.d.ts" OR
+   NOT native_bin STREQUAL "./native.js")
+  message(FATAL_ERROR "Unexpected Node native acquisition entrypoint")
+endif()
 
 foreach(required IN ITEMS
     CMakeLists.txt LICENSE NOTICE README.md addon.c index.d.ts index.js
+    internal/archive.js internal/native-internal.js internal/native-manifest.js
+    internal/version.js native.d.ts native.js
     package-platform.mjs package.json package.json.license
-    test/binding.test.js)
+    test/binding.test.js test/native.test.js)
   if(NOT EXISTS "${node_dir}/${required}")
     message(FATAL_ERROR "Missing Node binding source: ${required}")
   endif()
