@@ -24,15 +24,22 @@
     "./native": {
       "types": "./native.d.ts",
       "import": "./native.js"
+    },
+    "./data": {
+      "types": "./data.d.ts",
+      "import": "./data.js"
     }
   },
   "bin": {
-    "libmorpheus-native": "./native.js"
+    "libmorpheus-native": "./native.js",
+    "libmorpheus-data": "./data.js"
   },
   "files": [
     "LICENSE",
     "NOTICE",
     "README.md",
+    "data.d.ts",
+    "data.js",
     "internal",
     "index.d.ts",
     "index.js",

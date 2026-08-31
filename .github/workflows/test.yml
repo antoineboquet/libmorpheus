@@ -317,6 +317,14 @@ jobs:
           test -f ../../../build/node-native-acquired/MORPHEUS-NATIVE.json
           test -f ../../../build/node-native-acquired/lib/libmorpheus.so
 
+      - name: Acquire and verify pinned Node.js dataset
+        working-directory: bindings/js/node
+        run: |
+          node data.js --dataset perseids \
+            --output ../../../build/node-data-acquired
+          test -f ../../../build/node-data-acquired/MORPHEUS-DATA.json
+          test -f ../../../build/node-data-acquired/Latin/steminds/nomind
+
       - name: Verify npm package contents
         working-directory: bindings/js/node
         run: |

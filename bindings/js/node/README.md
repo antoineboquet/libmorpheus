@@ -59,8 +59,19 @@ export MORPHEUS_LIBRARY="$PWD/morpheus-native/lib/libmorpheus.so"
 ```
 
 The command refuses an existing destination and verifies the release archive's
-SHA-256 sidecar before safely extracting it. A stem-data acquisition command
-will be added before the first npm publication.
+SHA-256 sidecar before safely extracting it. Acquire one of the audited,
+immutable stem datasets separately:
+
+```sh
+npx --package @libmorpheus/node libmorpheus-data \
+  --dataset perseids --output ./morpheus-data
+export MORPHEUS_STEMLIB="$PWD/morpheus-data"
+```
+
+Alpheios provides Greek analysis; Perseids provides Greek and Latin analysis.
+The command verifies the selected file count, every file through a deterministic
+tree digest, and the upstream license. Experimental generation setup will be
+ported in a subsequent lot before the first npm publication.
 
 ## Build the addon
 

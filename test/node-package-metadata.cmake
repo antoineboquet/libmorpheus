@@ -76,13 +76,22 @@ if(NOT native_import STREQUAL "./native.js" OR
    NOT native_bin STREQUAL "./native.js")
   message(FATAL_ERROR "Unexpected Node native acquisition entrypoint")
 endif()
+string(JSON data_import GET "${package}" exports ./data import)
+string(JSON data_types GET "${package}" exports ./data types)
+string(JSON data_bin GET "${package}" bin libmorpheus-data)
+if(NOT data_import STREQUAL "./data.js" OR
+   NOT data_types STREQUAL "./data.d.ts" OR
+   NOT data_bin STREQUAL "./data.js")
+  message(FATAL_ERROR "Unexpected Node data acquisition entrypoint")
+endif()
 
 foreach(required IN ITEMS
     CMakeLists.txt LICENSE NOTICE README.md addon.c index.d.ts index.js
-    internal/archive.js internal/native-internal.js internal/native-manifest.js
+    data.d.ts data.js internal/archive.js internal/data-internal.js
+    internal/data-manifest.js internal/native-internal.js internal/native-manifest.js
     internal/version.js native.d.ts native.js
     package-platform.mjs package.json package.json.license
-    test/binding.test.js test/native.test.js)
+    test/binding.test.js test/data.test.js test/native.test.js)
   if(NOT EXISTS "${node_dir}/${required}")
     message(FATAL_ERROR "Missing Node binding source: ${required}")
   endif()
