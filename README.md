@@ -209,7 +209,8 @@ sh tools/prepare-runtime-data.sh "$PWD/morpheus-greek-data"
 The [runtime-data guide](docs/runtime-data.md) records exact pinned revisions,
 digests, acquisition permissions, and redistribution caveats. The
 [stem-library inventory](docs/stem-libraries.md) explains the origin and role of
-each dataset.
+each dataset; the [production audit](docs/stemlib-production-audit.md) records
+why the checked-in build drivers are not yet a supported reproducible compiler.
 
 ## Alpine container images
 

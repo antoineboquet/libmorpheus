@@ -4,7 +4,9 @@
 
 This short inventory identifies the main stem libraries currently available
 online and where `libmorpheus` makes them available locally. It records dataset
-scope, not compatibility or linguistic quality; a detailed audit is deferred.
+scope, not compatibility or linguistic quality. The
+[production audit](stemlib-production-audit.md) traces their inputs, generated
+outputs, existing build chain and reproducibility blockers.
 
 | Source | Languages | Location in this repository | Notes |
 | --- | --- | --- | --- |
