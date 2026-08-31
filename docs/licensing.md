@@ -13,7 +13,7 @@ work are licensed under AGPL-3.0-or-later:
 
 - `include/morpheus/morpheus.h`;
 - `src/api/`;
-- the AGPL-marked files in `bindings/deno/`;
+- the AGPL-marked files in `bindings/js/deno/`;
 - the marked CMake, benchmark, release-workflow, and test sources;
 - the marked project documentation and changelog.
 
@@ -41,7 +41,7 @@ relicense inherited expressions; it isolates them in MPL-covered files.
 The JSR data command bundles an internal WebAssembly build of the MPL-covered
 generation source preparer and an MPL-marked copy of its qualified corpus
 manifest. Emscripten runtime portions are distributed under their permissive
-license recorded in `bindings/deno/LICENSES/EMSCRIPTEN.txt`. The WebAssembly
+license recorded in `bindings/js/deno/LICENSES/EMSCRIPTEN.txt`. The WebAssembly
 module neither changes the public API nor moves historical code across the
 MPL/AGPL boundary.
 

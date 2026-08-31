@@ -12,7 +12,7 @@ The following groups were introduced after the imported Perseids baseline and
 have no counterpart at the same path in either audited upstream tree:
 
 - the normalized public ABI in `include/morpheus/morpheus.h` and `src/api/`;
-- the Deno binding and its local documentation in `bindings/deno/`;
+- the Deno binding and its local documentation in `bindings/js/deno/`;
 - the CMake build, package metadata, benchmark tooling, and platform-release
   workflow identified by AGPL SPDX notices;
 - the C and CMake tests introduced by the modernization work;
@@ -55,8 +55,8 @@ The following remain MPL-2.0 even where the current path was created locally:
   which record and exercise inherited rule data and behavior.
 
 The same MPL treatment applies to
-`bindings/deno/internal/gener_manifest.ts` and the compiled
-`bindings/deno/internal/gener_preparer.mjs`. The latter also contains the
+`bindings/js/deno/internal/gener_manifest.ts` and the compiled
+`bindings/js/deno/internal/gener_preparer.mjs`. The latter also contains the
 permissively licensed Emscripten runtime; its accompanying license text is
 included in the standalone binding package.
 

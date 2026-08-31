@@ -4,7 +4,7 @@
  * Combined acquisition of the native library and verified stem data.
  *
  * This executable entrypoint provides the second installation step after
- * `deno add jsr:@humanities/libmorpheus`. It requires explicitly scoped
+ * `deno add jsr:@libmorpheus/deno`. It requires explicitly scoped
  * network, read, and write permissions.
  *
  * @example Install Greek data and the experimental generation index
@@ -13,7 +13,7 @@
  *   --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
  *   --allow-read=./morpheus-native,./morpheus-data \
  *   --allow-write=./morpheus-native,./morpheus-data \
- *   jsr:@humanities/libmorpheus/setup \
+ *   jsr:@libmorpheus/deno/setup \
  *   --dataset alpheios --with-gener
  * ```
  *
@@ -144,7 +144,7 @@ export function parseMorpheusSetupArgs(
 
 function usage(): string {
   return `Usage:
-  deno x [permissions] jsr:@humanities/libmorpheus/setup \\
+  deno x [permissions] jsr:@libmorpheus/deno/setup \\
     --dataset <alpheios|perseids> [--with-gener] \\
     [--native-output <directory>] [--data-output <directory>]
 

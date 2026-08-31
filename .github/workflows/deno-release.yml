@@ -40,9 +40,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           binding_version="$(deno eval \
-            'console.log(JSON.parse(await Deno.readTextFile("bindings/deno/jsr.json")).version)')"
+            'console.log(JSON.parse(await Deno.readTextFile("bindings/js/deno/jsr.json")).version)')"
           declared="$(deno eval \
-            'import { MORPHEUS_DENO_VERSION, MORPHEUS_NATIVE_ABI_VERSION, MORPHEUS_NATIVE_VERSION } from "./bindings/deno/internal/version.ts"; console.log(`${MORPHEUS_DENO_VERSION} ${MORPHEUS_NATIVE_VERSION} ${MORPHEUS_NATIVE_ABI_VERSION}`)')"
+            'import { MORPHEUS_DENO_VERSION, MORPHEUS_NATIVE_ABI_VERSION, MORPHEUS_NATIVE_VERSION } from "./bindings/js/deno/internal/version.ts"; console.log(`${MORPHEUS_DENO_VERSION} ${MORPHEUS_NATIVE_VERSION} ${MORPHEUS_NATIVE_ABI_VERSION}`)')"
           read -r declared_binding native_version native_abi <<<"$declared"
           test "$binding_version" = "$declared_binding"
           test "$GITHUB_REF_NAME" = "deno-v$binding_version"
@@ -110,7 +110,7 @@ jobs:
             throw new Error('Timed out waiting for Linux CI')
 
       - name: Verify JSR package contents
-        working-directory: bindings/deno
+        working-directory: bindings/js/deno
         run: |
           deno check mod.ts data.ts native.ts setup.ts
           deno lint --rules-include=no-slow-types mod.ts
@@ -207,5 +207,5 @@ jobs:
             core.info(`Published binding release: ${existing.data.html_url}`)
 
       - name: Publish JSR package
-        working-directory: bindings/deno
+        working-directory: bindings/js/deno
         run: deno publish

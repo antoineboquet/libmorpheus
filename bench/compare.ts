@@ -4,7 +4,7 @@ import {
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
-} from "../bindings/deno/mod.ts";
+} from "../bindings/js/deno/mod.ts";
 
 interface Fixture {
   readonly input: string;

@@ -7,7 +7,7 @@ if(NOT DEFINED MORPHEUS_SOURCE_DIR OR
     "MORPHEUS_SOURCE_DIR, MORPHEUS_BUILD_DIR, and MORPHEUS_PACKAGE_DIR are required")
 endif()
 
-file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json" jsr_config)
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/jsr.json" jsr_config)
 string(JSON deno_version ERROR_VARIABLE version_error
        GET "${jsr_config}" version)
 if(version_error OR NOT deno_version MATCHES "^[0-9]+\\.[0-9]+\\.[0-9]+$")
@@ -23,22 +23,22 @@ set(checksum "${archive}.sha256")
 file(REMOVE_RECURSE "${package_root}")
 file(MAKE_DIRECTORY "${package_dir}")
 file(COPY
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/mod.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/data.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/native.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/setup.ts"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/README.md"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSE"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/NOTICE"
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/mod.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/data.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/native.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/setup.ts"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/README.md"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/LICENSE"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/NOTICE"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/jsr.json"
   DESTINATION "${package_dir}"
 )
 file(COPY
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/internal"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/internal"
   DESTINATION "${package_dir}"
 )
 file(COPY
-  "${MORPHEUS_SOURCE_DIR}/bindings/deno/LICENSES"
+  "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/LICENSES"
   DESTINATION "${package_dir}"
 )
 

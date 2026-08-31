@@ -7,7 +7,7 @@ if(NOT DEFINED MORPHEUS_SOURCE_DIR OR
     "MORPHEUS_SOURCE_DIR, MORPHEUS_BUILD_DIR, and MORPHEUS_PACKAGE_DIR are required")
 endif()
 
-file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json" source_jsr_config)
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/jsr.json" source_jsr_config)
 string(JSON expected_deno_version GET "${source_jsr_config}" version)
 set(package_basename "libmorpheus-deno-${expected_deno_version}")
 set(archive "${MORPHEUS_PACKAGE_DIR}/${package_basename}.tar.gz")
@@ -62,7 +62,7 @@ string(JSON jsr_export GET "${jsr_config}" exports .)
 string(JSON jsr_data_export GET "${jsr_config}" exports ./data)
 string(JSON jsr_native_export GET "${jsr_config}" exports ./native)
 string(JSON jsr_setup_export GET "${jsr_config}" exports ./setup)
-if(NOT jsr_name STREQUAL "@humanities/libmorpheus")
+if(NOT jsr_name STREQUAL "@libmorpheus/deno")
   message(FATAL_ERROR "Packaged Deno binding has unexpected JSR name: ${jsr_name}")
 endif()
 string(JSON jsr_license GET "${jsr_config}" license)
@@ -151,13 +151,13 @@ foreach(required_text IN ITEMS
     "Standalone release archive"
     "Docker image"
     "Native library and runtime data"
-    "@humanities/libmorpheus/setup"
+    "@libmorpheus/deno/setup"
     "--dataset perseids"
     "Acquire stem data"
     "Acquire the native library"
-    "@humanities/libmorpheus/native"
+    "@libmorpheus/deno/native"
     "tools/prepare-runtime-data.sh"
-    "@humanities/libmorpheus"
+    "@libmorpheus/deno"
     "Language and data coverage"
     "MorpheusOption.StrictCase"
     "https://github.com/defense-humanites/libmorpheus"

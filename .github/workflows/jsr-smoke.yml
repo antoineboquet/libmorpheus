@@ -6,9 +6,9 @@ on:
   workflow_dispatch:
     inputs:
       package_version:
-        description: Published @humanities/libmorpheus version
+        description: Published @libmorpheus/deno version
         required: true
-        default: 0.3.2
+        default: 0.4.0
         type: string
 
 permissions:
@@ -44,7 +44,7 @@ jobs:
           deno init "$smoke_root"
           cd "$smoke_root"
           deno add --min-dep-age=0 \
-            "jsr:@humanities/libmorpheus@$PACKAGE_VERSION"
+            "jsr:@libmorpheus/deno@$PACKAGE_VERSION"
           cp "$GITHUB_WORKSPACE/test/jsr-published-smoke.ts" smoke.ts
 
       - name: Acquire native library, Alpheios data, and generation index
@@ -56,7 +56,7 @@ jobs:
             --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
             --allow-read="$RUNNER_TEMP/morpheus-native,$RUNNER_TEMP/morpheus-alpheios" \
             --allow-write="$RUNNER_TEMP/morpheus-native,$RUNNER_TEMP/morpheus-alpheios" \
-            "jsr:@humanities/libmorpheus@$PACKAGE_VERSION/setup" \
+            "jsr:@libmorpheus/deno@$PACKAGE_VERSION/setup" \
             --dataset alpheios \
             --with-gener \
             --native-output "$RUNNER_TEMP/morpheus-native" \
@@ -71,7 +71,7 @@ jobs:
             --allow-net=codeload.github.com \
             --allow-read="$RUNNER_TEMP/morpheus-perseids" \
             --allow-write="$RUNNER_TEMP/morpheus-perseids" \
-            "jsr:@humanities/libmorpheus@$PACKAGE_VERSION/data" \
+            "jsr:@libmorpheus/deno@$PACKAGE_VERSION/data" \
             --dataset perseids \
             --output "$RUNNER_TEMP/morpheus-perseids"
 

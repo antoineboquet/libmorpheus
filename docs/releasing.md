@@ -10,7 +10,7 @@ standalone utilities are outside both release contracts.
 
 Native releases use `v<version>` tags. Deno binding releases use
 `deno-v<version>` tags and declare the compatible native release and ABI in
-`bindings/deno/internal/version.ts`. Releases through `0.3.2` predate this
+`bindings/js/deno/internal/version.ts`. Releases through `0.3.2` predate this
 separation and used one `v<version>` tag for both tracks.
 
 Each release records its version and ABI decision in
@@ -26,7 +26,7 @@ Each release records its version and ABI decision in
 - Keep `MORPHEUS_ABI_VERSION` and `SOVERSION` unchanged only for compatible
   additions. A removed function, changed signature, reassigned constant, or
   changed `morpheus_analysis` layout requires an explicit ABI/SONAME decision.
-- For a Deno release, update `bindings/deno/jsr.json` and
+- For a Deno release, update `bindings/js/deno/jsr.json` and
   `MORPHEUS_DENO_VERSION` together. Review `MORPHEUS_NATIVE_VERSION` and
   `MORPHEUS_NATIVE_ABI_VERSION` independently; they identify the already
   published native release acquired by the binding.
@@ -167,7 +167,7 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Install a produced native package into a fresh prefix and repeat one CMake and
   one `pkg-config` consumer smoke test. Verify the qualification-only container
   by digest on both architectures.
-- For a Deno release, run `deno publish --dry-run` from `bindings/deno` and
+- For a Deno release, run `deno publish --dry-run` from `bindings/js/deno` and
   inspect the exact file list. Require `jsr.json` to match
   `MORPHEUS_DENO_VERSION`; verify that the independent
   `MORPHEUS_NATIVE_VERSION` release exists with the declared ABI.
@@ -175,12 +175,12 @@ Alpheios fixture suites must run where their data prerequisites are available.
   waits for Linux CI, publishes `libmorpheus-deno-<version>.tar.gz` and its
   checksum in a separate GitHub release, then publishes the same version to
   JSR. Neither binding artifact embeds a native library or stem data.
-- Before the first publication, link `@humanities/libmorpheus` to
+- Before the first publication, link `@libmorpheus/deno` to
   `defense-humanites/libmorpheus` in the package's JSR settings. This one-time
   association authorizes tokenless GitHub Actions publication through OIDC.
 - Do not move either kind of published tag. If JSR rejects metadata after the
   Deno GitHub release succeeds and that version is still unpublished, correct
-  only `bindings/deno/jsr.json` on `main` and manually dispatch
+  only `bindings/js/deno/jsr.json` on `main` and manually dispatch
   `Recover JSR publication` with the `deno-v<version>` tag. The recovery refuses
   broader binding changes.
 - After JSR publication, manually dispatch `Published JSR smoke test` with the

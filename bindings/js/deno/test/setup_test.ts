@@ -48,7 +48,7 @@ function dependencies(events: string[]): MorpheusSetupDependencies {
       events.push(`native:${options.output}`);
       return {
         schema: 2,
-        packageVersion: "0.3.2",
+        packageVersion: "0.4.0",
         nativeVersion: "0.3.2",
         abiVersion: 2,
         target: "linux-x86_64-glibc",
@@ -62,7 +62,7 @@ function dependencies(events: string[]): MorpheusSetupDependencies {
       events.push(`data:${options.dataset}:${options.output}`);
       return {
         schema: 1,
-        packageVersion: "0.3.2",
+        packageVersion: "0.4.0",
         dataset: options.dataset,
         languages: ["grc"],
         source: {

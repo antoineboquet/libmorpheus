@@ -17,7 +17,7 @@
  *   MorpheusLanguage,
  *   MorpheusLibrary,
  *   MorpheusOption,
- * } from "@humanities/libmorpheus";
+ * } from "@libmorpheus/deno";
  *
  * using library = new MorpheusLibrary("/path/to/libmorpheus.so");
  * await using context = library.createContext(

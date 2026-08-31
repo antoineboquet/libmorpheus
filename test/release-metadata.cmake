@@ -133,7 +133,7 @@ foreach(expected_container_value IN ITEMS
       "Docker generation qualification is missing: ${expected_container_value}")
   endif()
 endforeach()
-string(FIND "${dockerfile}" "bindings/deno" embedded_deno_binding_at)
+string(FIND "${dockerfile}" "bindings/js/deno" embedded_deno_binding_at)
 if(NOT embedded_deno_binding_at EQUAL -1)
   message(FATAL_ERROR "deno-runtime still embeds the source-tree Deno binding")
 endif()

@@ -4,7 +4,7 @@ if(NOT DEFINED MORPHEUS_SOURCE_DIR)
   message(FATAL_ERROR "MORPHEUS_SOURCE_DIR is required")
 endif()
 
-set(config_path "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json")
+set(config_path "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/jsr.json")
 file(READ "${config_path}" config)
 
 foreach(field IN ITEMS name version license)
@@ -14,14 +14,14 @@ foreach(field IN ITEMS name version license)
   endif()
 endforeach()
 
-if(NOT jsr_name STREQUAL "@humanities/libmorpheus")
+if(NOT jsr_name STREQUAL "@libmorpheus/deno")
   message(FATAL_ERROR "Unexpected JSR package name: ${jsr_name}")
 endif()
 if(NOT jsr_license STREQUAL "AGPL-3.0-or-later")
   message(FATAL_ERROR "Unexpected JSR package license: ${jsr_license}")
 endif()
 
-set(version_path "${MORPHEUS_SOURCE_DIR}/bindings/deno/internal/version.ts")
+set(version_path "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/internal/version.ts")
 file(READ "${version_path}" version_source)
 string(REGEX MATCH
   "MORPHEUS_DENO_VERSION[ \t]*=[ \t]*\"([0-9]+\\.[0-9]+\\.[0-9]+)\""
@@ -46,7 +46,7 @@ set(native_abi "${CMAKE_MATCH_1}")
 if(NOT native_abi_definition)
   message(FATAL_ERROR "Deno binding native ABI version is missing")
 endif()
-file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/mod.ts" deno_binding)
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/mod.ts" deno_binding)
 string(FIND "${deno_binding}"
        "const ABI_VERSION = MORPHEUS_NATIVE_ABI_VERSION;"
        deno_abi_definition_at)
@@ -54,7 +54,7 @@ if(deno_abi_definition_at EQUAL -1)
   message(FATAL_ERROR
     "Deno binding does not consume its declared native ABI")
 endif()
-file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/internal/native_manifest.ts"
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/internal/native_manifest.ts"
      native_manifest)
 string(FIND "${native_manifest}" "MORPHEUS_NATIVE_VERSION"
             native_version_use_at)
@@ -78,8 +78,8 @@ endif()
 
 file(GLOB binding_root_files
      LIST_DIRECTORIES false
-     RELATIVE "${MORPHEUS_SOURCE_DIR}/bindings/deno"
-     "${MORPHEUS_SOURCE_DIR}/bindings/deno/*")
+     RELATIVE "${MORPHEUS_SOURCE_DIR}/bindings/js/deno"
+     "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/*")
 set(expected_root_files
     LICENSE NOTICE README.md data.ts jsr.json jsr.json.license mod.ts native.ts
     setup.ts)
@@ -132,7 +132,7 @@ foreach(required IN ITEMS
         internal/gener_preparer.mjs internal/gener_runtime_internal.ts
         internal/native_internal.ts internal/native_manifest.ts
         internal/setup_internal.ts internal/version.ts mod.ts native.ts setup.ts)
-  if(NOT EXISTS "${MORPHEUS_SOURCE_DIR}/bindings/deno/${required}")
+  if(NOT EXISTS "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/${required}")
     message(FATAL_ERROR "Missing JSR package source: ${required}")
   endif()
 endforeach()

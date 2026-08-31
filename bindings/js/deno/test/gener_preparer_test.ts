@@ -20,7 +20,7 @@ Deno.test("WebAssembly preparer accepts a non-file module URL", async () => {
     print: () => undefined,
     printErr: () => undefined,
     scriptUrl:
-      "https://jsr.io/@humanities/libmorpheus/internal/gener_preparer.mjs",
+      "https://jsr.io/@libmorpheus/deno/internal/gener_preparer.mjs",
   }) as TestModule;
   assert(typeof module.callMain === "function", "remote factory lost callMain");
   assert(module.FS !== undefined, "remote factory lost its virtual filesystem");

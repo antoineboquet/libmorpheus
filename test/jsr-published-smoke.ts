@@ -4,8 +4,8 @@ import {
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
-} from "@humanities/libmorpheus";
-import { nativeLibraryPath } from "@humanities/libmorpheus/native";
+} from "@libmorpheus/deno";
+import { nativeLibraryPath } from "@libmorpheus/deno/native";
 
 function assert(condition: unknown, message: string): asserts condition {
   if (!condition) throw new Error(message);

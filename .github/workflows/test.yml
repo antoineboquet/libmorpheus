@@ -122,7 +122,7 @@ jobs:
           deno-version: v2.9.5
 
       - name: Dry-run JSR package
-        working-directory: bindings/deno
+        working-directory: bindings/js/deno
         run: |
           deno lint --rules-include=no-slow-types mod.ts
           deno publish --dry-run
@@ -158,11 +158,11 @@ jobs:
       - name: Check binding and benchmark runner
         run: |
           sh -n bench/release.sh
-          deno check bindings/deno/mod.ts bindings/deno/test/mod_test.ts \
-            bindings/deno/data.ts bindings/deno/test/data_test.ts \
-            bindings/deno/native.ts bindings/deno/test/native_test.ts \
-            bindings/deno/setup.ts bindings/deno/test/setup_test.ts \
-            bindings/deno/test/gener_preparer_test.ts \
+          deno check bindings/js/deno/mod.ts bindings/js/deno/test/mod_test.ts \
+            bindings/js/deno/data.ts bindings/js/deno/test/data_test.ts \
+            bindings/js/deno/native.ts bindings/js/deno/test/native_test.ts \
+            bindings/js/deno/setup.ts bindings/js/deno/test/setup_test.ts \
+            bindings/js/deno/test/gener_preparer_test.ts \
             bench/compare.ts bench/compare_test.ts \
             bench/validate.ts bench/validate_test.ts
 
@@ -172,10 +172,10 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: >-
           deno test --allow-env --allow-ffi --allow-read --allow-write
-          bindings/deno/test/mod_test.ts bindings/deno/test/data_test.ts
-          bindings/deno/test/native_test.ts
-          bindings/deno/test/setup_test.ts
-          bindings/deno/test/gener_preparer_test.ts
+          bindings/js/deno/test/mod_test.ts bindings/js/deno/test/data_test.ts
+          bindings/js/deno/test/native_test.ts
+          bindings/js/deno/test/setup_test.ts
+          bindings/js/deno/test/gener_preparer_test.ts
           bench/compare_test.ts
           bench/validate_test.ts
 
@@ -186,7 +186,7 @@ jobs:
             --filter 'native extraction materializes versioned library links' \
             --allow-read="$PWD/build/deno-scoped-native" \
             --allow-write="$PWD/build/deno-scoped-native" \
-            bindings/deno/test/native_test.ts
+            bindings/js/deno/test/native_test.ts
 
       - name: Validate accepted release benchmark evidence
         run: |
@@ -204,12 +204,12 @@ jobs:
         run: |
           deno run --allow-net=codeload.github.com \
             --allow-read=build --allow-write=build \
-            bindings/deno/data.ts --dataset alpheios \
+            bindings/js/deno/data.ts --dataset alpheios \
             --with-gener \
             --output build/data-test-alpheios
           deno run --allow-net=codeload.github.com \
             --allow-read=build --allow-write=build \
-            bindings/deno/data.ts --dataset perseids \
+            bindings/js/deno/data.ts --dataset perseids \
             --output build/data-test-perseids
           test -f build/data-test-alpheios/Greek/steminds/nomind
           cmake -E sha256sum build/data-test-alpheios/gener.index | \
@@ -253,7 +253,7 @@ jobs:
           cmake --build build/deno-gener-wasm \
             --target morpheus_gener_source_preparer
           cmp build/deno-gener-wasm/gener_preparer.mjs \
-            bindings/deno/internal/gener_preparer.mjs
+            bindings/js/deno/internal/gener_preparer.mjs
 
       - name: Upload WebAssembly preparer
         uses: actions/upload-artifact@v4

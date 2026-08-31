@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 /** Version of the Deno binding and its JSR package. */
-export const MORPHEUS_DENO_VERSION = "0.3.2";
+export const MORPHEUS_DENO_VERSION = "0.4.0";
 
 /** Native runtime release acquired by this binding. */
 export const MORPHEUS_NATIVE_VERSION = "0.3.2";

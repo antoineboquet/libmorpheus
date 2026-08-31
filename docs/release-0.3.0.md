@@ -79,7 +79,7 @@ The release validator accepts every required measurement and identity.
 The commits between that measured revision and this finalization change only
 JSR data/native acquisition, the opt-in Emscripten preparer build, Docker and
 release orchestration, licensing, and documentation. They do not change
-`src/`, `include/`, `bindings/deno/mod.ts`, `bench/compare.ts`, or
+`src/`, `include/`, `bindings/js/deno/mod.ts`, `bench/compare.ts`, or
 `test/fixture.json`; the measured analysis and generation paths are therefore
 unchanged. The report is retained as preparation evidence rather than described
 as tag-exact evidence.

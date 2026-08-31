@@ -11,7 +11,7 @@
  * ```sh
  * deno x --allow-net=codeload.github.com \
  *   --allow-read=./morpheus-data --allow-write=./morpheus-data \
- *   jsr:@humanities/libmorpheus/data \
+ *   jsr:@libmorpheus/deno/data \
  *   --dataset perseids --output ./morpheus-data
  * ```
  *
@@ -43,7 +43,7 @@ export interface MorpheusDataCommandLineOptions
 
 function usage(): string {
   return `Usage:
-  deno x [permissions] jsr:@humanities/libmorpheus/data \\
+  deno x [permissions] jsr:@libmorpheus/deno/data \\
     --dataset <alpheios|perseids> --output <directory> [--with-gener]
 
 Datasets:

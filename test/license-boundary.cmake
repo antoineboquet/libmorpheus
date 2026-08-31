@@ -10,25 +10,25 @@ set(agpl_files
     CHANGELOG.md
     CMakeLists.txt
     cmake/stamp-gener-preparer.cmake
-    bindings/deno/NOTICE
-    bindings/deno/README.md
-    bindings/deno/data.ts
-    bindings/deno/internal/data_internal.ts
-    bindings/deno/internal/data_manifest.ts
-    bindings/deno/test/data_test.ts
-    bindings/deno/internal/gener_index_internal.ts
-    bindings/deno/test/gener_preparer_test.ts
-    bindings/deno/internal/gener_runtime_internal.ts
-    bindings/deno/mod.ts
-    bindings/deno/test/mod_test.ts
-    bindings/deno/native.ts
-    bindings/deno/internal/native_internal.ts
-    bindings/deno/internal/native_manifest.ts
-    bindings/deno/test/native_test.ts
-    bindings/deno/setup.ts
-    bindings/deno/internal/setup_internal.ts
-    bindings/deno/test/setup_test.ts
-    bindings/deno/internal/version.ts
+    bindings/js/deno/NOTICE
+    bindings/js/deno/README.md
+    bindings/js/deno/data.ts
+    bindings/js/deno/internal/data_internal.ts
+    bindings/js/deno/internal/data_manifest.ts
+    bindings/js/deno/test/data_test.ts
+    bindings/js/deno/internal/gener_index_internal.ts
+    bindings/js/deno/test/gener_preparer_test.ts
+    bindings/js/deno/internal/gener_runtime_internal.ts
+    bindings/js/deno/mod.ts
+    bindings/js/deno/test/mod_test.ts
+    bindings/js/deno/native.ts
+    bindings/js/deno/internal/native_internal.ts
+    bindings/js/deno/internal/native_manifest.ts
+    bindings/js/deno/test/native_test.ts
+    bindings/js/deno/setup.ts
+    bindings/js/deno/internal/setup_internal.ts
+    bindings/js/deno/test/setup_test.ts
+    bindings/js/deno/internal/version.ts
     include/morpheus/morpheus.h
     src/api/gener_index.c
     src/api/gener_index.h
@@ -63,8 +63,8 @@ foreach(agpl_file IN LISTS agpl_files)
 endforeach()
 
 foreach(mpl_file IN ITEMS
-        bindings/deno/internal/gener_manifest.ts
-        bindings/deno/internal/gener_preparer.mjs
+        bindings/js/deno/internal/gener_manifest.ts
+        bindings/js/deno/internal/gener_preparer.mjs
         include/morpheus/compat.h
         src/anal/anal_internal.h
         src/anal/cruncher_internal.h
@@ -117,13 +117,13 @@ if(presets_spdx_at EQUAL -1)
           "AGPL SPDX sidecar missing for CMakePresets.json")
 endif()
 
-file(READ "${MORPHEUS_SOURCE_DIR}/bindings/deno/jsr.json.license"
+file(READ "${MORPHEUS_SOURCE_DIR}/bindings/js/deno/jsr.json.license"
      jsr_license)
 string(FIND "${jsr_license}"
        "SPDX-License-Identifier: AGPL-3.0-or-later" jsr_spdx_at)
 if(jsr_spdx_at EQUAL -1)
   message(FATAL_ERROR
-          "AGPL SPDX sidecar missing for bindings/deno/jsr.json")
+          "AGPL SPDX sidecar missing for bindings/js/deno/jsr.json")
 endif()
 
 foreach(license_file IN ITEMS

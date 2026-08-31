@@ -16,6 +16,9 @@ the corpus.
 
 ### Changed
 
+- JavaScript-family bindings now live under `bindings/js/`; the Deno package
+  moves to the dedicated `@libmorpheus/deno` JSR namespace at version `0.4.0`,
+  while retaining native runtime `0.3.2` and C ABI `2` compatibility.
 - Native runtime and Deno binding versions are now independent. The binding
   declares the exact native release and ABI it supports, and native acquisition
   receipts record both the binding and runtime versions.

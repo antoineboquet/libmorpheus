@@ -35,7 +35,7 @@ The public runtime includes:
 - per-request analysis options and generation filters;
 - isolated contexts that can be used concurrently;
 - a Deno 2 FFI binding published on JSR as
-  [`@humanities/libmorpheus`](https://jsr.io/@humanities/libmorpheus);
+  [`@libmorpheus/deno`](https://jsr.io/@libmorpheus/deno);
 - `cruncher`, retained as a compatibility client of the public library;
 - CMake and `pkg-config` installation metadata.
 
@@ -50,7 +50,10 @@ currently available:
 
 | Binding | Description | Documentation |
 | --- | --- | --- |
-| Deno 2 | Typed TypeScript API for analysis and experimental Greek generation, published on JSR | [Deno binding guide](bindings/deno/README.md) |
+| Deno 2 | Typed TypeScript API for analysis and experimental Greek generation, published on JSR | [Deno binding guide](bindings/js/deno/README.md) |
+
+The historical `@humanities/libmorpheus` package remains available through
+version `0.3.2`; new Deno releases use `@libmorpheus/deno`.
 
 Native consumers should instead use the [public C API](docs/public-api.md).
 
@@ -239,7 +242,7 @@ docker build --target deno-runtime -t morpheus-deno .
 ```
 
 Applications consume the binding as a normal JSR dependency. See the
-[Deno binding guide](bindings/deno/README.md#docker-image) for the preconfigured
+[Deno binding guide](bindings/js/deno/README.md#docker-image) for the preconfigured
 paths and a consumer example.
 
 ## `cruncher`

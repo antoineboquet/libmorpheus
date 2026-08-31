@@ -35,12 +35,16 @@ TypeScript objects before their C allocations are released.
 
 ## Quick start (using the JSR package)
 
+The package moved from `@humanities/libmorpheus` after version `0.3.2`. Existing
+applications can keep that pinned version; new releases and applications use
+`@libmorpheus/deno`.
+
 The simplest installation needs no C toolchain. The prebuilt native
 archives currently support Linux x86-64 glibc, Linux aarch64 glibc, and macOS
 arm64. Install the binding:
 
 ```sh
-deno add jsr:@humanities/libmorpheus
+deno add jsr:@libmorpheus/deno
 ```
 
 Then acquire the matching native library and the Perseids dataset for Greek and
@@ -51,7 +55,7 @@ deno x \
   --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
   --allow-read=./morpheus-native,./morpheus-data \
   --allow-write=./morpheus-native,./morpheus-data \
-  jsr:@humanities/libmorpheus/setup \
+  jsr:@libmorpheus/deno/setup \
   --dataset perseids
 ```
 
@@ -65,8 +69,8 @@ import {
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
-} from "@humanities/libmorpheus";
-import { nativeLibraryPath } from "@humanities/libmorpheus/native";
+} from "@libmorpheus/deno";
+import { nativeLibraryPath } from "@libmorpheus/deno/native";
 
 using library = new MorpheusLibrary(nativeLibraryPath("./morpheus-native"));
 
@@ -103,7 +107,7 @@ deno x \
   --allow-net=github.com,release-assets.githubusercontent.com,codeload.github.com \
   --allow-read=./morpheus-native,./morpheus-data \
   --allow-write=./morpheus-native,./morpheus-data \
-  jsr:@humanities/libmorpheus/setup \
+  jsr:@libmorpheus/deno/setup \
   --dataset alpheios \
   --with-gener
 ```
@@ -118,7 +122,7 @@ import {
   MorpheusLanguage,
   MorpheusLibrary,
   MorpheusOption,
-} from "@humanities/libmorpheus";
+} from "@libmorpheus/deno";
 
 try {
   using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
@@ -180,7 +184,7 @@ import {
   MorpheusLibrary,
   MorpheusNumber,
   MorpheusStatus,
-} from "@humanities/libmorpheus";
+} from "@libmorpheus/deno";
 
 try {
   using library = new MorpheusLibrary("/usr/local/lib/libmorpheus.so");
@@ -274,14 +278,14 @@ cd libmorpheus
 docker build --target deno-runtime -t morpheus-deno .
 ```
 
-Containerized applications declare `@humanities/libmorpheus` as the same normal
+Containerized applications declare `@libmorpheus/deno` as the same normal
 JSR dependency used outside Docker:
 
 ```sh
-deno add jsr:@humanities/libmorpheus
+deno add jsr:@libmorpheus/deno
 ```
 
-Application code imports `@humanities/libmorpheus` and reads only
+Application code imports `@libmorpheus/deno` and reads only
 `MORPHEUS_LIBRARY` and `MORPHEUS_STEMLIB`, which already contain the container
 paths. It does not call `/setup` or depend on how the image provisioned those
 paths:
@@ -290,7 +294,7 @@ paths:
 import {
   MorpheusLanguage,
   MorpheusLibrary,
-} from "@humanities/libmorpheus";
+} from "@libmorpheus/deno";
 
 using library = new MorpheusLibrary(Deno.env.get("MORPHEUS_LIBRARY")!);
 await using context = library.createContext(
@@ -318,7 +322,7 @@ What must be acquired depends on the distribution:
 The following acquisition commands therefore apply to the JSR package and the
 standalone binding archive, not to the Docker image.
 
-Binding and runtime versions are independent. Binding `0.3.2` currently
+Binding and runtime versions are independent. Binding `0.4.0` currently
 acquires native runtime `0.3.2` and requires C ABI `2`; these compatibility
 values are declared in `internal/version.ts`. The main module exports
 `MORPHEUS_DENO_VERSION`; the `/native` module exports
@@ -333,7 +337,7 @@ deno x \
   --allow-net=codeload.github.com \
   --allow-read=./morpheus-data \
   --allow-write=./morpheus-data \
-  jsr:@humanities/libmorpheus@0.3.2/data \
+  jsr:@libmorpheus/deno@0.4.0/data \
   --dataset perseids \
   --output ./morpheus-data
 ```
@@ -349,7 +353,7 @@ deno x \
   --allow-net=codeload.github.com \
   --allow-read=./morpheus-greek-data \
   --allow-write=./morpheus-greek-data \
-  jsr:@humanities/libmorpheus@0.3.2/data \
+  jsr:@libmorpheus/deno@0.4.0/data \
   --dataset alpheios \
   --with-gener \
   --output ./morpheus-greek-data
@@ -374,7 +378,7 @@ deno x \
   --allow-net=github.com,release-assets.githubusercontent.com \
   --allow-read=./morpheus-native \
   --allow-write=./morpheus-native \
-  jsr:@humanities/libmorpheus@0.3.2/native \
+  jsr:@libmorpheus/deno@0.4.0/native \
   --output ./morpheus-native
 ```
 
@@ -387,8 +391,8 @@ native archive from its `v<version>` GitHub release.
 Use the exported helper to avoid platform-specific filenames:
 
 ```ts
-import { MorpheusLibrary } from "@humanities/libmorpheus";
-import { nativeLibraryPath } from "@humanities/libmorpheus/native";
+import { MorpheusLibrary } from "@libmorpheus/deno";
+import { nativeLibraryPath } from "@libmorpheus/deno/native";
 
 using library = new MorpheusLibrary(
   nativeLibraryPath("./morpheus-native"),
@@ -431,11 +435,11 @@ permissions are not required by the binding itself.
 
 ## Documentation
 
-The generated [JSR API reference](https://jsr.io/@humanities/libmorpheus/doc)
+The generated [JSR API reference](https://jsr.io/@libmorpheus/deno/doc)
 documents the main binding and its independently importable
-[`/setup`](https://jsr.io/@humanities/libmorpheus/doc/setup),
-[`/data`](https://jsr.io/@humanities/libmorpheus/doc/data), and
-[`/native`](https://jsr.io/@humanities/libmorpheus/doc/native) entrypoints.
+[`/setup`](https://jsr.io/@libmorpheus/deno/doc/setup),
+[`/data`](https://jsr.io/@libmorpheus/deno/doc/data), and
+[`/native`](https://jsr.io/@libmorpheus/deno/doc/native) entrypoints.
 
 | Topic                              | Document                                                                                            |
 | ---------------------------------- | --------------------------------------------------------------------------------------------------- |
@@ -456,11 +460,11 @@ cmake --preset dev
 cmake --build --preset dev
 build/dev/morpheus_gener_index_builder \
   stemlib/gener.index test/generation-service-source.txt
-deno check bindings/deno/mod.ts bindings/deno/test/mod_test.ts
+deno check bindings/js/deno/mod.ts bindings/js/deno/test/mod_test.ts
 MORPHEUS_LIBRARY="$PWD/build/dev/libmorpheus.so" \
 MORPHEUS_STEMLIB="$PWD/stemlib" \
 deno test --allow-env --allow-ffi \
-  bindings/deno/test/mod_test.ts
+  bindings/js/deno/test/mod_test.ts
 ```
 
 ## License

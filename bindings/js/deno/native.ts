@@ -10,7 +10,7 @@
  * ```sh
  * deno x --allow-net=github.com,release-assets.githubusercontent.com \
  *   --allow-read=./morpheus-native --allow-write=./morpheus-native \
- *   jsr:@humanities/libmorpheus/native --output ./morpheus-native
+ *   jsr:@libmorpheus/deno/native --output ./morpheus-native
  * ```
  *
  * @module
@@ -58,7 +58,7 @@ export interface MorpheusNativeCommandLineOptions
 
 function usage(): string {
   return `Usage:
-  deno x [permissions] jsr:@humanities/libmorpheus/native \\
+  deno x [permissions] jsr:@libmorpheus/deno/native \\
     --output <directory>
 
 The command downloads the matching native GitHub Release archive and its
