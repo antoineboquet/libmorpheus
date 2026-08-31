@@ -10,10 +10,11 @@ repository. It covers the compiled analysis stemlibs, not the separate
 ## Conclusion
 
 `libmorpheus` can consume and integrity-check pinned stemlib trees, but it does
-not yet provide a supported stemlib compiler. The historical sources and build
+not yet provide a supported stemlib compiler. Most historical sources and build
 drivers are present, and Alpheios demonstrates that the Greek pipeline still
-runs on Linux. Neither the inherited makefiles nor the Alpheios automation is a
-hermetic, fail-closed, byte-reproducible build.
+runs on Linux. Some referenced Latin inputs are absent from every known commit.
+Neither the inherited makefiles nor the Alpheios automation is a hermetic,
+fail-closed, byte-reproducible build.
 
 The two production baselines have different status:
 
@@ -113,6 +114,138 @@ committed curated inputs and reproducing the complete lexicon-import process
 are therefore separate goals. The latter is currently impossible from this
 repository alone.
 
+## Repository archaeology
+
+The public Morpheus repositories are not independent archives. Their commit
+graphs share the same imported CVS history:
+
+| Repository | Commits inspected | Relationship to the historical record |
+| --- | ---: | --- |
+| [PerseusDL/morpheus](https://github.com/PerseusDL/morpheus) | 448 | Base public history, from 1997 to two README edits in 2019. |
+| [perseids-tools/morpheus](https://github.com/perseids-tools/morpheus) | 477 | Shares 446 commits with PerseusDL, then adds its Docker and compiled-stemlib work. |
+| [alpheios-project/morpheus](https://github.com/alpheios-project/morpheus) | 628 | Contains all 448 PerseusDL commits, followed by its own development. |
+| [perseids-tools/morpheus-perseids](https://github.com/perseids-tools/morpheus-perseids) | 120 | Starts at the 2008 Alpheios tree move; it is another descendant, not an older source. |
+
+Consequently, finding the same makefile or derived stem file in another fork
+does not provide independent provenance. An all-history path and content search
+of this family found consumers of `lemmata`, but no lexicon exporter, raw
+`/local/text/lsj/lemmata` or `/local/text/ls/lemmata`, renamed copy, archive, or
+deleted large input blob.
+
+The missing inputs predate the available history. Commit
+`351a621e9cd37aa343a18bf4a4b624d49877c864` added the Greek tree on 1997-01-24
+with `lsj.nom`, `lsj.vbs` and a makefile already pointing to
+`LSJDIR=/local/text/lsj`. The Latin makefile appeared the next day; commit
+`cc852baf33122dd78347768258268d9f1030fd84` added the Latin sources and derived
+`ls.nom` and `vbs.latin` on 1998-07-08. Commit
+`1a8b798653f6f05a6cc508b686f821f68a6b425a` later made their regeneration
+conditional on the external `ls/lemmata` file. There is therefore no earlier
+version in Git from which either export can be recovered.
+
+The derived files also became curated datasets after their initial import,
+rather than disposable build products:
+
+| Derived file | First recorded version | Last change in the inspected Alpheios history | First/last line counts | Whole-history diff |
+| --- | --- | --- | ---: | ---: |
+| `Greek/stemsrc/lsj.nom` | 1997-01-24 | 2026-08-16 | 154,890 / 160,604 | +12,470 / -6,756 |
+| `Greek/stemsrc/lsj.vbs` | 1997-01-24 | 2026-08-16 | 47,955 / 16,242 | +9,807 / -41,520 |
+| `Latin/stemsrc/ls.nom` | 1998-07-08 | 2011-07-24 | 238,737 / 221,061 | +5,936 / -23,612 |
+| `Latin/stemsrc/vbs.latin` | 1998-07-08 | 2010-06-17 | 17,452 / 17,220 | +588 / -820 |
+
+Commit messages explicitly describe lemma mining, removal of bogus entries,
+corpus-driven additions and hand fixes. Re-running a lexicon import must
+therefore write to a separate staging tree and produce a reviewed semantic
+diff; it must never overwrite these files as if they were a cache.
+
+### External archives and replacement sources
+
+The oldest additional public distribution located is the
+[Perseus Java Hopper archive](https://sourceforge.net/projects/perseus-hopper/files/OldFiles/)
+dated 2007-11-09. The inspected archive
+`hopper-source-20071109.tar.gz` has SHA-256
+`79b6b4220fab6962df654b6a0e6e81c8fd2d68f777a8abfa743a439f623d2b48`.
+It contains the Hopper sources and dictionary DTDs, but no Morpheus stem
+exporter and no LSJ or Lewis & Short `lemmata` input. Its
+`LexiconEntryLoader` loads already chunked dictionary XML into the Hopper
+database; it does not create Morpheus stems.
+
+The archive does contain useful, independent behavior oracles:
+
+| File | Size | Analyses | SHA-256 |
+| --- | ---: | ---: | --- |
+| `greek.morph.xml` | 195 MiB | 985,054 | `83b15693e0cf1bb96025a26366c38ea13be65796489f5f429833576b5a2eaa29` |
+| `latin.morph.xml` | 140 MiB | 710,620 | `e9e3faf62cae0d1da9a0e556348fa8f9f112fe967349406cb6ca1bb529ab0264` |
+
+These snapshots cannot recover input stems, but a future importer can compare
+its analyzer behavior against them on a sampled or complete form set.
+
+[PerseusDL/lexica](https://github.com/PerseusDL/lexica) is the best identified
+public replacement source, not the missing provenance chain. Its history starts
+in 2014: Lewis & Short was introduced by
+`70f6431f7d4782223459aa13b082f77c042b3722` on 2014-07-11 and LSJ by
+`1af61e1f3bbad38ee613e1a6683610d42206af21` later that day, years after the
+derived Morpheus files and without their pre-2014 revision history. The current
+[LSJ](https://github.com/PerseusDL/lexica/tree/master/CTS_XML_TEI/perseus/pdllex/grc/lsj)
+and
+[Lewis & Short](https://github.com/PerseusDL/lexica/tree/master/CTS_XML_TEI/perseus/pdllex/lat/ls)
+XML nevertheless preserve the dictionary fields consumed by the old filters.
+Lewis & Short supplies an archival Beta Code edition and a Unicode editing
+edition. Both datasets are CC BY-SA 4.0 and must remain a clearly attributed
+data input, separate from the AGPL/MPL program-source boundary.
+
+### What the old importer contract reveals
+
+The contract is implicit but sufficiently constrained for an emulator. The
+lexers in `src/gkdict/` expect a flattened stream in which a headword starts a
+record and nearby pseudo-TEI/SGML fragments carry fields such as `<orth>`,
+`<itype>`, `<gen>` and `<pos>`. Tabs, field adjacency and record order matter.
+Greek is represented in Beta Code; the Latin filters additionally normalize
+HTML entities and the `_`, `^` and `+` quantity/diaeresis conventions. This is
+a projection of dictionary entry headers, not an export of full definitions.
+
+That evidence supports implementing a compatible projection from pinned TEI,
+but not claiming byte identity with the missing historical export. The unknown
+source revision, undocumented projection rules and decades of manual changes
+make exact source reconstruction unprovable.
+
+### Other missing historical inputs
+
+The same archaeology confirms that the gap is wider than the two dictionary
+exports. `stemlib/Latin/stemsrc/vbs.mpi` is referenced by the Latin makefile but
+does not occur anywhere in the shared history. The Latin `stemtypes.table`
+also contains 43 entries whose names have no corresponding
+`endtables/source/*.end`; some are intentionally non-inflecting categories,
+but at least the regular tables `or_uris`, `es_idis`, `aLs_aris`, `as_anis` and
+`s_dis_adj` are genuine noun or adjective classes. This was independently
+reported in
+[PerseusDL/morpheus issue 23](https://github.com/PerseusDL/morpheus/issues/23).
+
+The historical tools hide these gaps: `buildend` ignores the negative return
+from an individual table expansion, the ending indexer silently skips a
+missing `.out`, and the shell pipeline containing the missing `vbs.mpi` takes
+its status from the final Perl process. A legacy build can therefore finish
+while silently omitting data. Reproducing those omissions may reproduce a
+snapshot; it is not evidence that the historical source set is complete.
+
+### Archaeological verdict
+
+The exact original import cannot be restored from currently public artifacts.
+A functionally equivalent, auditable re-import remains feasible, but it is a
+separate corpus-migration project from rebuilding indexes from the committed
+stem sources. It should use this order:
+
+1. restore a fail-closed stemlib compiler and reproduce the current staged
+   inputs without invoking a dictionary import;
+2. pin one `PerseusDL/lexica` revision and define a normalized, versioned
+   intermediate representation for dictionary entry headers;
+3. emit an explicitly documented legacy-`lemmata` projection into an isolated
+   staging tree;
+4. compare staged stems against the curated snapshots and compare analyzer
+   behavior against regression fixtures and the 2007 Hopper morphology
+   oracles;
+5. accept corpus changes only through a separately reviewed, attributed data
+   upgrade.
+
 ## Reproducibility blockers
 
 The following issues must be resolved before a regenerated tree can replace a
@@ -130,7 +263,9 @@ published baseline:
    never satisfied and obscure the real dependency graph.
 5. **Masked failures.** Setup rules use `mkdir ... || true`. Alpheios
    `build_stemlib.sh` is not fail-fast, so a failed command need not stop later
-   copies and cleanup.
+   copies and cleanup. Inside the producers, failed ending expansion is
+   discarded and missing ending outputs are silently skipped; the Latin verb
+   pipeline also masks its absent `vbs.mpi` input.
 6. **Stateful distribution assembly.** The Alpheios script overlays files onto
    an existing `dist/` tree instead of creating an empty staging directory.
    Removed or renamed outputs can survive a later build.
