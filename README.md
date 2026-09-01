@@ -274,6 +274,11 @@ The Deno binding has an independent version and uses `deno-v<version>` tags for
 its standalone source archive and JSR publication. Each binding version declares
 the native runtime release and ABI it supports.
 
+The Node.js binding is versioned independently with `node-v<version>` tags. npm
+publishes the ESM facade as `@libmorpheus/node` and a matching optional Node-API
+addon for each supported native platform; the runtime and stem data remain
+separate, verified acquisitions.
+
 The checksum detects corruption; it is not a release signature. See
 [platform support](docs/portability.md) for the complete qualification matrix
 and [release qualification](docs/releasing.md) for the checks required before a

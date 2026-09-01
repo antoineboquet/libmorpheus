@@ -7,6 +7,7 @@ endif()
 set(agpl_files
     .github/workflows/deno-release.yml
     .github/workflows/node-release.yml
+    .github/workflows/npm-smoke.yml
     .github/workflows/platform.yml
     CHANGELOG.md
     CMakeLists.txt
@@ -38,6 +39,7 @@ set(agpl_files
     bindings/js/node/test/gener.test.js
     bindings/js/node/test/native.test.js
     bindings/js/node/test/setup.test.js
+    test/npm-published-smoke.mjs
     bindings/js/deno/NOTICE
     bindings/js/deno/README.md
     bindings/js/deno/data.ts

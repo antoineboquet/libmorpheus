@@ -1,0 +1,108 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Published npm smoke test
+
+on:
+  workflow_run:
+    workflows:
+      - Publish Node.js binding
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: Published @libmorpheus/node version
+        required: true
+        default: 0.1.0
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event_name == 'workflow_dispatch' && inputs.package_version ||
+      github.event.workflow_run.head_sha
+    }}
+  cancel-in-progress: false
+
+jobs:
+  published-npm-smoke:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    name: Install runtime and data from public endpoints
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out smoke-test source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create a clean npm application
+        env:
+          REQUESTED_VERSION: ${{ inputs.package_version }}
+        run: |
+          package_version="$REQUESTED_VERSION"
+          if test -z "$package_version"; then
+            package_version="$(node -p \
+              'require("./bindings/js/node/package.json").version')"
+          fi
+          if ! [[ "$package_version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid package version: $package_version" >&2
+            exit 1
+          fi
+          smoke_root="$RUNNER_TEMP/libmorpheus-npm-smoke"
+          mkdir "$smoke_root"
+          cd "$smoke_root"
+          npm init --yes
+          for attempt in $(seq 1 20); do
+            main_version="$(npm view \
+              "@libmorpheus/node@$package_version" version 2>/dev/null || true)"
+            addon_version="$(npm view \
+              "@libmorpheus/node-linux-x64-gnu@$package_version" version \
+              2>/dev/null || true)"
+            if test "$main_version" = "$package_version" && \
+                test "$addon_version" = "$package_version"; then
+              break
+            fi
+            if test "$attempt" = 20; then
+              echo "Published packages did not become visible on npm." >&2
+              exit 1
+            fi
+            sleep 15
+          done
+          npm install --ignore-scripts "@libmorpheus/node@$package_version"
+          cp "$GITHUB_WORKSPACE/test/npm-published-smoke.mjs" smoke.mjs
+          echo "PACKAGE_VERSION=$package_version" >> "$GITHUB_ENV"
+
+      - name: Acquire native library, Alpheios data, and generation index
+        run: |
+          cd "$RUNNER_TEMP/libmorpheus-npm-smoke"
+          ./node_modules/.bin/libmorpheus-setup \
+            --dataset alpheios \
+            --with-gener \
+            --native-output "$RUNNER_TEMP/morpheus-native" \
+            --data-output "$RUNNER_TEMP/morpheus-alpheios"
+
+      - name: Acquire Perseids Greek and Latin data
+        run: |
+          cd "$RUNNER_TEMP/libmorpheus-npm-smoke"
+          ./node_modules/.bin/libmorpheus-data \
+            --dataset perseids \
+            --output "$RUNNER_TEMP/morpheus-perseids"
+
+      - name: Analyze Greek and Latin and generate Greek forms
+        run: |
+          cd "$RUNNER_TEMP/libmorpheus-npm-smoke"
+          node smoke.mjs \
+            "$RUNNER_TEMP/morpheus-native/lib/libmorpheus.so" \
+            "$RUNNER_TEMP/morpheus-alpheios" \
+            "$RUNNER_TEMP/morpheus-perseids"

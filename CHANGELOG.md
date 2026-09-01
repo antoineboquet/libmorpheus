@@ -14,6 +14,9 @@ the corpus.
 - An initial `@libmorpheus/node` binding uses a stable Node-API addon to load
   the separately installed C runtime and performs analysis and experimental
   generation on Node's asynchronous worker pool.
+- Dedicated `node-v<version>` tags qualify three optional native-addon packages,
+  publish them before the `@libmorpheus/node` facade through npm trusted
+  publishing, and trigger a clean public-package smoke test.
 - Dedicated `deno-v<version>` tags now publish the standalone Deno archive and
   JSR package independently from native runtime releases.
 
