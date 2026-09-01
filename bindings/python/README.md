@@ -11,19 +11,29 @@ with the JavaScript bindings, applications provide an independently installed
 shared library and stemlib. Acquisition commands will be added before the
 first release.
 
-## Intended API
+## API
 
 ```python
-from libmorpheus import Language, Library, Option
+from libmorpheus import GenerationOptions, Language, Library, Number, Option
 
 with Library("/path/to/libmorpheus.so") as library:
     with library.context("/path/to/stemlib", Language.GREEK) as context:
         analyses = context.analyze("a)/nqrwpos", Option.STRICT_CASE)
+        dual_forms = context.generate(
+            "lo/gos", GenerationOptions(number=Number.DUAL)
+        )
 ```
 
-The normalized API will preserve multiple analyses, nullable scalar traits,
-combined masks, dialects, and dual forms. Raw numeric ABI records will remain
-available for callers that need lossless low-level access.
+The normalized API preserves multiple analyses and generation interpretations,
+nullable scalar traits, combined masks, dialects, and dual forms. Raw numeric
+ABI records remain available through `analyze_raw()` and `generate_raw()` for
+callers that need lossless low-level access. Generation is experimental, as it
+is in the native ABI, and requires a stemlib containing `gener.index`.
+
+`GenerationOptions.result_limit` is a safety ceiling: exceeding a nonzero limit
+raises `MorpheusError` with `Status.RESULT_LIMIT_EXCEEDED`; it does not silently
+truncate the result. `exclude_duals=True` is available for applications that
+choose not to expose dual forms.
 
 Calls are synchronous at the Python surface. `ctypes.CDLL` releases the GIL
 during native calls, and the binding serializes calls made through one context;

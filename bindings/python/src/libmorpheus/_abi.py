@@ -10,6 +10,7 @@ ABI_VERSION = 2
 TEXT_CAPACITY = 64
 DOMAIN_CAPACITY = 24
 MORPH_FLAG_CAPACITY = 11
+GENERATION_OPTIONS_VERSION = 1
 
 
 class AnalysisRecord(ctypes.Structure):
@@ -43,6 +44,46 @@ class AnalysisRecord(ctypes.Structure):
     ]
 
 
+class GenerationRecord(ctypes.Structure):
+    _fields_ = [
+        ("struct_size", ctypes.c_uint32),
+        ("part_of_speech", ctypes.c_uint32),
+        ("dialect", ctypes.c_uint32),
+        ("geographic_region", ctypes.c_uint32),
+        ("person", ctypes.c_uint32),
+        ("number", ctypes.c_uint32),
+        ("gender", ctypes.c_uint32),
+        ("grammatical_case", ctypes.c_uint32),
+        ("tense", ctypes.c_uint32),
+        ("mood", ctypes.c_uint32),
+        ("voice", ctypes.c_uint32),
+        ("degree", ctypes.c_uint32),
+        ("surface", ctypes.c_char * TEXT_CAPACITY),
+        ("lemma", ctypes.c_char * TEXT_CAPACITY),
+        ("morph_flags", ctypes.c_uint8 * MORPH_FLAG_CAPACITY),
+    ]
+
+
+class NativeGenerationOptions(ctypes.Structure):
+    _fields_ = [
+        ("version", ctypes.c_uint32),
+        ("struct_size", ctypes.c_uint32),
+        ("result_limit", ctypes.c_uint64),
+        ("flags", ctypes.c_uint32),
+        ("part_of_speech", ctypes.c_uint32),
+        ("dialect", ctypes.c_uint32),
+        ("geographic_region", ctypes.c_uint32),
+        ("person", ctypes.c_uint32),
+        ("number", ctypes.c_uint32),
+        ("gender", ctypes.c_uint32),
+        ("grammatical_case", ctypes.c_uint32),
+        ("tense", ctypes.c_uint32),
+        ("mood", ctypes.c_uint32),
+        ("voice", ctypes.c_uint32),
+        ("degree", ctypes.c_uint32),
+    ]
+
+
 def _function(library: ctypes.CDLL, name: str, restype: object, *argtypes: object):
     try:
         function = getattr(library, name)
@@ -64,6 +105,9 @@ class NativeLibrary:
         )
         self.analysis_size = _function(
             self.handle, "morpheus_analysis_size", ctypes.c_size_t
+        )
+        self.generation_size = _function(
+            self.handle, "morpheus_generation_size", ctypes.c_size_t
         )
         self.status_message = _function(
             self.handle,
@@ -117,6 +161,45 @@ class NativeLibrary:
         self.result_free = _function(
             self.handle, "morpheus_result_free", None, ctypes.c_void_p
         )
+        self.generate = _function(
+            self.handle,
+            "morpheus_generate",
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.c_size_t,
+            ctypes.POINTER(NativeGenerationOptions),
+            ctypes.POINTER(ctypes.c_void_p),
+        )
+        self.generation_result_count = _function(
+            self.handle,
+            "morpheus_generation_result_count",
+            ctypes.c_size_t,
+            ctypes.c_void_p,
+        )
+        self.generation_result_copy = _function(
+            self.handle,
+            "morpheus_generation_result_copy",
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+        )
+        self.generation_result_truncated_fields = _function(
+            self.handle,
+            "morpheus_generation_result_truncated_fields",
+            ctypes.c_uint32,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_uint32),
+        )
+        self.generation_result_free = _function(
+            self.handle,
+            "morpheus_generation_result_free",
+            None,
+            ctypes.c_void_p,
+        )
 
         if self.abi_version() != ABI_VERSION:
             raise RuntimeError("Unsupported libmorpheus ABI version")
@@ -124,6 +207,11 @@ class NativeLibrary:
         if self.analysis_record_size < ctypes.sizeof(AnalysisRecord):
             raise RuntimeError(
                 "libmorpheus analysis record is smaller than ABI version 2"
+            )
+        self.generation_record_size = self.generation_size()
+        if self.generation_record_size < ctypes.sizeof(GenerationRecord):
+            raise RuntimeError(
+                "libmorpheus generation record is smaller than ABI version 2"
             )
 
 

@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Public Python values and normalized analysis records."""
+"""Public Python values and normalized analysis and generation records."""
 
 from __future__ import annotations
 
@@ -274,6 +274,62 @@ class Analysis:
     truncated_fields: tuple[str, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class GenerationOptions:
+    result_limit: int = 0
+    exclude_duals: bool = False
+    part_of_speech: PartOfSpeech = PartOfSpeech.UNKNOWN
+    dialect: Dialect = Dialect.ALL
+    geographic_region: GeographicRegion = GeographicRegion.NONE
+    person: Person = Person.NONE
+    number: Number = Number.NONE
+    gender: Gender = Gender.NONE
+    grammatical_case: Case = Case.NONE
+    tense: Tense = Tense.NONE
+    mood: Mood = Mood.NONE
+    voice: Voice = Voice.NONE
+    degree: Degree = Degree.NONE
+
+
+@dataclass(frozen=True, slots=True)
+class RawGeneration:
+    struct_size: int
+    part_of_speech: int
+    dialect: int
+    geographic_region: int
+    person: int
+    number: int
+    gender: int
+    grammatical_case: int
+    tense: int
+    mood: int
+    voice: int
+    degree: int
+    surface: str
+    lemma: str
+    morph_flags: bytes
+    truncated_fields: int
+
+
+@dataclass(frozen=True, slots=True)
+class Generation:
+    part_of_speech: str
+    dialects: tuple[str, ...]
+    geographic_regions: tuple[str, ...]
+    person: str | None
+    grammatical_number: str | None
+    genders: tuple[str, ...]
+    grammatical_cases: tuple[str, ...]
+    tense: str | None
+    mood: str | None
+    voices: tuple[str, ...]
+    degree: str | None
+    surface: str
+    lemma: str
+    morph_flags: tuple[MorphFlagName, ...]
+    truncated_fields: tuple[str, ...]
+
+
 PART_OF_SPEECH_NAMES = tuple(
     name.lower().replace("_", "-") for name in PartOfSpeech.__members__
 )
@@ -345,12 +401,18 @@ def _dialects(value: int) -> tuple[str, ...]:
 
 
 def has_morph_flag(
-    analysis: RawAnalysis | Analysis | Sequence[RawAnalysis | Analysis],
+    analysis: (
+        RawAnalysis
+        | Analysis
+        | RawGeneration
+        | Generation
+        | Sequence[RawAnalysis | Analysis | RawGeneration | Generation]
+    ),
     flag: int | str,
 ) -> bool:
     if isinstance(analysis, (list, tuple)):
         return any(has_morph_flag(item, flag) for item in analysis)
-    if isinstance(analysis, Analysis):
+    if isinstance(analysis, (Analysis, Generation)):
         name = (
             MORPH_FLAG_NAMES[flag]
             if isinstance(flag, int) and 0 <= flag < len(MORPH_FLAG_NAMES)
@@ -404,4 +466,37 @@ def normalize_analysis(raw: RawAnalysis) -> Analysis:
             if has_morph_flag(raw, index)
         ),
         truncated_fields=_mask(raw.truncated_fields, TRUNCATED_NAMES),
+    )
+
+
+def normalize_generation(raw: RawGeneration) -> Generation:
+    voices = (
+        ("medio-passive",) if raw.voice == int(Voice.MEDIO_PASSIVE)
+        else ("deponent",) if raw.voice == int(Voice.DEPONENT)
+        else _mask(raw.voice, VOICE_NAMES)
+    )
+    truncated = []
+    if raw.truncated_fields & int(TruncatedField.WORKWORD):
+        truncated.append("surface")
+    if raw.truncated_fields & int(TruncatedField.LEMMA):
+        truncated.append("lemma")
+    return Generation(
+        part_of_speech=_exact(raw.part_of_speech, PART_OF_SPEECH_NAMES) or "unknown",
+        dialects=_dialects(raw.dialect),
+        geographic_regions=_mask(raw.geographic_region, REGION_NAMES),
+        person=_exact(raw.person, PERSON_NAMES),
+        grammatical_number=_exact(raw.number, NUMBER_NAMES),
+        genders=_mask(raw.gender, GENDER_NAMES),
+        grammatical_cases=_mask(raw.grammatical_case, CASE_NAMES),
+        tense=_exact(raw.tense, TENSE_NAMES),
+        mood=_exact(raw.mood, MOOD_NAMES),
+        voices=voices,
+        degree=_exact(raw.degree, DEGREE_NAMES),
+        surface=raw.surface,
+        lemma=raw.lemma,
+        morph_flags=tuple(
+            name for index, name in enumerate(MORPH_FLAG_NAMES)
+            if has_morph_flag(raw, index)
+        ),
+        truncated_fields=tuple(truncated),
     )

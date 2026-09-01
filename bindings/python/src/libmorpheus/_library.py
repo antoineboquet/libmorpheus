@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
-"""Resource-owning Python facade for the libmorpheus analysis ABI."""
+"""Resource-owning Python facade for the libmorpheus ABI."""
 
 from __future__ import annotations
 
@@ -8,8 +8,27 @@ from os import PathLike, fspath
 from threading import RLock
 from typing import Callable, Self
 
-from ._abi import ABI_VERSION, AnalysisRecord, NativeLibrary, encoded_buffer
-from ._types import Analysis, Language, Option, RawAnalysis, Status, normalize_analysis
+from ._abi import (
+    ABI_VERSION,
+    GENERATION_OPTIONS_VERSION,
+    AnalysisRecord,
+    GenerationRecord,
+    NativeGenerationOptions,
+    NativeLibrary,
+    encoded_buffer,
+)
+from ._types import (
+    Analysis,
+    Generation,
+    GenerationOptions,
+    Language,
+    Option,
+    RawAnalysis,
+    RawGeneration,
+    Status,
+    normalize_analysis,
+    normalize_generation,
+)
 
 
 class MorpheusError(RuntimeError):
@@ -63,6 +82,53 @@ def _raw_analysis(record: AnalysisRecord, truncated_fields: int) -> RawAnalysis:
         domains=_text(record.domains),
         morph_flags=bytes(record.morph_flags),
         truncated_fields=truncated_fields,
+    )
+
+
+def _raw_generation(
+    record: GenerationRecord, truncated_fields: int
+) -> RawGeneration:
+    return RawGeneration(
+        struct_size=record.struct_size,
+        part_of_speech=record.part_of_speech,
+        dialect=record.dialect,
+        geographic_region=record.geographic_region,
+        person=record.person,
+        number=record.number,
+        gender=record.gender,
+        grammatical_case=record.grammatical_case,
+        tense=record.tense,
+        mood=record.mood,
+        voice=record.voice,
+        degree=record.degree,
+        surface=_text(record.surface),
+        lemma=_text(record.lemma),
+        morph_flags=bytes(record.morph_flags),
+        truncated_fields=truncated_fields,
+    )
+
+
+def _generation_options(options: GenerationOptions) -> NativeGenerationOptions:
+    if not isinstance(options.result_limit, int) or isinstance(
+        options.result_limit, bool
+    ) or not 0 <= options.result_limit <= 65_536:
+        raise ValueError("result_limit must be an integer from 0 to 65536")
+    return NativeGenerationOptions(
+        version=GENERATION_OPTIONS_VERSION,
+        struct_size=ctypes.sizeof(NativeGenerationOptions),
+        result_limit=options.result_limit,
+        flags=1 if options.exclude_duals else 0,
+        part_of_speech=int(options.part_of_speech),
+        dialect=int(options.dialect),
+        geographic_region=int(options.geographic_region),
+        person=int(options.person),
+        number=int(options.number),
+        gender=int(options.gender),
+        grammatical_case=int(options.grammatical_case),
+        tense=int(options.tense),
+        mood=int(options.mood),
+        voice=int(options.voice),
+        degree=int(options.degree),
     )
 
 
@@ -187,6 +253,60 @@ class Context:
                 return tuple(analyses)
             finally:
                 self._native.result_free(result)
+
+    def generate(
+        self, lemma: str, options: GenerationOptions = GenerationOptions()
+    ) -> tuple[Generation, ...]:
+        """Generate normalized forms through the experimental native API."""
+        return tuple(
+            normalize_generation(item) for item in self.generate_raw(lemma, options)
+        )
+
+    def generate_raw(
+        self, lemma: str, options: GenerationOptions = GenerationOptions()
+    ) -> tuple[RawGeneration, ...]:
+        """Generate lossless ABI records through the experimental native API."""
+        encoded, buffer = encoded_buffer(lemma, "Beta Code lemma")
+        native_options = _generation_options(options)
+        with self._lock:
+            pointer = self._require_open()
+            result = ctypes.c_void_p()
+            status = self._native.generate(
+                pointer,
+                buffer,
+                len(encoded),
+                ctypes.byref(native_options),
+                ctypes.byref(result),
+            )
+            _check(self._native, status)
+            try:
+                count = self._native.generation_result_count(result)
+                generations = []
+                for index in range(count):
+                    storage = ctypes.create_string_buffer(
+                        self._native.generation_record_size
+                    )
+                    _check(
+                        self._native,
+                        self._native.generation_result_copy(
+                            result,
+                            index,
+                            storage,
+                            self._native.generation_record_size,
+                        ),
+                    )
+                    truncated = ctypes.c_uint32()
+                    _check(
+                        self._native,
+                        self._native.generation_result_truncated_fields(
+                            result, index, ctypes.byref(truncated)
+                        ),
+                    )
+                    record = GenerationRecord.from_buffer_copy(storage)
+                    generations.append(_raw_generation(record, truncated.value))
+                return tuple(generations)
+            finally:
+                self._native.generation_result_free(result)
 
     def close(self) -> None:
         with self._lock:
