@@ -42,6 +42,10 @@ set(agpl_files
     bindings/js/node/test/gener.test.js
     bindings/js/node/test/native.test.js
     bindings/js/node/test/setup.test.js
+    bindings/python/NOTICE
+    bindings/python/README.md
+    bindings/python/pyproject.toml
+    bindings/python/src/libmorpheus/__init__.py
     test/npm-published-smoke.mjs
     bindings/js/deno/NOTICE
     bindings/js/deno/README.md

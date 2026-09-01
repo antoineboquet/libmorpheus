@@ -1,0 +1,12 @@
+SPDX-License-Identifier: AGPL-3.0-or-later
+
+libmorpheus Python binding
+Copyright (C) 2026 Antoine Boquet
+
+This package is licensed under the GNU Affero General Public License version 3
+or later. It contains a pure-Python ctypes facade but does not contain the
+separately distributed native libmorpheus runtime or linguistic stem-library
+data.
+
+The native runtime is a mixed-license work. Consult the runtime distribution's
+licensing documentation and provenance records before redistribution.

@@ -1,6 +1,7 @@
 # output files
 *.o
 *.a
+__pycache__/
 build/
 
 # binaries

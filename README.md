@@ -52,6 +52,7 @@ is published; the Node.js binding is under active development:
 | --- | --- | --- |
 | Deno 2 | Typed TypeScript API for analysis and experimental Greek generation, published on JSR | [Deno binding guide](bindings/js/deno/README.md) |
 | Node.js 20+ | ESM facade over an asynchronous Node-API addon; not yet published | [Node.js binding guide](bindings/js/node/README.md) |
+| Python 3.11+ | Pure-Python `ctypes` facade over the stable C ABI; under active development | [Python binding guide](bindings/python/README.md) |
 
 The historical `@humanities/libmorpheus` package remains available through
 version `0.3.2`; new Deno releases use `@libmorpheus/deno`.
