@@ -96,3 +96,19 @@ cmake --build build/node --target libmorpheus_node
 
 If CMake cannot infer the header location, set
 `MORPHEUS_NODE_INCLUDE_DIR=/path/to/node/include/node`.
+
+## Release model
+
+The binding and its three platform packages share one version but remain
+independent of the native runtime version. A `node-v<version>` tag first runs
+the general and native-platform qualification workflows, then publishes:
+
+- `@libmorpheus/node-darwin-arm64`;
+- `@libmorpheus/node-linux-arm64-gnu`;
+- `@libmorpheus/node-linux-x64-gnu`;
+- `@libmorpheus/node`, last, after all optional dependencies exist.
+
+All four npm packages must configure GitHub trusted publishing for
+`.github/workflows/node-release.yml`. Publication uses OIDC and provenance; it
+does not require a long-lived npm token. A manual run with an existing
+`node-v<version>` tag safely resumes a partial publication.

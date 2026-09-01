@@ -5,6 +5,7 @@ name: Platform and release qualification
 on:
   pull_request:
     paths:
+      - '.github/workflows/node-release.yml'
       - '.github/workflows/platform.yml'
       - 'CMakeLists.txt'
       - 'CMakePresets.json'

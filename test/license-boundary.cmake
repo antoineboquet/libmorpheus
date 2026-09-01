@@ -6,6 +6,7 @@ endif()
 
 set(agpl_files
     .github/workflows/deno-release.yml
+    .github/workflows/node-release.yml
     .github/workflows/platform.yml
     CHANGELOG.md
     CMakeLists.txt
