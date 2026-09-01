@@ -175,6 +175,7 @@ jobs:
 
       - name: Test installation from release tarballs
         env:
+          PACKAGE_VERSION: ${{ steps.metadata.outputs.package-version }}
           PLATFORM_ROOT: ${{ runner.temp }}/node-platforms
         run: |
           pack_root="$RUNNER_TEMP/node-packs"
@@ -192,6 +193,12 @@ jobs:
           node -e '
             const resolved = require.resolve("@libmorpheus/node-linux-x64-gnu");
             if (!resolved.endsWith("libmorpheus_node.node")) process.exit(1);
+          '
+          node --input-type=module -e '
+            const binding = await import("@libmorpheus/node");
+            if (binding.MORPHEUS_NODE_VERSION !== process.env.PACKAGE_VERSION) {
+              process.exit(1);
+            }
           '
           ./node_modules/.bin/libmorpheus-setup --help
 
