@@ -2,16 +2,21 @@
 
 # Release qualification
 
-This checklist defines the independent native-runtime and Deno-binding release
-tracks. Native releases cover the C library, installed metadata, containers,
-`cruncher`, and pinned fixture data. Deno releases cover the TypeScript binding,
-its acquisition commands, standalone archive, and JSR package. Historical
-standalone utilities are outside both release contracts.
+This checklist defines the independent native-runtime, Deno-binding, and
+Node.js-binding release tracks. Native releases cover the C library, installed
+metadata, containers, `cruncher`, and pinned fixture data. Deno releases cover
+the TypeScript binding, its acquisition commands, standalone archive, and JSR
+package. Node.js releases cover the ESM facade, acquisition commands, and three
+optional Node-API addon packages on npm. Historical standalone utilities are
+outside these release contracts.
 
 Native releases use `v<version>` tags. Deno binding releases use
 `deno-v<version>` tags and declare the compatible native release and ABI in
-`bindings/js/deno/internal/version.ts`. Releases through `0.3.2` predate this
-separation and used one `v<version>` tag for both tracks.
+`bindings/js/deno/internal/version.ts`. Node.js binding releases use
+`node-v<version>` tags and declare native compatibility in
+`bindings/js/node/internal/native-manifest.js`. Releases through `0.3.2`
+predate this separation and used one `v<version>` tag for the native and Deno
+tracks.
 
 Each release records its version and ABI decision in
 `release-<version>.md`. The current candidate is recorded in
@@ -33,6 +38,10 @@ Each release records its version and ABI decision in
 - Confirm that the Deno `ABI_VERSION` and native structure declarations match
   the binding's declared native ABI. They need not match a newer native ABI
   being developed concurrently on `main`.
+- For a Node.js release, update `bindings/js/node/package.json`,
+  `MORPHEUS_NODE_VERSION`, and all three `npm/*/package.json` templates
+  together. Keep every optional dependency pinned to that exact package
+  version, then review the separately declared native release and ABI.
 - Write release notes that distinguish code changes from stemlib data changes.
 - Move the candidate notes in `CHANGELOG.md` from `Unreleased` to a dated
   version heading without changing their technical scope during packaging.
@@ -62,18 +71,26 @@ standalone source archive. Superseded runs are cancelled, except for immutable
 version-tag runs.
 
 The expensive native architecture workflow in `.github/workflows/platform.yml`
-runs weekly, on explicit manual dispatch, and for every `v*` tag. It covers
-native Linux aarch64, Alpine x86-64/aarch64, and Apple Silicon. Manual
-dispatches can request all three native release-candidate packages; native
-version tags always build them. Packages and checksums are retained as
-short-lived CI artifacts on non-tag runs. After a native version tag passes the
-full platform matrix and separate Linux CI, the tag workflow publishes only the
-verified native assets and benchmark evidence to the native GitHub release.
+runs weekly, on explicit manual dispatch, and for every native `v*` or Node.js
+`node-v*` tag. It covers native Linux aarch64, Alpine x86-64/aarch64, and Apple
+Silicon. Manual dispatches can request all three native release-candidate
+packages; version tags always build the artifacts needed by their release
+track. Packages and checksums are retained as short-lived CI artifacts on
+non-tag runs. After a native version tag passes the full platform matrix and
+separate Linux CI, the tag workflow publishes only the verified native assets
+and benchmark evidence to the native GitHub release.
 
 The Deno publication workflow runs only for `deno-v*` tags. It requires Linux
 CI on the tagged commit, verifies that the declared native `v<version>` release
 and all six native archive files exist, builds the standalone binding archive,
 publishes a separate non-latest GitHub release, and then publishes JSR.
+
+The Node.js publication workflow runs only for `node-v*` tags or explicit
+recovery dispatches. A tag launches both Linux CI and the complete native
+platform workflow. The publication job waits for both workflows on the exact
+tagged commit, downloads their three qualified addon packages, verifies the
+coordinated package set, and tests installation from local tarballs before
+contacting npm. It publishes the platform packages first and the facade last.
 
 Scheduled runs first compare the current default-branch SHA with the last
 completed weekly run. The architecture jobs are skipped when the SHA is
@@ -122,6 +139,8 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Require `release_metadata` to keep the C header, public API documentation,
   changelog, and CMake ABI decisions aligned. `jsr_package_metadata` separately
   keeps the JSR version and the binding's declared native compatibility aligned.
+  `node_package_metadata` keeps the Node facade, its native compatibility, and
+  all platform package templates aligned.
 
 ## 5. Runtime artifacts
 
@@ -178,7 +197,7 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Before the first publication, link `@libmorpheus/deno` to
   `defense-humanites/libmorpheus` in the package's JSR settings. This one-time
   association authorizes tokenless GitHub Actions publication through OIDC.
-- Do not move either kind of published tag. If JSR rejects metadata after the
+- Do not move any published tag. If JSR rejects metadata after the
   Deno GitHub release succeeds and that version is still unpublished, correct
   only `bindings/js/deno/jsr.json` on `main` and manually dispatch
   `Recover JSR publication` with the `deno-v<version>` tag. The recovery refuses
@@ -188,6 +207,25 @@ Alpheios fixture suites must run where their data prerequisites are available.
   the public JSR package, its declared native archive, Alpheios data plus
   generation index, and Perseids data. Require Greek and Latin analysis plus
   experimental Greek generation to pass before closing the Deno release.
+- Before the first Node.js publication, configure npm trusted publishing for
+  `@libmorpheus/node` and each of its three platform packages. Every package
+  must authorize repository `defense-humanites/libmorpheus` and workflow
+  `.github/workflows/node-release.yml`; no long-lived npm token is used.
+- For a Node.js release, inspect `npm pack --dry-run --ignore-scripts` for the
+  facade and every staged platform package. Tag the exact qualified commit as
+  `node-v<version>`. The dedicated workflow verifies the existing declared
+  native release, waits for tagged CI, publishes through npm OIDC with
+  provenance, then automatically triggers `Published npm smoke test`.
+- Require the published npm smoke to install into an empty Node.js application,
+  acquire the declared native runtime and both audited datasets, and preserve
+  Greek and Latin analysis, multiple interpretations, and Greek dual
+  generation. It retries only npm visibility; acquisition and semantic failures
+  remain hard failures.
+- If npm publication stops after only some packages were accepted, do not move
+  the tag or change package contents. Manually dispatch `Publish Node.js
+  binding` with the existing `node-v<version>` tag while its qualified platform
+  artifacts are retained. The workflow skips exact versions already present
+  and resumes in dependency-first order.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact
