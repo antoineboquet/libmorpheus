@@ -28,11 +28,16 @@
     "./data": {
       "types": "./data.d.ts",
       "import": "./data.js"
+    },
+    "./setup": {
+      "types": "./setup.d.ts",
+      "import": "./setup.js"
     }
   },
   "bin": {
     "libmorpheus-native": "./native.js",
-    "libmorpheus-data": "./data.js"
+    "libmorpheus-data": "./data.js",
+    "libmorpheus-setup": "./setup.js"
   },
   "files": [
     "LICENSE",
@@ -45,7 +50,9 @@
     "index.d.ts",
     "index.js",
     "native.d.ts",
-    "native.js"
+    "native.js",
+    "setup.d.ts",
+    "setup.js"
   ],
   "optionalDependencies": {
     "@libmorpheus/node-darwin-arm64": "0.1.0",

@@ -28,11 +28,15 @@ set(agpl_files
     bindings/js/node/internal/version.js
     bindings/js/node/native.d.ts
     bindings/js/node/native.js
+    bindings/js/node/setup.d.ts
+    bindings/js/node/setup.js
+    bindings/js/node/internal/setup-internal.js
     bindings/js/node/package-platform.mjs
     bindings/js/node/test/binding.test.js
     bindings/js/node/test/data.test.js
     bindings/js/node/test/gener.test.js
     bindings/js/node/test/native.test.js
+    bindings/js/node/test/setup.test.js
     bindings/js/deno/NOTICE
     bindings/js/deno/README.md
     bindings/js/deno/data.ts

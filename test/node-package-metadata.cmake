@@ -84,6 +84,14 @@ if(NOT data_import STREQUAL "./data.js" OR
    NOT data_bin STREQUAL "./data.js")
   message(FATAL_ERROR "Unexpected Node data acquisition entrypoint")
 endif()
+string(JSON setup_import GET "${package}" exports ./setup import)
+string(JSON setup_types GET "${package}" exports ./setup types)
+string(JSON setup_bin GET "${package}" bin libmorpheus-setup)
+if(NOT setup_import STREQUAL "./setup.js" OR
+   NOT setup_types STREQUAL "./setup.d.ts" OR
+   NOT setup_bin STREQUAL "./setup.js")
+  message(FATAL_ERROR "Unexpected Node combined setup entrypoint")
+endif()
 
 foreach(required IN ITEMS
     CMakeLists.txt LICENSE NOTICE README.md addon.c index.d.ts index.js
@@ -91,11 +99,12 @@ foreach(required IN ITEMS
     internal/data-manifest.js internal/gener-index.js internal/gener-manifest.js
     internal/gener-preparer.mjs internal/gener-runtime.js
     internal/native-internal.js internal/native-manifest.js
-    internal/version.js native.d.ts native.js
+    internal/setup-internal.js internal/version.js native.d.ts native.js
+    setup.d.ts setup.js
     LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt
     package-platform.mjs package.json package.json.license
     test/binding.test.js test/data.test.js test/gener.test.js
-    test/native.test.js)
+    test/native.test.js test/setup.test.js)
   if(NOT EXISTS "${node_dir}/${required}")
     message(FATAL_ERROR "Missing Node binding source: ${required}")
   endif()

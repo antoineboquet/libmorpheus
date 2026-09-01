@@ -50,7 +50,17 @@ try {
 
 Package installation runs no native installation script. The optional package
 contains only the small Node-API adapter; `libmorpheus` and stem data remain
-separate. Acquire the pinned native runtime explicitly:
+separate. The usual explicit setup is:
+
+```sh
+npx --package @libmorpheus/node libmorpheus-setup \
+  --dataset alpheios --with-gener
+export MORPHEUS_LIBRARY="$PWD/morpheus-native/lib/libmorpheus.so"
+export MORPHEUS_STEMLIB="$PWD/morpheus-data"
+```
+
+Native and data acquisition are also available separately. Acquire the pinned
+native runtime with:
 
 ```sh
 npx --package @libmorpheus/node libmorpheus-native \
