@@ -18,8 +18,9 @@ Native releases use `v<version>` tags. Deno binding releases use
 predate this separation and used one `v<version>` tag for the native and Deno
 tracks.
 
-Each release records its version and ABI decision in
-`release-<version>.md`. The current candidate is recorded in
+Each native release records its version and ABI decision in
+`release-<version>.md`; binding releases use a track-qualified name such as
+`release-node-0.1.0.md`. The current native candidate is recorded in
 `release-0.3.2.md`; the earlier decisions remain historical evidence.
 
 ## 1. Version and compatibility decisions
@@ -214,7 +215,9 @@ Alpheios fixture suites must run where their data prerequisites are available.
 - Configure trusted publishing on each package with GitHub organization
   `defense-humanites`, repository `libmorpheus`, workflow filename
   `node-release.yml` (not its full path), and `npm publish` permission. The
-  versioned release workflow then needs no long-lived npm token.
+  versioned release workflow then needs no long-lived npm token. See npm's
+  [trusted publishing documentation](https://docs.npmjs.com/trusted-publishers/)
+  for the registry-side settings.
 - For a Node.js release, inspect `npm pack --dry-run --ignore-scripts` for the
   facade and every staged platform package. Tag the exact qualified commit as
   `node-v<version>`. The dedicated workflow verifies the existing declared

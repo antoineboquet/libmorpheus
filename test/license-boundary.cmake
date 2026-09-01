@@ -11,6 +11,7 @@ set(agpl_files
     .github/workflows/platform.yml
     CHANGELOG.md
     CMakeLists.txt
+    docs/release-node-0.1.0.md
     cmake/stamp-gener-preparer.cmake
     bindings/js/node/CMakeLists.txt
     bindings/js/node/NOTICE
