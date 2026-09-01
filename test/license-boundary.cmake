@@ -14,10 +14,25 @@ set(agpl_files
     bindings/js/node/NOTICE
     bindings/js/node/README.md
     bindings/js/node/addon.c
+    bindings/js/node/data.d.ts
+    bindings/js/node/data.js
     bindings/js/node/index.d.ts
     bindings/js/node/index.js
+    bindings/js/node/internal/archive.js
+    bindings/js/node/internal/data-internal.js
+    bindings/js/node/internal/data-manifest.js
+    bindings/js/node/internal/gener-index.js
+    bindings/js/node/internal/gener-runtime.js
+    bindings/js/node/internal/native-internal.js
+    bindings/js/node/internal/native-manifest.js
+    bindings/js/node/internal/version.js
+    bindings/js/node/native.d.ts
+    bindings/js/node/native.js
     bindings/js/node/package-platform.mjs
     bindings/js/node/test/binding.test.js
+    bindings/js/node/test/data.test.js
+    bindings/js/node/test/gener.test.js
+    bindings/js/node/test/native.test.js
     bindings/js/deno/NOTICE
     bindings/js/deno/README.md
     bindings/js/deno/data.ts
@@ -71,6 +86,8 @@ foreach(agpl_file IN LISTS agpl_files)
 endforeach()
 
 foreach(mpl_file IN ITEMS
+        bindings/js/node/internal/gener-manifest.js
+        bindings/js/node/internal/gener-preparer.mjs
         bindings/js/deno/internal/gener_manifest.ts
         bindings/js/deno/internal/gener_preparer.mjs
         include/morpheus/compat.h

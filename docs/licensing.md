@@ -38,12 +38,12 @@ The bridge is intentionally the only structured-API component that knows both
 the public values and the historical numeric encodings. This placement does not
 relicense inherited expressions; it isolates them in MPL-covered files.
 
-The JSR data command bundles an internal WebAssembly build of the MPL-covered
-generation source preparer and an MPL-marked copy of its qualified corpus
-manifest. Emscripten runtime portions are distributed under their permissive
-license recorded in `bindings/js/deno/LICENSES/EMSCRIPTEN.txt`. The WebAssembly
-module neither changes the public API nor moves historical code across the
-MPL/AGPL boundary.
+The Deno and Node data commands bundle an internal WebAssembly build of the
+MPL-covered generation source preparer and an MPL-marked copy of its qualified
+corpus manifest. Emscripten runtime portions are distributed under their
+permissive license recorded in each package's `LICENSES/EMSCRIPTEN.txt`. The
+WebAssembly module neither changes the public API nor moves historical code
+across the MPL/AGPL boundary.
 
 ## License texts and provenance
 

@@ -88,10 +88,14 @@ endif()
 foreach(required IN ITEMS
     CMakeLists.txt LICENSE NOTICE README.md addon.c index.d.ts index.js
     data.d.ts data.js internal/archive.js internal/data-internal.js
-    internal/data-manifest.js internal/native-internal.js internal/native-manifest.js
+    internal/data-manifest.js internal/gener-index.js internal/gener-manifest.js
+    internal/gener-preparer.mjs internal/gener-runtime.js
+    internal/native-internal.js internal/native-manifest.js
     internal/version.js native.d.ts native.js
+    LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt
     package-platform.mjs package.json package.json.license
-    test/binding.test.js test/data.test.js test/native.test.js)
+    test/binding.test.js test/data.test.js test/gener.test.js
+    test/native.test.js)
   if(NOT EXISTS "${node_dir}/${required}")
     message(FATAL_ERROR "Missing Node binding source: ${required}")
   endif()

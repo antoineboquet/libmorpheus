@@ -56,11 +56,10 @@ The following remain MPL-2.0 even where the current path was created locally:
 - `tools/gener-derivation-manifest.tsv` and the generation-derivation fixtures,
   which record and exercise inherited rule data and behavior.
 
-The same MPL treatment applies to
-`bindings/js/deno/internal/gener_manifest.ts` and the compiled
-`bindings/js/deno/internal/gener_preparer.mjs`. The latter also contains the
-permissively licensed Emscripten runtime; its accompanying license text is
-included in the standalone binding package.
+The same MPL treatment applies to the Deno and Node copies of the generation
+corpus manifest and compiled preparer under `bindings/js/*/internal/`. The
+compiled preparer also contains the permissively licensed Emscripten runtime;
+its accompanying license text is included in each standalone binding package.
 
 The root `LICENSE` remains the default for every unmarked file. Explicit MPL
 notices on boundary files prevent their accidental inclusion in the AGPL set.

@@ -324,6 +324,11 @@ jobs:
             --output ../../../build/node-data-acquired
           test -f ../../../build/node-data-acquired/MORPHEUS-DATA.json
           test -f ../../../build/node-data-acquired/Latin/steminds/nomind
+          node data.js --dataset alpheios --with-gener \
+            --output ../../../build/node-data-gener-acquired
+          cmake -E sha256sum \
+            ../../../build/node-data-gener-acquired/gener.index | \
+            grep -F '5aa76d8c86c54af5121a3cce506ecaa57d14c6667ac0f091efd164ddfa9822d6'
 
       - name: Verify npm package contents
         working-directory: bindings/js/node

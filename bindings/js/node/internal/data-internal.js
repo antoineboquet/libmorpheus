@@ -8,6 +8,7 @@ import { gunzip } from "node:zlib";
 
 import { parseTarArchive } from "./archive.js";
 import { MORPHEUS_DATA_SCHEMA_VERSION, MORPHEUS_DATASETS } from "./data-manifest.js";
+import { prepareGenerIndex } from "./gener-runtime.js";
 import { MORPHEUS_NODE_VERSION } from "./version.js";
 
 const gunzipAsync = promisify(gunzip);
@@ -117,8 +118,8 @@ async function writeArchiveDataset(dataset, directory) {
 export async function acquireMorpheusDataWithDependencies(options, dependencies) {
   const definition = dependencies.datasets[options.dataset];
   if (definition === undefined) throw new TypeError(`unsupported Morpheus dataset: ${options.dataset}`);
-  if (options.withGener) {
-    throw new TypeError("experimental generation preparation is not yet available in the Node package");
+  if (options.withGener && !definition.generation) {
+    throw new TypeError(`dataset ${definition.name} does not support experimental generation`);
   }
   const output = resolve(options.output);
   if (await pathExists(output)) throw new Error(`output path already exists: ${output}`);
@@ -126,6 +127,26 @@ export async function acquireMorpheusDataWithDependencies(options, dependencies)
   try {
     const dataset = extractArchiveDataset(await downloadArchive(definition, dependencies.fetch), definition);
     await writeArchiveDataset(dataset, output);
+    let indexSha256 = null;
+    let supportSource = null;
+    if (options.withGener) {
+      const supportDefinition = dependencies.datasets.perseids;
+      if (supportDefinition === undefined) {
+        throw new Error("Perseids support dataset is unavailable");
+      }
+      const supportDataset = extractArchiveDataset(
+        await downloadArchive(supportDefinition, dependencies.fetch),
+        supportDefinition,
+      );
+      const index = await prepareGenerIndex(dataset.files, supportDataset.files, sha256);
+      indexSha256 = sha256(index);
+      await writeFile(join(output, "gener.index"), index, { flag: "wx" });
+      supportSource = {
+        repository: supportDefinition.repository,
+        revision: supportDefinition.revision,
+        archiveUrl: supportDefinition.archiveUrl,
+      };
+    }
     const receipt = {
       schema: MORPHEUS_DATA_SCHEMA_VERSION,
       packageVersion: MORPHEUS_NODE_VERSION,
@@ -139,9 +160,9 @@ export async function acquireMorpheusDataWithDependencies(options, dependencies)
       files: { count: definition.fileCount, treeSha256: definition.treeSha256 },
       generation: {
         experimental: true,
-        available: false,
-        indexSha256: null,
-        supportSource: null,
+        available: options.withGener === true,
+        indexSha256,
+        supportSource,
       },
     };
     await writeFile(join(output, "MORPHEUS-DATA.json"), `${JSON.stringify(receipt, null, 2)}\n`, { flag: "wx" });

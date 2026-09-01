@@ -82,8 +82,12 @@ test("data acquisition verifies the selected tree and preserves its license", as
 test("data CLI selects only pinned supported datasets", () => {
   assert.deepEqual(
     parseMorpheusDataArgs(["--dataset=perseids", "--output", "data"]),
-    { dataset: "perseids", output: "data", help: false },
+    { dataset: "perseids", output: "data", withGener: false, help: false },
   );
   assert.throws(() => parseMorpheusDataArgs(["--dataset", "latest", "--output", "data"]), /unsupported dataset/);
-  assert.throws(() => parseMorpheusDataArgs(["--dataset", "alpheios", "--output", "data", "--with-gener"]), /not yet available/);
+  assert.throws(() => parseMorpheusDataArgs(["--dataset", "perseids", "--output", "data", "--with-gener"]), /only for alpheios/);
+  assert.equal(
+    parseMorpheusDataArgs(["--dataset", "alpheios", "--output", "data", "--with-gener"]).withGener,
+    true,
+  );
 });

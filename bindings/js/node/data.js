@@ -15,6 +15,7 @@ function takeValue(args, index, name) {
 export function parseMorpheusDataArgs(args) {
   let dataset;
   let output;
+  let withGener = false;
   let help = false;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index];
@@ -27,18 +28,20 @@ export function parseMorpheusDataArgs(args) {
       output = takeValue(args, index, "--output");
       index++;
     } else if (argument.startsWith("--output=")) output = argument.slice("--output=".length);
-    else if (argument === "--with-gener") {
-      throw new TypeError("--with-gener is not yet available in the Node package");
-    } else throw new TypeError(`unknown argument: ${argument}`);
+    else if (argument === "--with-gener") withGener = true;
+    else throw new TypeError(`unknown argument: ${argument}`);
   }
-  if (help) return { dataset: dataset ?? "alpheios", output: output ?? ".", help };
+  if (help) return { dataset: dataset ?? "alpheios", output: output ?? ".", withGener, help };
   if (dataset !== "alpheios" && dataset !== "perseids") throw new TypeError(dataset === undefined ? "--dataset is required" : `unsupported dataset: ${dataset}`);
   if (output === undefined || output === "") throw new TypeError("--output is required");
-  return { dataset, output, help };
+  if (withGener && dataset !== "alpheios") {
+    throw new TypeError("--with-gener is supported only for alpheios");
+  }
+  return { dataset, output, withGener, help };
 }
 
 function usage() {
-  return `Usage: libmorpheus-data --dataset <alpheios|perseids> --output <directory>\n\nAlpheios provides Greek analysis; Perseids provides Greek and Latin analysis.`;
+  return `Usage: libmorpheus-data --dataset <alpheios|perseids> --output <directory> [--with-gener]\n\nAlpheios provides Greek analysis and experimental generation; Perseids provides Greek and Latin analysis.`;
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {

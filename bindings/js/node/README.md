@@ -68,10 +68,11 @@ npx --package @libmorpheus/node libmorpheus-data \
 export MORPHEUS_STEMLIB="$PWD/morpheus-data"
 ```
 
-Alpheios provides Greek analysis; Perseids provides Greek and Latin analysis.
+Alpheios provides Greek analysis and supports `--with-gener` for the
+experimental generation index; Perseids provides Greek and Latin analysis.
 The command verifies the selected file count, every file through a deterministic
-tree digest, and the upstream license. Experimental generation setup will be
-ported in a subsequent lot before the first npm publication.
+tree digest, and the upstream license. Generation additionally verifies its
+qualified prepared-source and index digests.
 
 ## Build the addon
 

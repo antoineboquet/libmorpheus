@@ -36,6 +36,7 @@
   },
   "files": [
     "LICENSE",
+    "LICENSES",
     "NOTICE",
     "README.md",
     "data.d.ts",

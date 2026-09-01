@@ -4,6 +4,7 @@ export type MorpheusDatasetName = "alpheios" | "perseids";
 export interface AcquireMorpheusDataOptions {
   readonly dataset: MorpheusDatasetName;
   readonly output: string;
+  readonly withGener?: boolean;
 }
 export interface MorpheusDataReceipt {
   readonly schema: number;
@@ -14,9 +15,9 @@ export interface MorpheusDataReceipt {
   readonly files: { readonly count: number; readonly treeSha256: string };
   readonly generation: {
     readonly experimental: true;
-    readonly available: false;
-    readonly indexSha256: null;
-    readonly supportSource: null;
+    readonly available: boolean;
+    readonly indexSha256: string | null;
+    readonly supportSource: { readonly repository: string; readonly revision: string; readonly archiveUrl: string } | null;
   };
 }
 export interface MorpheusDataCommandLineOptions extends AcquireMorpheusDataOptions { readonly help: boolean }
