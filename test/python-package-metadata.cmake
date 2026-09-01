@@ -12,7 +12,8 @@ foreach(required IN ITEMS
     "requires-python = \">=3.11\""
     "license = \"AGPL-3.0-or-later\""
     "dependencies = []"
-    "package-dir = { \"\" = \"src\" }")
+    "package-dir = { \"\" = \"src\" }"
+    "license-files = [\"LICENSE\", \"NOTICE\"]")
   string(FIND "${pyproject}" "${required}" required_at)
   if(required_at EQUAL -1)
     message(FATAL_ERROR "Python package metadata is missing: ${required}")
@@ -27,7 +28,9 @@ endif()
 
 foreach(required IN ITEMS
     LICENSE NOTICE README.md pyproject.toml
-    src/libmorpheus/__init__.py src/libmorpheus/py.typed)
+    src/libmorpheus/__init__.py src/libmorpheus/_abi.py
+    src/libmorpheus/_library.py src/libmorpheus/_types.py
+    src/libmorpheus/py.typed test/fixture.c test/test_binding.py)
   if(NOT EXISTS "${python_dir}/${required}")
     message(FATAL_ERROR "Missing Python binding source: ${required}")
   endif()

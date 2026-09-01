@@ -46,6 +46,11 @@ set(agpl_files
     bindings/python/README.md
     bindings/python/pyproject.toml
     bindings/python/src/libmorpheus/__init__.py
+    bindings/python/src/libmorpheus/_abi.py
+    bindings/python/src/libmorpheus/_library.py
+    bindings/python/src/libmorpheus/_types.py
+    bindings/python/test/fixture.c
+    bindings/python/test/test_binding.py
     test/npm-published-smoke.mjs
     bindings/js/deno/NOTICE
     bindings/js/deno/README.md
