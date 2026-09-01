@@ -16,6 +16,7 @@ set(agpl_files
     bindings/js/node/NOTICE
     bindings/js/node/README.md
     bindings/js/node/addon.c
+    bindings/js/node/bootstrap-npm.mjs
     bindings/js/node/data.d.ts
     bindings/js/node/data.js
     bindings/js/node/index.d.ts
@@ -35,6 +36,7 @@ set(agpl_files
     bindings/js/node/internal/setup-internal.js
     bindings/js/node/package-platform.mjs
     bindings/js/node/test/binding.test.js
+    bindings/js/node/test/bootstrap-npm.test.js
     bindings/js/node/test/data.test.js
     bindings/js/node/test/gener.test.js
     bindings/js/node/test/native.test.js

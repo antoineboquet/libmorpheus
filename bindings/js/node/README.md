@@ -108,7 +108,20 @@ the general and native-platform qualification workflows, then publishes:
 - `@libmorpheus/node-linux-x64-gnu`;
 - `@libmorpheus/node`, last, after all optional dependencies exist.
 
-All four npm packages must configure GitHub trusted publishing for
-`.github/workflows/node-release.yml`. Publication uses OIDC and provenance; it
-does not require a long-lived npm token. A manual run with an existing
-`node-v<version>` tag safely resumes a partial publication.
+Because npm cannot attach a trusted publisher to a package that does not yet
+exist, the four names require a one-time interactive bootstrap. Stage inert
+`0.0.0` packages, inspect them, and publish them under a non-default tag:
+
+```sh
+node bindings/js/node/bootstrap-npm.mjs --output build/npm-bootstrap
+for package in build/npm-bootstrap/*; do
+  npm publish "$package" --access public --tag bootstrap
+done
+```
+
+Then configure GitHub trusted publishing on every package with organization
+`defense-humanites`, repository `libmorpheus`, workflow filename
+`node-release.yml` (filename only), and permission to run `npm publish`.
+Subsequent publication uses OIDC and provenance and needs no long-lived npm
+token. A manual workflow run with an existing `node-v<version>` tag safely
+resumes a partial publication while its qualified artifacts are retained.

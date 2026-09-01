@@ -207,10 +207,14 @@ Alpheios fixture suites must run where their data prerequisites are available.
   the public JSR package, its declared native archive, Alpheios data plus
   generation index, and Perseids data. Require Greek and Latin analysis plus
   experimental Greek generation to pass before closing the Deno release.
-- Before the first Node.js publication, configure npm trusted publishing for
-  `@libmorpheus/node` and each of its three platform packages. Every package
-  must authorize repository `defense-humanites/libmorpheus` and workflow
-  `.github/workflows/node-release.yml`; no long-lived npm token is used.
+- npm requires a package to exist before it can acquire a trusted publisher.
+  Before the first Node.js release, run `bootstrap-npm.mjs`, inspect its four
+  inert `0.0.0` packages, and publish them interactively with npm dist-tag
+  `bootstrap`. This one-time reservation must not use `latest`.
+- Configure trusted publishing on each package with GitHub organization
+  `defense-humanites`, repository `libmorpheus`, workflow filename
+  `node-release.yml` (not its full path), and `npm publish` permission. The
+  versioned release workflow then needs no long-lived npm token.
 - For a Node.js release, inspect `npm pack --dry-run --ignore-scripts` for the
   facade and every staged platform package. Tag the exact qualified commit as
   `node-v<version>`. The dedicated workflow verifies the existing declared
