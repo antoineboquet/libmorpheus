@@ -16,10 +16,12 @@ on:
       - 'test/package-deno-binding.cmake'
       - 'test/test-deno-binding-package.cmake'
       - 'bindings/js/deno/**'
+      - 'bindings/js/node/**'
       - 'tools/prepare-runtime-data.sh'
   push:
     tags:
       - 'v*'
+      - 'node-v*'
   schedule:
     - cron: '0 4 * * 1'
   workflow_dispatch:
@@ -118,9 +120,24 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Locate Node-API headers
+        id: node
+        run: |
+          node_prefix="$(node -p \
+            "require('node:path').resolve(process.execPath, '../..')")"
+          test -f "$node_prefix/include/node/node_api.h"
+          echo "include=$node_prefix/include/node" >> "$GITHUB_OUTPUT"
+
       - name: Configure optimized release
         run: >-
           cmake --preset release -DBUILD_TESTING=ON
+          -DMORPHEUS_BUILD_NODE_BINDING=ON
+          -DMORPHEUS_NODE_INCLUDE_DIR=${{ steps.node.outputs.include }}
           -DMORPHEUS_PACKAGE_PLATFORM=Linux-x86_64-glibc
 
       - name: Build optimized release
@@ -179,6 +196,28 @@ jobs:
             --cold-samples 1 --generation-small 'lo/gos' \
             --generation-maximal 'i(/hmi' --json > /dev/null
 
+      - name: Test Node.js binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
+          MORPHEUS_NODE_ADDON: ${{ github.workspace }}/build/release/node/libmorpheus_node.node
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        working-directory: bindings/js/node
+        run: npm test
+
+      - name: Stage and verify Node.js platform package
+        if: needs.activity.outputs.package-artifacts == 'true'
+        run: |
+          file build/release/node/libmorpheus_node.node
+          readelf -h build/release/node/libmorpheus_node.node | \
+            grep -F 'Machine:' | grep -F 'Advanced Micro Devices X86-64'
+          node bindings/js/node/package-platform.mjs \
+            linux-x64-gnu \
+            build/release/node/libmorpheus_node.node \
+            build/release/npm-node-linux-x64-gnu
+          npm pack --dry-run --ignore-scripts \
+            ./build/release/npm-node-linux-x64-gnu
+          npm pack --dry-run --ignore-scripts ./bindings/js/node
+
       - name: Preserve native package
         uses: actions/upload-artifact@v4
         with:
@@ -192,6 +231,15 @@ jobs:
         with:
           name: libmorpheus-deno-binding
           path: build/release/packages/libmorpheus-deno-*.tar.gz*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Preserve Node.js platform package
+        if: needs.activity.outputs.package-artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-node-linux-x64-gnu
+          path: build/release/npm-node-linux-x64-gnu
           if-no-files-found: error
           retention-days: 14
 
@@ -214,9 +262,24 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Locate Node-API headers
+        id: node
+        run: |
+          node_prefix="$(node -p \
+            "require('node:path').resolve(process.execPath, '../..')")"
+          test -f "$node_prefix/include/node/node_api.h"
+          echo "include=$node_prefix/include/node" >> "$GITHUB_OUTPUT"
+
       - name: Configure optimized release
         run: >-
           cmake --preset release -DBUILD_TESTING=ON
+          -DMORPHEUS_BUILD_NODE_BINDING=ON
+          -DMORPHEUS_NODE_INCLUDE_DIR=${{ steps.node.outputs.include }}
           -DMORPHEUS_PACKAGE_PLATFORM=Linux-aarch64-glibc
 
       - name: Build optimized release
@@ -248,6 +311,27 @@ jobs:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/js/deno/test/mod_test.ts
+
+      - name: Test Node.js binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
+          MORPHEUS_NODE_ADDON: ${{ github.workspace }}/build/release/node/libmorpheus_node.node
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        working-directory: bindings/js/node
+        run: npm test
+
+      - name: Stage and verify Node.js platform package
+        if: needs.activity.outputs.package-artifacts == 'true'
+        run: |
+          file build/release/node/libmorpheus_node.node
+          readelf -h build/release/node/libmorpheus_node.node | \
+            grep -F 'Machine:' | grep -F AArch64
+          node bindings/js/node/package-platform.mjs \
+            linux-arm64-gnu \
+            build/release/node/libmorpheus_node.node \
+            build/release/npm-node-linux-arm64-gnu
+          npm pack --dry-run --ignore-scripts \
+            ./build/release/npm-node-linux-arm64-gnu
 
       - name: Smoke-test generation qualification
         env:
@@ -281,6 +365,15 @@ jobs:
         with:
           name: libmorpheus-native-linux-aarch64-glibc
           path: build/release/packages/libmorpheus-*.tar.gz*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Preserve Node.js platform package
+        if: needs.activity.outputs.package-artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-node-linux-arm64-gnu
+          path: build/release/npm-node-linux-arm64-gnu
           if-no-files-found: error
           retention-days: 14
 
@@ -368,11 +461,26 @@ jobs:
         with:
           deno-version: v2.x
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Locate Node-API headers
+        id: node
+        run: |
+          node_prefix="$(node -p \
+            "require('node:path').resolve(process.execPath, '../..')")"
+          test -f "$node_prefix/include/node/node_api.h"
+          echo "include=$node_prefix/include/node" >> "$GITHUB_OUTPUT"
+
       - name: Configure optimized release
         run: >-
           cmake --preset release -DBUILD_TESTING=ON
           -DCMAKE_OSX_ARCHITECTURES=arm64
           -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+          -DMORPHEUS_BUILD_NODE_BINDING=ON
+          -DMORPHEUS_NODE_INCLUDE_DIR=${{ steps.node.outputs.include }}
           -DMORPHEUS_PACKAGE_PLATFORM=macOS-arm64
 
       - name: Build optimized release
@@ -419,6 +527,26 @@ jobs:
           MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
         run: deno test --allow-env --allow-ffi bindings/js/deno/test/mod_test.ts
 
+      - name: Test Node.js binding
+        env:
+          MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.dylib
+          MORPHEUS_NODE_ADDON: ${{ github.workspace }}/build/release/node/libmorpheus_node.node
+          MORPHEUS_STEMLIB: ${{ github.workspace }}/stemlib
+        working-directory: bindings/js/node
+        run: npm test
+
+      - name: Stage and verify Node.js platform package
+        if: needs.activity.outputs.package-artifacts == 'true'
+        run: |
+          test "$(lipo -archs \
+            build/release/node/libmorpheus_node.node)" = arm64
+          node bindings/js/node/package-platform.mjs \
+            darwin-arm64 \
+            build/release/node/libmorpheus_node.node \
+            build/release/npm-node-darwin-arm64
+          npm pack --dry-run --ignore-scripts \
+            ./build/release/npm-node-darwin-arm64
+
       - name: Smoke-test generation qualification
         env:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.dylib
@@ -451,6 +579,15 @@ jobs:
         with:
           name: libmorpheus-native-macos-arm64
           path: build/release/packages/libmorpheus-*.tar.gz*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Preserve Node.js platform package
+        if: needs.activity.outputs.package-artifacts == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: libmorpheus-node-darwin-arm64
+          path: build/release/npm-node-darwin-arm64
           if-no-files-found: error
           retention-days: 14
 

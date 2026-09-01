@@ -60,6 +60,16 @@ foreach(platform IN ITEMS
     message(FATAL_ERROR
       "Main Node package does not pin ${platform_name}@${node_version}")
   endif()
+  file(READ "${MORPHEUS_SOURCE_DIR}/.github/workflows/platform.yml"
+    platform_workflow)
+  string(FIND "${platform_workflow}"
+    "libmorpheus-node-${platform}" artifact_at)
+  string(FIND "${platform_workflow}"
+    "npm-node-${platform}" staging_at)
+  if(artifact_at EQUAL -1 OR staging_at EQUAL -1)
+    message(FATAL_ERROR
+      "Platform workflow does not qualify Node target ${platform}")
+  endif()
 endforeach()
 
 string(JSON default_import GET "${package}" exports . import)
