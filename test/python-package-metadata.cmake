@@ -30,7 +30,8 @@ foreach(required IN ITEMS
     LICENSE NOTICE README.md pyproject.toml
     src/libmorpheus/__init__.py src/libmorpheus/_abi.py
     src/libmorpheus/_library.py src/libmorpheus/_types.py
-    src/libmorpheus/py.typed test/fixture.c test/test_binding.py)
+    src/libmorpheus/py.typed test/fixture.c test/runtime_smoke.py
+    test/test_binding.py)
   if(NOT EXISTS "${python_dir}/${required}")
     message(FATAL_ERROR "Missing Python binding source: ${required}")
   endif()

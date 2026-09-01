@@ -8,6 +8,7 @@ on:
       - "v*"
       - "deno-v*"
       - "node-v*"
+      - "python-v*"
   pull_request:
 
 permissions:
@@ -237,6 +238,8 @@ jobs:
     steps:
       - name: Check out sources
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
 
       - name: Install supported CMake
         run: |
@@ -353,11 +356,21 @@ jobs:
     steps:
       - name: Check out sources
         uses: actions/checkout@v5
+        with:
+          submodules: recursive
 
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Build native runtime and generation fixture
+        run: |
+          cmake --preset dev
+          cmake --build --preset dev --target \
+            morpheus morpheus_gener_index_builder
+          build/dev/morpheus_gener_index_builder \
+            stemlib/gener.index test/generation-service-source.txt
 
       - name: Test ctypes binding against the ABI fixture
         env:
@@ -366,6 +379,14 @@ jobs:
         run: >-
           python -B -m unittest discover
           -s bindings/python/test -v
+
+      - name: Test against the compiled runtime and stem data
+        env:
+          PYTHONDONTWRITEBYTECODE: '1'
+          PYTHONPATH: bindings/python/src
+        run: >-
+          python -B bindings/python/test/runtime_smoke.py
+          build/dev/libmorpheus.so stemlib
 
       - name: Build and inspect universal distributions
         run: |
