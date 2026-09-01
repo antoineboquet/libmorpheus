@@ -9,6 +9,8 @@ set(agpl_files
     .github/workflows/node-release.yml
     .github/workflows/npm-smoke.yml
     .github/workflows/platform.yml
+    .github/workflows/pypi-smoke.yml
+    .github/workflows/python-release.yml
     CHANGELOG.md
     CMakeLists.txt
     docs/release-node-0.1.0.md
@@ -49,7 +51,9 @@ set(agpl_files
     bindings/python/src/libmorpheus/_abi.py
     bindings/python/src/libmorpheus/_library.py
     bindings/python/src/libmorpheus/_types.py
+    bindings/python/src/libmorpheus/_version.py
     bindings/python/test/fixture.c
+    bindings/python/test/runtime_smoke.py
     bindings/python/test/test_binding.py
     test/npm-published-smoke.mjs
     bindings/js/deno/NOTICE

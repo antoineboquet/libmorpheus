@@ -1,0 +1,99 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+name: Published PyPI smoke test
+
+on:
+  workflow_run:
+    workflows:
+      - Publish Python binding
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      package_version:
+        description: Published libmorpheus version
+        required: true
+        default: 0.1.0
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{
+      github.event_name == 'workflow_dispatch' && inputs.package_version ||
+      github.event.workflow_run.head_sha
+    }}
+  cancel-in-progress: false
+
+jobs:
+  published-pypi-smoke:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    name: Install the public wheel and exercise the native runtime
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out runtime sources and stem data
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install the published wheel in an empty environment
+        env:
+          REQUESTED_VERSION: ${{ inputs.package_version }}
+        run: |
+          package_version="$REQUESTED_VERSION"
+          if test -z "$package_version"; then
+            package_version="$(python - <<'PY'
+          import sys
+          sys.path.insert(0, "bindings/python/src")
+          import libmorpheus
+          print(libmorpheus.MORPHEUS_PYTHON_VERSION)
+          PY
+          )"
+          fi
+          if ! [[ "$package_version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "Invalid package version: $package_version" >&2
+            exit 1
+          fi
+          python -m venv "$RUNNER_TEMP/python-pypi-smoke"
+          for attempt in $(seq 1 20); do
+            if "$RUNNER_TEMP/python-pypi-smoke/bin/python" -m pip install \
+                --index-url https://pypi.org/simple --no-cache-dir \
+                --only-binary=:all: --no-deps \
+                "libmorpheus==$package_version"; then
+              break
+            fi
+            if test "$attempt" = 20; then
+              echo "Published wheel did not become visible on PyPI." >&2
+              exit 1
+            fi
+            sleep 15
+          done
+          "$RUNNER_TEMP/python-pypi-smoke/bin/python" -c \
+            "import libmorpheus; assert libmorpheus.__version__ == '$package_version'"
+
+      - name: Build the compatible native runtime and generation fixture
+        run: |
+          cmake --preset dev
+          cmake --build --preset dev --target \
+            morpheus morpheus_gener_index_builder
+          build/dev/morpheus_gener_index_builder \
+            stemlib/gener.index test/generation-service-source.txt
+
+      - name: Analyze Greek and Latin and generate Greek forms
+        run: |
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/python-pypi-smoke/bin/python" \
+            "$GITHUB_WORKSPACE/bindings/python/test/runtime_smoke.py" \
+            "$GITHUB_WORKSPACE/build/dev/libmorpheus.so" \
+            "$GITHUB_WORKSPACE/stemlib"

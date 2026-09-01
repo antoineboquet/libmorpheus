@@ -21,6 +21,9 @@ the corpus.
 - Dedicated `node-v<version>` tags qualify three optional native-addon packages,
   publish them before the `@libmorpheus/node` facade through npm trusted
   publishing, and trigger a clean public-package smoke test.
+- Dedicated `python-v<version>` tags qualify the universal Python wheel and
+  source distribution, publish them through PyPI trusted publishing, and
+  trigger a clean public-wheel smoke test against the native runtime.
 - Dedicated `deno-v<version>` tags now publish the standalone Deno archive and
   JSR package independently from native runtime releases.
 

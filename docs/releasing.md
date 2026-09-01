@@ -2,21 +2,23 @@
 
 # Release qualification
 
-This checklist defines the independent native-runtime, Deno-binding, and
-Node.js-binding release tracks. Native releases cover the C library, installed
-metadata, containers, `cruncher`, and pinned fixture data. Deno releases cover
-the TypeScript binding, its acquisition commands, standalone archive, and JSR
-package. Node.js releases cover the ESM facade, acquisition commands, and three
-optional Node-API addon packages on npm. Historical standalone utilities are
-outside these release contracts.
+This checklist defines the independent native-runtime, Deno-binding,
+Node.js-binding, and Python-binding release tracks. Native releases cover the C
+library, installed metadata, containers, `cruncher`, and pinned fixture data.
+Deno releases cover the TypeScript binding, its acquisition commands,
+standalone archive, and JSR package. Node.js releases cover the ESM facade,
+acquisition commands, and three optional Node-API addon packages on npm. Python
+releases cover the pure-Python `ctypes` facade on PyPI. Historical standalone
+utilities are outside these release contracts.
 
 Native releases use `v<version>` tags. Deno binding releases use
 `deno-v<version>` tags and declare the compatible native release and ABI in
 `bindings/js/deno/internal/version.ts`. Node.js binding releases use
 `node-v<version>` tags and declare native compatibility in
-`bindings/js/node/internal/native-manifest.js`. Releases through `0.3.2`
-predate this separation and used one `v<version>` tag for the native and Deno
-tracks.
+`bindings/js/node/internal/native-manifest.js`. Python binding releases use
+`python-v<version>` tags and declare compatibility in
+`bindings/python/src/libmorpheus/_version.py`. Releases through `0.3.2` predate
+this separation and used one `v<version>` tag for the native and Deno tracks.
 
 Each native release records its version and ABI decision in
 `release-<version>.md`; binding releases use a track-qualified name such as
@@ -43,6 +45,9 @@ Each native release records its version and ABI decision in
   `MORPHEUS_NODE_VERSION`, and all three `npm/*/package.json` templates
   together. Keep every optional dependency pinned to that exact package
   version, then review the separately declared native release and ABI.
+- For a Python release, update `bindings/python/pyproject.toml` and
+  `MORPHEUS_PYTHON_VERSION` together, then independently review
+  `MORPHEUS_NATIVE_VERSION` and `MORPHEUS_NATIVE_ABI_VERSION`.
 - Write release notes that distinguish code changes from stemlib data changes.
 - Move the candidate notes in `CHANGELOG.md` from `Unreleased` to a dated
   version heading without changing their technical scope during packaging.
@@ -93,6 +98,11 @@ tagged commit, downloads their three qualified addon packages, verifies the
 coordinated package set, and tests installation from local tarballs before
 contacting npm. It publishes the platform packages first and the facade last.
 
+The Python publication workflow runs only for `python-v*` tags or explicit
+recovery dispatches. It waits for Linux CI on the exact commit, where Python
+3.11 and 3.14 exercise the ABI fixture and compiled runtime, then builds and
+checks one universal wheel plus one source distribution before contacting PyPI.
+
 Scheduled runs first compare the current default-branch SHA with the last
 completed weekly run. The architecture jobs are skipped when the SHA is
 unchanged and the previous run succeeded. A changed SHA, a previous failure,
@@ -141,7 +151,9 @@ Alpheios fixture suites must run where their data prerequisites are available.
   changelog, and CMake ABI decisions aligned. `jsr_package_metadata` separately
   keeps the JSR version and the binding's declared native compatibility aligned.
   `node_package_metadata` keeps the Node facade, its native compatibility, and
-  all platform package templates aligned.
+  all platform package templates aligned. `python_package_metadata` keeps the
+  Python distribution, native compatibility, release workflow, and public
+  smoke contract aligned.
 
 ## 5. Runtime artifacts
 
@@ -233,6 +245,21 @@ Alpheios fixture suites must run where their data prerequisites are available.
   binding` with the existing `node-v<version>` tag while its qualified platform
   artifacts are retained. The workflow skips exact versions already present
   and resumes in dependency-first order.
+- Before the first Python publication, create the PyPI pending trusted publisher
+  for project `libmorpheus`, GitHub owner `defense-humanites`, repository
+  `libmorpheus`, workflow `python-release.yml`, and environment `pypi`. Unlike
+  npm, this creates a new project through the first authorized OIDC publication;
+  no placeholder package is needed.
+- For a Python release, inspect `python -m build` and `twine check`, then tag the
+  exact qualified commit as `python-v<version>`. The dedicated workflow verifies
+  the declared native release, waits for tagged Linux CI, tests the built wheel
+  in isolation, and publishes the wheel and source distribution through PyPI
+  trusted publishing.
+- Require the automatically triggered PyPI smoke test to install the exact
+  public wheel into an empty virtual environment and preserve Greek analysis,
+  Latin multiple interpretations, and Greek dual generation against the
+  compatible compiled runtime. A recovery dispatch may reuse only the existing
+  immutable tag and skips files already accepted by PyPI.
 - Apply the digest-verification step only if container publication has been
   authorized under the data-distribution policy.
 - Preserve the CI run, version/ABI decision, source-data revisions, artifact

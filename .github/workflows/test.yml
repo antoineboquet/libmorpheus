@@ -405,6 +405,7 @@ jobs:
           assert "libmorpheus/_abi.py" in names
           assert "libmorpheus/_library.py" in names
           assert "libmorpheus/_types.py" in names
+          assert "libmorpheus/_version.py" in names
           assert "libmorpheus/py.typed" in names
           assert any(name.endswith("/licenses/LICENSE") for name in names)
           assert any(name.endswith("/licenses/NOTICE") for name in names)

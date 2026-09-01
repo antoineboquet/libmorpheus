@@ -6,7 +6,9 @@ from __future__ import annotations
 import ctypes
 from os import PathLike, fspath
 
-ABI_VERSION = 2
+from ._version import MORPHEUS_NATIVE_ABI_VERSION
+
+ABI_VERSION = MORPHEUS_NATIVE_ABI_VERSION
 TEXT_CAPACITY = 64
 DOMAIN_CAPACITY = 24
 MORPH_FLAG_CAPACITY = 11

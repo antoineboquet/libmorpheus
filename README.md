@@ -280,6 +280,11 @@ publishes the ESM facade as `@libmorpheus/node` and a matching optional Node-API
 addon for each supported native platform; the runtime and stem data remain
 separate, verified acquisitions.
 
+The Python binding is versioned independently with `python-v<version>` tags and
+publishes the pure-Python `libmorpheus` distribution to PyPI. It uses `ctypes`,
+so one universal wheel supports Python 3.11 and newer while applications provide
+the compatible native runtime and stem data separately.
+
 The checksum detects corruption; it is not a release signature. See
 [platform support](docs/portability.md) for the complete qualification matrix
 and [release qualification](docs/releasing.md) for the checks required before a

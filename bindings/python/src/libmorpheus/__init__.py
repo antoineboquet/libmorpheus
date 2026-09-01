@@ -25,8 +25,13 @@ from ._types import (
     Voice,
     has_morph_flag,
 )
+from ._version import (
+    MORPHEUS_NATIVE_ABI_VERSION,
+    MORPHEUS_NATIVE_VERSION,
+    MORPHEUS_PYTHON_VERSION,
+)
 
-__version__ = "0.1.0"
+__version__ = MORPHEUS_PYTHON_VERSION
 
 __all__ = [
     "Analysis",
@@ -41,6 +46,9 @@ __all__ = [
     "Language",
     "Library",
     "Mood",
+    "MORPHEUS_NATIVE_ABI_VERSION",
+    "MORPHEUS_NATIVE_VERSION",
+    "MORPHEUS_PYTHON_VERSION",
     "MorpheusError",
     "Number",
     "Option",
