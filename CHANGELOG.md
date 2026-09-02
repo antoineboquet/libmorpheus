@@ -29,6 +29,9 @@ the corpus.
 
 ### Changed
 
+- Five inherited ending-table producers are restored as non-installed,
+  default-disabled CMake targets with C17 entry points and fail-closed command
+  handling, beginning the reproducible stemlib-production work.
 - JavaScript-family bindings now live under `bindings/js/`; the Deno package
   moves to the dedicated `@libmorpheus/deno` JSR namespace at version `0.4.0`,
   while retaining native runtime `0.3.2` and C ABI `2` compatibility.

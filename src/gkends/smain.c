@@ -1,35 +1,37 @@
-#include <gkstring.h>
+/* SPDX-License-Identifier: MPL-2.0 */
 
-static gk_string Gstr;
-char fname[MAXWORDSIZE];
+#include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-main(argc,argv)
-int argc;
-char * argv[];
+#include "gkends_internal.h"
+#include "indexendtables.proto.h"
+
+static void usage(const char *program)
 {
-	FILE * ffname;
-	Stemtype stype = 0;
-	int is_deriv = 1;
-	int c, errflg = 0;
-	
-	while (!errflg && (c = getopt(argc,argv,"IL")) != -1) {
-		switch (c) {
-			case 'I':
-				set_lang(ITALIAN);
-				break;
-			case 'L':
-				set_lang(LATIN);
-				break;
-			default:
-				break;
+	fprintf(stderr,"usage: %s [-I|-L]\n",program);
+}
+
+int main(int argc, char *argv[])
+{
+	int option;
+
+	while((option=getopt(argc,argv,"IL"))!=-1) {
+		switch(option) {
+		case 'I':
+			set_lang(ITALIAN);
+			break;
+		case 'L':
+			set_lang(LATIN);
+			break;
+		default:
+			usage(argv[0]);
+			return EXIT_FAILURE;
 		}
 	}
-
-	
-	if( argc > 3 ) {
-		fprintf(stderr,"format:%s {ARGS} type\n", argv[0] );
-		exit(-1);
+	if(optind!=argc) {
+		usage(argv[0]);
+		return EXIT_FAILURE;
 	}
-	indexendtables(stype,is_deriv);
-	return(0);
+	return indexendtables(0,1)<0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

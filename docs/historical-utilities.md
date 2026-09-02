@@ -7,7 +7,7 @@ by `src/anal/stdiomorph.c`. The shared library and this compatibility client
 form the supported runtime. They are the only installed executable surfaces
 covered by the C17, sanitizer, portability, and public-error contracts.
 
-The repository also preserves 56 historical programs. They are not CMake
+The repository also preserves 51 historical programs. They are not CMake
 targets, are not installed, and are not part of release qualification. The
 authoritative inventory is `cmake/HistoricalUtilities.cmake`; CTest scans every
 C source below `src` and fails if a `main()` is neither the supported client nor
@@ -18,7 +18,7 @@ explicitly quarantined.
 | Group | Purpose | Decision |
 | --- | --- | --- |
 | Analysis front ends | Window, batch, scanning, lemma and proper-name experiments | Retain as source reference; replace with public-API clients if a workflow is still needed. |
-| Stemlib data tools | Conjugation, generation, dictionary indexing and ending-table drivers | Retain for provenance; port one tool at a time only when the stemlib build becomes a supported deliverable. |
+| Stemlib data tools | Conjugation, generation, dictionary indexing and ending-table drivers | Five ending-table producers are now internal CMake tools; retain the others for provenance and port them one at a time. |
 | Platform and corpus tools | SmartA, troff, TLG, retrieval, scanner and interactive test programs | Retire from the portable build; they depend on obsolete platforms, formats, or unsafe terminal input. |
 | Diagnostics | Ad-hoc Greek-library and morphology test drivers | Retire in favour of focused CTest cases. |
 
@@ -26,6 +26,28 @@ The low-level ending and dictionary routines used by the runtime are not in
 this quarantine. Their CMake-linked implementations remain covered by the
 strict compiler flags and runtime tests even when an old standalone driver for
 the same subsystem is excluded.
+
+## Stemlib production restoration
+
+The first restoration tranche makes five inherited ending-table producers
+available as explicit internal CMake targets:
+
+- `morpheus_stemlib_buildword`;
+- `morpheus_stemlib_buildend`;
+- `morpheus_stemlib_indendtables`;
+- `morpheus_stemlib_buildderiv`;
+- `morpheus_stemlib_indderivtables`.
+
+They are excluded from the default build unless
+`MORPHEUS_BUILD_STEMLIB_TOOLS=ON`; the aggregate
+`morpheus_stemlib_ending_tools` target lets CI compile them explicitly. They are
+never installed. Their points of entry now obey C17 declarations, reject
+invalid command lines, and propagate table-expansion and output failures.
+
+This is production infrastructure, not yet a supported stemlib compiler. The
+lexical indexers, `do_conj`, isolated staging, input manifests and
+reproducibility proof remain necessary before any regenerated tree can replace
+a pinned baseline.
 
 ## Generation integration
 
@@ -59,7 +81,7 @@ derived index outside release and JSR artifacts.
 
 ## Safety findings
 
-The quarantined programs still contain unbounded input and formatting calls,
+The remaining quarantined programs still contain unbounded input and formatting calls,
 including `gets`, `sprintf`, and `strcat`; some also assume historical filesystem
 layouts or terminal encodings. Compiling all inherited Makefile targets would
 therefore create binaries with guarantees substantially weaker than

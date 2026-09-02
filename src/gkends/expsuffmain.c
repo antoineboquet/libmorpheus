@@ -1,73 +1,77 @@
-#include <gkstring.h>
+/* SPDX-License-Identifier: MPL-2.0 */
+
+#include <ctype.h>
+#include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include <libfiles.h>
+
 #include "compostypes.h"
+#include "gkends_internal.h"
+#include "expendtable.proto.h"
 
-#include "expsuffmain.proto.h"
-
-char fname[80];
-static gk_string Gstr;
-
-main(int argc, char * argv[])
+static void usage(const char *program)
 {
-	FILE * ffname;
-	char * curtable, * NextEndTable();
-	int index = 0;
-	Stemtype stype = 0;
-	int maintable = 1;
-	int formcode = DODERIV;
-	int c, errflg = 0;
-	
-	while (!errflg && (c = getopt(argc,argv,"IL")) != -1) {
-		switch (c) {
-			case 'I':
-				set_lang(ITALIAN);
-				break;
-			case 'L':
-				set_lang(LATIN);
-				break;
-			default:
-				break;
-		}
-	}
-
-	if( argc > 3 || argc == 1) {
-		fprintf(stderr,"format:%s {ARGS} basename\n", argv[0] );
-		exit(-1);
-	}
-
-	Xstrcpy(fname,argv[argc-1]);
-	if( !strcmp(fname,"all") ) {
-		do_all_derivs(maintable,formcode);
-	} else
-
-/*
-	printf("about to compile ending type [%s]\n", fname );
-*/
-		expendtables(fname,maintable,formcode);
+	fprintf(stderr,"usage: %s [-I|-L] {all|DERIVATION}\n",program);
 }
 
-do_all_derivs(int maintable, int formcode)
+static int build_all_derivations(void)
 {
-	FILE * finput;
-	char inpfname[MAXPATHNAME];
-	char tmp[LONGSTRING];
-	char derivname[LONGSTRING];
+	FILE *input;
+	char path[MAXPATHNAME];
+	char line[LONGSTRING];
+	char derivation[LONGSTRING];
+	int status=0;
 
-/*
-	sprintf(inpfname,"rule_files%c%s",  DIRCHAR, "derivtypes.table" );
-*/
-	Xstrcpy(inpfname,DERIVTYPES);
-	if(! (finput=MorphFopen(inpfname,"r"))) {
-		printf("could not open [%s]\n",  inpfname );
-		return(-1);
+	Xstrcpy(path,DERIVTYPES);
+	input=MorphFopen(path,"r");
+	if(!input) {
+		fprintf(stderr,"could not open [%s]\n",path);
+		return -1;
 	}
-	
-	while(fgets(tmp,sizeof tmp,finput)) {
-		if( ! isalpha( tmp[0] ) ) continue;
-		nextkey(tmp,derivname);
-		printf("compiling deriv [%s]\n", derivname );
-		
-		expendtables(derivname,maintable,formcode);
+	while(fgets(line,sizeof line,input)) {
+		if(!isalpha((unsigned char)line[0]))
+			continue;
+		nextkey(line,derivation);
+		if(expendtables(derivation,1,DODERIV)<0) {
+			status=-1;
+			break;
+		}
+	}
+	if(ferror(input))
+		status=-1;
+	if(fclose(input)==EOF)
+		status=-1;
+	return status;
+}
 
+int main(int argc, char *argv[])
+{
+	char *derivation;
+	int option;
+	int status;
+
+	while((option=getopt(argc,argv,"IL"))!=-1) {
+		switch(option) {
+		case 'I':
+			set_lang(ITALIAN);
+			break;
+		case 'L':
+			set_lang(LATIN);
+			break;
+		default:
+			usage(argv[0]);
+			return EXIT_FAILURE;
+		}
 	}
+	if(optind+1!=argc) {
+		usage(argv[0]);
+		return EXIT_FAILURE;
+	}
+	derivation=argv[optind];
+	status=!strcmp(derivation,"all") ? build_all_derivations()
+	                                      : expendtables(derivation,1,DODERIV);
+	return status<0 ? EXIT_FAILURE : EXIT_SUCCESS;
 }

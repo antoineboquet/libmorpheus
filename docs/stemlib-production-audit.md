@@ -310,3 +310,17 @@ of the following:
 Until those criteria are met, compiled stemlibs remain pinned external or
 checked-in data dependencies. Runtime releases and binding releases must not
 silently regenerate or rewrite them.
+
+## Restoration progress
+
+The first implementation tranche restores C17-clean, internal CMake targets for
+`buildword`, `buildend`, `indendtables`, `buildderiv`, and `indderivtables`.
+They remain excluded from default builds and from installation, while Linux CI
+builds their aggregate target. Their command-line drivers now reject malformed
+invocations and propagate failed expansion, input, and output operations instead
+of reporting success after a partial table build.
+
+This closes only the first part of acceptance criterion 1. The nominal and verb
+indexers and the offline conjugation expander remain quarantined; missing-table
+policy, staging, manifests, receipts, clean-build comparison and baseline diffs
+remain open.

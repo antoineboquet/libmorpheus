@@ -25,6 +25,7 @@ endforeach()
 
 set(classified_entry_points
   ${MORPHEUS_SUPPORTED_ENTRY_POINTS}
+  ${MORPHEUS_INTERNAL_DATA_ENTRY_POINTS}
   ${MORPHEUS_HISTORICAL_ENTRY_POINTS}
 )
 list(SORT discovered_entry_points)

@@ -32,7 +32,9 @@ jobs:
         run: cmake --preset dev
 
       - name: Build
-        run: cmake --build --preset dev
+        run: |
+          cmake --build --preset dev
+          cmake --build --preset dev --target morpheus_stemlib_ending_tools
 
       - name: Test
         run: ctest --preset dev

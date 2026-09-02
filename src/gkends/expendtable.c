@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 /*
  * this program compiles a table of Greek endings.
  *
@@ -23,15 +25,12 @@ int
 	char line[BUFSIZ];
 	char shortname[LONGSTRING];
 	char fname[MAXPATHNAME];
-	char inpfname[MAXPATHNAME];
-	char outfname[MAXPATHNAME];
-	char curendstr[MAXWORDSIZE];
 	char basename[MAXWORDSIZE];
-	char * typep;
 	char *s;
 	gk_string TmpGstr;
 	const gk_string blank = { 0 };
 	Stemtype stype;
+	int status = 0;
 
 	
 	/*
@@ -145,18 +144,6 @@ int
 			continue;
 		if( Is_comment(line) )
 			continue;
-		nextkey(line,curendstr);
-	}
-	
-
-	fseek(finput,0L,0);
-	while(fgets(line,sizeof line,finput) ) {
-		char tmp[BUFSIZ];
-
-		if( is_blank(line) )
-			continue;
-		if( Is_comment(line) )
-			continue;
 
 /*
 		if( maintable ) {
@@ -168,18 +155,29 @@ int
 /*
 fprintf(stderr,"basenam [%s] line [%s]\n", basename , line );
 */
-			if( AddEndLine(/*foutput,*/line,basename) < 0 )
+			if( AddEndLine(/*foutput,*/line,basename) < 0 ) {
+				status = -1;
 				break;
+			}
 /*
 		}
 */
 	}
 
-	fclose(finput);
+	if( ferror(finput) ) status = -1;
+	if( fclose(finput) == EOF ) status = -1;
 	if( maintable && formcode != DOWORD ) {
 		PrntNewGstrings(foutput,1);
-		if( foutput != stdout )
-			fclose(foutput);
+		if( ferror(foutput) ) status = -1;
+		if( foutput != stdout && fclose(foutput) == EOF ) status = -1;
+		foutput = NULL;
+	} else if( foutput && foutput != stdout ) {
+		if( fclose(foutput) == EOF ) status = -1;
+		foutput = NULL;
+	}
+	if( status < 0 ) {
+		ResetGstrBuf();
+		return(-1);
 	}
 	
 	if( snprintf(shortname,sizeof shortname,"%s%cascii%c%s.asc",
@@ -191,16 +189,20 @@ fprintf(stderr,"basenam [%s] line [%s]\n", basename , line );
 printf("%s\n", shortname );
 	if( (foutput=MorphFopen(shortname,"w")) == NULL ) {
 		fprintf(stderr,"Could not open [%s]\n", shortname );
+		ResetGstrBuf();
+		return(-1);
 	} else {
 		PrntNewGstrings(foutput,0);
-		fclose(foutput);
+		if( ferror(foutput) ) status = -1;
+		if( fclose(foutput) == EOF ) status = -1;
 	}
 	if( stype & ADJSTEM ) stype |= NOUNSTEM;
 	else if( stype & NOUNSTEM ) stype |= ADJSTEM;
 /*
 	indexendtables(stype);
 */
-	return(0);
+	ResetGstrBuf();
+	return(status);
 
 }
 
@@ -215,10 +217,21 @@ AddEndLine(/*FILE *f,*/ char *el, char *basename)
 	Have = CreatGkString(1);
 	Avoid = CreatGkString(1);
 	TmpGkword = CreatGkword(1);
+	if( ! Have || ! Avoid || ! TmpGkword ) {
+		if( Have ) FreeGkString(Have);
+		if( Avoid ) FreeGkString(Avoid);
+		if( TmpGkword ) FreeGkword(TmpGkword);
+		return(-1);
+	}
 
 	nextkey(el,havestr);
-	ScanAsciiKeys(basename,TmpGkword,Have,Avoid);
-	ScanAsciiKeys(el,TmpGkword,Have,Avoid);
+	if( ScanAsciiKeys(basename,TmpGkword,Have,Avoid) < 0 ||
+	    ScanAsciiKeys(el,TmpGkword,Have,Avoid) < 0 ) {
+		FreeGkString(Have);
+		FreeGkString(Avoid);
+		FreeGkword(TmpGkword);
+		return(-1);
+	}
 /*
 printf("indeclform %d %d\n",  has_morphflag(morphflags_of(TmpGkword),INDECLFORM),
 has_morphflag(morphflags_of(Have),INDECLFORM) );

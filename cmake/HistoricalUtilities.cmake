@@ -10,6 +10,14 @@ set(MORPHEUS_SUPPORTED_ENTRY_POINTS
   src/anal/stdiomorph.c
 )
 
+set(MORPHEUS_INTERNAL_DATA_ENTRY_POINTS
+  src/gkends/expendmain.c
+  src/gkends/expsuffmain.c
+  src/gkends/expwordmain.c
+  src/gkends/imain.c
+  src/gkends/smain.c
+)
+
 set(MORPHEUS_HISTORICAL_ANALYSIS_ENTRY_POINTS
   src/anal/MorphWind.c
   src/anal/deverb.c
@@ -36,11 +44,6 @@ set(MORPHEUS_HISTORICAL_DATA_ENTRY_POINTS
   src/gkdict/newlems.c
   src/gkdict/newlems2.c
   src/gkdict/x.c
-  src/gkends/expendmain.c
-  src/gkends/expsuffmain.c
-  src/gkends/expwordmain.c
-  src/gkends/imain.c
-  src/gkends/smain.c
   src/gkends/x.c
 )
 

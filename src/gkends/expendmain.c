@@ -1,72 +1,59 @@
-#include <gkstring.h>
-char fname[80];
-static gk_string Gstr;
+/* SPDX-License-Identifier: MPL-2.0 */
+
+#include <getopt.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "compostypes.h"
+#include "gkends_internal.h"
+#include "expendtable.proto.h"
+#include "../morphlib/morphkeys.proto.h"
 
-#include "expendmain.proto.h"
-
-main(argc,argv)
-int argc;
-char * argv[];
+static void usage(const char *program)
 {
-	FILE * ffname;
-	char * curtable, * NextEndTable();
-	int index = 0;
-	int formcode = DOEND;
-	Stemtype stype = 0;
-	int maintable = 0;
-	int rval = 0;
-	int c, errflg = 0;
+	fprintf(stderr,"usage: %s [-I|-L] {all|nom|verb|TABLE}\n",program);
+}
 
-	
+int main(int argc, char *argv[])
+{
+	char *curtable;
+	char *table;
+	int index=0;
+	int option;
+	Stemtype stype=0;
 
-	while (!errflg && (c = getopt(argc,argv,"IL")) != -1) {
-		switch (c) {
-			case 'I':
-				set_lang(ITALIAN);
-				break;
-			case 'L':
-				set_lang(LATIN);
-				break;
-			default:
-				break;
+	while((option=getopt(argc,argv,"IL"))!=-1) {
+		switch(option) {
+		case 'I':
+			set_lang(ITALIAN);
+			break;
+		case 'L':
+			set_lang(LATIN);
+			break;
+		default:
+			usage(argv[0]);
+			return EXIT_FAILURE;
 		}
 	}
-
-	if( argc > 3 || argc == 1) {
-		fprintf(stderr,"format:%s {ARGS} basename\n", argv[0] );
-		exit(-1);
+	if(optind+1!=argc) {
+		usage(argv[0]);
+		return EXIT_FAILURE;
 	}
-	Xstrcpy(fname,argv[argc-1]);
-	rval = strcmp(fname,"formulaX");
-	if( rval) 
-		maintable = 1;
+	table=argv[optind];
+	if(!strcmp(table,"all"))
+		stype=NOUNSTEM|ADJSTEM|PPARTMASK;
+	else if(!strcmp(table,"nom"))
+		stype=NOUNSTEM|ADJSTEM;
+	else if(!strcmp(table,"verb"))
+		stype=PPARTMASK;
+	else
+		return expendtables(table,strcmp(table,"formulaX")!=0,DOEND)<0
+		       ? EXIT_FAILURE : EXIT_SUCCESS;
 
-/*
-	printf("about to compile ending type [%s]\n", fname );
-*/
-
-	if( ! strcmp("all",fname) )
-		stype = NOUNSTEM|ADJSTEM|PPARTMASK; 
-	else if( ! strcmp("nom",fname) ) {
-		stype = NOUNSTEM|ADJSTEM;
-	} else if( ! strcmp("verb", fname ) )
-		stype = PPARTMASK;
-	else {
-		/*
-		ScanAsciiKeys(fname,NULL,&Gstr,NULL);
-		stype = stemtype_of(&Gstr);
-		*/
-		expendtables(fname,maintable,formcode);
-		exit(1);
+	while((curtable=NextEndTable(&index,stype))!=NULL) {
+		if(expendtables(curtable,1,DOEND)<0)
+			return EXIT_FAILURE;
 	}
-
-	while( (curtable=NextEndTable(&index,stype))) {
-
-/*
-		printf("about to compile [%s]\n", curtable );
-*/
-
-		expendtables(curtable,maintable,formcode);
-	}
+	return EXIT_SUCCESS;
 }

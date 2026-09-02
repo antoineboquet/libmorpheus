@@ -79,6 +79,11 @@ option(
   OFF
 )
 option(
+  MORPHEUS_BUILD_STEMLIB_TOOLS
+  "Build internal stemlib-production tools by default"
+  OFF
+)
+option(
   MORPHEUS_ENABLE_SANITIZERS
   "Build the runtime with AddressSanitizer and UndefinedBehaviorSanitizer"
   OFF
@@ -416,6 +421,89 @@ target_compile_options(
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
     $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
 )
+
+set(morpheus_stemlib_tool_exclusion EXCLUDE_FROM_ALL)
+if(MORPHEUS_BUILD_STEMLIB_TOOLS)
+  set(morpheus_stemlib_tool_exclusion)
+endif()
+
+add_executable(
+  morpheus_stemlib_buildword
+  ${morpheus_stemlib_tool_exclusion}
+  src/gkends/expwordmain.c
+)
+add_executable(
+  morpheus_stemlib_buildend
+  ${morpheus_stemlib_tool_exclusion}
+  src/gkends/expendmain.c
+)
+add_executable(
+  morpheus_stemlib_indendtables
+  ${morpheus_stemlib_tool_exclusion}
+  src/gkends/imain.c
+)
+add_executable(
+  morpheus_stemlib_buildderiv
+  ${morpheus_stemlib_tool_exclusion}
+  src/gkends/expsuffmain.c
+)
+add_executable(
+  morpheus_stemlib_indderivtables
+  ${morpheus_stemlib_tool_exclusion}
+  src/gkends/smain.c
+)
+
+set(morpheus_stemlib_ending_tools
+  morpheus_stemlib_buildword
+  morpheus_stemlib_buildend
+  morpheus_stemlib_indendtables
+  morpheus_stemlib_buildderiv
+  morpheus_stemlib_indderivtables
+)
+foreach(stemlib_tool IN LISTS morpheus_stemlib_ending_tools)
+  target_link_libraries(
+    ${stemlib_tool}
+    PRIVATE
+      morpheus_gkends
+      morpheus_morphlib
+      morpheus_greeklib
+      morpheus_build_options
+  )
+  target_compile_options(
+    ${stemlib_tool}
+    PRIVATE
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
+  )
+endforeach()
+set_target_properties(
+  morpheus_stemlib_buildword PROPERTIES OUTPUT_NAME buildword
+)
+set_target_properties(
+  morpheus_stemlib_buildend PROPERTIES OUTPUT_NAME buildend
+)
+set_target_properties(
+  morpheus_stemlib_indendtables PROPERTIES OUTPUT_NAME indendtables
+)
+set_target_properties(
+  morpheus_stemlib_buildderiv PROPERTIES OUTPUT_NAME buildderiv
+)
+set_target_properties(
+  morpheus_stemlib_indderivtables PROPERTIES OUTPUT_NAME indderivtables
+)
+if(MORPHEUS_BUILD_STEMLIB_TOOLS)
+  add_custom_target(
+    morpheus_stemlib_ending_tools ALL
+    DEPENDS ${morpheus_stemlib_ending_tools}
+  )
+else()
+  add_custom_target(
+    morpheus_stemlib_ending_tools
+    DEPENDS ${morpheus_stemlib_ending_tools}
+  )
+endif()
 
 if(BUILD_TESTING)
   add_executable(

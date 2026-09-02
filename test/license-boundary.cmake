@@ -127,9 +127,15 @@ foreach(mpl_file IN ITEMS
         src/gener/generation_service.c
         src/gener/generation_service.h
         src/gener/genwd.proto.h
+        src/gkends/expendmain.c
+        src/gkends/expendtable.c
+        src/gkends/expsuffmain.c
+        src/gkends/expwordmain.c
         src/gkdict/compnoun.proto.h
         src/gkdict/gkdict_internal.h
         src/gkends/gkends_internal.h
+        src/gkends/imain.c
+        src/gkends/smain.c
         src/greeklib/greeklib_internal.h
         src/greeklib/standalpha.proto.h
         src/morphlib/morphlib_internal.h
