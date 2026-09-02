@@ -37,6 +37,9 @@ the corpus.
 - A checksum-pinned source manifest now classifies every Greek and Latin rule,
   ending, and derivation input as active or explicitly excluded and rejects
   unreviewed input or compiled-baseline selection drift.
+- Active table sources can be materialized into a fresh, language-scoped
+  staging tree with ordered producer lists; existing or source-tree
+  destinations are rejected and independent stagings are compared in CI.
 - JavaScript-family bindings now live under `bindings/js/`; the Deno package
   moves to the dedicated `@libmorpheus/deno` JSR namespace at version `0.4.0`,
   while retaining native runtime `0.3.2` and C ABI `2` compatibility.

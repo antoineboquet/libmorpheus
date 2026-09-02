@@ -331,8 +331,13 @@ Greek sources without compiled baselines are excluded and named. CI rejects
 missing, unexpected, reclassified, or modified inputs and mismatches between
 that selection and the checked-in compiled-table baseline.
 
+The manifest can now be materialized into a new, language-scoped staging tree.
+The stager refuses both source-tree destinations and existing destinations,
+copies and re-hashes only active inputs, and emits ordered producer lists. CI
+qualifies two independent Greek stagings and two independent Latin stagings.
+
 This closes the first part of acceptance criterion 1 and begins the ordered
 input-manifest criterion for ending and derivation sources. The nominal and
 verb indexers and the offline conjugation expander remain quarantined; isolated
-staging, lexical-source manifests, receipts, clean-build comparison and
-baseline diffs remain open.
+producer execution, lexical-source manifests, complete build receipts,
+clean-build output comparison and baseline diffs remain open.

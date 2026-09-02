@@ -31,10 +31,12 @@ foreach(line IN LISTS lines)
   list(GET fields 2 kind)
   list(GET fields 3 relative_path)
   list(GET fields 4 expected_sha256)
+  string(LENGTH "${expected_sha256}" sha256_length)
   if(NOT language MATCHES "^(Greek|Latin)$" OR
      NOT status MATCHES "^(active|excluded)$" OR
      NOT kind MATCHES "^(rule|ending|derivation)$" OR
-     NOT expected_sha256 MATCHES "^[0-9a-f]{64}$")
+     NOT sha256_length EQUAL 64 OR
+     NOT expected_sha256 MATCHES "^[0-9a-f]+$")
     message(FATAL_ERROR "invalid stemlib manifest fields: ${line}")
   endif()
   if((kind STREQUAL "rule" AND

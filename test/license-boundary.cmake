@@ -84,6 +84,7 @@ set(agpl_files
     src/api/generation.c
     src/api/result.c
     tools/prepare-runtime-data.sh
+    tools/stage-stemlib-sources.cmake
     tools/gener-index-builder.c)
 file(GLOB agpl_support_files
      RELATIVE "${MORPHEUS_SOURCE_DIR}"

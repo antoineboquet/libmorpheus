@@ -36,6 +36,23 @@ they remain an audited corpus gap and must not be silently synthesized.
 The manifest is intentionally narrower than a complete stemlib build receipt.
 It does not yet select lexical `stemsrc/` inputs, record producer or toolchain
 versions, or prove that regenerated outputs match the baselines. The next
-stage will consume only active rows into an empty language-scoped staging tree;
+stage consumes only active rows into an empty language-scoped staging tree;
 later manifests will add nominal and verb sources as their producers are
 restored.
+
+## Isolated source staging
+
+`tools/stage-stemlib-sources.cmake` validates the complete manifest before it
+writes anything. It rejects a destination inside the source stemlib and rejects
+any destination that already exists. For one requested language it then:
+
+1. creates fresh rule, ending, and derivation directories;
+2. copies every active input and verifies its staged SHA-256;
+3. emits the active subset as `MORPHEUS-STEMLIB-INPUTS.tsv`;
+4. emits ordered `ending-tables.list` and `derivation-tables.list` producer
+   inputs.
+
+CI stages Greek and Latin twice into independent directories, revalidates every
+copied digest, compares the three metadata files, checks representative
+exclusions, and verifies that an existing destination is refused. The stager
+does not use global temporary paths and never overlays a prior distribution.

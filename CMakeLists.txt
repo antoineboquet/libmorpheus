@@ -529,6 +529,17 @@ if(BUILD_TESTING)
       -DMORPHEUS_STEMLIB_MANIFEST=${PROJECT_SOURCE_DIR}/tools/stemlib-source-manifest.tsv
       -P ${PROJECT_SOURCE_DIR}/test/stemlib-source-manifest.cmake
   )
+  add_test(
+    NAME stemlib_source_staging
+    COMMAND
+      ${CMAKE_COMMAND}
+      -DMORPHEUS_STEMLIB_ROOT=${PROJECT_SOURCE_DIR}/stemlib
+      -DMORPHEUS_STEMLIB_MANIFEST=${PROJECT_SOURCE_DIR}/tools/stemlib-source-manifest.tsv
+      -DMORPHEUS_STEMLIB_MANIFEST_VALIDATOR=${PROJECT_SOURCE_DIR}/test/stemlib-source-manifest.cmake
+      -DMORPHEUS_STEMLIB_STAGER=${PROJECT_SOURCE_DIR}/tools/stage-stemlib-sources.cmake
+      -DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/test-stemlib-source-staging
+      -P ${PROJECT_SOURCE_DIR}/test/stemlib-source-staging.cmake
+  )
   add_executable(
     morpheus_contraction_context_test
     test/contraction-context.c
