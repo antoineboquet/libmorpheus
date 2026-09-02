@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+cmake_minimum_required(VERSION 3.25)
+
 foreach(required IN ITEMS MORPHEUS_STEMLIB_ROOT MORPHEUS_STEMLIB_MANIFEST)
   if(NOT DEFINED ${required})
     message(FATAL_ERROR "${required} is required")

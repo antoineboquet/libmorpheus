@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+cmake_minimum_required(VERSION 3.25)
+
 foreach(required IN ITEMS MORPHEUS_STEMLIB_ROOT MORPHEUS_STEMLIB_MANIFEST
                           MORPHEUS_STEMLIB_MANIFEST_VALIDATOR
                           MORPHEUS_STEMLIB_LANGUAGE MORPHEUS_STEMLIB_STAGE)
