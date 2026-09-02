@@ -29,12 +29,10 @@ jobs:
           submodules: recursive
 
       - name: Configure
-        run: cmake --preset dev
+        run: cmake --preset dev -DMORPHEUS_BUILD_STEMLIB_TOOLS=ON
 
       - name: Build
-        run: |
-          cmake --build --preset dev
-          cmake --build --preset dev --target morpheus_stemlib_ending_tools
+        run: cmake --build --preset dev
 
       - name: Test
         run: ctest --preset dev

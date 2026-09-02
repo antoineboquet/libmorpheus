@@ -9,6 +9,7 @@
 #include "gkends_internal.h"
 #include "expendtable.proto.h"
 #include "../morphlib/morphkeys.proto.h"
+#include "../morphlib/runtime_context_internal.h"
 
 static void usage(const char *program)
 {
@@ -54,6 +55,10 @@ int main(int argc, char *argv[])
 	while((curtable=NextEndTable(&index,stype))!=NULL) {
 		if(expendtables(curtable,1,DOEND)<0)
 			return EXIT_FAILURE;
+	}
+	if(!morpheus_runtime_context_current()->morph_keys_initialized) {
+		fprintf(stderr,"could not load the stem-type registry\n");
+		return EXIT_FAILURE;
 	}
 	return EXIT_SUCCESS;
 }

@@ -135,6 +135,7 @@ foreach(mpl_file IN ITEMS
         src/gkdict/gkdict_internal.h
         src/gkends/gkends_internal.h
         src/gkends/imain.c
+        src/gkends/indexendtables.c
         src/gkends/smain.c
         src/greeklib/greeklib_internal.h
         src/greeklib/standalpha.proto.h

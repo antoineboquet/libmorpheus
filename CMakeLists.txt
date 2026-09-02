@@ -505,6 +505,21 @@ else()
   )
 endif()
 
+if(BUILD_TESTING AND MORPHEUS_BUILD_STEMLIB_TOOLS)
+  add_test(
+    NAME stemlib_ending_tools_fail_closed
+    COMMAND
+      ${CMAKE_COMMAND}
+      -DMORPHEUS_BUILDEND=$<TARGET_FILE:morpheus_stemlib_buildend>
+      -DMORPHEUS_BUILDDERIV=$<TARGET_FILE:morpheus_stemlib_buildderiv>
+      -DMORPHEUS_INDENDTABLES=$<TARGET_FILE:morpheus_stemlib_indendtables>
+      -DMORPHEUS_INDDERIVTABLES=$<TARGET_FILE:morpheus_stemlib_indderivtables>
+      -DMORPHEUS_STEMLIB_ROOT=${PROJECT_SOURCE_DIR}/stemlib
+      -DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/test-stemlib-ending-tools
+      -P ${PROJECT_SOURCE_DIR}/test/stemlib-ending-tools.cmake
+  )
+endif()
+
 if(BUILD_TESTING)
   add_executable(
     morpheus_contraction_context_test

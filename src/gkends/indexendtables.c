@@ -1,19 +1,23 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 #include <gkstring.h>
 #include "gkends_internal.h"
 #include "../morphlib/runtime_context_internal.h"
 #include "endfiles.h"
 #include "nextsufftab.proto.h"
 #include "../morphlib/morphkeys.proto.h"
+#include "../morphlib/morphpath.proto.h"
 #define MAX_END_TABLE	20000
 static int xstrcmp(const void *, const void *);
+static void free_endlines(char **, size_t);
 #define DELIMITER " "
 
 int
 indexendtables(Stemtype stype, int is_deriv)
 {
-
 	int index = 0;
 	int i;
+	int read_status;
 	size_t endcount = 0;
 	size_t output_index;
 	char **endlines;
@@ -21,6 +25,9 @@ indexendtables(Stemtype stype, int is_deriv)
 	const gk_string Blnk = { 0 };
 	char * curtable, *basen, * dirp;
 	char shortname[LONGSTRING+MAXPATHNAME];
+	char temporary_shortname[LONGSTRING+MAXPATHNAME];
+	char output_path[BUFSIZ];
+	char temporary_path[BUFSIZ];
 	char curderivname[LONGSTRING];
 	char tmp[LONGSTRING*8];
 	char prevtag[LONGSTRING];
@@ -28,8 +35,9 @@ indexendtables(Stemtype stype, int is_deriv)
 	char curtag[LONGSTRING];
 	char savestr[LONGSTRING];
 	char markedstr[MAXWORDSIZE];
-	FILE * finput, *foutput;
+	FILE * finput = NULL, *foutput = NULL;
 	int maxstring = 0;
+	int output_temporary = 0;
 	
 	if( is_deriv ) 
 		dirp = DERIVTABLEDIR;
@@ -37,6 +45,10 @@ indexendtables(Stemtype stype, int is_deriv)
 		dirp = ENDTABLEDIR;
 	
 	endlines = (char **) calloc(MAX_END_TABLE,sizeof *endlines);
+	if( ! endlines ) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
+		return(-1);
+	}
 	
 	for(;;) {
 		if( is_deriv ) {
@@ -46,12 +58,21 @@ indexendtables(Stemtype stype, int is_deriv)
 			int rconj;
 		
 			curtable = NextSuffTable(tmp);
+			if( ! curtable ) {
+				if( morpheus_runtime_context_current()->suffix_table_unavailable )
+					goto failed;
+				break;
+			}
 			nextkey(tmp,curderivname);
-			if( ! curtable ) break;
 			curtable = curderivname;
 			gstring = CreatGkString(1);
 			tmpGkword = CreatGkword(1);
-			ScanAsciiKeys(curtable,tmpGkword,gstring,NULL);
+			if( ! gstring || ! tmpGkword ||
+			    ScanAsciiKeys(curtable,tmpGkword,gstring,NULL) < 0 ) {
+				if( gstring ) FreeGkString(gstring);
+				if( tmpGkword ) FreeGkword(tmpGkword);
+				goto failed;
+			}
 			derivtype = derivtype_of(gstring);
 			rconj = Is_regconj(gstring);
 			
@@ -61,8 +82,12 @@ indexendtables(Stemtype stype, int is_deriv)
 				printf("[%s] not a regular conj [%o] [%o]\n", curtable, derivtype, REG_DERIV);
 				continue;
 			}
-		} else 
+		} else {
 			curtable=NextEndTable(&index,stype);
+			if( ! curtable &&
+			    ! morpheus_runtime_context_current()->morph_keys_initialized )
+				goto failed;
+		}
 		if( ! curtable ) break;
 		
 /*
@@ -71,16 +96,20 @@ indexendtables(Stemtype stype, int is_deriv)
 		if( snprintf(shortname,sizeof shortname,"%s%cout%c%s.out",
 		             dirp, DIRCHAR, DIRCHAR, curtable) >= (int)sizeof shortname ) {
 			fprintf(stderr,"ending-table path is too long: %s\n",curtable);
-			continue;
+			goto failed;
 		}
 
 		if(! (finput=MorphFopen(shortname,"rb"))) {
-			continue;
+			fprintf(stderr,"required ending table is missing: %s\n",shortname);
+			goto failed;
 		}
 		Gstr = Blnk;	
-		get_endheader(finput,&maxstring);
+		if( get_endheader(finput,&maxstring) < 0 || maxstring <= 0 ) {
+			fprintf(stderr,"invalid ending table header: %s\n",shortname);
+			goto failed;
+		}
 
-		while(ReadEnding(finput,&Gstr,maxstring)) {
+		while((read_status=ReadEnding(finput,&Gstr,maxstring)) > 0) {
 			char * sp;
 			sp = gkstring_of(&Gstr);
 			Xstrcpy(savestr,sp);
@@ -92,7 +121,7 @@ if( *sp < ' ' || *sp > 126 ) printf("bad line name [%s] sp [%s]\n", shortname , 
 			stripdiaer(sp);
 			stripacc(sp);
 			stripquant(sp);
-			if( *sp != '*' && *(sp+strlen(sp)-1) == '*' )
+			if( *sp && *sp != '*' && *(sp+strlen(sp)-1) == '*' )
 				*(sp+strlen(sp)-1) = 0;
 if(  ! *sp ) {
 	printf("null ending in [%s]\n", curtable );
@@ -105,7 +134,7 @@ if(  ! *sp ) {
 				if (written < 0 || (size_t)written >= sizeof tmp) {
 					morpheus_runtime_error_record(
 						MORPHEUS_RUNTIME_ERROR_INTERNAL);
-					return(-1);
+					goto failed;
 				}
 				SprintGkFlags(&Gstr,tmp,sizeof tmp,":",0);
 			} else {
@@ -115,7 +144,7 @@ if(  ! *sp ) {
 				if (written < 0 || (size_t)written >= sizeof tmp) {
 					morpheus_runtime_error_record(
 						MORPHEUS_RUNTIME_ERROR_INTERNAL);
-					return(-1);
+					goto failed;
 				}
 			}
 
@@ -127,12 +156,12 @@ if(  ! *sp ) {
 */
 			if( endcount >= MAX_END_TABLE ) {
 				fprintf(stderr,"more than %d endings in table! bye!\n", MAX_END_TABLE );
-				break;
+				goto failed;
 			}
 			*(endlines+endcount) = (char *)calloc(strlen(tmp)+1,sizeof ** endlines );
 			if( ! *(endlines+endcount) ) {
 				fprintf(stderr,"ran out of memory at %zu endings!\n", endcount );
-				return(-1);
+				goto failed;
 			}
 			Xstrcpy(*(endlines+endcount),tmp);
 			endcount++;
@@ -141,9 +170,13 @@ if(  ! *sp ) {
 printf("deriv [%o] name [%s]\n", derivtype_of(&Gstr), 
 NameOfDerivtype(derivtype_of(&Gstr)) );
 */
-		if( endcount >= MAX_END_TABLE ) break;
-
-		fclose(finput);
+		if( read_status < 0 || ferror(finput) )
+			goto failed;
+		if( fclose(finput) == EOF ) {
+			finput = NULL;
+			goto failed;
+		}
+		finput = NULL;
 	}
 
 	qsort(endlines,endcount,sizeof * endlines, xstrcmp );
@@ -160,14 +193,25 @@ printf("stype [%o]\n", stype );
 	             dirp,DIRCHAR,DIRCHAR,basen);
 	if (i < 0 || (size_t)i >= sizeof shortname) {
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
-		return(-1);
+		goto failed;
 	}
+	i = snprintf(temporary_shortname,sizeof temporary_shortname,"%s.tmp",
+	             shortname);
+	if (i < 0 || (size_t)i >= sizeof temporary_shortname) {
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+		goto failed;
+	}
+	MorphPathName(shortname,output_path);
+	MorphPathName(temporary_shortname,temporary_path);
+	if( ! output_path[0] || ! temporary_path[0] )
+		goto failed;
 
 printf("output file:%s\n", shortname );
-	if(! (foutput=MorphFopen(shortname,"w"))) {
+	if(! (foutput=MorphFopen(temporary_shortname,"w"))) {
 		ErrorMess("Could not open nendind!");
-		return(-1);
+		goto failed;
 	}
+	output_temporary = 1;
 	
 	prevtag[0] = 0;
 	for(output_index=0;output_index<endcount;output_index++) {
@@ -178,25 +222,53 @@ printf("output file:%s\n", shortname );
 		 */
 
 		if( morphstrcmp(curtag,prevtag) ) {
-			if( prevtag[0] ) fprintf(foutput,"\n");
-			fprintf(foutput,"%s%s%s", curtag, DELIMITER, *(endlines+output_index) );
+			if( prevtag[0] && fprintf(foutput,"\n") < 0 )
+				goto failed;
+			if( fprintf(foutput,"%s%s%s",curtag,DELIMITER,
+			            *(endlines+output_index)) < 0 )
+				goto failed;
 		} else if ( strcmp(prevkey,*(endlines+output_index) ) )
 			/*
 			 * don't include lines such as "uiais perf_act perf_act"
 			 * where the same key is repeated
 			 */
-			fprintf(foutput,"%s%s", DELIMITER, *(endlines+output_index) );
+			if( fprintf(foutput,"%s%s",DELIMITER,
+			            *(endlines+output_index)) < 0 )
+				goto failed;
 		Xstrcpy(prevtag,curtag);
 		Xstrcpy(prevkey,*(endlines+output_index));
 	}
 
-	fprintf(foutput,"\n");
-	fclose(foutput);
+	if( fprintf(foutput,"\n") < 0 || ferror(foutput) ||
+	    fclose(foutput) == EOF ) {
+		foutput = NULL;
+		goto failed;
+	}
+	foutput = NULL;
+	if( rename(temporary_path,output_path) != 0 )
+		goto failed;
+	output_temporary = 0;
 /*	index_list(shortname,NULL);*/
-	for(output_index=0;output_index<endcount;output_index++) free(*(endlines+output_index));
-	free((char *)endlines);
+	free_endlines(endlines,endcount);
 	return(0);
 
+failed:
+	if( finput ) fclose(finput);
+	if( foutput ) fclose(foutput);
+	if( output_temporary ) remove(temporary_path);
+	free_endlines(endlines,endcount);
+	return(-1);
+
+}
+
+static void
+free_endlines(char **endlines, size_t endcount)
+{
+	size_t index;
+
+	for(index=0;index<endcount;index++)
+		free(endlines[index]);
+	free(endlines);
 }
 
 static int

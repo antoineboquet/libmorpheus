@@ -318,7 +318,10 @@ The first implementation tranche restores C17-clean, internal CMake targets for
 They remain excluded from default builds and from installation, while Linux CI
 builds their aggregate target. Their command-line drivers now reject malformed
 invocations and propagate failed expansion, input, and output operations instead
-of reporting success after a partial table build.
+of reporting success after a partial table build. The ending and derivation
+indexer now also reject an unavailable registry, a missing compiled table, a
+malformed table and failed output, with CI asserting that these failures leave
+no partial index behind.
 
 This closes only the first part of acceptance criterion 1. The nominal and verb
 indexers and the offline conjugation expander remain quarantined; missing-table
