@@ -521,6 +521,14 @@ if(BUILD_TESTING AND MORPHEUS_BUILD_STEMLIB_TOOLS)
 endif()
 
 if(BUILD_TESTING)
+  add_test(
+    NAME stemlib_source_manifest
+    COMMAND
+      ${CMAKE_COMMAND}
+      -DMORPHEUS_STEMLIB_ROOT=${PROJECT_SOURCE_DIR}/stemlib
+      -DMORPHEUS_STEMLIB_MANIFEST=${PROJECT_SOURCE_DIR}/tools/stemlib-source-manifest.tsv
+      -P ${PROJECT_SOURCE_DIR}/test/stemlib-source-manifest.cmake
+  )
   add_executable(
     morpheus_contraction_context_test
     test/contraction-context.c

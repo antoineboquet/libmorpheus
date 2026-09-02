@@ -1,0 +1,41 @@
+<!-- SPDX-License-Identifier: AGPL-3.0-or-later -->
+
+# Stemlib production source manifest
+
+`tools/stemlib-source-manifest.tsv` freezes the first reproducible-production
+input boundary for Greek and Latin ending and derivation tables. Each row has
+five tab-separated fields:
+
+| Field | Meaning |
+| --- | --- |
+| `language` | `Greek` or `Latin` |
+| `status` | `active` or `excluded` |
+| `kind` | `rule`, `ending` or `derivation` |
+| `path` | Language-relative source path |
+| `sha256` | Digest of the exact committed input bytes |
+
+All `rule_files/*.table`, `endtables/source/*.end` and
+`derivs/source/*.deriv` files must occur exactly once. Rules are always active.
+An ending or derivation is active when the curated tree contains its compiled
+`.out` baseline; this preserves the effective historical selection without
+pretending that every registry entry is buildable. A new or removed file, a
+digest change, a missing active baseline, or a compiled baseline for an
+excluded source fails CI until the manifest and its review evidence change
+together.
+
+The twelve explicit Greek exclusions are:
+
+- endings: `conj3`, `conj3io`, `conj4`, `is_ios`, `us_uos2`, `verb_adj`, and
+  `vh_vhs`;
+- derivations: `cw`, `es_denom`, `ow_fact`, `ow_instr`, and `ww`.
+
+Latin currently has no source-file exclusions in these two groups. This does
+not resolve the separate Latin registry entries whose source tables are absent;
+they remain an audited corpus gap and must not be silently synthesized.
+
+The manifest is intentionally narrower than a complete stemlib build receipt.
+It does not yet select lexical `stemsrc/` inputs, record producer or toolchain
+versions, or prove that regenerated outputs match the baselines. The next
+stage will consume only active rows into an empty language-scoped staging tree;
+later manifests will add nominal and verb sources as their producers are
+restored.

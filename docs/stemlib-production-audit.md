@@ -323,7 +323,16 @@ indexer now also reject an unavailable registry, a missing compiled table, a
 malformed table and failed output, with CI asserting that these failures leave
 no partial index behind.
 
-This closes only the first part of acceptance criterion 1. The nominal and verb
-indexers and the offline conjugation expander remain quarantined; missing-table
-policy, staging, manifests, receipts, clean-build comparison and baseline diffs
-remain open.
+The ordered, checksum-pinned
+[production source manifest](stemlib-production-manifest.md) now covers all 306
+committed Greek and Latin rule, ending, and derivation sources. It makes the
+historical effective selection explicit: 294 inputs are active and twelve
+Greek sources without compiled baselines are excluded and named. CI rejects
+missing, unexpected, reclassified, or modified inputs and mismatches between
+that selection and the checked-in compiled-table baseline.
+
+This closes the first part of acceptance criterion 1 and begins the ordered
+input-manifest criterion for ending and derivation sources. The nominal and
+verb indexers and the offline conjugation expander remain quarantined; isolated
+staging, lexical-source manifests, receipts, clean-build comparison and
+baseline diffs remain open.

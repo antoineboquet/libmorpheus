@@ -34,6 +34,9 @@ the corpus.
   handling. CI builds them explicitly and verifies that missing registries or
   compiled tables cannot produce a partial index, beginning the reproducible
   stemlib-production work.
+- A checksum-pinned source manifest now classifies every Greek and Latin rule,
+  ending, and derivation input as active or explicitly excluded and rejects
+  unreviewed input or compiled-baseline selection drift.
 - JavaScript-family bindings now live under `bindings/js/`; the Deno package
   moves to the dedicated `@libmorpheus/deno` JSR namespace at version `0.4.0`,
   while retaining native runtime `0.3.2` and C ABI `2` compatibility.
