@@ -38,6 +38,7 @@ jobs:
         run: |
           ctest --preset dev
           cmake -E cat build/dev/test-stemlib-table-build/baseline-summary.tsv
+          cmake -E cat build/dev/test-stemlib-table-build/baseline-differences.tsv
 
       - name: Test runtime-data preparation helper
         env:

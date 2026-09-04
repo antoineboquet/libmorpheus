@@ -85,3 +85,7 @@ differences are counted separately because the restored writer uses the
 qualified explicit serialization rather than historical in-memory structure
 bytes. CI prints a compact TSV summary of the comparison. This comparison
 covers table production only; stem indexes remain outside this phase.
+
+The current comparison records 156 Greek and 73 Latin binary differences, with
+zero textual or index differences. CI also prints every differing path and its
+classification so the complete exception set can be pinned and reviewed.

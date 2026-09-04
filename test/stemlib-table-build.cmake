@@ -136,6 +136,12 @@ function(compare_builds language expected_binary_differences)
   endif()
   set(${language}_binary_difference_count "${binary_difference_count}"
       PARENT_SCOPE)
+  set(difference_rows)
+  foreach(relative_path IN LISTS binary_baseline_differences)
+    string(APPEND difference_rows
+           "${relative_path}\texplicit-binary-serialization\n")
+  endforeach()
+  set(${language}_binary_difference_rows "${difference_rows}" PARENT_SCOPE)
 endfunction()
 
 build_and_validate(Greek first 357)
@@ -143,8 +149,11 @@ build_and_validate(Greek second 357)
 build_and_validate(Latin first 211)
 build_and_validate(Latin second 211)
 compare_builds(Greek 156)
-compare_builds(Latin -1)
+compare_builds(Latin 73)
 file(WRITE "${MORPHEUS_WORK_DIR}/baseline-summary.tsv"
      "language\toutputs\tbinary_differences\ttext_or_index_differences\n"
      "Greek\t357\t${Greek_binary_difference_count}\t0\n"
      "Latin\t211\t${Latin_binary_difference_count}\t0\n")
+file(WRITE "${MORPHEUS_WORK_DIR}/baseline-differences.tsv"
+     "path\treason\n"
+     "${Greek_binary_difference_rows}${Latin_binary_difference_rows}")

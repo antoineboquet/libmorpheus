@@ -351,6 +351,11 @@ restored writer uses explicit serialization instead of historical in-memory
 structure bytes. This establishes convergence for the table-production
 subgraph independently of the still-quarantined stem indexers.
 
+The checked-in baseline comparison currently contains 156 Greek and 73 Latin
+binary differences, against zero differences in ASCII expansions or indexes.
+CI emits the complete path list with the `explicit-binary-serialization`
+classification pending its promotion to a pinned exception manifest.
+
 This closes the first part of acceptance criterion 1 and begins the ordered
 input-manifest criterion for ending and derivation sources. The nominal and
 verb stem indexers and the offline conjugation expander remain quarantined;
