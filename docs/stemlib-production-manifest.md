@@ -83,5 +83,5 @@ two receipts and every received output to be byte-identical, then compares all
 Textual expansions and indexes must match byte for byte. Binary `.out`
 differences are counted separately because the restored writer uses the
 qualified explicit serialization rather than historical in-memory structure
-bytes. This comparison covers table production only; stem indexes remain
-outside this phase.
+bytes. CI prints a compact TSV summary of the comparison. This comparison
+covers table production only; stem indexes remain outside this phase.

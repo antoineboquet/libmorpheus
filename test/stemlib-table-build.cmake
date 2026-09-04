@@ -134,6 +134,8 @@ function(compare_builds language expected_binary_differences)
     message(FATAL_ERROR
             "unexpected ${language} binary baseline difference count: ${binary_difference_count}")
   endif()
+  set(${language}_binary_difference_count "${binary_difference_count}"
+      PARENT_SCOPE)
 endfunction()
 
 build_and_validate(Greek first 357)
@@ -142,3 +144,7 @@ build_and_validate(Latin first 211)
 build_and_validate(Latin second 211)
 compare_builds(Greek 156)
 compare_builds(Latin -1)
+file(WRITE "${MORPHEUS_WORK_DIR}/baseline-summary.tsv"
+     "language\toutputs\tbinary_differences\ttext_or_index_differences\n"
+     "Greek\t357\t${Greek_binary_difference_count}\t0\n"
+     "Latin\t211\t${Latin_binary_difference_count}\t0\n")

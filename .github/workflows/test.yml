@@ -35,7 +35,9 @@ jobs:
         run: cmake --build --preset dev
 
       - name: Test
-        run: ctest --preset dev
+        run: |
+          ctest --preset dev
+          cmake -E cat build/dev/test-stemlib-table-build/baseline-summary.tsv
 
       - name: Test runtime-data preparation helper
         env:
