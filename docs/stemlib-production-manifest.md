@@ -80,5 +80,8 @@ identity or source revision.
 CI performs two complete clean table builds for each language. It requires the
 two receipts and every received output to be byte-identical, then compares all
 568 regenerated files with the checked-in Greek and Latin table baselines.
-This comparison covers table production only; stem indexes remain outside this
-phase.
+Textual expansions and indexes must match byte for byte. Binary `.out`
+differences are counted separately because the restored writer uses the
+qualified explicit serialization rather than historical in-memory structure
+bytes. This comparison covers table production only; stem indexes remain
+outside this phase.
