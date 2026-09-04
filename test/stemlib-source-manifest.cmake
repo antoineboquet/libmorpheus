@@ -13,8 +13,9 @@ set(seen_paths)
 set(expected_outputs)
 foreach(language IN ITEMS Greek Latin)
   foreach(status IN ITEMS active excluded)
-    foreach(kind IN ITEMS rule ending derivation)
-      set(count_${language}_${status}_${kind} 0)
+    foreach(kind IN ITEMS rule ending-basic ending derivation)
+      string(REPLACE "-" "_" kind_count_key "${kind}")
+      set(count_${language}_${status}_${kind_count_key} 0)
     endforeach()
   endforeach()
 endforeach()
@@ -36,21 +37,24 @@ foreach(line IN LISTS lines)
   string(LENGTH "${expected_sha256}" sha256_length)
   if(NOT language MATCHES "^(Greek|Latin)$" OR
      NOT status MATCHES "^(active|excluded)$" OR
-     NOT kind MATCHES "^(rule|ending|derivation)$" OR
+     NOT kind MATCHES "^(rule|ending-basic|ending|derivation)$" OR
      NOT sha256_length EQUAL 64 OR
      NOT expected_sha256 MATCHES "^[0-9a-f]+$")
     message(FATAL_ERROR "invalid stemlib manifest fields: ${line}")
   endif()
   if((kind STREQUAL "rule" AND
       NOT relative_path MATCHES "^rule_files/[A-Za-z0-9_.-]+[.]table$") OR
+     (kind STREQUAL "ending-basic" AND
+      NOT relative_path MATCHES "^endtables/basics/[A-Za-z0-9_.-]+[.]end$") OR
      (kind STREQUAL "ending" AND
       NOT relative_path MATCHES "^endtables/source/[A-Za-z0-9_.-]+[.]end$") OR
      (kind STREQUAL "derivation" AND
       NOT relative_path MATCHES "^derivs/source/[A-Za-z0-9_.-]+[.]deriv$"))
     message(FATAL_ERROR "unsafe stemlib manifest path: ${relative_path}")
   endif()
-  if(kind STREQUAL "rule" AND NOT status STREQUAL "active")
-    message(FATAL_ERROR "a required rule table is excluded: ${relative_path}")
+  if(kind MATCHES "^(rule|ending-basic)$" AND
+     NOT status STREQUAL "active")
+    message(FATAL_ERROR "a required support table is excluded: ${relative_path}")
   endif()
 
   set(key "${language}/${relative_path}")
@@ -67,8 +71,9 @@ foreach(line IN LISTS lines)
     message(FATAL_ERROR "stemlib source checksum mismatch: ${key}")
   endif()
 
-  math(EXPR count_${language}_${status}_${kind}
-       "${count_${language}_${status}_${kind}} + 1")
+  string(REPLACE "-" "_" kind_count_key "${kind}")
+  math(EXPR count_${language}_${status}_${kind_count_key}
+       "${count_${language}_${status}_${kind_count_key}} + 1")
   if(kind MATCHES "^(ending|derivation)$")
     get_filename_component(table_name "${relative_path}" NAME_WE)
     if(kind STREQUAL "ending")
@@ -89,6 +94,7 @@ endforeach()
 
 foreach(language IN ITEMS Greek Latin)
   foreach(pattern IN ITEMS "rule_files/*.table"
+                           "endtables/basics/*.end"
                            "endtables/source/*.end"
                            "derivs/source/*.deriv")
     file(GLOB actual_sources RELATIVE "${MORPHEUS_STEMLIB_ROOT}/${language}"
@@ -113,11 +119,13 @@ foreach(language IN ITEMS Greek Latin)
 endforeach()
 
 if(NOT count_Greek_active_rule EQUAL 7 OR
+   NOT count_Greek_active_ending_basic EQUAL 55 OR
    NOT count_Greek_active_ending EQUAL 139 OR
    NOT count_Greek_excluded_ending EQUAL 7 OR
    NOT count_Greek_active_derivation EQUAL 38 OR
    NOT count_Greek_excluded_derivation EQUAL 5 OR
    NOT count_Latin_active_rule EQUAL 6 OR
+   NOT count_Latin_active_ending_basic EQUAL 18 OR
    NOT count_Latin_active_ending EQUAL 101 OR
    NOT count_Latin_excluded_ending EQUAL 0 OR
    NOT count_Latin_active_derivation EQUAL 3 OR

@@ -65,10 +65,10 @@ function(stage_and_validate language pass expected_active expected_endings
   set(${language}_${pass}_stage "${stage}" PARENT_SCOPE)
 endfunction()
 
-stage_and_validate(Greek first 184 139 38)
-stage_and_validate(Greek second 184 139 38)
-stage_and_validate(Latin first 110 101 3)
-stage_and_validate(Latin second 110 101 3)
+stage_and_validate(Greek first 239 139 38)
+stage_and_validate(Greek second 239 139 38)
+stage_and_validate(Latin first 128 101 3)
+stage_and_validate(Latin second 128 101 3)
 
 foreach(language IN ITEMS Greek Latin)
   foreach(metadata IN ITEMS MORPHEUS-STEMLIB-INPUTS.tsv

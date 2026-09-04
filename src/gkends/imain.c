@@ -10,7 +10,9 @@
 
 static void usage(const char *program)
 {
-	fprintf(stderr,"usage: %s [-I|-L] {nom|verb|STEMTYPE}\n",program);
+	fprintf(stderr,
+	        "usage: %s [-I|-L] [-f TABLE_LIST] {nom|verb|STEMTYPE}\n",
+	        program);
 }
 
 int main(int argc, char *argv[])
@@ -18,16 +20,24 @@ int main(int argc, char *argv[])
 	gk_string parsed={0};
 	gk_word word={0};
 	char *type;
+	char *table_list=NULL;
 	int option;
 	Stemtype stype;
 
-	while((option=getopt(argc,argv,"IL"))!=-1) {
+	while((option=getopt(argc,argv,"ILf:"))!=-1) {
 		switch(option) {
 		case 'I':
 			set_lang(ITALIAN);
 			break;
 		case 'L':
 			set_lang(LATIN);
+			break;
+		case 'f':
+			if(table_list) {
+				usage(argv[0]);
+				return EXIT_FAILURE;
+			}
+			table_list=optarg;
 			break;
 		default:
 			usage(argv[0]);
@@ -58,5 +68,7 @@ int main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 	}
-	return indexendtables(stype,0)<0 ? EXIT_FAILURE : EXIT_SUCCESS;
+	return (table_list ? indexendtables_from_list(stype,0,table_list)
+	                   : indexendtables(stype,0)) < 0
+	       ? EXIT_FAILURE : EXIT_SUCCESS;
 }

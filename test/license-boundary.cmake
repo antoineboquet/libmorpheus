@@ -84,6 +84,7 @@ set(agpl_files
     src/api/generation.c
     src/api/result.c
     tools/prepare-runtime-data.sh
+    tools/build-stemlib-tables.cmake
     tools/stage-stemlib-sources.cmake
     tools/gener-index-builder.c)
 file(GLOB agpl_support_files
@@ -137,6 +138,9 @@ foreach(mpl_file IN ITEMS
         src/gkends/gkends_internal.h
         src/gkends/imain.c
         src/gkends/indexendtables.c
+        src/gkends/indexendtables.proto.h
+        src/gkends/indexendtables.x.proto.h
+        src/gkends/mkend.c
         src/gkends/smain.c
         src/greeklib/greeklib_internal.h
         src/greeklib/standalpha.proto.h

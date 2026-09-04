@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 #include <gkstring.h>
 #include "gkends_internal.h"
 #include "../morphlib/runtime_context_internal.h"
@@ -132,6 +134,7 @@ static void
 
 	if( ! (f=MorphFopen(line,"r")) ) {
 		fprintf(stderr,"could not open [%s]\n", endtype );
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 		return;
 	}
 	while(fgets(line,sizeof line,f)) {
@@ -151,7 +154,11 @@ static void
 
 		update_end(&TmpHave,&TmpAvoid,savestem,curendstr,line);
 	}
-	fclose(f);
+	i = ferror(f);
+	if( fclose(f) == EOF )
+		i = 1;
+	if( i )
+		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
 }
 
 static void

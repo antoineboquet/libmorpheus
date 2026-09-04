@@ -518,6 +518,23 @@ if(BUILD_TESTING AND MORPHEUS_BUILD_STEMLIB_TOOLS)
       -DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/test-stemlib-ending-tools
       -P ${PROJECT_SOURCE_DIR}/test/stemlib-ending-tools.cmake
   )
+  add_test(
+    NAME stemlib_table_build
+    COMMAND
+      ${CMAKE_COMMAND}
+      -DMORPHEUS_STEMLIB_ROOT=${PROJECT_SOURCE_DIR}/stemlib
+      -DMORPHEUS_STEMLIB_MANIFEST=${PROJECT_SOURCE_DIR}/tools/stemlib-source-manifest.tsv
+      -DMORPHEUS_STEMLIB_MANIFEST_VALIDATOR=${PROJECT_SOURCE_DIR}/test/stemlib-source-manifest.cmake
+      -DMORPHEUS_STEMLIB_STAGER=${PROJECT_SOURCE_DIR}/tools/stage-stemlib-sources.cmake
+      -DMORPHEUS_STEMLIB_BUILDER=${PROJECT_SOURCE_DIR}/tools/build-stemlib-tables.cmake
+      -DMORPHEUS_BUILDEND=$<TARGET_FILE:morpheus_stemlib_buildend>
+      -DMORPHEUS_BUILDDERIV=$<TARGET_FILE:morpheus_stemlib_buildderiv>
+      -DMORPHEUS_INDENDTABLES=$<TARGET_FILE:morpheus_stemlib_indendtables>
+      -DMORPHEUS_INDDERIVTABLES=$<TARGET_FILE:morpheus_stemlib_indderivtables>
+      -DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/test-stemlib-table-build
+      -P ${PROJECT_SOURCE_DIR}/test/stemlib-table-build.cmake
+  )
+  set_tests_properties(stemlib_table_build PROPERTIES TIMEOUT 600)
 endif()
 
 if(BUILD_TESTING)

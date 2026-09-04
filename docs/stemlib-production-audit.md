@@ -324,20 +324,27 @@ malformed table and failed output, with CI asserting that these failures leave
 no partial index behind.
 
 The ordered, checksum-pinned
-[production source manifest](stemlib-production-manifest.md) now covers all 306
-committed Greek and Latin rule, ending, and derivation sources. It makes the
-historical effective selection explicit: 294 inputs are active and twelve
-Greek sources without compiled baselines are excluded and named. CI rejects
-missing, unexpected, reclassified, or modified inputs and mismatches between
-that selection and the checked-in compiled-table baseline.
+[production source manifest](stemlib-production-manifest.md) now covers all 379
+committed Greek and Latin rule, ending-macro, ending, and derivation sources.
+It makes the historical effective selection explicit: 367 inputs are active
+and twelve Greek sources without compiled baselines are excluded and named. CI
+rejects missing, unexpected, reclassified, or modified inputs and mismatches
+between that selection and the checked-in compiled-table baseline.
 
 The manifest can now be materialized into a new, language-scoped staging tree.
 The stager refuses both source-tree destinations and existing destinations,
 copies and re-hashes only active inputs, and emits ordered producer lists. CI
 qualifies two independent Greek stagings and two independent Latin stagings.
 
+The five restored producers can now consume that staging directly. Ending and
+derivation expansion follows the manifest order, while list-driven indexers
+derive the nominal, verb, and derivation indexes from exactly the active set.
+Missing ending macros now propagate through expansion as fatal errors. A
+successful Greek or Latin table build records every generated table and index
+digest in a sorted output receipt.
+
 This closes the first part of acceptance criterion 1 and begins the ordered
 input-manifest criterion for ending and derivation sources. The nominal and
-verb indexers and the offline conjugation expander remain quarantined; isolated
-producer execution, lexical-source manifests, complete build receipts,
-clean-build output comparison and baseline diffs remain open.
+verb stem indexers and the offline conjugation expander remain quarantined;
+lexical-source manifests, complete build receipts, clean-build output
+comparison and baseline diffs remain open.

@@ -1,19 +1,29 @@
 /* SPDX-License-Identifier: MPL-2.0 */
 
 #include <gkstring.h>
+#include <ctype.h>
 #include "gkends_internal.h"
 #include "../morphlib/runtime_context_internal.h"
 #include "endfiles.h"
+#include "indexendtables.proto.h"
 #include "nextsufftab.proto.h"
 #include "../morphlib/morphkeys.proto.h"
 #include "../morphlib/morphpath.proto.h"
 #define MAX_END_TABLE	20000
 static int xstrcmp(const void *, const void *);
 static void free_endlines(char **, size_t);
+static int read_table_name(FILE *, char *, size_t, size_t *);
 #define DELIMITER " "
 
 int
 indexendtables(Stemtype stype, int is_deriv)
+{
+	return indexendtables_from_list(stype,is_deriv,NULL);
+}
+
+int
+indexendtables_from_list(Stemtype stype, int is_deriv,
+                         const char *table_list_path)
 {
 	int index = 0;
 	int i;
@@ -29,6 +39,7 @@ indexendtables(Stemtype stype, int is_deriv)
 	char output_path[BUFSIZ];
 	char temporary_path[BUFSIZ];
 	char curderivname[LONGSTRING];
+	char listed_table[LONGSTRING];
 	char tmp[LONGSTRING*8];
 	char prevtag[LONGSTRING];
 	char prevkey[LONGSTRING];
@@ -36,8 +47,10 @@ indexendtables(Stemtype stype, int is_deriv)
 	char savestr[LONGSTRING];
 	char markedstr[MAXWORDSIZE];
 	FILE * finput = NULL, *foutput = NULL;
+	FILE * table_list = NULL;
 	int maxstring = 0;
 	int output_temporary = 0;
+	size_t table_list_line = 0;
 	
 	if( is_deriv ) 
 		dirp = DERIVTABLEDIR;
@@ -49,9 +62,53 @@ indexendtables(Stemtype stype, int is_deriv)
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_NO_MEMORY);
 		return(-1);
 	}
+	if( table_list_path ) {
+		table_list = fopen(table_list_path,"r");
+		if( ! table_list ) {
+			fprintf(stderr,"could not open table list: %s\n",table_list_path);
+			goto failed;
+		}
+	}
 	
 	for(;;) {
-		if( is_deriv ) {
+		if( table_list ) {
+			gk_string parsed = { 0 };
+			gk_word word = { 0 };
+			int list_status = read_table_name(
+				table_list,listed_table,sizeof listed_table,&table_list_line);
+
+			if( list_status < 0 )
+				goto failed;
+			if( list_status == 0 ) {
+				if( fclose(table_list) == EOF ) {
+					table_list = NULL;
+					goto failed;
+				}
+				table_list = NULL;
+				break;
+			}
+			curtable = listed_table;
+			if( ScanAsciiKeys(curtable,&word,&parsed,NULL) < 0 )
+				goto failed;
+			if( is_deriv ) {
+				if( ! derivtype_of(&parsed) || ! Is_regconj(&parsed) ) {
+					fprintf(stderr,
+					        "invalid derivation in table list at line %zu: %s\n",
+					        table_list_line,curtable);
+					goto failed;
+				}
+			} else {
+				Stemtype listed_type = stemtype_of(&parsed);
+				if( ! listed_type ) {
+					fprintf(stderr,
+					        "invalid ending in table list at line %zu: %s\n",
+					        table_list_line,curtable);
+					goto failed;
+				}
+				if( ! (listed_type & stype) )
+					continue;
+			}
+		} else if( is_deriv ) {
 			gk_string * gstring;
 			gk_word * tmpGkword;
 			Derivtype derivtype;
@@ -255,10 +312,44 @@ printf("output file:%s\n", shortname );
 failed:
 	if( finput ) fclose(finput);
 	if( foutput ) fclose(foutput);
+	if( table_list ) fclose(table_list);
 	if( output_temporary ) remove(temporary_path);
 	free_endlines(endlines,endcount);
 	return(-1);
 
+}
+
+static int
+read_table_name(FILE *input, char *name, size_t name_size, size_t *line_number)
+{
+	size_t length;
+	char *cursor;
+
+	while( fgets(name,(int)name_size,input) ) {
+		(*line_number)++;
+		length = strlen(name);
+		if( length && name[length-1] == '\n' )
+			name[--length] = 0;
+		else if( ! feof(input) ) {
+			fprintf(stderr,"table-list line %zu is too long\n",*line_number);
+			return(-1);
+		}
+		if( length && name[length-1] == '\r' )
+			name[--length] = 0;
+		if( ! length || name[0] == '#' )
+			continue;
+		for(cursor=name;*cursor;cursor++) {
+			if( ! isalnum((unsigned char)*cursor) && *cursor != '_' ) {
+				fprintf(stderr,"invalid table-list line %zu: %s\n",
+				        *line_number,name);
+				return(-1);
+			}
+		}
+		return(1);
+	}
+	if( ferror(input) )
+		return(-1);
+	return(0);
 }
 
 static void

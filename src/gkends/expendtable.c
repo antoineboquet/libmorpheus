@@ -240,6 +240,14 @@ has_morphflag(morphflags_of(Have),INDECLFORM) );
 
 /*printf("[%s] [%s]\n", havestr, basename );*/
 	mk_end(havestr,Have,Avoid);
+	if( morpheus_runtime_context_error(
+	        morpheus_runtime_context_current()) !=
+	    MORPHEUS_RUNTIME_ERROR_NONE ) {
+		FreeGkString(Have);
+		FreeGkString(Avoid);
+		FreeGkword(TmpGkword);
+		return(-1);
+	}
 
 	FreeGkString(Have);
 	FreeGkString(Avoid);

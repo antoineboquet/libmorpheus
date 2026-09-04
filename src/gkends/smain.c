@@ -9,20 +9,28 @@
 
 static void usage(const char *program)
 {
-	fprintf(stderr,"usage: %s [-I|-L]\n",program);
+	fprintf(stderr,"usage: %s [-I|-L] [-f TABLE_LIST]\n",program);
 }
 
 int main(int argc, char *argv[])
 {
 	int option;
+	char *table_list=NULL;
 
-	while((option=getopt(argc,argv,"IL"))!=-1) {
+	while((option=getopt(argc,argv,"ILf:"))!=-1) {
 		switch(option) {
 		case 'I':
 			set_lang(ITALIAN);
 			break;
 		case 'L':
 			set_lang(LATIN);
+			break;
+		case 'f':
+			if(table_list) {
+				usage(argv[0]);
+				return EXIT_FAILURE;
+			}
+			table_list=optarg;
 			break;
 		default:
 			usage(argv[0]);
@@ -33,5 +41,7 @@ int main(int argc, char *argv[])
 		usage(argv[0]);
 		return EXIT_FAILURE;
 	}
-	return indexendtables(0,1)<0 ? EXIT_FAILURE : EXIT_SUCCESS;
+	return (table_list ? indexendtables_from_list(0,1,table_list)
+	                   : indexendtables(0,1)) < 0
+	       ? EXIT_FAILURE : EXIT_SUCCESS;
 }

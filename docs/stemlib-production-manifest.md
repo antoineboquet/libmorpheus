@@ -3,19 +3,20 @@
 # Stemlib production source manifest
 
 `tools/stemlib-source-manifest.tsv` freezes the first reproducible-production
-input boundary for Greek and Latin ending and derivation tables. Each row has
-five tab-separated fields:
+input boundary for Greek and Latin ending, ending-macro, and derivation tables.
+Each row has five tab-separated fields:
 
 | Field | Meaning |
 | --- | --- |
 | `language` | `Greek` or `Latin` |
 | `status` | `active` or `excluded` |
-| `kind` | `rule`, `ending` or `derivation` |
+| `kind` | `rule`, `ending-basic`, `ending` or `derivation` |
 | `path` | Language-relative source path |
 | `sha256` | Digest of the exact committed input bytes |
 
-All `rule_files/*.table`, `endtables/source/*.end` and
-`derivs/source/*.deriv` files must occur exactly once. Rules are always active.
+All `rule_files/*.table`, `endtables/basics/*.end`,
+`endtables/source/*.end` and `derivs/source/*.deriv` files must occur exactly
+once. Rules and ending macros are always active.
 An ending or derivation is active when the curated tree contains its compiled
 `.out` baseline; this preserves the effective historical selection without
 pretending that every registry entry is buildable. A new or removed file, a
@@ -56,3 +57,19 @@ CI stages Greek and Latin twice into independent directories, revalidates every
 copied digest, compares the three metadata files, checks representative
 exclusions, and verifies that an existing destination is refused. The stager
 does not use global temporary paths and never overlays a prior distribution.
+
+## Table production
+
+`tools/build-stemlib-tables.cmake` consumes a fresh staging destination and the
+two ordered lists. It runs `buildend` and `buildderiv` once for every active
+table, then builds the nominal, verb, and derivation indexes from those same
+lists. The list-driven index mode filters nominal and verb tables by their
+registered stem class, rejects malformed or unknown names, and never treats an
+unlisted registry entry as an implicit input.
+
+Every producer runs with `LC_ALL=C`, `LANG=C`, `TZ=UTC`, and `MORPHLIB` fixed to
+the staging root. Successful completion emits
+`MORPHEUS-STEMLIB-TABLE-OUTPUTS.tsv`, containing the sorted output paths and
+their SHA-256 digests. The receipt currently covers expanded ASCII and binary
+tables plus their three text indexes; it does not yet contain a compiler
+identity or source revision.
