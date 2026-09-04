@@ -353,8 +353,10 @@ subgraph independently of the still-quarantined stem indexers.
 
 The checked-in baseline comparison currently contains 156 Greek and 73 Latin
 binary differences, against zero differences in ASCII expansions or indexes.
-CI emits the complete path list with the `explicit-binary-serialization`
-classification pending its promotion to a pinned exception manifest.
+The complete sorted path set is pinned in
+`test/stemlib-binary-baseline-exceptions.tsv` with the
+`explicit-binary-serialization` classification. CI rejects any change to that
+reviewed exception set.
 
 This closes the first part of acceptance criterion 1 and begins the ordered
 input-manifest criterion for ending and derivation sources. The nominal and

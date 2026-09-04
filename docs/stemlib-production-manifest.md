@@ -87,5 +87,6 @@ bytes. CI prints a compact TSV summary of the comparison. This comparison
 covers table production only; stem indexes remain outside this phase.
 
 The current comparison records 156 Greek and 73 Latin binary differences, with
-zero textual or index differences. CI also prints every differing path and its
-classification so the complete exception set can be pinned and reviewed.
+zero textual or index differences. Their complete sorted path set is pinned in
+`test/stemlib-binary-baseline-exceptions.tsv`; CI rejects a missing, unexpected,
+duplicated, reordered, malformed, or reclassified exception.

@@ -524,6 +524,7 @@ if(BUILD_TESTING AND MORPHEUS_BUILD_STEMLIB_TOOLS)
       ${CMAKE_COMMAND}
       -DMORPHEUS_STEMLIB_ROOT=${PROJECT_SOURCE_DIR}/stemlib
       -DMORPHEUS_STEMLIB_MANIFEST=${PROJECT_SOURCE_DIR}/tools/stemlib-source-manifest.tsv
+      -DMORPHEUS_STEMLIB_BINARY_EXCEPTIONS=${PROJECT_SOURCE_DIR}/test/stemlib-binary-baseline-exceptions.tsv
       -DMORPHEUS_STEMLIB_MANIFEST_VALIDATOR=${PROJECT_SOURCE_DIR}/test/stemlib-source-manifest.cmake
       -DMORPHEUS_STEMLIB_STAGER=${PROJECT_SOURCE_DIR}/tools/stage-stemlib-sources.cmake
       -DMORPHEUS_STEMLIB_BUILDER=${PROJECT_SOURCE_DIR}/tools/build-stemlib-tables.cmake

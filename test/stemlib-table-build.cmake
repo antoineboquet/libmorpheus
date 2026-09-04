@@ -3,6 +3,7 @@
 cmake_minimum_required(VERSION 3.25)
 
 foreach(required IN ITEMS MORPHEUS_STEMLIB_ROOT MORPHEUS_STEMLIB_MANIFEST
+                          MORPHEUS_STEMLIB_BINARY_EXCEPTIONS
                           MORPHEUS_STEMLIB_MANIFEST_VALIDATOR
                           MORPHEUS_STEMLIB_STAGER MORPHEUS_STEMLIB_BUILDER
                           MORPHEUS_BUILDEND MORPHEUS_BUILDDERIV
@@ -74,7 +75,7 @@ function(build_and_validate language pass expected_outputs)
   set(${language}_${pass}_stage "${stage}" PARENT_SCOPE)
 endfunction()
 
-function(compare_builds language expected_binary_differences)
+function(compare_builds language)
   set(first "${${language}_first_stage}")
   set(second "${${language}_second_stage}")
   set(receipt_name "MORPHEUS-STEMLIB-TABLE-OUTPUTS.tsv")
@@ -129,10 +130,64 @@ function(compare_builds language expected_binary_differences)
   list(LENGTH binary_baseline_differences binary_difference_count)
   message(STATUS
           "${language} binary baseline differences: ${binary_difference_count}")
-  if(expected_binary_differences GREATER_EQUAL 0 AND
-     NOT binary_difference_count EQUAL expected_binary_differences)
+
+  file(STRINGS "${MORPHEUS_STEMLIB_BINARY_EXCEPTIONS}" exception_lines)
+  set(expected_binary_differences)
+  set(seen_exception_paths)
+  set(previous_exception_path)
+  foreach(line IN LISTS exception_lines)
+    if(line MATCHES "^[ \t]*#" OR line MATCHES "^[ \t]*$")
+      continue()
+    endif()
+    string(REPLACE "\t" ";" fields "${line}")
+    list(LENGTH fields field_count)
+    if(NOT field_count EQUAL 2)
+      message(FATAL_ERROR "invalid binary baseline exception line: ${line}")
+    endif()
+    list(GET fields 0 exception_path)
+    list(GET fields 1 exception_reason)
+    if(NOT exception_path MATCHES
+       "^(Greek|Latin)/(endtables|derivs)/out/[A-Za-z0-9_]+[.]out$")
+      message(FATAL_ERROR
+              "invalid binary baseline exception path: ${exception_path}")
+    endif()
+    if(NOT exception_reason STREQUAL "explicit-binary-serialization")
+      message(FATAL_ERROR
+              "invalid binary baseline exception reason: ${exception_reason}")
+    endif()
+    list(FIND seen_exception_paths "${exception_path}" duplicate_index)
+    if(NOT duplicate_index EQUAL -1)
+      message(FATAL_ERROR
+              "duplicate binary baseline exception: ${exception_path}")
+    endif()
+    if(previous_exception_path)
+      if(NOT "${previous_exception_path}" STRLESS "${exception_path}")
+        message(FATAL_ERROR "binary baseline exceptions are not sorted")
+      endif()
+    endif()
+    list(APPEND seen_exception_paths "${exception_path}")
+    set(previous_exception_path "${exception_path}")
+    if(exception_path MATCHES "^${language}/")
+      list(APPEND expected_binary_differences "${exception_path}")
+    endif()
+  endforeach()
+
+  if(NOT "${binary_baseline_differences}" STREQUAL
+         "${expected_binary_differences}")
+    set(missing_exceptions ${expected_binary_differences})
+    set(unexpected_differences ${binary_baseline_differences})
+    foreach(path IN LISTS binary_baseline_differences)
+      list(REMOVE_ITEM missing_exceptions "${path}")
+    endforeach()
+    foreach(path IN LISTS expected_binary_differences)
+      list(REMOVE_ITEM unexpected_differences "${path}")
+    endforeach()
+    list(JOIN missing_exceptions ", " missing_list)
+    list(JOIN unexpected_differences ", " unexpected_list)
     message(FATAL_ERROR
-            "unexpected ${language} binary baseline difference count: ${binary_difference_count}")
+            "${language} binary baseline exception manifest differs; "
+            "missing differences: [${missing_list}]; "
+            "unexpected differences: [${unexpected_list}]")
   endif()
   set(${language}_binary_difference_count "${binary_difference_count}"
       PARENT_SCOPE)
@@ -148,8 +203,8 @@ build_and_validate(Greek first 357)
 build_and_validate(Greek second 357)
 build_and_validate(Latin first 211)
 build_and_validate(Latin second 211)
-compare_builds(Greek 156)
-compare_builds(Latin 73)
+compare_builds(Greek)
+compare_builds(Latin)
 file(WRITE "${MORPHEUS_WORK_DIR}/baseline-summary.tsv"
      "language\toutputs\tbinary_differences\ttext_or_index_differences\n"
      "Greek\t357\t${Greek_binary_difference_count}\t0\n"
