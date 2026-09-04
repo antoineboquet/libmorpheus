@@ -14,7 +14,7 @@ file(REMOVE_RECURSE "${MORPHEUS_WORK_DIR}")
 file(MAKE_DIRECTORY "${MORPHEUS_WORK_DIR}")
 
 function(stage_and_validate language pass expected_active expected_endings
-                            expected_derivations)
+                            expected_derivations expected_indexed_derivations)
   set(stage "${MORPHEUS_WORK_DIR}/${language}-${pass}")
   execute_process(
     COMMAND "${CMAKE_COMMAND}"
@@ -54,25 +54,30 @@ function(stage_and_validate language pass expected_active expected_endings
   endforeach()
   file(STRINGS "${stage}/ending-tables.list" ending_tables)
   file(STRINGS "${stage}/derivation-tables.list" derivation_tables)
+  file(STRINGS "${stage}/derivation-index-tables.list"
+       indexed_derivation_tables)
   list(LENGTH ending_tables ending_count)
   list(LENGTH derivation_tables derivation_count)
+  list(LENGTH indexed_derivation_tables indexed_derivation_count)
   if(NOT active_count EQUAL expected_active OR
      NOT ending_count EQUAL expected_endings OR
-     NOT derivation_count EQUAL expected_derivations)
+     NOT derivation_count EQUAL expected_derivations OR
+     NOT indexed_derivation_count EQUAL expected_indexed_derivations)
     message(FATAL_ERROR "unexpected ${language} staging selection")
   endif()
 
   set(${language}_${pass}_stage "${stage}" PARENT_SCOPE)
 endfunction()
 
-stage_and_validate(Greek first 239 139 38)
-stage_and_validate(Greek second 239 139 38)
-stage_and_validate(Latin first 128 101 3)
-stage_and_validate(Latin second 128 101 3)
+stage_and_validate(Greek first 239 139 38 18)
+stage_and_validate(Greek second 239 139 38 18)
+stage_and_validate(Latin first 128 101 3 2)
+stage_and_validate(Latin second 128 101 3 2)
 
 foreach(language IN ITEMS Greek Latin)
   foreach(metadata IN ITEMS MORPHEUS-STEMLIB-INPUTS.tsv
-                            ending-tables.list derivation-tables.list)
+                            ending-tables.list derivation-tables.list
+                            derivation-index-tables.list)
     execute_process(
       COMMAND "${CMAKE_COMMAND}" -E compare_files
               "${${language}_first_stage}/${metadata}"

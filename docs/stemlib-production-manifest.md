@@ -51,10 +51,11 @@ any destination that already exists. For one requested language it then:
 2. copies every active input and verifies its staged SHA-256;
 3. emits the active subset as `MORPHEUS-STEMLIB-INPUTS.tsv`;
 4. emits ordered `ending-tables.list` and `derivation-tables.list` producer
-   inputs.
+   inputs, plus `derivation-index-tables.list` for the active tables classified
+   as `reg_deriv` by the pinned registry.
 
 CI stages Greek and Latin twice into independent directories, revalidates every
-copied digest, compares the three metadata files, checks representative
+copied digest, compares the four metadata files, checks representative
 exclusions, and verifies that an existing destination is refused. The stager
 does not use global temporary paths and never overlays a prior distribution.
 
@@ -63,7 +64,9 @@ does not use global temporary paths and never overlays a prior distribution.
 `tools/build-stemlib-tables.cmake` consumes a fresh staging destination and the
 two ordered lists. It runs `buildend` and `buildderiv` once for every active
 table, then builds the nominal, verb, and derivation indexes from those same
-lists. The list-driven index mode filters nominal and verb tables by their
+lists. Derivation expansion includes all active derivation tables, while its
+index is limited to the 18 Greek and two Latin `reg_deriv` tables selected from
+the pinned registry. The list-driven index mode filters nominal and verb tables by their
 registered stem class, rejects malformed or unknown names, and never treats an
 unlisted registry entry as an implicit input.
 

@@ -73,7 +73,8 @@ run_producer("nominal ending index" "${MORPHEUS_INDENDTABLES}"
 run_producer("verb ending index" "${MORPHEUS_INDENDTABLES}"
              ${language_option} -f "${stage_root}/ending-tables.list" verb)
 run_producer("derivation index" "${MORPHEUS_INDDERIVTABLES}"
-             ${language_option} -f "${stage_root}/derivation-tables.list")
+             ${language_option} -f
+             "${stage_root}/derivation-index-tables.list")
 
 file(GLOB_RECURSE outputs
      RELATIVE "${stage_root}"
