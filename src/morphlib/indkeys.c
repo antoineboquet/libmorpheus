@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
 #include "morphlib_internal.h"
 #include <gkstring.h>
 #include <endfiles.h>
@@ -20,7 +22,8 @@ static void prockeyline(
 	index_key_state *
 );
 
-int index_list(char *listname, char *tagstring, int modulus)
+static int index_list_impl(char *listname, char *tagstring, int modulus,
+                           int direct_path)
 {
 	index_key_state state = {{0}, {0}, MODULUS + 1};
 	FILE * finput;
@@ -39,7 +42,7 @@ int index_list(char *listname, char *tagstring, int modulus)
 		return(-1);
 	}
 	if( modulus > MODULUS ) modulus = MODULUS;
-	finput = MorphFopen(listname,"r");
+	finput = direct_path ? fopen(listname,"r") : MorphFopen(listname,"r");
 	if( ! finput ) {
 		fprintf(stderr,"Could not open input %s\n", listname );
 		morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
@@ -52,7 +55,7 @@ int index_list(char *listname, char *tagstring, int modulus)
 		return(-1);
 	}
 	
-	foutput = MorphFopen(outfile,"wb");
+	foutput = direct_path ? fopen(outfile,"wb") : MorphFopen(outfile,"wb");
 	if( ! foutput ) {
 		fprintf(stderr,"Could not open output  %s\n", outfile );
 		fclose(finput);
@@ -92,6 +95,16 @@ int index_list(char *listname, char *tagstring, int modulus)
 	fclose(finput);
 	fclose(foutput);
 	return(0);
+}
+
+int index_list(char *listname, char *tagstring, int modulus)
+{
+	return index_list_impl(listname,tagstring,modulus,0);
+}
+
+int index_list_file(char *listname, char *tagstring, int modulus)
+{
+	return index_list_impl(listname,tagstring,modulus,1);
 }
 
 

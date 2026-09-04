@@ -16,6 +16,8 @@ set(MORPHEUS_INTERNAL_DATA_ENTRY_POINTS
   src/gkends/expwordmain.c
   src/gkends/imain.c
   src/gkends/smain.c
+  src/gkdict/indexnoms.main.c
+  src/gkdict/indexvbs.main.c
 )
 
 set(MORPHEUS_HISTORICAL_ANALYSIS_ENTRY_POINTS
@@ -38,8 +40,6 @@ set(MORPHEUS_HISTORICAL_DATA_ENTRY_POINTS
   src/gener/stypemain.c
   src/gkdict/indcomps.c
   src/gkdict/index.dict.c
-  src/gkdict/indexnoms.main.c
-  src/gkdict/indexvbs.main.c
   src/gkdict/newlats.c
   src/gkdict/newlems.c
   src/gkdict/newlems2.c

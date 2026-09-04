@@ -360,6 +360,7 @@ reviewed exception set.
 
 This closes the first part of acceptance criterion 1 and begins the ordered
 input-manifest criterion for ending and derivation sources. The nominal and
-verb stem indexers and the offline conjugation expander remain quarantined;
-lexical-source manifests, complete build receipts, clean-build output
-comparison for stem indexes and any reviewed baseline differences remain open.
+verb stem indexers now compile as internal CMake tools with explicit input and
+output paths, but are not yet connected to the staging recipe. The offline
+conjugation expander remains quarantined; lexical-source manifests, complete
+build receipts and clean-build output comparison for stem indexes remain open.

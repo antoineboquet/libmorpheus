@@ -18,7 +18,7 @@ explicitly quarantined.
 | Group | Purpose | Decision |
 | --- | --- | --- |
 | Analysis front ends | Window, batch, scanning, lemma and proper-name experiments | Retain as source reference; replace with public-API clients if a workflow is still needed. |
-| Stemlib data tools | Conjugation, generation, dictionary indexing and ending-table drivers | Five ending-table producers are now internal CMake tools; retain the others for provenance and port them one at a time. |
+| Stemlib data tools | Conjugation, generation, dictionary indexing and ending-table drivers | Five ending-table producers and two lexical indexers are now internal CMake tools; retain the others for provenance and port them one at a time. |
 | Platform and corpus tools | SmartA, troff, TLG, retrieval, scanner and interactive test programs | Retire from the portable build; they depend on obsolete platforms, formats, or unsafe terminal input. |
 | Diagnostics | Ad-hoc Greek-library and morphology test drivers | Retire in favour of focused CTest cases. |
 
@@ -44,10 +44,18 @@ They are excluded from the default build unless
 never installed. Their points of entry now obey C17 declarations, reject
 invalid command lines, and propagate table-expansion and output failures.
 
+The nominal and verb stem indexers are also internal, opt-in CMake tools. Their
+drivers require explicit input and output paths, eliminating the inherited
+shared `/tmp/nommorph` and `/tmp/vbmorph` interface. The underlying producer is
+C17-clean and rejects unavailable, empty, oversized or structurally invalid
+inputs as well as allocation and index-construction failures. It is not yet
+connected to the hermetic staging recipe: the ordered lexical-input manifest
+and positive baseline comparison remain separate acceptance work.
+
 This is production infrastructure, not yet a supported stemlib compiler. The
-lexical indexers, `do_conj`, isolated staging, input manifests and
-reproducibility proof remain necessary before any regenerated tree can replace
-a pinned baseline.
+`do_conj`, lexical-source staging and the complete stem-index reproducibility
+proof remain necessary before any regenerated tree can replace a pinned
+baseline.
 
 ## Generation integration
 

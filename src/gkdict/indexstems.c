@@ -1,8 +1,30 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
+#include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <gkstring.h>
 
 #include <gkdict.h>
+#include "../greeklib/addaccent.proto.h"
+#include "../greeklib/getsyll.proto.h"
+#include "../greeklib/hasaccent.proto.h"
+#include "../greeklib/hasdiaer.proto.h"
+#include "../greeklib/hasquant.proto.h"
+#include "../greeklib/issubstring.proto.h"
+#include "../greeklib/stripacc.proto.h"
+#include "../greeklib/stripdiaer.proto.h"
+#include "../greeklib/stripquant.proto.h"
+#include "../greeklib/stripstemsep.proto.h"
+#include "../greeklib/xstrings.proto.h"
+#include "../morphlib/gkstring.proto.h"
+#include "../morphlib/indkeys.proto.h"
+#include "../morphlib/morphflags.proto.h"
+#include "../morphlib/morphkeys.proto.h"
+#include "../morphlib/morphstrcmp.proto.h"
+#include "../morphlib/numovable.proto.h"
 #define MAX_END_TABLE 150000
 
 gk_word GkWord;
@@ -28,7 +50,7 @@ static long stemcount = 0;
 #define DELIMITER " "
 
 #include "indexstems.proto.h"
-static do_index(char *file, int indfreq);
+static int do_index(char *file, int indfreq);
 long bufsiz =  0;
 long bufcount = 0;
 char * bufptr;
@@ -39,6 +61,29 @@ FILE * ferrfile;
 */
 
 static long curcomp = 0;
+
+static int take_key(char *keylist, char *output, size_t capacity)
+{
+	char *at=keylist;
+	char *start;
+	size_t length;
+
+	while(isspace((unsigned char)*at)) at++;
+	start=at;
+	while(*at && !isspace((unsigned char)*at)) at++;
+	length=(size_t)(at-start);
+	if(!length) {
+		if(capacity) output[0]=0;
+		return 0;
+	}
+	if(length>=capacity)
+		return -1;
+	memcpy(output,start,length);
+	output[length]=0;
+	while(isspace((unsigned char)*at)) at++;
+	memmove(keylist,at,strlen(at)+1);
+	return 1;
+}
 
 int zstrcmp(const void * s1, const void * s2)
    {
@@ -56,19 +101,22 @@ int zstrcmp(const void * s1, const void * s2)
 }
 
 
-index_hqdict(int wantstem, int wantirrverb, int wantindecl)
+int index_hqdict(int wantstem, int wantirrverb, int wantindecl)
 {
-	index_stems(wantstem,wantirrverb,wantindecl,WORDLIST,STEMLIST,1);
+	return index_stems(wantstem,wantirrverb,wantindecl,
+	                   WORDLIST,STEMLIST,1);
 }
 
-index_noms(int wantstem, int wantirrverb, int wantindecl)
+int index_noms(int wantstem, int wantirrverb, int wantindecl)
 {
-	index_stems(wantstem,wantirrverb,wantindecl,NOMLIST,NOMINDEX,(int)10);
+	return index_stems(wantstem,wantirrverb,wantindecl,
+	                   NOMLIST,NOMINDEX,10);
 }
 
-index_vbs(int wantstem, int wantirrverb, int wantindecl)
+int index_vbs(int wantstem, int wantirrverb, int wantindecl)
 {
-	index_stems(wantstem,wantirrverb,wantindecl,VBLIST,VBINDEX,(int)10);
+	return index_stems(wantstem,wantirrverb,wantindecl,
+	                   VBLIST,VBINDEX,10);
 }
 
 int
@@ -84,10 +132,11 @@ index_stems(int wantstem, int wantirrverb, int wantindecl, char *wlist, char *in
 /*
 	char errfile[BIGSTRING];
 */
-	long i;
-	char *s;
+	long input_size;
+	int result=0;
 	
 	stemcount = 0;
+	bufcount = 0;
 	basename[0] = line[0] = 0;
 
 
@@ -105,48 +154,62 @@ index_stems(int wantstem, int wantirrverb, int wantindecl, char *wlist, char *in
 */	
 	stems = (char **) calloc((size_t)MAX_END_TABLE,(size_t)sizeof *stems);
 	if( ! stems ) {
-		fprintf(stderr,"could not allocate %ld stems\n", MAX_END_TABLE );
-		exit(-1);
+		fprintf(stderr,"could not allocate %d stems\n",MAX_END_TABLE);
+		fclose(finput);
+		return(-1);
 	}
 
-	
-/* 
- * make sure we are in the right kind of file!
- */
-	while( (s=fgets(line,(int)BIGSTRING,finput))) {
-		if( ! strncmp(line,":le:",4) ) {
-			nextkey(line+4,curlemma);
-			break;
-		}
+	if(fseek(finput,0L,SEEK_END)!=0 || (input_size=ftell(finput))<0 ||
+	   input_size>(LONG_MAX-1)/2 || fseek(finput,0L,SEEK_SET)!=0) {
+		fprintf(stderr,"Could not size %s\n",wlist);
+		fclose(finput);
+		free(stems);
+		stems=NULL;
+		return(-1);
 	}
-	
-	bufsiz = (long)fseek(finput,0L,2);
-	bufsiz = ftell(finput) * 2;
+	bufsiz=input_size*2+1;
 	printf("bufsiz %ld bytes\n", bufsiz );
-	fseek(finput,0L,0);
 
 	bufptr = (char *)malloc((size_t)bufsiz);
 	if( ! bufptr ) {
 		printf("could not allocate %ld bytes\n", bufsiz );
-		exit(-1);
+		fclose(finput);
+		free(stems);
+		stems=NULL;
+		return(-1);
 	}
 	printf("allocated %ld bytes successfully!\n", bufsiz );
 	sptr = bufptr;
+	curlemma[0]=0;
 	
 	while(fgets(line,(int)BIGSTRING, finput )) {
+		if(!strchr(line,'\n') && !feof(finput)) {
+			fprintf(stderr,"input line exceeds %d bytes in %s\n",
+			        BIGSTRING-1,wlist);
+			result=-1;
+			break;
+		}
 
 		if( ! strncmp(line,":le:",4) ) {
-		
-			nextkey(line+4,curlemma);
+			if(take_key(line+4,curlemma,sizeof curlemma)!=1) {
+				fprintf(stderr,"invalid or oversized lemma in %s\n",wlist);
+				result=-1;
+				break;
+			}
 			basename[0] = 0;
 			continue;
 		}
 		if( line[0] == '@' ) {
+			int written;
+
 			if( ! basename[0] ) continue;
-			Xstrcpy(tmp,basename);
-			strcat(tmp," ");
-			strcat(tmp,line+1);
-			Xstrcpy(line,tmp);
+			written=snprintf(tmp,sizeof tmp,"%s %s",basename,line+1);
+			if(written<0 || (size_t)written>=sizeof tmp) {
+				fprintf(stderr,"continued stem record is too long in %s\n",wlist);
+				result=-1;
+				break;
+			}
+			memcpy(line,tmp,(size_t)written+1);
 		}
 		/*
 		 * the stem index does not include compound
@@ -160,41 +223,50 @@ index_stems(int wantstem, int wantirrverb, int wantindecl, char *wlist, char *in
 		if( (! strncmp(line,":vs:",4) || 
 			! strncmp(line,":aj:",4) ||
 			! strncmp(line,":no:",4)) ) {
-			char tag[12];
-			
-			strncpy(tag,line,4);
+			if(!curlemma[0]) {
+				fprintf(stderr,"stem record precedes lemma in %s\n",wlist);
+				result=-1;
+				break;
+			}
 			if( ! strncmp(line,":aj:",4) || ! strncmp(line,":no:",4) ) {
 				char * t = basename;
-				Xstrcpy(basename,line);
+				if(!Xstrncpy(basename,line,sizeof basename)) {
+					result=-1;
+					break;
+				}
 				while(*t&&!isspace(*t)) t++;
 				while(isspace(*t)) t++;
 				while(*t&&!isspace(*t)) t++;
 				*t = 0;
 			} else
-				basename[0];
-			nextkey(line+4,curstem);
- 			if( ! do_curstem(tag,curstem,curlemma,line+4,"") )
- 				break;
+				basename[0]=0;
+			if(take_key(line+4,curstem,sizeof curstem)!=1 ||
+			   !do_curstem(curstem,curlemma,line+4,"")) {
+				result=-1;
+				break;
+			}
 		} else if( ! strncmp(line,":vb:",4)) {
-			char tag[12];
-			strncpy(tag,line,4);
-			nextkey(line+4,curstem);
- 			if( ! do_curstem(tag,curstem,curlemma,line+4,"1") ) 
- 				break;
+			if(!curlemma[0] ||
+			   take_key(line+4,curstem,sizeof curstem)!=1 ||
+			   !do_curstem(curstem,curlemma,line+4,"1")) {
+				result=-1;
+				break;
+			}
 
 		} else if( ! strncmp(line,":wd:",4) ) {
-			char tag[12];
-			
-
-			strncpy(tag,line,4);
-			nextkey(line+4,curstem);
- 			if( ! do_curstem(tag,curstem,curlemma,line+4,"2") ) 
- 				break;
+			if(!curlemma[0] ||
+			   take_key(line+4,curstem,sizeof curstem)!=1 ||
+			   !do_curstem(curstem,curlemma,line+4,"2")) {
+				result=-1;
+				break;
+			}
 
 		} else if( ! strncmp(line,":de:",4) ) {
-			char tag[12];
-			strncpy(tag,line,4);
-			nextkey(line+4,curstem);
+			if(!curlemma[0] ||
+			   take_key(line+4,curstem,sizeof curstem)!=1) {
+				result=-1;
+				break;
+			}
 /*
  * grc 7/6/89
  *
@@ -202,22 +274,33 @@ index_stems(int wantstem, int wantirrverb, int wantindecl, char *wlist, char *in
  * trying to store this as a productive deriv type.
  */
 			if( ! is_presredupl(line) )  {
-	 			if( ! do_curstem(tag,curstem,curlemma,line+4,"3") ) 
-	 				break;
+			if( ! do_curstem(curstem,curlemma,line+4,"3") ) {
+				result=-1;
+				break;
+			}
 			}
 		}	
 
 	}
 	fclose(finput);
 	printf("stemcount %ld\n", stemcount );
-	
-	if( wantstem ) {
-		do_index(indexlist,indfreq);
+	if(result==0 && stemcount==0) {
+		fprintf(stderr,"no stem records found in %s\n",wlist);
+		result=-1;
 	}
+	if(result==0 && wantstem)
+		result=do_index(indexlist,indfreq);
+	else {
+		free(stems);
+		stems=NULL;
+	}
+	free(bufptr);
+	bufptr=NULL;
+	sptr=NULL;
+	return result;
 }
 		
-static
-do_index(char *file, int indfreq)
+static int do_index(char *file, int indfreq)
 {
 	FILE * foutput;
 /*
@@ -237,6 +320,16 @@ do_index(char *file, int indfreq)
 	prevkey = malloc(BIGSTRING);
 	curtag = malloc(BIGSTRING);
 	prevtag = malloc(BIGSTRING);
+	if(!curkey || !prevkey || !curtag || !prevtag) {
+		fprintf(stderr,"could not allocate stem-index workspace\n");
+		free(curkey);
+		free(prevkey);
+		free(curtag);
+		free(prevtag);
+		free(stems);
+		stems=NULL;
+		return(-1);
+	}
 	
 	table = stems;
 
@@ -249,11 +342,14 @@ do_index(char *file, int indfreq)
 */
 fprintf(stderr,"out of qsort\n");
 
-	if(! (foutput=MorphFopen(file,"w"))) {
-		char tmp[256];
-		
-		sprintf(tmp,"Could not open %s!", file );
-		ErrorMess(tmp);
+	if(! (foutput=fopen(file,"w"))) {
+		fprintf(stderr,"Could not open %s\n",file);
+		free(curkey);
+		free(prevkey);
+		free(curtag);
+		free(prevtag);
+		free(table);
+		stems=NULL;
 		return(-1);
 	}
 	
@@ -262,7 +358,17 @@ fprintf(stderr,"out of qsort\n");
 
 if( ! (i % 5000 ) ) printf("processing %ld: %s\n", i , *(table+i) );
 
-		nextkey(*(table+i),curtag);
+		if(take_key(*(table+i),curtag,BIGSTRING)!=1) {
+			fprintf(stderr,"invalid stored stem key\n");
+			fclose(foutput);
+			free(curkey);
+			free(prevkey);
+			free(curtag);
+			free(prevtag);
+			free(table);
+			stems=NULL;
+			return(-1);
+		}
 		
 		/*
 		 * if a new keys
@@ -285,20 +391,34 @@ fprintf(stderr,"about to index [%s]\n", file);
 /*
 	free(bufptr);
 */
-	index_list(file,"",indfreq);
+	if(index_list_file(file,"",indfreq)<0) {
+		free(curkey);
+		free(prevkey);
+		free(curtag);
+		free(prevtag);
+		free(table);
+		stems=NULL;
+		return(-1);
+	}
 fprintf(stderr,"have just indexed [%s]\n", file);
 
 /*
 	for(i=0;i<stemcount;i++) free(*(table+i));
 */
 	free(table);
+	stems=NULL;
+	free(curkey);
+	free(prevkey);
+	free(curtag);
+	free(prevtag);
+	return(0);
 
 }
 
 
 
 
-add_newstemkey(char *s)
+int add_newstemkey(char *s)
 {
 	if( stemcount >= MAX_END_TABLE ) {
 		fprintf(stderr,"more than %d endings in table! bye!\n", MAX_END_TABLE );
@@ -308,30 +428,24 @@ add_newstemkey(char *s)
 	*(stems+stemcount) = calloc((size_t)strlen(s)+1,sizeof ** stems );
 	if( ! *(stems+stemcount) ) {
 */
-	*(stems+stemcount) = sptr;
-	if(  bufcount > bufsiz ) {
+	if((long)strlen(s)+1>bufsiz-bufcount) {
 		fprintf(stderr,"no memory left with %ld stems!\n", stemcount );
 		return(0);
 	}
-	*(sptr) = 0;
-	Xstrcpy(*(stems+stemcount),s);
-	while(*sptr) {
-		sptr++;
-		bufcount++;
-	}
-	if( ! * sptr ) sptr++;
+	*(stems+stemcount)=sptr;
+	memcpy(sptr,s,strlen(s)+1);
+	bufcount+=(long)strlen(s)+1;
+	sptr+=strlen(s)+1;
 	
 	if( ! (stemcount % 1000 ) ) 	fprintf(stderr,"%ld) [%s]\n", stemcount ,s );
 	stemcount++;
 	return(1);
 }
 
-do_curstem(char *tag, char *curstem, char *curlemma, char *curline, char *prefix)
+int do_curstem(char *curstem, char *curlemma, char *curline, char *prefix)
 {
 
 	char markedstem[BIGSTRING];
-	int rval = 0;
-
 	
 	GkWord = BlnkWord;
 
@@ -339,7 +453,8 @@ do_curstem(char *tag, char *curstem, char *curlemma, char *curline, char *prefix
 	AvoidGstr = Blnk;	
 	
 	clear_globs(curline);
-	rval = ScanAsciiKeys((char *)curline,&GkWord,&Gstr,&AvoidGstr);
+	if(!ScanAsciiKeys(curline,&GkWord,&Gstr,&AvoidGstr))
+		return(0);
 /*
 	if( ! stemtype_of(&Gstr) ) {
 		fprintf(stderr,"no stemtype in:%s\n", curline );
@@ -356,7 +471,7 @@ if(preverb_of(&GkWord)[0] )
 	stripstemsep(curstem);
 	stripshortmark(curstem);
 	if( has_quant(curstem) || has_diaeresis(curstem) || hasaccent(curstem)) {
-		Xstrcpy(markedstem,curstem);
+		if(!Xstrncpy(markedstem,curstem,sizeof markedstem)) return(0);
 		stripquant(curstem);
 		stripacc(curstem);
 	} else
@@ -380,16 +495,17 @@ if(preverb_of(&GkWord)[0] )
 	return(1);
 }
 
-dumpaccstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_string *gstr, gk_string *avoidgstr, int syllnum, char *preverb)
+int dumpaccstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_string *gstr, gk_string *avoidgstr, int syllnum, char *preverb)
 {
-	char * p, * getsyll();
+	char *p;
 	char tmpmarked[MAXWORDSIZE];
 	char tmpstem[MAXWORDSIZE];
 
-	if( * markedstem ) 
-		Xstrcpy(tmpstem,markedstem);
-	else 
-		Xstrcpy(tmpstem,curstem);
+	if( * markedstem ) {
+		if(!Xstrncpy(tmpstem,markedstem,sizeof tmpstem)) return(-1);
+	} else {
+		if(!Xstrncpy(tmpstem,curstem,sizeof tmpstem)) return(-1);
+	}
 
 	
 	if((p=getsyll(tmpstem,syllnum)) == P_ERR)
@@ -404,7 +520,7 @@ dumpaccstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_st
 		tmpmarked[0] = 0;
 	}
 */
-	Xstrcpy(tmpmarked,tmpstem);
+	if(!Xstrncpy(tmpmarked,tmpstem,sizeof tmpmarked)) return(-1);
 	stripquant(tmpstem);
 	stripdiaer(tmpstem);
 	stripacc(tmpstem);
@@ -414,7 +530,7 @@ dumpaccstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_st
 	return(1);
 }
 	
-dump_curstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_string *gstr, gk_string *avoidgstr, char *preverb)
+int dump_curstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_string *gstr, gk_string *avoidgstr, char *preverb)
 {	
 	char tmp[BIGSTRING];
 	char notbuf[BIGSTRING];
@@ -429,8 +545,9 @@ dump_curstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_s
 			if( * markedstem ) {
 				set_gkstring(&TmpGstr,markedstem);
 				add_numovable(&TmpGstr);
-				Xstrcpy(unmarked,gkstring_of(&TmpGstr));
-				Xstrcpy(tmpmarked,gkstring_of(&TmpGstr));
+				if(!Xstrncpy(unmarked,gkstring_of(&TmpGstr),sizeof unmarked) ||
+				   !Xstrncpy(tmpmarked,gkstring_of(&TmpGstr),sizeof tmpmarked))
+					return(0);
 				stripquant(unmarked);
 				stripacc(unmarked);
 				stripdiaer(unmarked);
@@ -438,7 +555,8 @@ dump_curstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_s
 				tmpmarked[0] = 0;
 				set_gkstring(&TmpGstr,curstem);
 				add_numovable(&TmpGstr);
-				Xstrcpy(unmarked,gkstring_of(&TmpGstr));
+				if(!Xstrncpy(unmarked,gkstring_of(&TmpGstr),sizeof unmarked))
+					return(0);
 				stripquant(unmarked);
 				stripacc(unmarked);
 				stripdiaer(unmarked);
@@ -446,32 +564,38 @@ dump_curstem(char *prefix, char *curstem, char *markedstem, char *curlemma, gk_s
 /*
 printf("numovable is [%s]\n", gkstring_of(&TmpGstr));
 */
-			dump_curstem(prefix,unmarked,gkstring_of(&TmpGstr),curlemma,&TmpGstr,avoidgstr,preverb);
+			if(!dump_curstem(prefix,unmarked,gkstring_of(&TmpGstr),curlemma,
+			                   &TmpGstr,avoidgstr,preverb))
+				return(0);
 	}
 
-
-	sprintf(tmp,"%s%s %s:%s", prefix , curstem, markedstem , curlemma );
-	SprintGkFlags(gstr,tmp,sizeof tmp,":",0);
+	{
+		int written=snprintf(tmp,sizeof tmp,"%s%s %s:%s",
+		                     prefix,curstem,markedstem,curlemma);
+		if(written<0 || (size_t)written>=sizeof tmp)
+			return(0);
+	}
+	if(!SprintGkFlags(gstr,tmp,sizeof tmp,":",0)) return(0);
 	if( *preverb ) {
-		char tmp2[128];
-		if( has_morphflag(morphflags_of(gstr),ROOT_PREVERB ) ) 
-			sprintf(tmp2,":rpb:%s:", preverb);
-		else
-			sprintf(tmp2,":pb:%s:", preverb);
-		
-		strcat(tmp,tmp2);
+		const char *tag=has_morphflag(morphflags_of(gstr),ROOT_PREVERB)
+		                ? ":rpb:" : ":pb:";
+		if(!Xstrncat(tmp,tag,sizeof tmp) ||
+		   !Xstrncat(tmp,preverb,sizeof tmp) ||
+		   !Xstrncat(tmp,":",sizeof tmp))
+			return(0);
 	}
 	notbuf[0] = 0;
-	SprintGkFlags(avoidgstr,notbuf,sizeof notbuf,":",0);
+	if(!SprintGkFlags(avoidgstr,notbuf,sizeof notbuf,":",0)) return(0);
 	if( notbuf[0] ) {
-		strcat(tmp,":not");
-		strcat(tmp,notbuf);
+		if(!Xstrncat(tmp,":not",sizeof tmp) ||
+		   !Xstrncat(tmp,notbuf,sizeof tmp))
+			return(0);
 	}
 
 	return (add_newstemkey(tmp));
 }
 
-clear_globs(char *s)
+void clear_globs(char *s)
 {
 	while(*s) {
 		if( *s == ',' )
@@ -480,14 +604,14 @@ clear_globs(char *s)
 	}
 }
 
-is_presredupl(char *s)
+int is_presredupl(char *s)
 {
 	if( is_substring("pres_redupl",s) )
 		return(1);
 	return(0);
 }
 
-huh(void)
+int huh(void)
 {
-	getchar();
+	return getchar();
 }

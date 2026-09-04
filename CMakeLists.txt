@@ -505,6 +505,54 @@ else()
   )
 endif()
 
+add_executable(
+  morpheus_stemlib_indexnoms
+  ${morpheus_stemlib_tool_exclusion}
+  src/gkdict/indexnoms.main.c
+  src/gkdict/indexstems.c
+)
+add_executable(
+  morpheus_stemlib_indexvbs
+  ${morpheus_stemlib_tool_exclusion}
+  src/gkdict/indexvbs.main.c
+  src/gkdict/indexstems.c
+)
+set(morpheus_stemlib_lexical_tools
+  morpheus_stemlib_indexnoms
+  morpheus_stemlib_indexvbs
+)
+foreach(stemlib_tool IN LISTS morpheus_stemlib_lexical_tools)
+  target_link_libraries(
+    ${stemlib_tool}
+    PRIVATE morpheus_morphlib morpheus_greeklib morpheus_build_options
+  )
+  target_compile_options(
+    ${stemlib_tool}
+    PRIVATE
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-function-declaration>
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=implicit-int>
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=incompatible-pointer-types>
+      $<$<COMPILE_LANG_AND_ID:C,GNU,Clang,AppleClang>:-Werror=return-type>
+  )
+endforeach()
+set_target_properties(
+  morpheus_stemlib_indexnoms PROPERTIES OUTPUT_NAME indexnoms
+)
+set_target_properties(
+  morpheus_stemlib_indexvbs PROPERTIES OUTPUT_NAME indexvbs
+)
+if(MORPHEUS_BUILD_STEMLIB_TOOLS)
+  add_custom_target(
+    morpheus_stemlib_lexical_tools ALL
+    DEPENDS ${morpheus_stemlib_lexical_tools}
+  )
+else()
+  add_custom_target(
+    morpheus_stemlib_lexical_tools
+    DEPENDS ${morpheus_stemlib_lexical_tools}
+  )
+endif()
+
 if(BUILD_TESTING AND MORPHEUS_BUILD_STEMLIB_TOOLS)
   add_test(
     NAME stemlib_ending_tools_fail_closed
@@ -517,6 +565,15 @@ if(BUILD_TESTING AND MORPHEUS_BUILD_STEMLIB_TOOLS)
       -DMORPHEUS_STEMLIB_ROOT=${PROJECT_SOURCE_DIR}/stemlib
       -DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/test-stemlib-ending-tools
       -P ${PROJECT_SOURCE_DIR}/test/stemlib-ending-tools.cmake
+  )
+  add_test(
+    NAME stemlib_lexical_tools_fail_closed
+    COMMAND
+      ${CMAKE_COMMAND}
+      -DMORPHEUS_INDEXNOMS=$<TARGET_FILE:morpheus_stemlib_indexnoms>
+      -DMORPHEUS_INDEXVBS=$<TARGET_FILE:morpheus_stemlib_indexvbs>
+      -DMORPHEUS_WORK_DIR=${PROJECT_BINARY_DIR}/test-stemlib-lexical-tools
+      -P ${PROJECT_SOURCE_DIR}/test/stemlib-lexical-tools.cmake
   )
   add_test(
     NAME stemlib_table_build

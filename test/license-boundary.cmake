@@ -135,6 +135,10 @@ foreach(mpl_file IN ITEMS
         src/gkends/expwordmain.c
         src/gkdict/compnoun.proto.h
         src/gkdict/gkdict_internal.h
+        src/gkdict/indexnoms.main.c
+        src/gkdict/indexstems.c
+        src/gkdict/indexstems.proto.h
+        src/gkdict/indexvbs.main.c
         src/gkends/gkends_internal.h
         src/gkends/imain.c
         src/gkends/indexendtables.c
@@ -145,6 +149,8 @@ foreach(mpl_file IN ITEMS
         src/greeklib/greeklib_internal.h
         src/greeklib/standalpha.proto.h
         src/morphlib/morphlib_internal.h
+        src/morphlib/indkeys.c
+        src/morphlib/indkeys.proto.h
         src/morphlib/runtime_context.h
         src/morphlib/runtime_context_internal.h
         src/morphlib/setlang.proto.h
