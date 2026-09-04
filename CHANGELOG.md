@@ -43,6 +43,9 @@ the corpus.
 - The ending and derivation producers can execute entirely inside that staging
   tree under a fixed locale and timezone. List-driven indexers reject implicit
   omissions, and successful builds emit sorted SHA-256 output receipts.
+- CI performs two clean Greek and Latin table builds, requires byte-identical
+  receipts and outputs, and compares all regenerated table artifacts with the
+  checked-in baselines.
 - JavaScript-family bindings now live under `bindings/js/`; the Deno package
   moves to the dedicated `@libmorpheus/deno` JSR namespace at version `0.4.0`,
   while retaining native runtime `0.3.2` and C ABI `2` compatibility.

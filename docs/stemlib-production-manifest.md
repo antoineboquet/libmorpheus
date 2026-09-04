@@ -76,3 +76,9 @@ the staging root. Successful completion emits
 their SHA-256 digests. The receipt currently covers expanded ASCII and binary
 tables plus their three text indexes; it does not yet contain a compiler
 identity or source revision.
+
+CI performs two complete clean table builds for each language. It requires the
+two receipts and every received output to be byte-identical, then compares all
+568 regenerated files with the checked-in Greek and Latin table baselines.
+This comparison covers table production only; stem indexes remain outside this
+phase.

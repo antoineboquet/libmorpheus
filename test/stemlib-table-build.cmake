@@ -16,8 +16,8 @@ endforeach()
 file(REMOVE_RECURSE "${MORPHEUS_WORK_DIR}")
 file(MAKE_DIRECTORY "${MORPHEUS_WORK_DIR}")
 
-function(build_and_validate language expected_outputs)
-  set(stage "${MORPHEUS_WORK_DIR}/${language}")
+function(build_and_validate language pass expected_outputs)
+  set(stage "${MORPHEUS_WORK_DIR}/${language}-${pass}")
   execute_process(
     COMMAND "${CMAKE_COMMAND}"
             -DMORPHEUS_STEMLIB_ROOT=${MORPHEUS_STEMLIB_ROOT}
@@ -71,7 +71,60 @@ function(build_and_validate language expected_outputs)
     message(FATAL_ERROR
             "unexpected ${language} table-output count: ${output_count}")
   endif()
+  set(${language}_${pass}_stage "${stage}" PARENT_SCOPE)
 endfunction()
 
-build_and_validate(Greek 357)
-build_and_validate(Latin 211)
+function(compare_builds language)
+  set(first "${${language}_first_stage}")
+  set(second "${${language}_second_stage}")
+  set(receipt_name "MORPHEUS-STEMLIB-TABLE-OUTPUTS.tsv")
+  execute_process(
+    COMMAND "${CMAKE_COMMAND}" -E compare_files
+            "${first}/${receipt_name}" "${second}/${receipt_name}"
+    RESULT_VARIABLE receipt_compare_result
+  )
+  if(NOT receipt_compare_result EQUAL 0)
+    message(FATAL_ERROR "${language} table-output receipts differ")
+  endif()
+
+  file(STRINGS "${first}/${receipt_name}" receipt_lines)
+  set(baseline_differences)
+  foreach(line IN LISTS receipt_lines)
+    if(line MATCHES "^[ \t]*#" OR line MATCHES "^[ \t]*$")
+      continue()
+    endif()
+    string(REPLACE "\t" ";" fields "${line}")
+    list(GET fields 0 relative_path)
+    execute_process(
+      COMMAND "${CMAKE_COMMAND}" -E compare_files
+              "${first}/${relative_path}" "${second}/${relative_path}"
+      RESULT_VARIABLE clean_compare_result
+    )
+    if(NOT clean_compare_result EQUAL 0)
+      message(FATAL_ERROR
+              "${language} clean builds differ: ${relative_path}")
+    endif()
+    execute_process(
+      COMMAND "${CMAKE_COMMAND}" -E compare_files
+              "${first}/${relative_path}"
+              "${MORPHEUS_STEMLIB_ROOT}/${relative_path}"
+      RESULT_VARIABLE baseline_compare_result
+    )
+    if(NOT baseline_compare_result EQUAL 0)
+      list(APPEND baseline_differences "${relative_path}")
+    endif()
+  endforeach()
+  if(baseline_differences)
+    list(LENGTH baseline_differences difference_count)
+    list(JOIN baseline_differences "\n  " difference_list)
+    message(FATAL_ERROR
+            "${language} differs from ${difference_count} table baselines:\n  ${difference_list}")
+  endif()
+endfunction()
+
+build_and_validate(Greek first 357)
+build_and_validate(Greek second 357)
+build_and_validate(Latin first 211)
+build_and_validate(Latin second 211)
+compare_builds(Greek)
+compare_builds(Latin)
