@@ -90,3 +90,81 @@ The current comparison records 156 Greek and 73 Latin binary differences, with
 zero textual or index differences. Their complete sorted path set is pinned in
 `test/stemlib-binary-baseline-exceptions.tsv`; CI rejects a missing, unexpected,
 duplicated, reordered, malformed, or reclassified exception.
+
+## Lexical production and explicit blockers
+
+`tools/stemlib-lexical-manifest.tsv` adds an ordered lexical boundary without
+changing the 379-source table manifest. It inventories every file below both
+`stemsrc/` trees, pins selected inputs and exclusions by SHA-256, and declares
+Latin `stemsrc/vbs.mpi` as `unavailable`. Prepared `nom.irreg` and `vbs.irreg`
+files are inputs here; regenerating those snapshots from their irregular-word
+sources remains a later boundary.
+
+The lexical manifest has four tab-separated fields: `language`, `role`, `path`,
+and `sha256`. The roles are `nominal`, `verb`, `constraints`, `constraint-tool`,
+`excluded`, and `unavailable` (the last uses `-` instead of a digest). Nominal
+and verb rows define concatenation order. Greek nominal preparation uses the
+pinned `addconstraints.pl` and entity-name input. The historical Latin perfect
+stem substitution is retained, but the missing `vbs.mpi` is never silently
+omitted. An inventory, digest or unavailable-file change fails validation.
+
+After `build-stemlib-tables.cmake` completes in a fresh stage, run:
+
+```sh
+python3 tools/build-stemlib-lexical.py \
+  --source stemlib \
+  --manifest tools/stemlib-lexical-manifest.tsv \
+  --language Greek --stage /absolute/path/to/greek-stage \
+  --tools build/dev
+```
+
+Use a separately built Latin stage with `--language Latin`. Python 3 and Perl
+are build-time dependencies only. The recipe verifies staged table inputs and
+outputs, copies and verifies selected lexical sources, fixes the locale,
+timezone and `MORPHLIB`, and invokes `indexnoms`, `do_conj`, and `indexvbs` with
+explicit paths. It rejects reuse. `lexical/inputs.tsv`, per-producer diagnostics
+and `lexical/comparison.json` remain available when a corpus blocks production.
+A successful run emits `MORPHEUS-STEMLIB-LEXICAL-OUTPUTS.tsv` covering the four
+stem-index files, verb expansion, and odd-key output. No success receipt is
+written after a failed or blocked producer. Baseline comparisons explicitly
+distinguish identical, different, and unavailable references.
+
+The restored `do_conj` uses the historical binary derivation reader, preserving
+its short-conjugation decisions. Its internal CLI is:
+
+```text
+do_conj [-I|-L] [-f] INPUT EXPANDED_OUTPUT ODD_KEY_OUTPUT
+```
+
+Outputs must not exist. The tool removes its owned outputs on failure. Missing
+or truncated tables, oversized fields, invalid requests and unmatched
+principal parts are fatal instead of embedding `errorN: nothing found` in an
+apparently successful lexical output. The restored code also fixes undefined
+returns, missing commas in the principal-part list and two ineffective newline
+tests. None of these tools is installed or used by runtime releases.
+
+CTest now takes two independent table builds per language, runs the lexical
+chain on small Greek and Latin fixtures, and verifies all twelve output hashes
+against `test/stemlib-lexical/outputs.tsv`. The Greek fixture expands present,
+future and aorist stems; the Latin fixture also checks that an indexed
+derivation need not carry an inflectional stem type. Existing output files,
+failed expansions, malformed inputs and missing dependencies are exercised.
+
+**Full-corpus qualification remains blocked.** The same test independently
+stages the committed corpora and verifies the following first failures, without
+adding binary exceptions or rewriting philological data:
+
+| Producer | Corpus | First blocker |
+| --- | --- | --- |
+| `indexnoms` | Greek | `*glisa=s`: `eas_eantos` is not a registered stem type. |
+| `indexnoms` | Latin | `Jeremiah`: `as_a` is not a registered stem type. |
+| `do_conj` | Greek | The explicit request `br / o_stem / vn,-mm,h_hs` has no matching derivation rule. |
+| Verb-source assembly | Latin | The historical input `stemsrc/vbs.mpi` is absent. |
+
+A separate exploratory run over the available Latin verb files also encounters
+`:de:explicu perfstem`, which requests the absent `derivs/out/perfstem.out`.
+The supported recipe stops at the missing source and does not bypass it to
+claim a qualified verb build. These are first blockers, not an exhaustive
+corpus-error inventory. Full lexical baseline comparisons and source/toolchain
+revision receipts remain open; fixture reproducibility does not certify the
+complete distribution. The 229 existing table-binary exceptions remain intact.

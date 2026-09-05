@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <gkstring.h>
 
 #include <gkdict.h>
@@ -135,6 +136,16 @@ index_stems(int wantstem, int wantirrverb, int wantindecl, char *wlist, char *in
 	long input_size;
 	int result=0;
 	
+    {
+        char sidecar[MAXPATHNAME];
+        struct stat existing;
+        int length=snprintf(sidecar,sizeof sidecar,"%s.lindex",indexlist);
+        if (length<0 || (size_t)length>=sizeof sidecar ||
+            stat(indexlist,&existing)==0 || stat(sidecar,&existing)==0) {
+            fprintf(stderr,"lexical output already exists or path is too long\n");
+            return -1;
+        }
+    }
 	stemcount = 0;
 	bufcount = 0;
 	basename[0] = line[0] = 0;
@@ -282,7 +293,8 @@ index_stems(int wantstem, int wantirrverb, int wantindecl, char *wlist, char *in
 		}	
 
 	}
-	fclose(finput);
+	if (ferror(finput)) result=-1;
+	if (fclose(finput)!=0) result=-1;
 	printf("stemcount %ld\n", stemcount );
 	if(result==0 && stemcount==0) {
 		fprintf(stderr,"no stem records found in %s\n",wlist);
@@ -342,7 +354,7 @@ static int do_index(char *file, int indfreq)
 */
 fprintf(stderr,"out of qsort\n");
 
-	if(! (foutput=fopen(file,"w"))) {
+	if(! (foutput=fopen(file,"wx"))) {
 		fprintf(stderr,"Could not open %s\n",file);
 		free(curkey);
 		free(prevkey);
@@ -358,18 +370,11 @@ fprintf(stderr,"out of qsort\n");
 
 if( ! (i % 5000 ) ) printf("processing %ld: %s\n", i , *(table+i) );
 
-		if(take_key(*(table+i),curtag,BIGSTRING)!=1) {
-			fprintf(stderr,"invalid stored stem key\n");
-			fclose(foutput);
-			free(curkey);
-			free(prevkey);
-			free(curtag);
-			free(prevtag);
-			free(table);
-			stems=NULL;
-			return(-1);
-		}
-		
+        if(take_key(*(table+i),curtag,BIGSTRING)!=1) {
+            fprintf(stderr,"invalid stored stem key\n");
+            goto output_failure;
+        }
+
 		/*
 		 * if a new keys
 		 */
@@ -386,20 +391,14 @@ if( ! (i % 5000 ) ) printf("processing %ld: %s\n", i , *(table+i) );
 		Xstrcpy(prevkey,*(table+i));
 	}
 fprintf(stderr,"done with i=%ld, %ld\n", i , stemcount-i);
-	fclose(foutput);
+	if (ferror(foutput)) goto output_failure;
+	if (fclose(foutput)!=0) { foutput=NULL; goto output_failure; }
+    foutput=NULL;
 fprintf(stderr,"about to index [%s]\n", file);
 /*
 	free(bufptr);
 */
-	if(index_list_file(file,"",indfreq)<0) {
-		free(curkey);
-		free(prevkey);
-		free(curtag);
-		free(prevtag);
-		free(table);
-		stems=NULL;
-		return(-1);
-	}
+	if(index_list_file(file,"",indfreq)<0) goto output_failure;
 fprintf(stderr,"have just indexed [%s]\n", file);
 
 /*
@@ -412,11 +411,18 @@ fprintf(stderr,"have just indexed [%s]\n", file);
 	free(curtag);
 	free(prevtag);
 	return(0);
-
+output_failure:
+    if (foutput) fclose(foutput);
+    remove(file);
+    {
+        char sidecar[MAXPATHNAME];
+        int length=snprintf(sidecar,sizeof sidecar,"%s.lindex",file);
+        if (length>=0 && (size_t)length<sizeof sidecar) remove(sidecar);
+    }
+    free(curkey); free(prevkey); free(curtag); free(prevtag);
+    free(table); stems=NULL;
+    return -1;
 }
-
-
-
 
 int add_newstemkey(char *s)
 {
@@ -453,8 +459,13 @@ int do_curstem(char *curstem, char *curlemma, char *curline, char *prefix)
 	AvoidGstr = Blnk;	
 	
 	clear_globs(curline);
-	if(!ScanAsciiKeys(curline,&GkWord,&Gstr,&AvoidGstr))
-		return(0);
+	int parsed=ScanAsciiKeys(curline,&GkWord,&Gstr,&AvoidGstr);
+    free(oddkeys_of(&GkWord));
+    oddkeys_of(&GkWord)=NULL;
+    if(!parsed && !(strcmp(prefix,"3")==0 && derivtype_of(&Gstr))) {
+        fprintf(stderr,"untyped record: %s %s %s %s\n",prefix,curlemma,curstem,curline);
+        return 0;
+    }
 /*
 	if( ! stemtype_of(&Gstr) ) {
 		fprintf(stderr,"no stemtype in:%s\n", curline );

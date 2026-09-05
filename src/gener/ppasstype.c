@@ -1,50 +1,48 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+
+#include "conjugation_internal.h"
 #include <contract.h>
 
 gk_string * ppass_table = NULL;
 static int nppass = 0;
 
-makeppass(origstem,gstr) 
-char * origstem;
-gk_string * gstr;
+void makeppass(char * origstem, gk_string * gstr)
 {
-	char newstem[MAXWORDSIZE];
-	char stemname[MAXWORDSIZE];
-	Stemtype GetStemNum();
-	
-	
-	if( ! get_ppasstype(origstem,newstem,stemname) ) return;
-	Xstrcpy(origstem,newstem);
-	set_stemtype(gstr,GetStemNum(stemname));
+    char newstem[MAXWORDSIZE];
+    char stemname[MAXWORDSIZE];
+
+
+
+    if( ! get_ppasstype(origstem,newstem,stemname) ) return;
+    conj_copy(origstem, newstem, MAXWORDSIZE);
+    set_stemtype(gstr,GetStemNum(stemname));
 }
 
-get_ppasstype(stem,newstem,stemname)
-char *stem;
-char * newstem;
-char * stemname;
+int get_ppasstype(char * stem, char * newstem, char * stemname)
 {
-	int  i;
-	char * p;
-	
-	if( Is_vowel(*(lastn(stem,1)))  )
-		return(0);
-	Xstrcpy(newstem,stem);
-	Xstrcpy(stemname,"perfp_vow");
-	if( ! ppass_table ) {
-		ppass_table = load_euph_tab(PPASSLIST,&nppass);
+    int  i;
+    char * p;
 
-		if( ! ppass_table)  return(0);
-	}
-	for(i=0;i<nppass;i++) {
-		p = gkstring_of(ppass_table+i);
-		if( ends_in(stem,p) ) {
-			*(lastn(newstem,strlen(p))) = 0;
-			Xstrcpy(stemname,p+MAXSUBSTRING);
+    if( Is_vowel(*(lastn(stem,1)))  )
+        return(0);
+    conj_copy(newstem, stem, MAXWORDSIZE);
+    conj_copy(stemname, "perfp_vow", MAXWORDSIZE);
+    if( ! ppass_table ) {
+        ppass_table = load_euph_tab(PPASSLIST,&nppass,NO);
 
-			return(1);
-		}
+        if (!ppass_table) conj_fail("missing passive-stem rules");
+    }
+    for(i=0;i<nppass;i++) {
+        p = gkstring_of(ppass_table+i);
+        if( ends_in(stem,p) ) {
+            *(lastn(newstem,strlen(p))) = 0;
+            conj_copy(stemname, p+MAXSUBSTRING, MAXWORDSIZE);
 
-	}
-	return(0);
+            return(1);
+        }
+
+    }
+    return(0);
 }
 
 

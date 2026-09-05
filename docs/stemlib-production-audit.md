@@ -358,9 +358,12 @@ The complete sorted path set is pinned in
 `explicit-binary-serialization` classification. CI rejects any change to that
 reviewed exception set.
 
-This closes the first part of acceptance criterion 1 and begins the ordered
-input-manifest criterion for ending and derivation sources. The nominal and
-verb stem indexers now compile as internal CMake tools with explicit input and
-output paths, but are not yet connected to the staging recipe. The offline
-conjugation expander remains quarantined; lexical-source manifests, complete
-build receipts and clean-build output comparison for stem indexes remain open.
+The subsequent lexical tranche restores `do_conj` as an internal MPL C17 target
+and connects all three lexical producers to a separate ordered source manifest
+and the verified table staging. Clean Greek and Latin fixture builds now yield
+twelve reproducible outputs with pinned hashes. Full-corpus attempts remain
+fail-closed at unregistered nominal types, an unmatched Greek principal part,
+and the declared absent Latin `vbs.mpi` input. See the
+[lexical production boundary](stemlib-production-manifest.md#lexical-production-and-explicit-blockers)
+for the exact failures and reproduction command. Complete corpus regeneration
+and lexical baseline equivalence are therefore still unqualified.

@@ -517,7 +517,13 @@ add_executable(
   src/gkdict/indexvbs.main.c
   src/gkdict/indexstems.c
 )
+add_executable(morpheus_stemlib_do_conj ${morpheus_stemlib_tool_exclusion}
+  src/gener/conjmain.c src/gener/conjsys.c src/gener/combconj.c
+  src/gener/ppasstype.c)
+set_target_properties(morpheus_stemlib_do_conj PROPERTIES OUTPUT_NAME do_conj)
+target_link_libraries(morpheus_stemlib_do_conj PRIVATE morpheus_gkends)
 set(morpheus_stemlib_lexical_tools
+  morpheus_stemlib_do_conj
   morpheus_stemlib_indexnoms
   morpheus_stemlib_indexvbs
 )
@@ -593,6 +599,16 @@ if(BUILD_TESTING AND MORPHEUS_BUILD_STEMLIB_TOOLS)
       -P ${PROJECT_SOURCE_DIR}/test/stemlib-table-build.cmake
   )
   set_tests_properties(stemlib_table_build PROPERTIES TIMEOUT 600)
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+  find_package(Perl REQUIRED)
+  add_test(NAME stemlib_lexical_build
+    COMMAND ${Python3_EXECUTABLE}
+      ${PROJECT_SOURCE_DIR}/test/stemlib-lexical-build.py
+      ${PROJECT_SOURCE_DIR} ${PROJECT_BINARY_DIR} ${PERL_EXECUTABLE})
+  set_tests_properties(stemlib_table_build PROPERTIES FIXTURES_SETUP stemlib_tables)
+  set_tests_properties(stemlib_lexical_build PROPERTIES
+    FIXTURES_REQUIRED stemlib_tables TIMEOUT 120)
+
 endif()
 
 if(BUILD_TESTING)

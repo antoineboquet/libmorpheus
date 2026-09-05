@@ -1,0 +1,86 @@
+# SPDX-License-Identifier: AGPL-3.0-or-later
+"""Qualify clean fixture output, corpus blockers, and rejected tool invocations."""
+import hashlib
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+source, binary = map(lambda p: Path(p).resolve(), sys.argv[1:3])
+perl = sys.argv[3] if len(sys.argv) > 3 else "perl"
+work = binary / "test-stemlib-lexical-build"
+if work.exists():
+    shutil.rmtree(work)
+work.mkdir()
+expected = [row for row in (source / "test/stemlib-lexical/outputs.tsv").read_text().splitlines() if row and not row.startswith("#")]
+
+
+def run(command, expected_code=0, **kwargs):
+    result = subprocess.run(list(map(str, command)), capture_output=True, **kwargs)
+    if result.returncode != expected_code:
+        raise AssertionError((command, result.returncode, result.stdout.decode(errors="replace"), result.stderr.decode(errors="replace")))
+    return result
+
+
+for language in ["Greek", "Latin"]:
+    receipts = []
+    for pass_name in ["first", "second"]:
+        tables = binary / "test-stemlib-table-build" / (language + "-" + pass_name)
+        for corpus in [False, True]:
+            stage = work / (language + "-" + pass_name + ("-corpus" if corpus else "-fixture"))
+            shutil.copytree(tables, stage)
+            command = [sys.executable, source / "tools/build-stemlib-lexical.py",
+                       "--stage", stage, "--source", source / ("stemlib" if corpus else "test/stemlib-lexical"),
+                       "--manifest", source / ("tools/stemlib-lexical-manifest.tsv" if corpus else "test/stemlib-lexical/inputs.tsv"),
+                       "--language", language, "--tools", binary, "--perl", perl]
+            run(command, 1 if corpus else 0)
+            receipt = stage / "MORPHEUS-STEMLIB-LEXICAL-OUTPUTS.tsv"
+            report = json.loads((stage / language / "lexical/comparison.json").read_text())
+            if corpus:
+                assert not receipt.exists() and not report["complete"]
+                assert report["producers"]["indexnoms"]["exit_code"] == 1
+                log = (stage / language / "lexical/indexnoms.log").read_text()
+                assert ("eas_eantos" if language == "Greek" else "as_a") in log
+                if language == "Latin":
+                    assert report["producers"]["do_conj"]["blocked_missing_inputs"] == ["stemsrc/vbs.mpi"]
+                else:
+                    assert report["producers"]["do_conj"]["exit_code"] == 1
+                    assert "unmatched" in (stage / language / "lexical/do_conj.log").read_text()
+                assert not list((stage / language / "steminds").iterdir())
+            else:
+                rows = [row for row in receipt.read_text().splitlines() if row and not row.startswith("#")]
+                assert rows == [row for row in expected if row.startswith(language + "/")]
+                for row in rows:
+                    name, sha = row.split("\t")
+                    assert hashlib.sha256((stage / name).read_bytes()).hexdigest() == sha
+                receipts.append(receipt.read_bytes())
+                run(command, 1)  # no overlay, even after success
+    assert receipts[0] == receipts[1]
+
+# The expander must remove both owned outputs on all input failures and must
+# preserve pre-existing files. Exercise cases with and without a final newline.
+env = dict(os.environ, MORPHLIB=str(work / "Greek-first-fixture"), LC_ALL="C")
+for index, data in enumerate([b"", b":le:x\n:de:x missing\n;pr\n", b";pr\n",
+                              b":le:x\n:de:x ../missing\n", b":le:" + b"x" * 2048,
+                              b":le:x\n:de:br o_stem\n;vn,-mm,h_hs\n"]):
+    input_path = work / f"bad-{index}"
+    input_path.write_bytes(data)
+    output = work / f"bad-{index}.out"
+    odd = work / f"bad-{index}.odd"
+    run([binary / "do_conj", input_path, output, odd], 1, env=env)
+    assert not output.exists() and not odd.exists()
+input_path = work / "no-newline"
+input_path.write_text(":le:logos\n:vs:log w_stem")
+run([binary / "do_conj", input_path, work / "good.out", work / "good.odd"], env=env)
+assert (work / "good.out").read_bytes() == input_path.read_bytes()
+run([binary / "do_conj", input_path, work / "good.out", work / "other.odd"], 1, env=env)
+assert (work / "good.out").read_bytes() == input_path.read_bytes()
+for tool in ["indexnoms", "indexvbs"]:
+    output = work / tool
+    sidecar = work / (tool + ".lindex")
+    sidecar.write_text("sentinel")
+    run([binary / tool, input_path, output], 1, env=env)
+    assert sidecar.read_text() == "sentinel" and not output.exists()
+print("Greek/Latin fixture receipts match independent clean builds and pinned output hashes; full-corpus blockers remain fail-closed.")

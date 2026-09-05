@@ -92,9 +92,16 @@ static int index_list_impl(char *listname, char *tagstring, int modulus,
 		} else
 			prockeyline(line,modulus,curoff,foutput,&state);
 	}
-	fclose(finput);
-	fclose(foutput);
-	return(0);
+    {
+        int failed = ferror(finput) || ferror(foutput);
+        if (fclose(finput) != 0) failed = 1;
+        if (fclose(foutput) != 0) failed = 1;
+        if (failed) {
+            morpheus_runtime_error_record(MORPHEUS_RUNTIME_ERROR_INTERNAL);
+            return -1;
+        }
+    }
+    return 0;
 }
 
 int index_list(char *listname, char *tagstring, int modulus)

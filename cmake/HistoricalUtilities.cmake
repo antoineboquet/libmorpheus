@@ -11,6 +11,7 @@ set(MORPHEUS_SUPPORTED_ENTRY_POINTS
 )
 
 set(MORPHEUS_INTERNAL_DATA_ENTRY_POINTS
+  src/gener/conjmain.c
   src/gkends/expendmain.c
   src/gkends/expsuffmain.c
   src/gkends/expwordmain.c
@@ -33,7 +34,6 @@ set(MORPHEUS_HISTORICAL_ANALYSIS_ENTRY_POINTS
 )
 
 set(MORPHEUS_HISTORICAL_DATA_ENTRY_POINTS
-  src/gener/conjmain.c
   src/gener/genermain.c
   src/gener/gensimpmain.c
   src/gener/genstmain.c

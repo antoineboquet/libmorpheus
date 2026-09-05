@@ -7,7 +7,7 @@ by `src/anal/stdiomorph.c`. The shared library and this compatibility client
 form the supported runtime. They are the only installed executable surfaces
 covered by the C17, sanitizer, portability, and public-error contracts.
 
-The repository also preserves 51 historical programs. They are not CMake
+The repository also preserves 50 quarantined historical programs. They are not CMake
 targets, are not installed, and are not part of release qualification. The
 authoritative inventory is `cmake/HistoricalUtilities.cmake`; CTest scans every
 C source below `src` and fails if a `main()` is neither the supported client nor
@@ -18,7 +18,7 @@ explicitly quarantined.
 | Group | Purpose | Decision |
 | --- | --- | --- |
 | Analysis front ends | Window, batch, scanning, lemma and proper-name experiments | Retain as source reference; replace with public-API clients if a workflow is still needed. |
-| Stemlib data tools | Conjugation, generation, dictionary indexing and ending-table drivers | Five ending-table producers and two lexical indexers are now internal CMake tools; retain the others for provenance and port them one at a time. |
+| Stemlib data tools | Conjugation, generation, dictionary indexing and ending-table drivers | Five ending-table producers, two lexical indexers, and `do_conj` are now internal CMake tools; retain the others for provenance and port them one at a time. |
 | Platform and corpus tools | SmartA, troff, TLG, retrieval, scanner and interactive test programs | Retire from the portable build; they depend on obsolete platforms, formats, or unsafe terminal input. |
 | Diagnostics | Ad-hoc Greek-library and morphology test drivers | Retire in favour of focused CTest cases. |
 
@@ -48,14 +48,16 @@ The nominal and verb stem indexers are also internal, opt-in CMake tools. Their
 drivers require explicit input and output paths, eliminating the inherited
 shared `/tmp/nommorph` and `/tmp/vbmorph` interface. The underlying producer is
 C17-clean and rejects unavailable, empty, oversized or structurally invalid
-inputs as well as allocation and index-construction failures. It is not yet
-connected to the hermetic staging recipe: the ordered lexical-input manifest
-and positive baseline comparison remain separate acceptance work.
+inputs as well as allocation and index-construction failures. The lexical recipe now consumes checksum-pinned ordered inputs on top of the
+verified table staging. `do_conj` is an internal C17 tool with explicit input,
+expanded-output and odd-key-output paths. It rejects missing rule tables and
+unmatched principal parts, and removes its owned outputs on failure.
 
-This is production infrastructure, not yet a supported stemlib compiler. The
-`do_conj`, lexical-source staging and the complete stem-index reproducibility
-proof remain necessary before any regenerated tree can replace a pinned
-baseline.
+This remains production infrastructure, not a supported stemlib compiler.
+Positive Greek and Latin fixtures have reproducible output receipts; the full
+corpora currently fail on unregistered nominal types, an unmatched Greek
+principal part, and the declared missing Latin `vbs.mpi` input. See
+[`stemlib-production-manifest.md`](stemlib-production-manifest.md).
 
 ## Generation integration
 
@@ -75,7 +77,7 @@ path:
 
 These tools are build-time infrastructure, are not installed, and do not make
 the quarantined front ends supported. In particular, `genermain.c`,
-`gensynform.c`, `conjsys.c`, and the remaining historical generation drivers
+`gensynform.c`, and the remaining historical generation drivers
 retain their provenance-only status. The new implementation and its Deno
 `generate()` surface remain experimental until real-world use, in addition to
 the current differential, isolation, failure, portability, and sanitizer
