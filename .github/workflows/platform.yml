@@ -197,6 +197,12 @@ jobs:
             --cold-samples 1 --generation-small 'lo/gos' \
             --generation-maximal 'i(/hmi' --json > /dev/null
 
+      - name: Prepare Node.js generation fixture
+        run: >-
+          build/release/morpheus_gener_index_builder
+          stemlib/gener.index
+          test/generation-service-source.txt
+
       - name: Test Node.js binding
         env:
           MORPHEUS_LIBRARY: ${{ github.workspace }}/build/release/libmorpheus.so
