@@ -41,6 +41,21 @@ endif()
 set(build_environment
     "MORPHLIB=${stage_root}" "LC_ALL=C" "LANG=C" "TZ=UTC")
 
+# Record the actual recipe and executables, including for failed production.
+# This identifies build inputs; it is not a successful-output receipt.
+set(provenance "# SPDX-License-Identifier: MPL-2.0\n# component\tsha256\n")
+foreach(component IN ITEMS MORPHEUS_STEMLIB_MANIFEST
+                           MORPHEUS_STEMLIB_MANIFEST_VALIDATOR
+                           MORPHEUS_STEMLIB_STAGER MORPHEUS_BUILDEND
+                           MORPHEUS_BUILDDERIV MORPHEUS_INDENDTABLES
+                           MORPHEUS_INDDERIVTABLES CMAKE_COMMAND)
+  file(SHA256 "${${component}}" component_sha256)
+  string(APPEND provenance "${component}\t${component_sha256}\n")
+endforeach()
+file(SHA256 "${CMAKE_CURRENT_LIST_FILE}" recipe_sha256)
+string(APPEND provenance "recipe\t${recipe_sha256}\n")
+file(WRITE "${stage_root}/MORPHEUS-STEMLIB-TABLE-PROVENANCE.tsv" "${provenance}")
+
 function(run_producer label program)
   execute_process(
     COMMAND "${CMAKE_COMMAND}" -E env ${build_environment}

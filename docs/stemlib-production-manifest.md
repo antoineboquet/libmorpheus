@@ -129,6 +129,18 @@ stem-index files, verb expansion, and odd-key output. No success receipt is
 written after a failed or blocked producer. Baseline comparisons explicitly
 distinguish identical, different, and unavailable references.
 
+`MORPHEUS-STEMLIB-TABLE-PROVENANCE.tsv` records SHA-256 identities for the
+table manifest, validator, staging and production recipes, four producer
+executables and CMake executable. The lexical recipe requires this record and
+writes `lexical/provenance.json` before invoking producers. It identifies the
+lexical manifest, staged input and table-output receipts, table provenance,
+recipe, three native tools, Python executable/version and, when used, the Perl
+executable. Neither record contains absolute build paths or timestamps, so two
+clean builds with the same inputs and executables can compare them directly.
+Records survive corpus failures and are not success receipts. These hashes
+identify exact files, not their Git ancestry or the compiler, dynamic libraries
+and complete operating-system environment used to build/run the executables.
+
 The restored `do_conj` uses the historical binary derivation reader, preserving
 its short-conjugation decisions. Its internal CLI is:
 
@@ -165,6 +177,6 @@ A separate exploratory run over the available Latin verb files also encounters
 `:de:explicu perfstem`, which requests the absent `derivs/out/perfstem.out`.
 The supported recipe stops at the missing source and does not bypass it to
 claim a qualified verb build. These are first blockers, not an exhaustive
-corpus-error inventory. Full lexical baseline comparisons and source/toolchain
-revision receipts remain open; fixture reproducibility does not certify the
+corpus-error inventory. Full lexical baseline comparisons and Git/compiler
+provenance remain open; fixture reproducibility does not certify the
 complete distribution. The 229 existing table-binary exceptions remain intact.

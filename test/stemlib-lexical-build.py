@@ -26,6 +26,7 @@ def run(command, expected_code=0, **kwargs):
 
 for language in ["Greek", "Latin"]:
     receipts = []
+    provenance_by_corpus = {}
     for pass_name in ["first", "second"]:
         tables = binary / "test-stemlib-table-build" / (language + "-" + pass_name)
         for corpus in [False, True]:
@@ -38,6 +39,17 @@ for language in ["Greek", "Latin"]:
             run(command, 1 if corpus else 0)
             receipt = stage / "MORPHEUS-STEMLIB-LEXICAL-OUTPUTS.tsv"
             report = json.loads((stage / language / "lexical/comparison.json").read_text())
+            provenance = json.loads((stage / language / "lexical/provenance.json").read_text())
+            # Relocating a clean build must not change its provenance. Keep
+            # successful fixtures and blocked full corpora independently pinned.
+            if pass_name == "first":
+                provenance_by_corpus[corpus] = provenance
+            else:
+                assert provenance == provenance_by_corpus[corpus]
+            for tool in ["indexnoms", "do_conj", "indexvbs"]:
+                assert provenance["sha256"][tool] == hashlib.sha256((binary / tool).read_bytes()).hexdigest()
+            assert provenance["sha256"]["table_provenance"] == hashlib.sha256(
+                (stage / "MORPHEUS-STEMLIB-TABLE-PROVENANCE.tsv").read_bytes()).hexdigest()
             if corpus:
                 assert not receipt.exists() and not report["complete"]
                 assert report["producers"]["indexnoms"]["exit_code"] == 1

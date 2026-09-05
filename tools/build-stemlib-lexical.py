@@ -11,7 +11,9 @@ import json
 import os
 from pathlib import Path
 import re
+import shutil
 import subprocess
+import sys
 
 
 def digest(path):
@@ -101,6 +103,28 @@ def build(args):
     (work / "inputs.tsv").write_text("# SPDX-License-Identifier: MPL-2.0\n" + "".join(
         f"{language}\t{role}\t{name}\t{sha}\n" for role, name, sha in rows))
     env = dict(os.environ, MORPHLIB=str(stage), LC_ALL="C", LANG="C", TZ="UTC")
+    provenance = {
+        "schema": 1,
+        "language": language,
+        "environment": {"LC_ALL": "C", "LANG": "C", "TZ": "UTC"},
+        "python_version": sys.version,
+        "sha256": {
+            "recipe": digest(Path(__file__)),
+            "python": digest(Path(sys.executable)),
+            "lexical_manifest": digest(args.manifest),
+            "lexical_inputs": digest(work / "inputs.tsv"),
+            "table_inputs": digest(input_receipt),
+            "table_outputs": digest(receipt),
+            "table_provenance": digest(stage / "MORPHEUS-STEMLIB-TABLE-PROVENANCE.tsv"),
+            **{name: digest(args.tools / name) for name in ["indexnoms", "do_conj", "indexvbs"]},
+        },
+    }
+    if any(role == "constraint-tool" for role, _, _ in rows):
+        perl_path = shutil.which(args.perl)
+        if perl_path is None:
+            raise ValueError("constraint interpreter unavailable: " + args.perl)
+        provenance["sha256"]["perl"] = digest(Path(perl_path))
+    (work / "provenance.json").write_text(json.dumps(provenance, indent=2, sort_keys=True) + "\n")
     options = ["-L"] if language == "Latin" else []
     report = {"language": language, "producers": {}, "baselines": {}}
 
