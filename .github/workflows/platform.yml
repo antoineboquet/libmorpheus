@@ -432,7 +432,7 @@ jobs:
             import {
               MorpheusLanguage,
               MorpheusLibrary,
-            } from "jsr:@humanities/libmorpheus";
+            } from "jsr:@libmorpheus/deno@0.4.0";
             using library = new MorpheusLibrary(
               Deno.env.get("MORPHEUS_LIBRARY")!,
             );
