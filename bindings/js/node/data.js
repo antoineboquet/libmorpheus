@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
-import { pathToFileURL } from "node:url";
 import { acquireMorpheusData } from "./internal/data-internal.js";
+import { isMainModule } from "./internal/main-module.js";
 
 export { acquireMorpheusData };
 
@@ -44,7 +44,7 @@ function usage() {
   return `Usage: libmorpheus-data --dataset <alpheios|perseids> --output <directory> [--with-gener]\n\nAlpheios provides Greek analysis and experimental generation; Perseids provides Greek and Latin analysis.`;
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMainModule(import.meta.url)) {
   try {
     const options = parseMorpheusDataArgs(process.argv.slice(2));
     if (options.help) console.log(usage());

@@ -200,7 +200,8 @@ jobs:
               process.exit(1);
             }
           '
-          ./node_modules/.bin/libmorpheus-setup --help
+          setup_help="$(./node_modules/.bin/libmorpheus-setup --help)"
+          grep -F 'Usage: libmorpheus-setup' <<<"$setup_help"
 
       - name: Publish platform packages, then main package
         env:

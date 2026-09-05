@@ -13,7 +13,7 @@ foreach(field IN ITEMS name version license type)
   endif()
 endforeach()
 if(NOT node_name STREQUAL "@libmorpheus/node" OR
-   NOT node_version STREQUAL "0.1.0" OR
+   NOT node_version STREQUAL "0.1.1" OR
    NOT node_license STREQUAL "AGPL-3.0-or-later" OR
    NOT node_type STREQUAL "module")
   message(FATAL_ERROR
@@ -108,13 +108,14 @@ foreach(required IN ITEMS
     data.d.ts data.js internal/archive.js internal/data-internal.js
     internal/data-manifest.js internal/gener-index.js internal/gener-manifest.js
     internal/gener-preparer.mjs internal/gener-runtime.js
+    internal/main-module.js
     internal/native-internal.js internal/native-manifest.js
     internal/setup-internal.js internal/version.js native.d.ts native.js
     setup.d.ts setup.js
     LICENSES/EMSCRIPTEN.txt LICENSES/MPL-2.0.txt
     package-platform.mjs package.json package.json.license
     test/binding.test.js test/data.test.js test/gener.test.js
-    test/native.test.js test/setup.test.js)
+    test/main-module.test.js test/native.test.js test/setup.test.js)
   if(NOT EXISTS "${node_dir}/${required}")
     message(FATAL_ERROR "Missing Node binding source: ${required}")
   endif()

@@ -13,7 +13,7 @@ on:
       package_version:
         description: Published @libmorpheus/node version
         required: true
-        default: 0.1.0
+        default: 0.1.1
         type: string
 
 permissions:
@@ -91,6 +91,9 @@ jobs:
             --with-gener \
             --native-output "$RUNNER_TEMP/morpheus-native" \
             --data-output "$RUNNER_TEMP/morpheus-alpheios"
+          test -f "$RUNNER_TEMP/morpheus-native/lib/libmorpheus.so"
+          test -f "$RUNNER_TEMP/morpheus-native/MORPHEUS-NATIVE.json"
+          test -f "$RUNNER_TEMP/morpheus-alpheios/gener.index"
 
       - name: Acquire Perseids Greek and Latin data
         run: |
@@ -98,6 +101,7 @@ jobs:
           ./node_modules/.bin/libmorpheus-data \
             --dataset perseids \
             --output "$RUNNER_TEMP/morpheus-perseids"
+          test -f "$RUNNER_TEMP/morpheus-perseids/MORPHEUS-DATA.json"
 
       - name: Analyze Greek and Latin and generate Greek forms
         run: |

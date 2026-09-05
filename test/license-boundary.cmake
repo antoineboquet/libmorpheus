@@ -29,6 +29,7 @@ set(agpl_files
     bindings/js/node/internal/data-manifest.js
     bindings/js/node/internal/gener-index.js
     bindings/js/node/internal/gener-runtime.js
+    bindings/js/node/internal/main-module.js
     bindings/js/node/internal/native-internal.js
     bindings/js/node/internal/native-manifest.js
     bindings/js/node/internal/version.js
@@ -42,6 +43,7 @@ set(agpl_files
     bindings/js/node/test/bootstrap-npm.test.js
     bindings/js/node/test/data.test.js
     bindings/js/node/test/gener.test.js
+    bindings/js/node/test/main-module.test.js
     bindings/js/node/test/native.test.js
     bindings/js/node/test/setup.test.js
     bindings/python/NOTICE

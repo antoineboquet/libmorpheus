@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { join, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
 
 import {
   acquireMorpheusNativeWithDependencies,
@@ -13,6 +12,7 @@ import {
   MORPHEUS_NATIVE_VERSION,
   selectMorpheusNativeTarget,
 } from "./internal/native-manifest.js";
+import { isMainModule } from "./internal/main-module.js";
 
 export { MORPHEUS_NATIVE_ABI_VERSION, MORPHEUS_NATIVE_VERSION };
 
@@ -52,7 +52,7 @@ function usage() {
   return `Usage: libmorpheus-native --output <directory>\n\nDownloads, verifies, and safely extracts libmorpheus. The destination must not exist.`;
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMainModule(import.meta.url)) {
   try {
     const options = parseMorpheusNativeArgs(process.argv.slice(2));
     if (options.help) console.log(usage());

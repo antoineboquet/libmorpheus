@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 import { lstat, rm } from "node:fs/promises";
-import { pathToFileURL } from "node:url";
 
 import { acquireMorpheusData } from "./internal/data-internal.js";
 import {
@@ -10,6 +9,7 @@ import {
   defaultNativeAcquisitionDependencies,
 } from "./internal/native-internal.js";
 import { setupMorpheusWithDependencies } from "./internal/setup-internal.js";
+import { isMainModule } from "./internal/main-module.js";
 
 async function pathExists(path) {
   try {
@@ -74,7 +74,7 @@ function usage() {
   return `Usage: libmorpheus-setup --dataset <alpheios|perseids> [--with-gener] [--native-output <directory>] [--data-output <directory>]`;
 }
 
-if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (isMainModule(import.meta.url)) {
   try {
     const options = parseMorpheusSetupArgs(process.argv.slice(2));
     if (options.help) console.log(usage());
